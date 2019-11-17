@@ -10,10 +10,10 @@
   "private": true,
   "scripts": {
     "build:schema": "gulp schema",
-    "build:ts": "tsc -p tsconfig.build.json",
+    "build:ts": "tsc -p tsconfig.json",
     "build": "npm-run-all build:schema build:ts",
     "clean:schema": "gulp cleanSchema",
-    "clean:ts": "rm -rf ./dist/ && rm -rf tsconfig.build.tsbuildinfo",
+    "clean:ts": "rm -rf ./dist/ && rm -rf tsconfig.tsbuildinfo",
     "clean": "npm-run-all clean:schema clean:ts"
   },
   "dependencies": {

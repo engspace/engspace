@@ -10,10 +10,10 @@
   "private": true,
   "scripts": {
     "build:sql": "gulp copySql",
-    "build:ts": "tsc -p tsconfig.build.json",
+    "build:ts": "tsc -p tsconfig.json",
     "build": "npm-run-all build:sql build:ts",
     "clean:sql": "gulp cleanSql",
-    "clean:ts": "rm -rf ./dist/ && rm -rf tsconfig.build.tsbuildinfo",
+    "clean:ts": "rm -rf ./dist/ && rm -rf tsconfig.tsbuildinfo",
     "clean": "npm-run-all clean:sql clean:ts"
   },
   "dependencies": {

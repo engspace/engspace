@@ -5,8 +5,8 @@ const Vinyl = require('vinyl');
 const through = require('through2');
 const del = require('del');
 const tjs = require('typescript-json-schema');
-const localTsJson = require('./tsconfig.build.json');
-const rootTsJson = require('../../tsconfig.build.json');
+const localTsJson = require('./tsconfig.json');
+const rootTsJson = require('../../tsconfig.json');
 
 const schemaTypes = ['IUser', 'IProject'];
 
