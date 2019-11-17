@@ -1,0 +1,13 @@
+{
+  "server": {
+    "port": 3000
+  },
+  "db": {
+    "uri": "postgresql://postgres:postgres@localhost",
+    "name": "engspace_demo",
+    "options": {
+      "captureStackTrace": true
+    }
+  },
+  "jwtSecret": "not_a_production_password"
+}

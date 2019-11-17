@@ -1,0 +1,19 @@
+{
+  "name": "@engspace/demo-server",
+  "version": "0.1.0",
+  "description": "Engineering Space - Demo server app",
+  "main": "dist/index",
+  "types": "dist/index",
+  "repository": "https://github.com/engspace/engspace",
+  "author": "Remi Thebault <remi.thebault@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json"
+  },
+  "dependencies": {
+    "@engspace/demo-data": "^0.1.0",
+    "@engspace/server-api": "^0.1.0"
+
+  }
+}
