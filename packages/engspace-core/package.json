@@ -1,0 +1,32 @@
+{
+  "name": "@engspace/core",
+  "version": "0.1.0",
+  "description": "Engineering Space - Core library",
+  "main": "dist/index",
+  "types": "dist/index",
+  "repository": "https://github.com/engspace/engspace",
+  "author": "Remi Thebault <remi.thebault@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build:schema": "gulp schema",
+    "build:ts": "tsc -b tsconfig.build.json",
+    "build": "npm-run-all build:schema build:ts",
+    "clean:schema": "gulp cleanSchema",
+    "clean:ts": "rm -rf ./dist/ && rm -rf tsconfig.build.tsbuildinfo",
+    "clean": "npm-run-all clean:schema clean:ts"
+  },
+  "dependencies": {
+    "ajv": "^6.10.2",
+    "chai": "^4.2.0",
+    "lodash.clonedeep": "^4.5.0"
+  },
+  "devDependencies": {
+    "del": "^5.1.0",
+    "gulp": "^4.0.2",
+    "npm-run-all": "^4.1.5",
+    "through2": "^3.0.1",
+    "typescript-json-schema": "^0.40.0",
+    "vinyl": "^2.2.0"
+  }
+}

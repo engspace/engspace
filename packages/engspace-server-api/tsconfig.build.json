@@ -1,0 +1,17 @@
+{
+    "extends": "../../tsconfig.build.json",
+
+    "compilerOptions": {
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "composite": true
+    },
+
+    "references": [{
+        "path": "../engspace-core/tsconfig.build.json"
+    }],
+
+    "include": [
+        "src/**/*"
+    ]
+}
