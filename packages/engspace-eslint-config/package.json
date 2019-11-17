@@ -1,0 +1,19 @@
+{
+  "name": "@engspace/eslint-config",
+  "version": "0.1.0",
+  "description": "ESLint config for Engineering Space",
+  "author": "Remi Thebault <remi.thebault@gmail.com>",
+  "homepage": "https://github.com/engspace/engspace",
+  "license": "MIT",
+  "main": "index.js",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.7.0",
+    "@typescript-eslint/parser": "^2.7.0",
+    "eslint": "^6.6.0"
+  },
+  "peerDependencies": {
+    "@typescript-eslint/eslint-plugin": ">=2.7.0",
+    "@typescript-eslint/parser": ">=2.7.0",
+    "eslint": ">=6.0.0"
+  }
+}
