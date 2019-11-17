@@ -11,9 +11,9 @@
   ],
   "scripts": {
     "clean": "lerna run clean",
-    "demo:build": "lerna run build --ignore '{@engspace/*client*,@engspace/server-app}' --stream",
+    "demo:build": "lerna run build --scope @engspace/demo-server --include-dependencies --stream",
     "demo:serve": "lerna run serve --scope=@engspace/demo-server --stream",
-    "server:build": "lerna run build --ignore '{@engspace/*client*,@engspace/*demo*}' --stream",
+    "server:build": "lerna run build --scope=@engspace/server-app --include-dependencies --stream",
     "server:serve": "lerna run serve --scope=@engspace/server-app --stream"
   },
   "devDependencies": {
