@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
 const stream = require('stream');
 const gulp = require('gulp');
@@ -31,7 +34,7 @@ function getCommonBasePathOfArray(paths) {
 function typeStream() {
     const rs = new stream.Readable({
         objectMode: true,
-        read: (_size) => {
+        read: () => {
             schemaTypes.forEach(type => rs.push(type));
             rs.push(null);
         },

@@ -9,6 +9,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "lint": "eslint --ext .js,.ts .",
     "build:schema": "gulp schema",
     "build:ts": "tsc -p tsconfig.json",
     "build": "npm-run-all build:schema build:ts",
@@ -22,6 +23,8 @@
     "lodash.clonedeep": "^4.5.0"
   },
   "devDependencies": {
+    "@engspace/eslint-config": "^0.1.0",
+    "@types/mocha": "^5.2.7",
     "@typescript-eslint/eslint-plugin": "^2.7.0",
     "@typescript-eslint/parser": "^2.7.0",
     "del": "^5.1.0",

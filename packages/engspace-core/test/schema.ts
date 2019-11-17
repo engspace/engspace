@@ -1,6 +1,6 @@
 
 import chai from 'chai';
-import { Project, IProject, User, IUser } from '../src';
+import { Project, User } from '../src';
 
 const { expect } = chai;
 
