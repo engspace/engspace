@@ -9,7 +9,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "tsc -b tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf ./dist"
   },
   "dependencies": {
     "@engspace/core": "^0.1.0",

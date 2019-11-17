@@ -3,12 +3,8 @@
 
     "compilerOptions": {
         "outDir": "./dist",
-        "rootDir": "./src"
+        "rootDir": "src"
     },
-
-    "references": [{
-        "path": "../engspace-core/tsconfig.build.json"
-    }],
 
     "include": [
         "src/**/*"

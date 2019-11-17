@@ -9,8 +9,9 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "tsc -b tsconfig.build.json",
-    "serve": "node ."
+    "build": "tsc -p tsconfig.build.json",
+    "serve": "node .",
+    "clean": "rm -rf ./dist"
   },
   "dependencies": {
     "@engspace/demo-data": "^0.1.0",
