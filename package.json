@@ -17,7 +17,6 @@
     "server:serve": "lerna run serve --scope=@engspace/server-app --stream"
   },
   "devDependencies": {
-    "lerna": "^3.18.4",
-    "typescript": "^3.7.2"
+    "lerna": "^3.18.4"
   }
 }

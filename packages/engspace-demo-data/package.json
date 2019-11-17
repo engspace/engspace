@@ -15,6 +15,8 @@
   "dependencies": {
     "@engspace/core": "^0.1.0",
     "@engspace/server-db": "^0.1.0"
-
+  },
+  "devDependencies": {
+    "typescript": "^3.7.2"
   }
 }
