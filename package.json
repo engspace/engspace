@@ -9,6 +9,10 @@
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "build": "lerna run build --stream",
+    "demo": "lerna run serve --scope=@engspace/demo-server --stream"
+  },
   "devDependencies": {
     "lerna": "^3.18.4",
     "typescript": "^3.7.2"
