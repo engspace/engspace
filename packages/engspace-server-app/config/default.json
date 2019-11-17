@@ -1,0 +1,11 @@
+{
+  "server": {
+    "port": 3000
+  },
+  "db": {
+    "uri": "postgresql://postgres:postgres@localhost",
+    "name": "engspace",
+    "options": {}
+  },
+  "jwtSecret": "not_a_production_password"
+}
