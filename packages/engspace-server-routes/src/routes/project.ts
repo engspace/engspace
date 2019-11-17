@@ -4,9 +4,7 @@ import { sql } from 'slonik';
 import HttpStatus from 'http-status-codes';
 
 import { IProject, Project } from '@engspace/core';
-
-import { Pool, SqlLiteral } from '../../db';
-import { ProjectDao } from '../../db/dao';
+import { Pool, SqlLiteral, ProjectDao } from '@engspace/server-db';
 
 import { Route } from './routegen';
 

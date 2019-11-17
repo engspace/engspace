@@ -10,11 +10,11 @@
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "clean": "rm -rf ./dist"
+    "clean": "rm -rf ./dist/ && rm -rf tsconfig.build.tsbuildinfo"
   },
   "dependencies": {
     "@engspace/core": "^0.1.0",
-    "@engspace/server-api": "^0.1.0"
+    "@engspace/server-db": "^0.1.0"
 
   }
 }

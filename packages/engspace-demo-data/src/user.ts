@@ -1,6 +1,6 @@
 import { CommonQueryMethodsType } from 'slonik';
 import { User } from '@engspace/core';
-import { UserDao } from '@engspace/server-api/dist/db/dao';
+import { UserDao } from '@engspace/server-db';
 
 export const userInput = [
     // email is [name]@engspace.demo

@@ -2,8 +2,8 @@ const gulp = require('gulp');
 const del = require('del');
 
 function copySql() {
-    return gulp.src('src/db/sql/*.sql')
-        .pipe(gulp.dest('dist/db/sql'));
+    return gulp.src('src/sql/*.sql')
+        .pipe(gulp.dest('dist/sql'));
 }
 
 function cleanSql() {

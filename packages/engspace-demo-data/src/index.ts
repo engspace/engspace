@@ -1,5 +1,5 @@
 
-import { Pool } from '@engspace/server-api/dist/db';
+import { Pool } from '@engspace/server-db';
 import { createUsers } from './user';
 import { createProjects } from './project';
 

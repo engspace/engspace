@@ -1,7 +1,7 @@
 {
-  "name": "@engspace/server-api",
+  "name": "@engspace/server-db",
   "version": "0.1.0",
-  "description": "Engineering Space - Server API",
+  "description": "Engineering Space - Server database",
   "main": "dist/index",
   "types": "dist/index",
   "repository": "https://github.com/engspace/engspace",
@@ -13,27 +13,19 @@
     "build:ts": "tsc -p tsconfig.build.json",
     "build": "npm-run-all build:sql build:ts",
     "clean:sql": "gulp cleanSql",
-    "clean:ts": "rm -rf ./dist/",
+    "clean:ts": "rm -rf ./dist/ && rm -rf tsconfig.build.tsbuildinfo",
     "clean": "npm-run-all clean:sql clean:ts"
   },
   "dependencies": {
     "@engspace/core": "^0.1.0",
     "config": "^3.2.4",
-    "cookie-parser": "^1.4.4",
-    "cors": "^2.8.5",
-    "debug": "^4.1.1",
-    "esm": "^3.2.25",
-    "express": "^4.17.1",
-    "express-validator": "^6.2.0",
-    "http-status-codes": "^1.4.0",
-    "jsonwebtoken": "^8.5.1",
-    "morgan": "^1.9.1",
-    "morgan-body": "^2.4.8",
     "slonik": "^21.4.0",
     "slonik-interceptor-preset": "^1.2.9",
     "slonik-sql-tag-raw": "^1.0.1"
   },
   "devDependencies": {
+    "@types/config": "^0.0.36",
+    "@types/slonik": "^19.0.1",
     "del": "^5.1.0",
     "gulp": "^4.0.2",
     "npm-run-all": "^4.1.5"

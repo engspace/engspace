@@ -8,6 +8,9 @@ import {
 } from 'slonik';
 import { createInterceptors } from 'slonik-interceptor-preset';
 
+export { ProjectDao, UserDao } from './dao';
+export { createSchema } from './schema';
+
 let pool: DatabasePoolType | null = null;
 
 interface DbConfig {

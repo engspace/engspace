@@ -3,8 +3,8 @@ import HttpStatus from 'http-status-codes';
 import { sql, ValueExpressionType } from 'slonik';
 import { body, param, query } from 'express-validator';
 
-import { Pool, SqlLiteral } from '../../db';
-import { UserDao } from '../../db/dao';
+import { Pool, SqlLiteral, UserDao } from '@engspace/server-db';
+
 import { Route } from './routegen';
 import { IUser } from '@engspace/core';
 

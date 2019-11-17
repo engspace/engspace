@@ -3,7 +3,8 @@ import HttpStatus from 'http-status-codes';
 import { body } from 'express-validator';
 import { sql } from 'slonik';
 
-import { Pool } from '../../db';
+import { Pool } from '@engspace/server-db';
+
 import { signToken } from './auth';
 import { Route } from './routegen';
 

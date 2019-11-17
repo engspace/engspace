@@ -13,7 +13,7 @@
     "build:ts": "tsc -p tsconfig.build.json",
     "build": "npm-run-all build:schema build:ts",
     "clean:schema": "gulp cleanSchema",
-    "clean:ts": "rm -rf ./dist/",
+    "clean:ts": "rm -rf ./dist/ && rm -rf tsconfig.build.tsbuildinfo",
     "clean": "npm-run-all clean:schema clean:ts"
   },
   "dependencies": {

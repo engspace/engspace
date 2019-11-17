@@ -36,5 +36,3 @@ export class Project implements IProject {
     }
 }
 Project.validate = createValidation<IProject>(ProjectSchema, 'Project');
-
-export default {};

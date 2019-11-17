@@ -11,10 +11,14 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "serve": "node .",
-    "clean": "rm -rf ./dist"
+    "clean": "rm -rf ./dist/ && rm -rf tsconfig.build.tsbuildinfo"
   },
   "dependencies": {
-    "@engspace/server-api": "^0.1.0"
-
+    "@engspace/server-db": "^0.1.0",
+    "@engspace/server-routes": "^0.1.0",
+    "config": "^3.2.4"
+  },
+  "devDependencies": {
+    "@types/config": "^0.0.36"
   }
 }

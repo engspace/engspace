@@ -1,7 +1,7 @@
 
 import { CommonQueryMethodsType } from 'slonik';
 import { Project } from '@engspace/core';
-import { UserDao, ProjectDao } from '@engspace/server-api/dist/db/dao';
+import { UserDao, ProjectDao } from '@engspace/server-db';
 
 export const projectInput = [
     // must map user before using as project

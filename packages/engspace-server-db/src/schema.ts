@@ -4,7 +4,7 @@ import util from 'util';
 import { CommonQueryMethodsType, sql } from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
 import { Pool } from './index';
-import { sleep } from '../app/util';
+import { sleep } from './util';
 
 const readFileAsync = util.promisify(fs.readFile);
 
