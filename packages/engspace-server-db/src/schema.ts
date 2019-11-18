@@ -9,31 +9,35 @@ import { sleep } from './util';
 const readFileAsync = util.promisify(fs.readFile);
 
 // listed in an order it is safe to delete data
-const tables = [
-    'project_member',
-    'project',
-    'user',
-];
+const tables = ['project_member', 'project', 'user'];
 
 async function executeSchema(db: CommonQueryMethodsType): Promise<void> {
     const schemaPath = path.join(__dirname, 'sql/schema.sql');
     const schema = await readFileAsync(schemaPath);
-    await Promise.all(schema
-        .toString()
-        .split(';')
-        .map(q => q.trim())
-        .filter(q => q.length > 0)
-        .map(q => db.query(sql`${raw(q)}`)));
+    await Promise.all(
+        schema
+            .toString()
+            .split(';')
+            .map(q => q.trim())
+            .filter(q => q.length > 0)
+            .map(q => db.query(sql`${raw(q)}`))
+    );
 }
 
 export async function deleteSchema(db: CommonQueryMethodsType): Promise<void> {
-    await Promise.all(tables.map(t => db.query(sql`
+    await Promise.all(
+        tables.map(t =>
+            db.query(sql`
         DROP TABLE IF EXISTS ${sql.identifier([t])} CASCADE
-    `)));
+    `)
+        )
+    );
 }
 
-export async function createSchema({ preserve } = { preserve: true }): Promise<void> {
-    return Pool.transaction(async (db) => {
+export async function createSchema(
+    { preserve } = { preserve: true }
+): Promise<void> {
+    return Pool.transaction(async db => {
         if (!preserve) {
             await deleteSchema(db);
             await sleep(100);

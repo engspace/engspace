@@ -10,9 +10,12 @@ export const firstAdminRoutes = {
         auth: 'NONE',
         method: 'GET',
         path: '/',
-        handler: (req: Request, res: Response): Promise<Response> => Pool.connect(async db => res.json({
-            hasAdmin: await UserDao.adminRegistered(db),
-        })),
+        handler: (req: Request, res: Response): Promise<Response> =>
+            Pool.connect(async db =>
+                res.json({
+                    hasAdmin: await UserDao.adminRegistered(db),
+                })
+            ),
     }),
 
     register: new Route({
@@ -20,15 +23,16 @@ export const firstAdminRoutes = {
         method: 'POST',
         path: '/',
         validation: userRoutes.create.validation,
-        handler: (req: Request, res: Response): Promise<void> => Pool.connect(async (db) => {
-            const hasAdmin = await UserDao.adminRegistered(db);
-            if (hasAdmin) {
-                res.status(HttpStatus.FORBIDDEN).end();
-                return;
-            }
-            req.body.admin = true;
-            const user = await UserDao.create(db, req.body);
-            res.json(user);
-        }),
+        handler: (req: Request, res: Response): Promise<void> =>
+            Pool.connect(async db => {
+                const hasAdmin = await UserDao.adminRegistered(db);
+                if (hasAdmin) {
+                    res.status(HttpStatus.FORBIDDEN).end();
+                    return;
+                }
+                req.body.admin = true;
+                const user = await UserDao.create(db, req.body);
+                res.json(user);
+            }),
     }),
 };

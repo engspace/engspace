@@ -34,7 +34,11 @@ export function buildRouter(routeSet: RouteSet): Router {
 }
 
 function validationGuard(): RequestHandler {
-    return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    return async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             res.status(HttpStatus.BAD_REQUEST).json({ errors: errors.array() });
@@ -50,7 +54,7 @@ function handle(handler: RouteHandler): RequestHandler {
         try {
             Promise.resolve(handler(req, res))
                 .then(() => {})
-                .catch((err) => {
+                .catch(err => {
                     console.error(err);
                     res.status(HttpStatus.INTERNAL_SERVER_ERROR).end();
                 });
@@ -81,27 +85,26 @@ export class Route {
 
         if (this.auth) {
             switch (this.auth) {
-            case 'USER':
-                chain = chain.concat(auth.user);
-                break;
-            case 'ADMIN':
-                chain = chain.concat(auth.admin);
-                break;
-            case 'MANAGER':
-                chain = chain.concat(auth.manager);
-                break;
-            case 'NONE':
-                break;
-            default:
-                throw new Error(`unknown authorization level: ${this.auth}`);
+                case 'USER':
+                    chain = chain.concat(auth.user);
+                    break;
+                case 'ADMIN':
+                    chain = chain.concat(auth.admin);
+                    break;
+                case 'MANAGER':
+                    chain = chain.concat(auth.manager);
+                    break;
+                case 'NONE':
+                    break;
+                default:
+                    throw new Error(
+                        `unknown authorization level: ${this.auth}`
+                    );
             }
         }
 
         if (this.validation) {
-            chain = chain.concat(
-                this.validation,
-                validationGuard(),
-            );
+            chain = chain.concat(this.validation, validationGuard());
         }
 
         return chain.concat(handle(this.handler));
@@ -110,23 +113,23 @@ export class Route {
     addToRouter(router: Router): void {
         const chain = this.middlewareChain;
         switch (this.method) {
-        case 'GET':
-            router.get(this.path, chain);
-            break;
-        case 'POST':
-            router.post(this.path, chain);
-            break;
-        case 'PATCH':
-            router.patch(this.path, chain);
-            break;
-        case 'PUT':
-            router.put(this.path, chain);
-            break;
-        case 'DELETE':
-            router.delete(this.path, chain);
-            break;
-        default:
-            throw new Error(`Unexpected route method: ${this.method}`);
+            case 'GET':
+                router.get(this.path, chain);
+                break;
+            case 'POST':
+                router.post(this.path, chain);
+                break;
+            case 'PATCH':
+                router.patch(this.path, chain);
+                break;
+            case 'PUT':
+                router.put(this.path, chain);
+                break;
+            case 'DELETE':
+                router.delete(this.path, chain);
+                break;
+            default:
+                throw new Error(`Unexpected route method: ${this.method}`);
         }
     }
 }

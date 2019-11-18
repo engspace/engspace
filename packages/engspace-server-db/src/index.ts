@@ -26,9 +26,7 @@ export class Pool {
         if (pool !== null) return;
         const connString = `${dbConfig.uri}/${dbConfig.name}`;
         pool = createPool(connString, {
-            interceptors: [
-                ...createInterceptors(),
-            ],
+            interceptors: [...createInterceptors()],
             ...dbConfig.options,
         });
     }
@@ -37,8 +35,9 @@ export class Pool {
         return (pool as DatabasePoolType).connect(handler);
     }
 
-    static async transaction<T>(handler: TransactionFunctionType<T>): Promise<T> {
+    static async transaction<T>(
+        handler: TransactionFunctionType<T>
+    ): Promise<T> {
         return (pool as DatabasePoolType).transaction(handler);
     }
 }
-

@@ -1,4 +1,3 @@
-
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import cors from 'cors';
@@ -10,9 +9,11 @@ import router from './routes';
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({
-    extended: false,
-}));
+app.use(
+    express.urlencoded({
+        extended: false,
+    })
+);
 
 if (process.env.LOG_MODE === 'full') {
     morganBody(app, {
@@ -24,9 +25,11 @@ if (process.env.LOG_MODE === 'full') {
 }
 
 app.use(cookieParser());
-app.use(cors({
-    exposedHeaders: ['Total-Count'],
-}));
+app.use(
+    cors({
+        exposedHeaders: ['Total-Count'],
+    })
+);
 app.use('/api', router);
 
 export { app };

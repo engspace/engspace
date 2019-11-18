@@ -17,9 +17,10 @@ export const rootRoutes = {
             body('nameOrEmail').isString(),
             body('password').isString(),
         ],
-        handler: (req: Request, res: Response): Promise<void> => Pool.connect(async (db) => {
-            const { nameOrEmail, password } = req.body;
-            const answ = await db.maybeOne(sql`
+        handler: (req: Request, res: Response): Promise<void> =>
+            Pool.connect(async db => {
+                const { nameOrEmail, password } = req.body;
+                const answ = await db.maybeOne(sql`
                 SELECT
                     (password = crypt(${password}, password)) as ok,
                     id, full_name, admin, manager
@@ -28,24 +29,28 @@ export const rootRoutes = {
                     name = ${nameOrEmail} OR
                     email = ${nameOrEmail}
             `);
-            if (!answ || !answ.ok) {
-                res.status(HttpStatus.FORBIDDEN).end();
-            }
-            else {
-                res.json({ token: await signToken(answ as any as {
-                    id: number;
-                    fullName: string;
-                    admin: boolean;
-                    manager: boolean;
-                })});
-            }
-        }),
+                if (!answ || !answ.ok) {
+                    res.status(HttpStatus.FORBIDDEN).end();
+                } else {
+                    res.json({
+                        token: await signToken(
+                            (answ as any) as {
+                                id: number;
+                                fullName: string;
+                                admin: boolean;
+                                manager: boolean;
+                            }
+                        ),
+                    });
+                }
+            }),
     }),
 
     checkToken: new Route({
         auth: 'USER',
         method: 'GET',
         path: '/check_token',
-        handler: async (req: Request, res: Response): Promise<void> => res.status(HttpStatus.OK).end(),
+        handler: async (req: Request, res: Response): Promise<void> =>
+            res.status(HttpStatus.OK).end(),
     }),
 };

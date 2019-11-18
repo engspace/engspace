@@ -68,23 +68,31 @@ export const userInput = [
 ];
 
 export function prepareUsersWithPswd(): User[] {
-    return userInput.map(u => new User({
-        ...u,
-        email: `${u.name}@engspace.demo`,
-        password: u.name,
-    }));
+    return userInput.map(
+        u =>
+            new User({
+                ...u,
+                email: `${u.name}@engspace.demo`,
+                password: u.name,
+            })
+    );
 }
 
 export function prepareUsers(): User[] {
-    return userInput.map(u => new User({
-        ...u,
-        email: `${u.name}@engspace.demo`,
-    }));
+    return userInput.map(
+        u =>
+            new User({
+                ...u,
+                email: `${u.name}@engspace.demo`,
+            })
+    );
 }
 
 export async function createUsers(db: CommonQueryMethodsType): Promise<User[]> {
     const users = prepareUsersWithPswd();
-    return await Promise.all(users.map((u) => {
-        return UserDao.create(db, u);
-    }));
+    return await Promise.all(
+        users.map(u => {
+            return UserDao.create(db, u);
+        })
+    );
 }

@@ -3,8 +3,7 @@ import jwt from 'jsonwebtoken';
 import HttpStatus from 'http-status-codes';
 import { NextFunction, Request, Response } from 'express';
 
-export interface UserTokenInput
-{
+export interface UserTokenInput {
     id: number;
     fullName: string;
     admin: boolean;
@@ -28,12 +27,16 @@ export async function signToken(user: UserTokenInput): Promise<string> {
             (err, encoded) => {
                 if (err) reject(err);
                 resolve(encoded);
-            },
+            }
         );
     });
 }
 
-async function checkToken(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function checkToken(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
     let tok = req.get('x-access-token') || req.get('authorization');
     if (tok) {
         if (tok.startsWith('Bearer ')) {
@@ -57,7 +60,11 @@ async function checkToken(req: Request, res: Response, next: NextFunction): Prom
     }
 }
 
-async function checkAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function checkAdmin(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
     const r = req as any;
     if (r.user && r.user.admin === true) {
         next();
@@ -66,7 +73,11 @@ async function checkAdmin(req: Request, res: Response, next: NextFunction): Prom
     }
 }
 
-async function checkManager(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function checkManager(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
     const r = req as any;
     if (r.user && r.user.manager === true) {
         next();

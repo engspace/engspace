@@ -16,15 +16,23 @@ export const userRoutes = {
 
         validation: [
             body('name').isString(),
-            body('email').isEmail().normalizeEmail(),
-            body('fullName').optional().isString(),
-            body('admin').optional().isBoolean(),
-            body('manager').optional().isBoolean(),
+            body('email')
+                .isEmail()
+                .normalizeEmail(),
+            body('fullName')
+                .optional()
+                .isString(),
+            body('admin')
+                .optional()
+                .isBoolean(),
+            body('manager')
+                .optional()
+                .isBoolean(),
             body('password').isString(),
         ],
 
         handler: (req: Request, res: Response): Promise<void> =>
-            Pool.connect(async (db) => {
+            Pool.connect(async db => {
                 const user = await UserDao.create(db, req.body);
                 res.json(user);
             }),
@@ -36,14 +44,24 @@ export const userRoutes = {
         path: '/:id',
         validation: [
             param('id').isInt(),
-            body('name').optional().isString(),
-            body('email').optional().isString(),
-            body('fullName').optional().isString(),
-            body('admin').optional().isBoolean(),
-            body('manager').optional().isBoolean(),
-            body('password').optional().custom(
-                value => value === null || typeof value === 'string',
-            ),
+            body('name')
+                .optional()
+                .isString(),
+            body('email')
+                .optional()
+                .isString(),
+            body('fullName')
+                .optional()
+                .isString(),
+            body('admin')
+                .optional()
+                .isBoolean(),
+            body('manager')
+                .optional()
+                .isBoolean(),
+            body('password')
+                .optional()
+                .custom(value => value === null || typeof value === 'string'),
         ],
         handler: async (req: Request, res: Response): Promise<void> => {
             const id = Number(req.params.id);
@@ -52,7 +70,11 @@ export const userRoutes = {
             if (user.id !== id && !user.admin) {
                 return res.status(HttpStatus.FORBIDDEN).end();
             }
-            if ('name' in req.body || 'admin' in req.body || 'manager' in req.body) {
+            if (
+                'name' in req.body ||
+                'admin' in req.body ||
+                'manager' in req.body
+            ) {
                 if (!user.admin) {
                     return res.status(HttpStatus.FORBIDDEN).end();
                 }
@@ -60,7 +82,8 @@ export const userRoutes = {
             let password;
             if ('password' in req.body) {
                 ({ password } = req.body);
-                if (password !== null && !password) { // must be set or null
+                if (password !== null && !password) {
+                    // must be set or null
                     return res.status(HttpStatus.BAD_REQUEST).end();
                 }
                 if (!password && !user.admin) {
@@ -76,7 +99,10 @@ export const userRoutes = {
             };
             if ('password' in req.body) {
                 if (password) {
-                    assignments.password = sql.raw('crypt($1, gen_salt(\'bf\'))', [req.body.password]);
+                    assignments.password = sql.raw(
+                        "crypt($1, gen_salt('bf'))",
+                        [req.body.password]
+                    );
                 } else {
                     assignments.password = null;
                 }
@@ -84,10 +110,12 @@ export const userRoutes = {
 
             const list: Array<ValueExpressionType> = [];
             for (const name in assignments) {
-                list.push(sql`${sql.identifier([name])} = ${assignments[name]}`);
+                list.push(
+                    sql`${sql.identifier([name])} = ${assignments[name]}`
+                );
             }
 
-            return Pool.connect(async (db) => {
+            return Pool.connect(async db => {
                 const user = await db.one(sql`
                     UPDATE "user" SET
                         ${sql.join(list, sql`, `)}
@@ -106,20 +134,30 @@ export const userRoutes = {
         path: '/',
 
         validation: [
-            query('search').optional().isString(),
-            query('admin').optional().isBoolean(),
-            query('manager').optional().isBoolean(),
-            query('offset').optional().isInt(),
-            query('limit').optional().isInt(),
+            query('search')
+                .optional()
+                .isString(),
+            query('admin')
+                .optional()
+                .isBoolean(),
+            query('manager')
+                .optional()
+                .isBoolean(),
+            query('offset')
+                .optional()
+                .isInt(),
+            query('limit')
+                .optional()
+                .isInt(),
         ],
 
         handler: async (req: Request, res: Response): Promise<void> => {
-            return Pool.connect(async (db) => {
-                const {
-                    offset, limit, search, admin, manager,
-                } = req.query;
+            return Pool.connect(async db => {
+                const { offset, limit, search, admin, manager } = req.query;
 
-                const buildWhereClause = (args: (string|number)[]): string => {
+                const buildWhereClause = (
+                    args: (string | number)[]
+                ): string => {
                     const comps = [];
                     if (search) {
                         args.push(`%${search.replace(/s/g, '%')}%`);
@@ -138,16 +176,22 @@ export const userRoutes = {
                         args.push(manager);
                         comps.push(`manager = $${args.length}`);
                     }
-                    return comps.length === 0 ? '' : `WHERE ${comps.join(' AND ')}`;
+                    return comps.length === 0
+                        ? ''
+                        : `WHERE ${comps.join(' AND ')}`;
                 };
-                const buildLimitClause = (args: (string|number)[]): string => {
+                const buildLimitClause = (
+                    args: (string | number)[]
+                ): string => {
                     if (limit) {
                         args.push(Number(limit));
                         return `LIMIT $${args.length}`;
                     }
                     return '';
                 };
-                const buildOffsetClause = (args: (string|number)[]): string => {
+                const buildOffsetClause = (
+                    args: (string | number)[]
+                ): string => {
                     if (offset) {
                         args.push(Number(offset));
                         return `OFFSET $${args.length}`;
@@ -156,11 +200,13 @@ export const userRoutes = {
                 };
 
                 const buildQuery = (): SqlLiteral => {
-                    const args: (string|number)[] = [];
+                    const args: (string | number)[] = [];
                     const wc = buildWhereClause(args);
                     const lc = buildLimitClause(args);
                     const oc = buildOffsetClause(args);
-                    const clauses = [wc, lc, oc].filter(c => c.length !== 0).join(' ');
+                    const clauses = [wc, lc, oc]
+                        .filter(c => c.length !== 0)
+                        .join(' ');
                     return sql`
                         SELECT id, name, email, full_name, admin, manager
                         FROM "user"
@@ -172,9 +218,12 @@ export const userRoutes = {
 
                 if (limit && users.length === Number(limit)) {
                     const buildCountQuery = (): SqlLiteral => {
-                        const args: (string|number)[] = [];
+                        const args: (string | number)[] = [];
                         const wc = buildWhereClause(args);
-                        return sql`SELECT count(*) FROM "user" ${sql.raw(wc, args)}`;
+                        return sql`SELECT count(*) FROM "user" ${sql.raw(
+                            wc,
+                            args
+                        )}`;
                     };
                     const count: number = await db.oneFirst(buildCountQuery());
                     res.set('Total-Count', String(count));
