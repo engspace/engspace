@@ -9,6 +9,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "lint": "eslint --ext .js,.ts .",
+    "lint:fix": "eslint --fix --ext .js,.ts .",
     "build:sql": "gulp copySql",
     "build:ts": "tsc -p tsconfig.json",
     "build": "npm-run-all build:sql build:ts",
@@ -24,14 +26,19 @@
     "slonik-sql-tag-raw": "^1.0.1"
   },
   "devDependencies": {
+    "@engspace/eslint-config": "^0.1.0",
+    "@engspace/prettier-config": "^0.1.0",
     "@types/config": "^0.0.36",
     "@types/slonik": "^19.0.1",
     "@typescript-eslint/eslint-plugin": "^2.7.0",
     "@typescript-eslint/parser": "^2.7.0",
     "del": "^5.1.0",
     "eslint": "^6.6.0",
+    "eslint-config-prettier": "^6.6.0",
+    "eslint-plugin-prettier": "^3.1.1",
     "gulp": "^4.0.2",
     "npm-run-all": "^4.1.5",
+    "prettier": "^1.19.1",
     "typescript": "^3.7.2"
   }
 }

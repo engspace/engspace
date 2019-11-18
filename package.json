@@ -10,11 +10,13 @@
         "packages/*"
     ],
     "scripts": {
-        "clean": "lerna run clean",
+        "lint": "lerna run lint --parallel",
+        "lint:fix": "lerna run lint:fix --parallel",
         "demo:build": "lerna run build --scope @engspace/demo-server --include-dependencies --stream",
         "demo:serve": "lerna run serve --scope=@engspace/demo-server --stream",
         "server:build": "lerna run build --scope=@engspace/server-app --include-dependencies --stream",
-        "server:serve": "lerna run serve --scope=@engspace/server-app --stream"
+        "server:serve": "lerna run serve --scope=@engspace/server-app --stream",
+        "clean": "lerna run clean --parallel"
     },
     "devDependencies": {
         "lerna": "^3.18.4",
