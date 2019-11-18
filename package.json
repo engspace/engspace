@@ -1,23 +1,23 @@
 {
-  "name": "engspace",
-  "version": "0.1.0",
-  "description": "Engineering Space - PLM solution",
-  "repository": "https://github.com/engspace/engspace",
-  "author": "Remi Thebault <remi.thebault@gmail.com>",
-  "license": "MIT",
-  "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
-  "scripts": {
-    "clean": "lerna run clean",
-    "demo:build": "lerna run build --scope @engspace/demo-server --include-dependencies --stream",
-    "demo:serve": "lerna run serve --scope=@engspace/demo-server --stream",
-    "server:build": "lerna run build --scope=@engspace/server-app --include-dependencies --stream",
-    "server:serve": "lerna run serve --scope=@engspace/server-app --stream"
-  },
-  "devDependencies": {
-    "eslint": "^6.6.0",
-    "lerna": "^3.18.4"
-  }
+    "name": "engspace",
+    "version": "0.1.0",
+    "description": "Engineering Space - PLM solution",
+    "repository": "https://github.com/engspace/engspace",
+    "author": "Remi Thebault <remi.thebault@gmail.com>",
+    "license": "MIT",
+    "private": true,
+    "workspaces": [
+        "packages/*"
+    ],
+    "scripts": {
+        "clean": "lerna run clean",
+        "demo:build": "lerna run build --scope @engspace/demo-server --include-dependencies --stream",
+        "demo:serve": "lerna run serve --scope=@engspace/demo-server --stream",
+        "server:build": "lerna run build --scope=@engspace/server-app --include-dependencies --stream",
+        "server:serve": "lerna run serve --scope=@engspace/server-app --stream"
+    },
+    "devDependencies": {
+        "lerna": "^3.18.4",
+        "prettier": "^1.19.1"
+    }
 }
