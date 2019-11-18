@@ -1,4 +1,3 @@
-
 import chai from 'chai';
 import { Project, User } from '../src';
 

@@ -17,6 +17,7 @@
     "server:serve": "lerna run serve --scope=@engspace/server-app --stream"
   },
   "devDependencies": {
+    "eslint": "^6.6.0",
     "lerna": "^3.18.4"
   }
 }

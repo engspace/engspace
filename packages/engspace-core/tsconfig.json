@@ -6,8 +6,5 @@
         "rootDir": "./src"
     },
 
-    "include": [
-        "src/**/*.ts",
-        "src/**/*.json"
-    ]
+    "include": ["src/**/*.ts", "src/**/*.json"]
 }

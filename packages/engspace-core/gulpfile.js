@@ -19,10 +19,8 @@ function getCommonBasePath(a, b) {
     let commonLength = 0;
     for (let i = 0; i < aSplit.length && i < bSplit.length; i += 1) {
         if (aSplit[i] !== bSplit[i]) break;
-
         commonLength += aSplit[i].length + 1;
     }
-
     return a.substr(0, commonLength);
 }
 
@@ -44,43 +42,37 @@ function typeStream() {
 
 function schemaStream() {
     const files = ['./src/schema.ts'];
-    const prog = tjs.getProgramFromFiles(
-        files,
-        {
-            ...rootTsJson.compilerOptions,
-            ...localTsJson.compilerOptions,
-        },
-    );
+    const prog = tjs.getProgramFromFiles(files, {
+        ...rootTsJson.compilerOptions,
+        ...localTsJson.compilerOptions,
+    });
     const generator = tjs.buildGenerator(prog, { required: true });
     const base = getCommonBasePathOfArray(files.map(f => path.dirname(f)));
 
-    return through.obj(
-        (type, _enc, cb) => {
-            const schema = generator.getSchemaForSymbol(type);
-            cb(null, { type, base, schema });
-        },
-    );
+    return through.obj((type, _enc, cb) => {
+        const schema = generator.getSchemaForSymbol(type);
+        cb(null, { type, base, schema });
+    });
 }
 
 function jsonStream() {
-    return through.obj(
-        ({ type, base, schema }, _enc, cb) => {
-            cb(null, { type, base, json: JSON.stringify(schema, null, '  ') });
-        },
-    );
+    return through.obj(({ type, base, schema }, _enc, cb) => {
+        cb(null, { type, base, json: JSON.stringify(schema, null, '  ') });
+    });
 }
 
 function vinylStream() {
-    return through.obj(
-        ({ type, base, json }, _enc, cb) => {
-            cb(null, new Vinyl({
+    return through.obj(({ type, base, json }, _enc, cb) => {
+        cb(
+            null,
+            new Vinyl({
                 cwd: process.cwd(),
                 base,
                 path: path.join(base, `${type}.json`),
                 contents: Buffer.from(json),
-            }));
-        },
-    );
+            })
+        );
+    });
 }
 
 function schema() {
@@ -92,13 +84,12 @@ function schema() {
 }
 
 function cleanSchema() {
-    return del([
-        'src/schema/*.json',
-    ]);
+    return del(['src/schema/*.json']);
 }
 
 module.exports = {
-    schema, cleanSchema,
+    schema,
+    cleanSchema,
 };
 
 // function debugStream({ title }) {
