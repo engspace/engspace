@@ -12,6 +12,7 @@
     "scripts": {
         "lint": "lerna run lint --parallel",
         "lint:fix": "lerna run lint:fix --parallel",
+        "test": "lerna run test",
         "demo:build": "lerna run build --scope @engspace/demo-server --include-dependencies --stream",
         "demo:serve": "lerna run serve --scope=@engspace/demo-server --stream",
         "server:build": "lerna run build --scope=@engspace/server-app --include-dependencies --stream",

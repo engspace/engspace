@@ -13,7 +13,7 @@ export { createSchema } from './schema';
 
 let pool: DatabasePoolType | null = null;
 
-interface DbConfig {
+export interface DbConfig {
     uri: string;
     name: string;
     options: ClientUserConfigurationType;

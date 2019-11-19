@@ -48,8 +48,7 @@ async function upsertMembers(
     if (deleteAfter) {
         await db.query(sql`
             DELETE FROM project_member
-            WHERE project_id = ${projId} AND updated_on <> to_timestamp(${now.getTime() /
-            1000})
+            WHERE project_id = ${projId} AND updated_on <> ${isoNow}
         `);
     }
 }

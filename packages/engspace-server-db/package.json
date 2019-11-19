@@ -14,6 +14,7 @@
     "build:sql": "gulp copySql",
     "build:ts": "tsc -p tsconfig.json",
     "build": "npm-run-all build:sql build:ts",
+    "test": "cross-env NODE_ENV=test mocha -r ts-node/register test/**/*.ts",
     "clean:sql": "gulp cleanSql",
     "clean:ts": "rm -rf ./dist/ && rm -rf tsconfig.tsbuildinfo",
     "clean": "npm-run-all clean:sql clean:ts"
@@ -28,17 +29,23 @@
   "devDependencies": {
     "@engspace/eslint-config": "^0.1.0",
     "@engspace/prettier-config": "^0.1.0",
+    "@types/chai": "^4.2.5",
     "@types/config": "^0.0.36",
+    "@types/mocha": "^5.2.7",
     "@types/slonik": "^19.0.1",
     "@typescript-eslint/eslint-plugin": "^2.7.0",
     "@typescript-eslint/parser": "^2.7.0",
+    "chai": "^4.2.0",
+    "cross-env": "^6.0.3",
     "del": "^5.1.0",
     "eslint": "^6.6.0",
     "eslint-config-prettier": "^6.6.0",
     "eslint-plugin-prettier": "^3.1.1",
     "gulp": "^4.0.2",
+    "mocha": "^6.2.2",
     "npm-run-all": "^4.1.5",
     "prettier": "^1.19.1",
+    "ts-node": "^8.5.2",
     "typescript": "^3.7.2"
   }
 }

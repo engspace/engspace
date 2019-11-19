@@ -7,6 +7,7 @@ import { IProject, Project } from '@engspace/core';
 import { Pool, SqlLiteral, ProjectDao } from '@engspace/server-db';
 
 import { Route } from './routegen';
+import { raw } from 'slonik-sql-tag-raw';
 
 export const projectRoutes = {
     getByCode: new Route({
@@ -93,7 +94,7 @@ export const projectRoutes = {
                     return sql`
                         SELECT id, name, code, description
                         FROM project
-                        ${sql.raw(clauses, args)}
+                        ${raw(clauses, args)}
                     `;
                 };
 
@@ -113,7 +114,7 @@ export const projectRoutes = {
                     const buildCountQuery = (): SqlLiteral<number> => {
                         const args: Array<string | number> = [];
                         const wc = buildWhereClause(args);
-                        return sql`SELECT count(*) FROM project ${sql.raw(
+                        return sql`SELECT count(*) FROM project ${raw(
                             wc,
                             args
                         )}`;

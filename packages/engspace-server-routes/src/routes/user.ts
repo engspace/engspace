@@ -7,6 +7,7 @@ import { Pool, SqlLiteral, UserDao } from '@engspace/server-db';
 
 import { Route } from './routegen';
 import { IUser } from '@engspace/core';
+import { raw } from 'slonik-sql-tag-raw';
 
 export const userRoutes = {
     create: new Route({
@@ -99,10 +100,9 @@ export const userRoutes = {
             };
             if ('password' in req.body) {
                 if (password) {
-                    assignments.password = sql.raw(
-                        "crypt($1, gen_salt('bf'))",
-                        [req.body.password]
-                    );
+                    assignments.password = raw("crypt($1, gen_salt('bf'))", [
+                        req.body.password,
+                    ]);
                 } else {
                     assignments.password = null;
                 }
@@ -210,7 +210,7 @@ export const userRoutes = {
                     return sql`
                         SELECT id, name, email, full_name, admin, manager
                         FROM "user"
-                        ${sql.raw(clauses, args)}
+                        ${raw(clauses, args)}
                     `;
                 };
 
@@ -220,7 +220,7 @@ export const userRoutes = {
                     const buildCountQuery = (): SqlLiteral => {
                         const args: (string | number)[] = [];
                         const wc = buildWhereClause(args);
-                        return sql`SELECT count(*) FROM "user" ${sql.raw(
+                        return sql`SELECT count(*) FROM "user" ${raw(
                             wc,
                             args
                         )}`;
