@@ -1,4 +1,6 @@
 import chai from 'chai';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import chaiHttp from 'chai-http';
 
 import { IUser } from '@engspace/core';
 
