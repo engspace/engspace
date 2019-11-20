@@ -6,13 +6,13 @@ module.exports = {
         ecmaVersion: 2018,
         sourceType: 'module',
     },
-    plugins: ['@typescript-eslint'],
+    plugins: [
+        '@typescript-eslint',
+    ],
     extends: [
-        'eslint:recommended',
-        'plugin:@typescript-eslint/eslint-recommended',
-        'plugin:@typescript-eslint/recommended',
-        'prettier/@typescript-eslint',
+        'essential',
         'plugin:prettier/recommended',
+        'prettier/@typescript-eslint',
     ],
     rules: {
         '@typescript-eslint/no-explicit-any': 'off',

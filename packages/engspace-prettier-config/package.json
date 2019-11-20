@@ -2,9 +2,6 @@
     "name": "@engspace/prettier-config",
     "version": "0.1.0",
     "main": "index.js",
-    "devDependencies": {
-        "prettier": "^1.19.1"
-    },
     "peerDependencies": {
         "prettier": ">=1.19.0"
     }
