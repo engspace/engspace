@@ -1,36 +1,22 @@
 <template>
-    <v-container
-        fluid
-        fill-height
-    >
-        <v-layout
-            align-center
-            justify-center
-        >
-            <v-flex
-                xs12
-                sm8
-                md4
-            >
+    <v-container fluid fill-height>
+        <v-layout align-center justify-center>
+            <v-flex xs12 sm8 md4>
                 <v-form @submit.prevent="register">
                     <v-card elevation-12>
-                        <v-toolbar
-                            dark
-                            color="primary"
-                        >
-                            <v-toolbar-title>Create first admin account</v-toolbar-title>
+                        <v-toolbar dark color="primary">
+                            <v-toolbar-title
+                                >Create first admin account</v-toolbar-title
+                            >
                         </v-toolbar>
                         <v-card-text>
-                            <p v-if="errors.length">
+                            <div v-if="errors.length">
                                 <ul>
-                                    <li
-                                        v-for="(error, id) in errors"
-                                        :key="id"
-                                    >
+                                    <li v-for="(error, id) in errors" :key="id">
                                         {{ error }}
                                     </li>
                                 </ul>
-                            </p>
+                            </div>
                             <v-switch
                                 v-model="useEmailAsUserId"
                                 :label="'Use E-Mail as User Id'"
@@ -75,17 +61,11 @@
                                 required
                                 label="Password Check"
                             />
-                            <v-checkbox
-                                v-model="manager"
-                                label="Manager"
-                            />
+                            <v-checkbox v-model="manager" label="Manager" />
                         </v-card-text>
                         <v-card-actions>
                             <v-spacer />
-                            <v-btn
-                                color="primary"
-                                type="submit"
-                            >
+                            <v-btn color="primary" type="submit">
                                 Submit
                             </v-btn>
                         </v-card-actions>
@@ -103,7 +83,7 @@ import { AUTH_LOGIN } from '../store/actions';
 
 export default Vue.extend({
     name: 'RegisterPage',
-    data () {
+    data() {
         return {
             errors: [],
             useEmailAsUserId: false,
@@ -115,7 +95,7 @@ export default Vue.extend({
             manager: true,
         };
     },
-    async created () {
+    async created() {
         try {
             const resp = await Api.get('/first_admin');
             if (resp.hasAdmin) {
@@ -126,7 +106,7 @@ export default Vue.extend({
         }
     },
     methods: {
-        async register () {
+        async register() {
             const form = {
                 name: this.useEmailAsUserId ? this.email : this.name,
                 email: this.email,
