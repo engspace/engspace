@@ -5,11 +5,13 @@ module.exports = {
         node: true,
     },
     extends: [
-        'plugin:vue/essential',
+        'eslint:recommended',
+        'plugin:vue/recommended',
         'plugin:@typescript-eslint/recommended',
         '@vue/typescript',
         '@vue/prettier',
         'prettier/@typescript-eslint',
+        '@engspace',
     ],
     parser: 'vue-eslint-parser',
     parserOptions: {
@@ -21,8 +23,5 @@ module.exports = {
     rules: {
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
-
-        'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-        'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     },
 };

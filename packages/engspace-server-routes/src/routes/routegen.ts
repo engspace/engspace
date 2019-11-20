@@ -42,9 +42,9 @@ function validationGuard(): RequestHandler {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             res.status(HttpStatus.BAD_REQUEST).json({ errors: errors.array() });
-            return;
+        } else {
+            next();
         }
-        return next();
     };
 }
 

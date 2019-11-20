@@ -58,9 +58,9 @@ export class UserDao {
         db: CommonQueryMethodsType,
         user: IUser
     ): Promise<IUser> {
-        user.admin = user.admin || false;
-        user.manager = user.manager || false;
-        const { name, email, fullName, admin, manager, password } = user;
+        const { name, email, fullName, password } = user;
+        const admin = user.admin || false;
+        const manager = user.manager || false;
         return await db.one(sql`
             INSERT INTO "user" (
                 name, email, full_name, admin, manager, password, updated_on

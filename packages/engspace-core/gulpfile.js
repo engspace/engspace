@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-/* eslint-disable no-undef */
-/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
 const stream = require('stream');
 const gulp = require('gulp');
@@ -33,9 +30,9 @@ function typeStream() {
     const rs = new stream.Readable({
         objectMode: true,
         read: () => {
-            schemaTypes.forEach(type => rs.push(type));
+            schemaTypes.forEach((type) => rs.push(type));
             rs.push(null);
-        },
+        }
     });
     return rs;
 }
@@ -44,10 +41,10 @@ function schemaStream() {
     const files = ['./src/schema.ts'];
     const prog = tjs.getProgramFromFiles(files, {
         ...rootTsJson.compilerOptions,
-        ...localTsJson.compilerOptions,
+        ...localTsJson.compilerOptions
     });
     const generator = tjs.buildGenerator(prog, { required: true });
-    const base = getCommonBasePathOfArray(files.map(f => path.dirname(f)));
+    const base = getCommonBasePathOfArray(files.map((f) => path.dirname(f)));
 
     return through.obj((type, _enc, cb) => {
         const schema = generator.getSchemaForSymbol(type);
@@ -69,7 +66,7 @@ function vinylStream() {
                 cwd: process.cwd(),
                 base,
                 path: path.join(base, `${type}.json`),
-                contents: Buffer.from(json),
+                contents: Buffer.from(json)
             })
         );
     });
@@ -89,7 +86,7 @@ function cleanSchema() {
 
 module.exports = {
     schema,
-    cleanSchema,
+    cleanSchema
 };
 
 // function debugStream({ title }) {

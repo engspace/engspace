@@ -30,6 +30,7 @@ export const firstAdminRoutes = {
                     res.status(HttpStatus.FORBIDDEN).end();
                     return;
                 }
+                // eslint-disable-next-line no-param-reassign
                 req.body.admin = true;
                 const user = await UserDao.create(db, req.body);
                 res.json(user);

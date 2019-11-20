@@ -47,6 +47,7 @@ async function checkToken(
                 res.status(HttpStatus.FORBIDDEN).end();
             } else {
                 const obj = decoded as any;
+                // eslint-disable-next-line no-param-reassign
                 (req as any).user = {
                     id: obj.id,
                     admin: obj.admin,

@@ -1,5 +1,4 @@
 import chai from 'chai';
-import chaiHttp from 'chai-http';
 
 import { IUser } from '@engspace/core';
 

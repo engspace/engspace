@@ -27,6 +27,7 @@
     "slonik-sql-tag-raw": "^1.0.1"
   },
   "devDependencies": {
+    "@engspace/demo-data": "^0.1.0",
     "@engspace/eslint-config": "^0.1.0",
     "@engspace/prettier-config": "^0.1.0",
     "@types/chai": "^4.2.5",

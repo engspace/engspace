@@ -2,12 +2,12 @@ import { Request, Response } from 'express';
 import HttpStatus from 'http-status-codes';
 import { sql, ValueExpressionType } from 'slonik';
 import { body, param, query } from 'express-validator';
+import { raw } from 'slonik-sql-tag-raw';
 
+import { IUser } from '@engspace/core';
 import { Pool, SqlLiteral, UserDao } from '@engspace/server-db';
 
 import { Route } from './routegen';
-import { IUser } from '@engspace/core';
-import { raw } from 'slonik-sql-tag-raw';
 
 export const userRoutes = {
     create: new Route({
@@ -110,20 +110,21 @@ export const userRoutes = {
 
             const list: Array<ValueExpressionType> = [];
             for (const name in assignments) {
-                list.push(
-                    sql`${sql.identifier([name])} = ${assignments[name]}`
-                );
+                if (Object.prototype.hasOwnProperty.call(assignments, name))
+                    list.push(
+                        sql`${sql.identifier([name])} = ${assignments[name]}`
+                    );
             }
 
             return Pool.connect(async db => {
-                const user = await db.one(sql`
+                const result = await db.one(sql`
                     UPDATE "user" SET
                         ${sql.join(list, sql`, `)}
                     WHERE id = ${id}
                     RETURNING
                         id, name, email, full_name, admin, manager
                 `);
-                res.json(user);
+                res.json(result);
             });
         },
     }),
