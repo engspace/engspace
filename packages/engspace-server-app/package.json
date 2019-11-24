@@ -13,7 +13,7 @@
     "lint:fix": "eslint --fix --ext .js,.ts .",
     "build": "tsc -p tsconfig.json",
     "serve": "node .",
-    "clean": "rm -rf ./dist/ && rm -rf tsconfig.tsbuildinfo"
+    "clean": "rimraf ./dist/ tsconfig.tsbuildinfo"
   },
   "dependencies": {
     "@engspace/server-db": "^0.1.0",
@@ -30,6 +30,7 @@
     "eslint-config-prettier": "^6.6.0",
     "eslint-plugin-prettier": "^3.1.1",
     "prettier": "^1.19.1",
+    "rimraf": "^3.0.0",
     "typescript": "^3.7.2"
   }
 }
