@@ -7,8 +7,9 @@ import express, {
     Router,
 } from 'express';
 import HttpStatus from 'http-status-codes';
-import { ValidationChain, validationResult } from 'express-validator';
+import { validationResult } from 'express-validator';
 import { auth } from './auth';
+import { engspaceValidationResult } from '../validation';
 
 interface RouteHandler {
     (req: Request, res: Response): Promise<any> | void;
@@ -18,7 +19,7 @@ interface RouteInit {
     method: string;
     path: string;
     auth: string;
-    validation?: ValidationChain[];
+    validation?: RequestHandler[];
     handler: RouteHandler;
 }
 interface RouteSet {
@@ -39,9 +40,13 @@ function validationGuard(): RequestHandler {
         res: Response,
         next: NextFunction
     ): Promise<void> => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            res.status(HttpStatus.BAD_REQUEST).json({ errors: errors.array() });
+        const errors = [].concat(
+            validationResult(req).array(),
+            engspaceValidationResult(req)
+        );
+
+        if (errors.length !== 0) {
+            res.status(HttpStatus.BAD_REQUEST).json({ errors });
         } else {
             next();
         }
@@ -50,7 +55,7 @@ function validationGuard(): RequestHandler {
 
 function handle(handler: RouteHandler): RequestHandler {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    return (req: Request, res: Response, _: NextFunction): void => {
+    return (req: Request, res: Response, next: NextFunction): void => {
         try {
             Promise.resolve(handler(req, res))
                 .then(() => {})
@@ -69,7 +74,7 @@ export class Route {
     readonly method: string;
     readonly path: string;
     readonly auth: string;
-    readonly validation: ValidationChain[];
+    readonly validation: RequestHandler[];
     readonly handler: RouteHandler;
 
     constructor(init: RouteInit) {
