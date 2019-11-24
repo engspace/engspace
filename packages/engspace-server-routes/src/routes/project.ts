@@ -8,6 +8,7 @@ import { IProject, Project } from '@engspace/core';
 import { Pool, SqlLiteral, ProjectDao } from '@engspace/server-db';
 
 import { Route } from './routegen';
+import { engspaceBodyValidator } from '../validation';
 
 export const projectRoutes = {
     getByCode: new Route({
@@ -146,6 +147,20 @@ export const projectRoutes = {
         handler: async (req: Request, res: Response): Promise<void> =>
             Pool.connect(async db => {
                 const proj = await ProjectDao.create(db, req.body);
+                res.json(proj);
+            }),
+    }),
+
+    update: new Route({
+        auth: 'MANAGER',
+        method: 'PUT',
+        path: '/',
+
+        validation: [engspaceBodyValidator(Project)],
+
+        handler: async (req: Request, res: Response): Promise<void> =>
+            Pool.connect(async db => {
+                const proj = await ProjectDao.updateById(db, req.body);
                 res.json(proj);
             }),
     }),

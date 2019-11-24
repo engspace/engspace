@@ -147,4 +147,60 @@ describe('Projects', () => {
             expect(proj).to.deep.include(result);
         });
     });
+
+    describe('PUT /api/projects', async () => {
+        let dbProjects: IProject[];
+        before('create projects', async () => {
+            dbProjects = await Pool.connect(async db =>
+                Promise.all(
+                    projects.map((p: IProject) => ProjectDao.create(db, p))
+                )
+            );
+        });
+        after('clean up projects', deleteProjects);
+
+        it('should update project by id', async () => {
+            const proj = dbProjects[1];
+            const newProj = {
+                id: proj.id,
+                name: 'New project2 name',
+                code: 'proj002.bis',
+                description: 'a new description',
+                members: [
+                    {
+                        user: {
+                            id: userToks.users.user.id,
+                        },
+                        leader: false,
+                        designer: true,
+                    },
+                    {
+                        user: {
+                            id: userToks.users.admin.id,
+                        },
+                        leader: true,
+                        designer: false,
+                    },
+                ],
+            };
+            const res = await chai
+                .request(app)
+                .put('/api/projects')
+                .set('Authorization', `Bearer ${userToks.tokens.manager}`)
+                .send(newProj);
+            expect(res).to.have.status(HttpStatus.OK);
+            expect(res).to.have.property('body');
+            const result = res.body;
+            const expected = await Pool.connect(async db => ({
+                ...newProj,
+                members: await Promise.all(
+                    newProj.members.map(async m => ({
+                        ...m,
+                        user: await UserDao.findById(db, m.user.id),
+                    }))
+                ),
+            }));
+            expect(result).to.deep.include(expected);
+        });
+    });
 });
