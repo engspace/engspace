@@ -10,6 +10,12 @@ import {
 
 export { IUser, IProject, IProjectMember };
 
+export interface EngspaceClass<T extends object> {
+    check: CheckFunction<T>;
+    validate: ValidateFunction;
+    assert: AssertFunction<T>;
+}
+
 export class User implements IUser {
     id?: number | undefined;
     name = '';
@@ -20,7 +26,7 @@ export class User implements IUser {
     password?: string | undefined;
 
     static check: CheckFunction<IUser>;
-    static validate: ValidateFunction<IUser>;
+    static validate: ValidateFunction;
     static assert: AssertFunction<IUser>;
 
     constructor(obj: Partial<IUser> = {}) {
@@ -37,7 +43,7 @@ export class Project implements IProject {
     members: IProjectMember[] = [];
 
     static check: CheckFunction<IProject>;
-    static validate: ValidateFunction<IProject>;
+    static validate: ValidateFunction;
     static assert: AssertFunction<IProject>;
 
     constructor(obj: Partial<IProject> = {}) {

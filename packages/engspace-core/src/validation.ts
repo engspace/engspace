@@ -2,18 +2,14 @@ import Ajv from 'ajv';
 
 const ajv = new Ajv();
 
-export type CheckFunction<T extends object> = (obj: object) => obj is T;
-export type ValidateFunction<T extends object> = (obj: object) => string[];
-export type AssertFunction<T extends object> = (obj: object) => T;
+import { EngspaceClass } from '.';
 
-export interface IEngspaceClass<T extends object> {
-    check: CheckFunction<T>;
-    validate: ValidateFunction<T>;
-    assert: AssertFunction<T>;
-}
+export type CheckFunction<T extends object> = (obj: object) => obj is T;
+export type ValidateFunction = (obj: object) => string[];
+export type AssertFunction<T> = (obj: object) => T;
 
 export function createValidation<T extends object>(
-    clas: IEngspaceClass<T>,
+    clas: EngspaceClass<T>,
     schema: object,
     name: string
 ): void {
