@@ -1,7 +1,12 @@
 import { IUser, IProject, IProjectMember } from './schema';
 import UserSchema from './schema/IUser.json';
 import ProjectSchema from './schema/IProject.json';
-import { ValidateFunction, createValidation } from './validation';
+import {
+    CheckFunction,
+    ValidateFunction,
+    AssertFunction,
+    createValidation,
+} from './validation';
 
 export { IUser, IProject, IProjectMember };
 
@@ -14,13 +19,15 @@ export class User implements IUser {
     manager = false;
     password?: string | undefined;
 
+    static check: CheckFunction<IUser>;
     static validate: ValidateFunction<IUser>;
+    static assert: AssertFunction<IUser>;
 
     constructor(obj: Partial<IUser> = {}) {
         Object.assign(this, obj);
     }
 }
-User.validate = createValidation<IUser>(UserSchema, 'User');
+createValidation<IUser>(User, UserSchema, 'User');
 
 export class Project implements IProject {
     id?: number | undefined;
@@ -29,10 +36,12 @@ export class Project implements IProject {
     description = '';
     members: IProjectMember[] = [];
 
+    static check: CheckFunction<IProject>;
     static validate: ValidateFunction<IProject>;
+    static assert: AssertFunction<IProject>;
 
     constructor(obj: Partial<IProject> = {}) {
         Object.assign(this, obj);
     }
 }
-Project.validate = createValidation<IProject>(ProjectSchema, 'Project');
+createValidation<IProject>(Project, ProjectSchema, 'Project');

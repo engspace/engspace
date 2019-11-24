@@ -24,6 +24,37 @@ describe('User', () => {
             manager: false,
         });
     });
+    it('should validate value', () => {
+        const user = new User({ name: 'username' });
+        expect(User.validate(user)).to.be.empty;
+    });
+    it('should type guard correct value', () => {
+        const user = {
+            name: 'username',
+            email: 'username@test.com',
+            fullName: 'User Name',
+            admin: false,
+            manager: false,
+        };
+        let res = false;
+        if (User.check(user)) {
+            res = true;
+        }
+        expect(res).to.be.true;
+    });
+    it('should type guard incorrect value', () => {
+        const user = {
+            name: 'username',
+            fullName: 'User Name',
+            admin: false,
+            manager: false,
+        };
+        let res = false;
+        if (User.check(user)) {
+            res = true;
+        }
+        expect(res).to.be.false;
+    });
 });
 
 describe('Project', () => {
@@ -45,60 +76,4 @@ describe('Project', () => {
             members: [],
         });
     });
-    // it('should allow deep copy', () => {
-    //     const members = [{
-    //         user: new User({ name: 'designer' }),
-    //         designer: true,
-    //         leader: false,
-    //     },
-    //     {
-    //         user: new User({ name: 'leader' }),
-    //         designer: false,
-    //         leader: true,
-    //     }];
-    //     const proj1 = new Project({
-    //         name: 'projname',
-    //         code: 'code',
-    //         members,
-    //     });
-    //     const proj2 = new Project(proj1);
-    //     proj1.name = 'new project';
-    //     (proj1.members[0].user as IUser).name = 'new designer';
-    //     (proj1.members[1].user as IUser).name = 'new leader';
-
-    //     expect(proj1).to.deep.include({
-    //         name: 'new project',
-    //         code: 'code',
-    //         members: [{
-    //             user: {
-    //                 name: 'new designer', email: '', fullName: '', admin: false, manager: false,
-    //             },
-    //             designer: true,
-    //             leader: false,
-    //         }, {
-    //             user: {
-    //                 name: 'new leader', email: '', fullName: '', admin: false, manager: false,
-    //             },
-    //             designer: false,
-    //             leader: true,
-    //         }],
-    //     });
-    //     expect(proj2).to.deep.include({
-    //         name: 'projname',
-    //         code: 'code',
-    //         members: [{
-    //             user: {
-    //                 name: 'designer', email: '', fullName: '', admin: false, manager: false,
-    //             },
-    //             designer: true,
-    //             leader: false,
-    //         }, {
-    //             user: {
-    //                 name: 'leader', email: '', fullName: '', admin: false, manager: false,
-    //             },
-    //             designer: false,
-    //             leader: true,
-    //         }],
-    //     });
-    // });
 });
