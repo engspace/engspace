@@ -22,32 +22,34 @@
                     <v-card-title>Team members</v-card-title>
                     <v-card-text>
                         <v-data-table
-                            hide-actions
+                            hide-default-footer
                             :items="project.members"
                             :headers="memberHeaders"
                         >
-                            <template v-slot:items="props">
-                                <td>{{ props.item.user.fullName }}</td>
-                                <td>
-                                    <v-checkbox
-                                        v-model="props.item.leader"
-                                        hide-details
-                                    />
-                                </td>
-                                <td>
-                                    <v-checkbox
-                                        v-model="props.item.designer"
-                                        hide-details
-                                    />
-                                </td>
-                                <td>
-                                    <v-icon
-                                        small
-                                        @click="removeMember(props.item)"
-                                    >
-                                        delete
-                                    </v-icon>
-                                </td>
+                            <template v-slot:item="props">
+                                <tr>
+                                    <td>{{ props.item.user.fullName }}</td>
+                                    <td>
+                                        <v-checkbox
+                                            v-model="props.item.leader"
+                                            hide-details
+                                        />
+                                    </td>
+                                    <td>
+                                        <v-checkbox
+                                            v-model="props.item.designer"
+                                            hide-details
+                                        />
+                                    </td>
+                                    <td>
+                                        <v-icon
+                                            small
+                                            @click="removeMember(props.item)"
+                                        >
+                                            mdi-account-minus
+                                        </v-icon>
+                                    </td>
+                                </tr>
                             </template>
                         </v-data-table>
                         <v-divider />
@@ -56,29 +58,29 @@
                             hide-details
                             label="Search new members"
                             class="pr-1"
+                            append-icon="mdi-magnify"
                         >
-                            <v-icon slot="append">
-                                search
-                            </v-icon>
                         </v-text-field>
                         <v-data-table
                             :items="searchCandidates"
                             :headers="searchHeaders"
                             :loading="searchLoad"
-                            :total-items="searchCount"
-                            :pagination.sync="searchPag"
+                            :server-items-length="searchCount"
+                            :options.sync="searchOptions"
                         >
-                            <template v-slot:items="props">
-                                <td>{{ props.item.fullName }}</td>
-                                <td>{{ props.item.email }}</td>
-                                <td>
-                                    <v-icon
-                                        small
-                                        @click="addMember(props.item)"
-                                    >
-                                        add
-                                    </v-icon>
-                                </td>
+                            <template v-slot:item="props">
+                                <tr>
+                                    <td>{{ props.item.fullName }}</td>
+                                    <td>{{ props.item.email }}</td>
+                                    <td>
+                                        <v-icon
+                                            small
+                                            @click="addMember(props.item)"
+                                        >
+                                            mdi-account-plus
+                                        </v-icon>
+                                    </td>
+                                </tr>
                             </template>
                         </v-data-table>
                     </v-card-text>
@@ -112,7 +114,7 @@ export default Vue.extend({
             ],
 
             searchPhrase: '',
-            searchPag: {} as { page: number; rowsPerPage: number },
+            searchOptions: {} as { page: number; itemsPerPage: number },
             searchLoad: false,
             searchResult: [] as IUser[],
             searchCount: 0,
@@ -137,7 +139,7 @@ export default Vue.extend({
         searchPhrase() {
             this.debouncedMemberSearch();
         },
-        searchPag: {
+        searchOptions: {
             handler() {
                 this.memberSearch();
             },
@@ -155,11 +157,11 @@ export default Vue.extend({
                 this.searchLoad = false;
             } else {
                 this.searchLoad = true;
-                const { page, rowsPerPage } = this.searchPag;
+                const { page, itemsPerPage } = this.searchOptions;
                 const query = {
                     search: this.searchPhrase,
-                    offset: (page - 1) * rowsPerPage,
-                    limit: rowsPerPage,
+                    offset: (page - 1) * itemsPerPage,
+                    limit: itemsPerPage,
                 };
                 const resp = await Api.get(Api.query('/users', query));
                 this.searchResult = resp.data;

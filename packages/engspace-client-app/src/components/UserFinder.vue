@@ -14,7 +14,7 @@
                             class="px-2"
                         >
                             <v-icon slot="append">
-                                search
+                                mdi-search
                             </v-icon>
                         </v-text-field>
                     </v-flex>
@@ -46,13 +46,15 @@
                 :headers="userHeaders"
                 :items="users"
                 :loading="loading"
-                :total-items="totalUsers"
-                :pagination.sync="pagination"
+                :server-items-length="totalUsers"
+                :options.sync="tableOptions"
             >
-                <template v-slot:items="props">
-                    <td>{{ props.item.name }}</td>
-                    <td>{{ props.item.email }}</td>
-                    <td>{{ props.item.fullName }}</td>
+                <template v-slot:item="props">
+                    <tr>
+                        <td>{{ props.item.name }}</td>
+                        <td>{{ props.item.email }}</td>
+                        <td>{{ props.item.fullName }}</td>
+                    </tr>
                 </template>
             </v-data-table>
         </v-card-text>
@@ -87,7 +89,7 @@ export default Vue.extend({
             triState: [dontCare, yes, no],
 
             loading: false,
-            pagination: {} as { page: number; rowsPerPage: number },
+            tableOptions: {} as { page: number; itemsPerPage: number },
             totalUsers: 0,
             users: [],
             userHeaders: [
@@ -102,7 +104,7 @@ export default Vue.extend({
         searchPhrase() {
             this.debouncedApiSearch();
         },
-        pagination: {
+        tableOptions: {
             handler() {
                 this.apiSearch();
             },
@@ -118,13 +120,13 @@ export default Vue.extend({
     methods: {
         async apiSearch() {
             this.loading = true;
-            const { page, rowsPerPage } = this.pagination;
+            const { page, itemsPerPage } = this.tableOptions;
             const query = {
                 search: this.searchPhrase,
                 admin: this.searchAdmin,
                 manager: this.searchManager,
-                offset: (page - 1) * rowsPerPage,
-                limit: rowsPerPage,
+                offset: (page - 1) * itemsPerPage,
+                limit: itemsPerPage,
             };
             const { users, total } = await this.apiFetch(query);
             this.users = users;

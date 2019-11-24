@@ -1,21 +1,22 @@
 <template>
     <v-card>
         <v-card-title>
-            <v-text-field v-model="searchPhrase">
-                <v-icon slot="append">
-                    search
-                </v-icon>
+            <v-text-field
+                v-model="searchPhrase"
+                label="Find project"
+                append-icon="mdi-magnify"
+            >
             </v-text-field>
         </v-card-title>
         <v-card-text>
             <v-data-table
-                :headers="dataColumns"
+                :headers="headers"
                 :items="projects"
+                :options.sync="options"
+                :server-items-length="totalProjects"
                 :loading="loading"
-                :total-items="totalProjects"
-                :pagination.sync="pagination"
             >
-                <template v-slot:items="props">
+                <template v-slot:item="props">
                     <router-link
                         :to="`/project/${props.item.code}`"
                         tag="tr"
@@ -63,10 +64,10 @@ export default Vue.extend({
         return {
             searchPhrase: '',
 
-            loading: false,
-            pagination: {} as { page: number; rowsPerPage: number },
-            totalProjects: 0,
             projects: [],
+            totalProjects: 0,
+            loading: false,
+            options: { page: 0, itemsPerPage: 0 },
 
             allColumns: {
                 name: {
@@ -87,7 +88,7 @@ export default Vue.extend({
         };
     },
     computed: {
-        dataColumns(): Column[] {
+        headers(): Column[] {
             return this.columns.map(c => this.allColumns[c as string]);
         },
     },
@@ -95,7 +96,7 @@ export default Vue.extend({
         searchPhrase() {
             this.debouncedSearchProjects();
         },
-        pagination: {
+        options: {
             handler() {
                 this.searchProjects();
             },
@@ -111,11 +112,11 @@ export default Vue.extend({
     methods: {
         async searchProjects() {
             this.loading = true;
-            const { page, rowsPerPage } = this.pagination;
+            const { page, itemsPerPage } = this.options;
             const query = {
                 search: this.searchPhrase,
-                offset: (page - 1) * rowsPerPage,
-                limit: rowsPerPage,
+                offset: (page - 1) * itemsPerPage,
+                limit: itemsPerPage,
             };
             const { projects, total } = await this.apiFetch(query);
             this.projects = projects;

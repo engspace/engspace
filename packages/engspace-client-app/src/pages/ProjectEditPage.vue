@@ -16,7 +16,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import HttpStatus from 'http-status-codes';
+//import HttpStatus from 'http-status-codes';
 import { Project } from '@engspace/core';
 import { Api } from '../api';
 import ProjectEdit from '../components/ProjectEdit.vue';
@@ -41,11 +41,12 @@ export default Vue.extend({
             if (!id) {
                 // error?
             }
-            const res = await Api.put(`/projects/${id}`, this.project);
-            if (res.status !== HttpStatus.OK) {
-                // error?
+            try {
+                await Api.put(`/projects/${id}`, this.project);
+                this.$router.push(`/project/by-code/${this.project.code}`);
+            } catch (err) {
+                console.error(err.toJSON());
             }
-            this.$router.push(`/project/by-code/${this.project.code}`);
         },
     },
 });

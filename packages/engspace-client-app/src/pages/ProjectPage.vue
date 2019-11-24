@@ -3,9 +3,9 @@
         <v-alert v-if="error.length" v-model="alert" type="error">
             {{ error }}
         </v-alert>
-        <v-expansion-panel v-else>
-            <v-expansion-panel-content>
-                <template v-slot:header>
+        <v-expansion-panels v-else>
+            <v-expansion-panel>
+                <v-expansion-panel-header>
                     <div>
                         <strong>{{ project.name }}</strong>
                         - {{ project.code }}
@@ -14,66 +14,78 @@
                     <v-btn
                         v-if="isManager"
                         icon
-                        flat
                         small
                         class="grey--text text--darker-5"
                         :to="`/project/${project.code}/edit`"
                     >
-                        <v-icon>edit</v-icon>&nbsp;Edit
+                        <v-icon left>mdi-pencil</v-icon> Edit
                     </v-btn>
-                </template>
-                <v-container>
-                    <v-layout row wrap>
-                        <v-flex xs12 md3 lg2>
-                            <v-card>
-                                <v-card-title>Description</v-card-title>
-                                <v-card-text>
-                                    {{
-                                        project.description
-                                            ? project.description
-                                            : '(Blank)'
-                                    }}
-                                </v-card-text>
-                            </v-card>
-                        </v-flex>
-                        <v-flex xs12 md9 lg10>
-                            <v-card>
-                                <v-card-title>Team members</v-card-title>
-                                <v-card-text>
-                                    <v-data-table
-                                        :items="project.members"
-                                        :headers="memberHeaders"
-                                    >
-                                        <template v-slot:items="props">
-                                            <td>
-                                                {{ props.item.user.fullName }}
-                                            </td>
-                                            <td>
-                                                {{ memberRoles(props.item) }}
-                                            </td>
-                                            <td>
-                                                <a
-                                                    :href="
-                                                        `mailto:${props.item.user.email}`
-                                                    "
-                                                >
-                                                    <v-icon>email</v-icon>
-                                                </a>
-                                            </td>
-                                        </template>
-                                    </v-data-table>
-                                </v-card-text>
-                            </v-card>
-                        </v-flex>
-                    </v-layout>
-                </v-container>
-            </v-expansion-panel-content>
-            <v-expansion-panel-content>
-                <template v-slot:header>
-                    <div>Parts, Assemblies</div>
-                </template>
-            </v-expansion-panel-content>
-        </v-expansion-panel>
+                </v-expansion-panel-header>
+                <v-expansion-panel-content>
+                    <v-container>
+                        <v-layout row wrap>
+                            <v-flex xs12 md3 lg2>
+                                <v-card>
+                                    <v-card-title>Description</v-card-title>
+                                    <v-card-text>
+                                        {{
+                                            project.description
+                                                ? project.description
+                                                : '(Blank)'
+                                        }}
+                                    </v-card-text>
+                                </v-card>
+                            </v-flex>
+                            <v-flex xs12 md9 lg10>
+                                <v-card>
+                                    <v-card-title>Team members</v-card-title>
+                                    <v-card-text>
+                                        <v-data-table
+                                            :items="project.members"
+                                            :headers="memberHeaders"
+                                        >
+                                            <template v-slot:item="props">
+                                                <tr>
+                                                    <td>
+                                                        {{
+                                                            props.item.user
+                                                                .fullName
+                                                        }}
+                                                    </td>
+                                                    <td>
+                                                        {{
+                                                            memberRoles(
+                                                                props.item
+                                                            )
+                                                        }}
+                                                    </td>
+                                                    <td>
+                                                        <a
+                                                            :href="
+                                                                `mailto:${props.item.user.email}`
+                                                            "
+                                                        >
+                                                            <v-icon
+                                                                >mdi-email</v-icon
+                                                            >
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </v-data-table>
+                                    </v-card-text>
+                                </v-card>
+                            </v-flex>
+                        </v-layout>
+                    </v-container>
+                </v-expansion-panel-content>
+                <v-expansion-panel-content>
+                    <template v-slot:header>
+                        <div>Parts, Assemblies</div>
+                    </template>
+                </v-expansion-panel-content>
+            </v-expansion-panel>
+        </v-expansion-panels>
     </div>
 </template>
 

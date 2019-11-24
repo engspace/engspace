@@ -1,32 +1,36 @@
 <template>
-    <div id="app">
-        <div id="nav">
-            <router-link to="/">Home</router-link> |
-            <router-link to="/about">About</router-link>
-        </div>
-        <router-view />
-    </div>
+    <v-app>
+        <tool-bar v-if="$store.getters.isAuth" />
+        <v-content>
+            <router-view />
+        </v-content>
+    </v-app>
 </template>
 
-<style lang="scss">
-#app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-align: center;
-    color: #2c3e50;
-}
+<script>
+import { Api } from './api';
+import ToolBar from './components/ToolBar.vue';
+import { AUTH_LOGOUT } from './store/actions';
 
-#nav {
-    padding: 30px;
-
-    a {
-        font-weight: bold;
-        color: #2c3e50;
-
-        &.router-link-exact-active {
-            color: #42b983;
+export default {
+    name: 'App',
+    components: {
+        ToolBar,
+    },
+    data() {
+        return {
+            //
+        };
+    },
+    created() {
+        if (this.$store.getters.isAuth) {
+            // if already authenticated, we double check the token here
+            // as it can have expired
+            Api.get('/check_token').catch(() => {
+                this.$store.dispatch(AUTH_LOGOUT);
+                this.$router.push('/login');
+            });
         }
-    }
-}
-</style>
+    },
+};
+</script>

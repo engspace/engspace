@@ -75,7 +75,7 @@
                                                         removeMember(props.item)
                                                     "
                                                 >
-                                                    delete
+                                                    mdi-delete
                                                 </v-icon>
                                             </td>
                                         </template>
@@ -88,7 +88,7 @@
                                         class="pr-1"
                                     >
                                         <v-icon slot="append">
-                                            search
+                                            mdi-search
                                         </v-icon>
                                     </v-text-field>
                                     <v-data-table
@@ -108,7 +108,7 @@
                                                         addMember(props.item)
                                                     "
                                                 >
-                                                    add
+                                                    mdi-add
                                                 </v-icon>
                                             </td>
                                         </template>

@@ -59,7 +59,7 @@ class Api {
     public static async put(path: string, payload: any): Promise<any> {
         console.log(`sending ${authorized()}PUT request: ${path}`);
         console.log(payload);
-        return axios.put(resource(path), payload, authHeader());
+        return await axios.put(resource(path), payload, authHeader());
     }
 }
 

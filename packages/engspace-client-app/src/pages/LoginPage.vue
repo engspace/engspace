@@ -13,7 +13,7 @@
                             </p>
                             <v-text-field
                                 v-model="nameOrEmail"
-                                prepend-icon="person"
+                                prepend-icon="mdi-account"
                                 name="userId"
                                 type="text"
                                 label="User Id or e-mail"
@@ -22,9 +22,9 @@
                             />
                             <v-text-field
                                 v-model="password"
-                                prepend-icon="lock"
+                                prepend-icon="mdi-lock"
                                 :append-icon="
-                                    showPswd ? 'visibility_off' : 'visibility'
+                                    showPswd ? 'mdi-eye' : 'mdi-eye-off'
                                 "
                                 name="password"
                                 :type="showPswd ? 'text' : 'password'"
