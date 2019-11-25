@@ -42,8 +42,11 @@ export default Vue.extend({
                 // error?
             }
             try {
-                await Api.put(`/projects/${id}`, this.project);
-                this.$router.push(`/project/by-code/${this.project.code}`);
+                const res = await Api.put(`/projects`, this.project);
+                const code = res?.data?.code;
+                if (code) {
+                    this.$router.push(`/project/${res.data.code}`);
+                }
             } catch (err) {
                 console.error(err.toJSON());
             }
