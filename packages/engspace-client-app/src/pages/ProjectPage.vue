@@ -79,11 +79,12 @@
                         </v-layout>
                     </v-container>
                 </v-expansion-panel-content>
-                <v-expansion-panel-content>
-                    <template v-slot:header>
-                        <div>Parts, Assemblies</div>
-                    </template>
-                </v-expansion-panel-content>
+            </v-expansion-panel>
+            <v-expansion-panel>
+                <v-expansion-panel-header>
+                    Part, Assemblies
+                </v-expansion-panel-header>
+                <v-expansion-panel-content></v-expansion-panel-content>
             </v-expansion-panel>
         </v-expansion-panels>
     </div>
