@@ -1,14 +1,12 @@
 import events from 'events';
 import config from 'config';
 import { app } from '@engspace/server-routes';
-import { Pool, createSchema } from '@engspace/server-db';
+import { Pool } from '@engspace/server-db';
 import { populateDemo } from '@engspace/demo-data';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
-Pool.create(config.get('db'));
-
-createSchema({ preserve: false })
+Pool.init(config.get('db'))
     .then(() => populateDemo())
     .then(() => {
         const { port } = config.get('server');

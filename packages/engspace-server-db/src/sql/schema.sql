@@ -1,6 +1,9 @@
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE TABLE metadata (
+    schema_version integer,
+    application_id text
+);
 
-CREATE TABLE IF NOT EXISTS "user" (
+CREATE TABLE "user" (
     id serial PRIMARY KEY,
     name text NOT NULL UNIQUE,
     email text NOT NULL UNIQUE,
@@ -11,7 +14,7 @@ CREATE TABLE IF NOT EXISTS "user" (
     updated_on timestamp NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS project (
+CREATE TABLE project (
     id serial PRIMARY KEY,
     name text NOT NULL,
     code text NOT NULL UNIQUE,
@@ -19,7 +22,7 @@ CREATE TABLE IF NOT EXISTS project (
     updated_on timestamp NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS project_member (
+CREATE TABLE project_member (
     project_id integer REFERENCES project(id),
     user_id integer REFERENCES "user"(id),
     ind integer DEFAULT 0,

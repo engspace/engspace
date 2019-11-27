@@ -1,21 +1,25 @@
 import path from 'path';
 import fs from 'fs';
 import util from 'util';
-import { CommonQueryMethodsType, sql } from 'slonik';
+import {
+    CommonQueryMethodsType,
+    sql,
+    DatabaseTransactionConnectionType,
+} from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
-import { Pool } from './index';
-import { sleep } from './util';
+
+import metadata from './sql/metadata.json';
 
 const readFileAsync = util.promisify(fs.readFile);
 
-// listed in an order it is safe to delete data
-const tables = ['project_member', 'project', 'user'];
-
-async function executeSchema(db: CommonQueryMethodsType): Promise<void> {
-    const schemaPath = path.join(__dirname, 'sql/schema.sql');
-    const schema = await readFileAsync(schemaPath);
+async function executeSqlFile(
+    db: CommonQueryMethodsType,
+    filename: string
+): Promise<void> {
+    const sqlPath = path.join(__dirname, 'sql', filename);
+    const sqlContent = await readFileAsync(sqlPath);
     await Promise.all(
-        schema
+        sqlContent
             .toString()
             .split(';')
             .map(q => q.trim())
@@ -24,37 +28,43 @@ async function executeSchema(db: CommonQueryMethodsType): Promise<void> {
     );
 }
 
-export async function deleteSchema(db: CommonQueryMethodsType): Promise<void> {
-    await Promise.all(
-        tables.map(t =>
-            db.query(sql`
-        DROP TABLE IF EXISTS ${sql.identifier([t])} CASCADE
-    `)
-        )
-    );
+async function createSchema(
+    db: DatabaseTransactionConnectionType
+): Promise<void> {
+    await executeSqlFile(db, 'extensions.sql');
+    await executeSqlFile(db, 'schema.sql');
 }
 
-export async function createSchema(
-    { preserve } = { preserve: true }
+async function upgradeSchema(
+    db: DatabaseTransactionConnectionType,
+    dbVersion: number,
+    appVersion: number
 ): Promise<void> {
-    return Pool.transaction(async db => {
-        if (!preserve) {
-            await deleteSchema(db);
-            await sleep(100);
-            await executeSchema(db);
-            await sleep(100);
-            return;
-        }
-        const currentTables = await db.anyFirst(sql`
-            SELECT table_name
+    if (dbVersion != appVersion) {
+        // TODO
+    }
+}
+
+export async function initSchema(
+    db: DatabaseTransactionConnectionType
+): Promise<void> {
+    const hasMetadataTable = await db.maybeOneFirst(sql`
+            SELECT COUNT(table_name)
             FROM information_schema.tables
             WHERE
                 table_schema = current_schema() AND
-                table_name = ANY(${sql.array(tables, 'text')})
-        `);
-        const newTables = tables.filter(t => t in currentTables);
-        if (newTables.length !== 0) {
-            await executeSchema(db);
+                table_name = 'metadata'`);
+    if (!hasMetadataTable) {
+        await createSchema(db);
+    } else {
+        const { dbVersion, application } = await db.one(
+            sql`SELECT schema_version, application_id FROM metadata`
+        );
+        if (application != 'engspace') {
+            throw new Error(
+                "Database has a metadata table, but not from 'Engineering space'"
+            );
         }
-    });
+        await upgradeSchema(db, dbVersion, metadata.currentVersion);
+    }
 }
