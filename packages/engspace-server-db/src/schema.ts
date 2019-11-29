@@ -8,7 +8,10 @@ import {
 } from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
 
+import { rolePermissions, Role } from '@engspace/core';
+
 import metadata from './sql/metadata.json';
+import { create } from 'domain';
 
 const readFileAsync = util.promisify(fs.readFile);
 
@@ -18,14 +21,31 @@ async function executeSqlFile(
 ): Promise<void> {
     const sqlPath = path.join(__dirname, 'sql', filename);
     const sqlContent = await readFileAsync(sqlPath);
-    await Promise.all(
-        sqlContent
-            .toString()
-            .split(';')
-            .map(q => q.trim())
-            .filter(q => q.length > 0)
-            .map(q => db.query(sql`${raw(q)}`))
-    );
+    const commands = sqlContent
+        .toString()
+        .split(';')
+        .map(c => c.trim())
+        .filter(c => c.length > 0);
+    for (const c of commands) {
+        try {
+            await db.query(sql`${raw(c)}`);
+        } catch (err) {
+            const msg = `Error executing SQL: ${err.message}:\n${c}\n`;
+            throw new Error(msg);
+        }
+    }
+}
+
+async function createPermissions(
+    db: DatabaseTransactionConnectionType
+): Promise<void> {
+    for (const r of Object.values(Role)) {
+        const perms = rolePermissions[r].map(p => [r, p]);
+        await db.query(sql`
+            INSERT INTO role_permission (role, perm)
+            SELECT * FROM ${sql.unnest(perms, ['text', 'text'])}
+        `);
+    }
 }
 
 async function createSchema(
@@ -33,6 +53,7 @@ async function createSchema(
 ): Promise<void> {
     await executeSqlFile(db, 'extensions.sql');
     await executeSqlFile(db, 'schema.sql');
+    await createPermissions(db);
 }
 
 async function upgradeSchema(

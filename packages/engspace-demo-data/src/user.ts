@@ -1,6 +1,6 @@
 import { CommonQueryMethodsType } from 'slonik';
-import { User } from '@engspace/core';
-import { UserDao } from '@engspace/server-db';
+import { User, Role } from '@engspace/core';
+import { UserDao, Pool } from '@engspace/server-db';
 
 export const userInput = [
     // email is [name]@engspace.demo
@@ -8,91 +8,87 @@ export const userInput = [
     {
         name: 'gerard',
         fullName: 'Gerard Admin',
-        admin: true,
-        manager: false,
+        roles: [Role.Admin],
     },
     {
         name: 'ambre',
         fullName: 'Ambre Manager',
-        admin: false,
-        manager: true,
+        roles: [Role.Manager],
     },
     {
         name: 'tania',
         fullName: 'Tania Program Leader',
-        admin: false,
-        manager: false,
+        roles: [],
     },
     {
         name: 'alphonse',
         fullName: 'Alphonse Program Leader',
-        admin: false,
-        manager: false,
+        roles: [],
     },
     {
         name: 'robin',
         fullName: 'Robin Designer',
-        admin: false,
-        manager: false,
+        roles: [],
     },
     {
         name: 'fatima',
         fullName: 'Fatima Designer',
-        admin: false,
-        manager: false,
+        roles: [],
     },
     {
         name: 'sophie',
         fullName: 'Sophie Designer',
-        admin: false,
-        manager: false,
+        roles: [],
     },
     {
         name: 'philippe',
         fullName: 'Philippe Designer',
-        admin: false,
-        manager: false,
+        roles: [],
     },
     {
         name: 'sylvie',
         fullName: 'Sylvie Engineer',
-        admin: false,
-        manager: false,
+        roles: [],
     },
     {
         name: 'pascal',
         fullName: 'Pascal Engineer',
-        admin: false,
-        manager: false,
+        roles: [],
     },
 ];
 
-export function prepareUsersWithPswd(): User[] {
-    return userInput.map(
-        u =>
-            new User({
-                ...u,
-                email: `${u.name}@engspace.demo`,
-                password: u.name,
-            })
+export async function prepareUsers(
+    db: CommonQueryMethodsType
+): Promise<User[]> {
+    return Promise.all(
+        userInput.map(
+            async u =>
+                new User({
+                    email: `${u.name}@engspace.demo`,
+                    permissions: await UserDao.rolesPermissions(db, u.roles),
+                    ...u,
+                })
+        )
     );
 }
 
-export function prepareUsers(): User[] {
-    return userInput.map(
-        u =>
-            new User({
-                ...u,
-                email: `${u.name}@engspace.demo`,
-            })
+export async function prepareUsersWithPswd(
+    db: CommonQueryMethodsType
+): Promise<User[]> {
+    return Promise.all(
+        userInput.map(
+            async u =>
+                new User({
+                    email: `${u.name}@engspace.demo`,
+                    password: u.name,
+                    permissions: await UserDao.rolesPermissions(db, u.roles),
+                    ...u,
+                })
+        )
     );
 }
 
 export async function createUsers(db: CommonQueryMethodsType): Promise<User[]> {
-    const users = prepareUsersWithPswd();
-    return await Promise.all(
-        users.map(u => {
-            return UserDao.create(db, u);
-        })
-    );
+    const users = await prepareUsersWithPswd(db);
+    return await Promise.all(users.map(u => UserDao.create(db, u)));
 }

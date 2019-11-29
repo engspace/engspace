@@ -4,7 +4,7 @@ import { sql, ValueExpressionType } from 'slonik';
 import { body, param, query } from 'express-validator';
 import { raw } from 'slonik-sql-tag-raw';
 
-import { IUser } from '@engspace/core';
+import { IUser, Role } from '@engspace/core';
 import { Pool, SqlLiteral, UserDao } from '@engspace/server-db';
 
 import { Route } from './routegen';
@@ -67,8 +67,10 @@ export const userRoutes = {
         handler: async (req: Request, res: Response): Promise<void> => {
             const id = Number(req.params.id);
             // checking authorizations and request validity
+            // TODO check for permission instead of role
             const user = (req as any).user as IUser;
-            if (user.id !== id && !user.admin) {
+            const isAdmin = user.roles.includes(Role.Admin);
+            if (user.id !== id && !isAdmin) {
                 return res.status(HttpStatus.FORBIDDEN).end();
             }
             if (
@@ -76,7 +78,7 @@ export const userRoutes = {
                 'admin' in req.body ||
                 'manager' in req.body
             ) {
-                if (!user.admin) {
+                if (!isAdmin) {
                     return res.status(HttpStatus.FORBIDDEN).end();
                 }
             }
@@ -87,7 +89,7 @@ export const userRoutes = {
                     // must be set or null
                     return res.status(HttpStatus.BAD_REQUEST).end();
                 }
-                if (!password && !user.admin) {
+                if (!password && !isAdmin) {
                     return res.status(HttpStatus.FORBIDDEN).end();
                 }
                 if (password && user.id !== id) {

@@ -1,6 +1,7 @@
 import { CommonQueryMethodsType, sql } from 'slonik';
 
 import { IProject, IProjectMember } from '@engspace/core';
+import { UserDao } from './user';
 
 interface DbProject {
     id: number;
@@ -92,31 +93,20 @@ export class ProjectDao {
     ): Promise<IProjectMember[]> {
         const res: any[] = await db.any(sql`
             SELECT
-                u.id as user_id,
-                u.name,
-                u.email,
-                u.full_name,
-                u.admin,
-                u.manager,
-                m.leader,
-                m.designer
-            FROM project_member as m
-            LEFT OUTER JOIN "user" as u ON u.id = m.user_id
-            WHERE m.project_id = ${projectId}
-            ORDER BY m.ind
+                user_id,
+                leader,
+                designer
+            FROM project_member
+            WHERE project_id = ${projectId}
+            ORDER BY ind
         `);
-        return res.map(r => ({
-            user: {
-                id: r.userId,
-                name: r.name,
-                email: r.email,
-                fullName: r.fullName,
-                admin: r.admin,
-                manager: r.manager,
-            },
-            leader: r.leader,
-            designer: r.designer,
-        }));
+        return Promise.all(
+            res.map(async r => ({
+                user: await UserDao.findById(db, r.userId),
+                leader: r.leader,
+                designer: r.designer,
+            }))
+        );
     }
 
     static async create(

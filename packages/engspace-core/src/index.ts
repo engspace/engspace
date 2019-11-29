@@ -1,4 +1,4 @@
-import { IUser, IProject, IProjectMember } from './schema';
+import { Role, IUser, IProject, IProjectMember } from './schema';
 import UserSchema from './schema/IUser.json';
 import ProjectSchema from './schema/IProject.json';
 import {
@@ -7,8 +7,9 @@ import {
     AssertFunction,
     createValidation,
 } from './validation';
+export { rolePermissions } from './permissions';
 
-export { IUser, IProject, IProjectMember };
+export { Role, IUser, IProject, IProjectMember };
 
 export interface EngspaceClass<T extends object> {
     check: CheckFunction<T>;
@@ -21,8 +22,8 @@ export class User implements IUser {
     name = '';
     email = '';
     fullName = '';
-    admin = false;
-    manager = false;
+    roles = [];
+    permissions = [];
     password?: string | undefined;
 
     static check: CheckFunction<IUser>;

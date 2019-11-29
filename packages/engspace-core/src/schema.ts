@@ -1,10 +1,15 @@
+export enum Role {
+    Admin = 'admin',
+    Manager = 'manager',
+}
+
 export interface IUser {
     id?: number;
     name: string;
     email: string;
     fullName: string;
-    admin: boolean;
-    manager: boolean;
+    roles: Role[];
+    permissions: string[];
     password?: string;
 }
 
