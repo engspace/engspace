@@ -1,7 +1,7 @@
 import chai from 'chai';
 import { sql } from 'slonik';
 
-import { prepareUsers, prepareUsersWithPswd } from '@engspace/demo-data';
+import { prepareUsers, prepareUsersWithPswd, createUsers } from '@engspace/demo-data';
 import { Pool, UserDao } from '../src';
 
 const { expect } = chai;
@@ -11,16 +11,30 @@ async function deleteAll(): Promise<void> {
 }
 
 describe('UserDao', () => {
-    const users = prepareUsers();
-    const usersWithPswd = prepareUsersWithPswd();
+    describe('Create', () => {
+        const users = prepareUsers();
+        const usersWithPswd = prepareUsersWithPswd();
+        afterEach(deleteAll);
+        it('should create user', async () => {
+            await Pool.connect(async db => {
+                const returned = await UserDao.create(db, usersWithPswd[0]);
+                expect(returned).to.deep.include(users[0]);
+            });
+        });
+    });
 
-    before(deleteAll);
-    afterEach(deleteAll);
-
-    it('should create user', async () => {
-        await Pool.connect(async db => {
-            const returned = await UserDao.create(db, usersWithPswd[0]);
-            expect(returned).to.deep.include(users[0]);
+    describe('Update', () => {
+        let users;
+        before('create users', async () => {
+            users = await Pool.transaction(db => createUsers(db));
+        });
+        after(deleteAll);
+        it('should patch user', async () => {
+            const patch = {
+                fullName: 'New Name',
+            };
+            const returned = await Pool.connect(async db => UserDao.patch(db, users[5].id, patch));
+            expect(returned).to.include(patch);
         });
     });
 });
