@@ -23,9 +23,7 @@
                             <v-text-field
                                 v-model="password"
                                 prepend-icon="mdi-lock"
-                                :append-icon="
-                                    showPswd ? 'mdi-eye' : 'mdi-eye-off'
-                                "
+                                :append-icon="showPswd ? 'mdi-eye' : 'mdi-eye-off'"
                                 name="password"
                                 :type="showPswd ? 'text' : 'password'"
                                 label="Password"

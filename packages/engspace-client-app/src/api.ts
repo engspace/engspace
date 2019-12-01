@@ -22,11 +22,7 @@ class Api {
         const str: string[] = [];
         Object.entries(obj).forEach((prop: [string, any]) => {
             if (prop[1]) {
-                str.push(
-                    `${encodeURIComponent(prop[0])}=${encodeURIComponent(
-                        prop[1]
-                    )}`
-                );
+                str.push(`${encodeURIComponent(prop[0])}=${encodeURIComponent(prop[1])}`);
             }
         });
         if (str.length) {

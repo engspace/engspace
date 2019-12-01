@@ -28,11 +28,7 @@
                                 <v-card>
                                     <v-card-title>Description</v-card-title>
                                     <v-card-text>
-                                        {{
-                                            project.description
-                                                ? project.description
-                                                : '(Blank)'
-                                        }}
+                                        {{ project.description ? project.description : '(Blank)' }}
                                     </v-card-text>
                                 </v-card>
                             </v-flex>
@@ -47,17 +43,10 @@
                                             <template v-slot:item="props">
                                                 <tr>
                                                     <td>
-                                                        {{
-                                                            props.item.user
-                                                                .fullName
-                                                        }}
+                                                        {{ props.item.user.fullName }}
                                                     </td>
                                                     <td>
-                                                        {{
-                                                            memberRoles(
-                                                                props.item
-                                                            )
-                                                        }}
+                                                        {{ memberRoles(props.item) }}
                                                     </td>
                                                     <td>
                                                         <a
@@ -65,9 +54,7 @@
                                                                 `mailto:${props.item.user.email}`
                                                             "
                                                         >
-                                                            <v-icon
-                                                                >mdi-email</v-icon
-                                                            >
+                                                            <v-icon>mdi-email</v-icon>
                                                         </a>
                                                     </td>
                                                 </tr>

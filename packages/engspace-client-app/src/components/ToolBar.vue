@@ -28,10 +28,7 @@
                             <v-list-item-icon>
                                 <v-icon>mdi-logout</v-icon>
                             </v-list-item-icon>
-                            <v-list-item-title
-                                @click="logout"
-                                v-text="'Disconnect'"
-                            />
+                            <v-list-item-title @click="logout" v-text="'Disconnect'" />
                         </v-list-item>
                     </v-list-item-group>
                 </v-list>

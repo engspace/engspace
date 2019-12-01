@@ -22,22 +22,13 @@
                         <v-flex d-flex xs12 md4 pa-4>
                             <v-layout row wrap align-start fill-height>
                                 <v-flex d-flex xs12 sm6 md12 px-1>
-                                    <v-text-field
-                                        v-model="project.name"
-                                        label="Name"
-                                    />
+                                    <v-text-field v-model="project.name" label="Name" />
                                 </v-flex>
                                 <v-flex d-flex xs12 sm6 md12 px-1>
-                                    <v-text-field
-                                        v-model="project.code"
-                                        label="Code"
-                                    />
+                                    <v-text-field v-model="project.code" label="Code" />
                                 </v-flex>
                                 <v-flex d-flex xs12 md12 px-1>
-                                    <v-textarea
-                                        v-model="project.description"
-                                        label="Description"
-                                    />
+                                    <v-textarea v-model="project.description" label="Description" />
                                 </v-flex>
                             </v-layout>
                         </v-flex>
@@ -62,19 +53,12 @@
                                             </td>
                                             <td>
                                                 <v-checkbox
-                                                    v-model="
-                                                        props.item.designer
-                                                    "
+                                                    v-model="props.item.designer"
                                                     hide-details
                                                 />
                                             </td>
                                             <td>
-                                                <v-icon
-                                                    small
-                                                    @click="
-                                                        removeMember(props.item)
-                                                    "
-                                                >
+                                                <v-icon small @click="removeMember(props.item)">
                                                     mdi-delete
                                                 </v-icon>
                                             </td>
@@ -102,12 +86,7 @@
                                             <td>{{ props.item.fullName }}</td>
                                             <td>{{ props.item.email }}</td>
                                             <td>
-                                                <v-icon
-                                                    small
-                                                    @click="
-                                                        addMember(props.item)
-                                                    "
-                                                >
+                                                <v-icon small @click="addMember(props.item)">
                                                     mdi-add
                                                 </v-icon>
                                             </td>
@@ -159,9 +138,7 @@ export default Vue.extend({
     computed: {
         searchCandidates(): IUser[] {
             const proj = this.project;
-            return this.searchResult.filter(u =>
-                proj.members.every(m => m.user.id !== u.id)
-            );
+            return this.searchResult.filter(u => proj.members.every(m => m.user.id !== u.id));
         },
     },
     watch: {
@@ -207,9 +184,7 @@ export default Vue.extend({
         },
         removeMember(member: IProjectMember) {
             const proj = this.project;
-            proj.members = proj.members.filter(
-                m => m.user.id !== member.user.id
-            );
+            proj.members = proj.members.filter(m => m.user.id !== member.user.id);
         },
         async createProject() {
             const proj = new Project({

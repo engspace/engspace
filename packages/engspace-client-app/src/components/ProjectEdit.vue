@@ -10,10 +10,7 @@
                         <v-text-field v-model="project.code" label="Code" />
                     </v-flex>
                     <v-flex d-flex xs12 md12 px-1>
-                        <v-textarea
-                            v-model="project.description"
-                            label="Description"
-                        />
+                        <v-textarea v-model="project.description" label="Description" />
                     </v-flex>
                 </v-layout>
             </v-flex>
@@ -30,22 +27,13 @@
                                 <tr>
                                     <td>{{ props.item.user.fullName }}</td>
                                     <td>
-                                        <v-checkbox
-                                            v-model="props.item.leader"
-                                            hide-details
-                                        />
+                                        <v-checkbox v-model="props.item.leader" hide-details />
                                     </td>
                                     <td>
-                                        <v-checkbox
-                                            v-model="props.item.designer"
-                                            hide-details
-                                        />
+                                        <v-checkbox v-model="props.item.designer" hide-details />
                                     </td>
                                     <td>
-                                        <v-icon
-                                            small
-                                            @click="removeMember(props.item)"
-                                        >
+                                        <v-icon small @click="removeMember(props.item)">
                                             mdi-account-minus
                                         </v-icon>
                                     </td>
@@ -73,10 +61,7 @@
                                     <td>{{ props.item.fullName }}</td>
                                     <td>{{ props.item.email }}</td>
                                     <td>
-                                        <v-icon
-                                            small
-                                            @click="addMember(props.item)"
-                                        >
+                                        <v-icon small @click="addMember(props.item)">
                                             mdi-account-plus
                                         </v-icon>
                                     </td>
@@ -130,9 +115,7 @@ export default Vue.extend({
     computed: {
         searchCandidates(): IUser[] {
             const proj = this.project;
-            return this.searchResult.filter(u =>
-                proj.members.every(m => m.user.id !== u.id)
-            );
+            return this.searchResult.filter(u => proj.members.every(m => m.user.id !== u.id));
         },
     },
     watch: {
@@ -177,9 +160,7 @@ export default Vue.extend({
             });
         },
         removeMember(member: IProjectMember) {
-            this.project.members = this.project.members.filter(
-                m => m.user.id !== member.user.id
-            );
+            this.project.members = this.project.members.filter(m => m.user.id !== member.user.id);
         },
     },
 });

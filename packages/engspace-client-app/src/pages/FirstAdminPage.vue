@@ -5,9 +5,7 @@
                 <v-form @submit.prevent="register">
                     <v-card elevation-12>
                         <v-toolbar dark color="primary">
-                            <v-toolbar-title
-                                >Create first admin account</v-toolbar-title
-                            >
+                            <v-toolbar-title>Create first admin account</v-toolbar-title>
                         </v-toolbar>
                         <v-card-text>
                             <div v-if="errors.length">
@@ -17,10 +15,7 @@
                                     </li>
                                 </ul>
                             </div>
-                            <v-switch
-                                v-model="useEmailAsUserId"
-                                :label="'Use E-Mail as User Id'"
-                            />
+                            <v-switch v-model="useEmailAsUserId" :label="'Use E-Mail as User Id'" />
                             <v-text-field
                                 v-if="!useEmailAsUserId"
                                 v-model="name"

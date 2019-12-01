@@ -1,11 +1,7 @@
 <template>
     <v-card>
         <v-card-title>
-            <v-text-field
-                v-model="searchPhrase"
-                label="Find project"
-                append-icon="mdi-magnify"
-            >
+            <v-text-field v-model="searchPhrase" label="Find project" append-icon="mdi-magnify">
             </v-text-field>
         </v-card-title>
         <v-card-text>
@@ -17,11 +13,7 @@
                 :loading="loading"
             >
                 <template v-slot:item="props">
-                    <router-link
-                        :to="`/project/${props.item.code}`"
-                        tag="tr"
-                        class="link_pointer"
-                    >
+                    <router-link :to="`/project/${props.item.code}`" tag="tr" class="link_pointer">
                         <td v-for="(col, ind) in columns" :key="ind">
                             {{ props.item[col] }}
                         </td>
@@ -54,9 +46,7 @@ export default Vue.extend({
             type: Array,
             default: () => ['name', 'code'],
             validator(value: string[]) {
-                return value.every(v =>
-                    ['name', 'code', 'description'].includes(v)
-                );
+                return value.every(v => ['name', 'code', 'description'].includes(v));
             },
         },
     },
