@@ -1,14 +1,8 @@
 /* eslint-disable no-unused-vars */
-import express, {
-    NextFunction,
-    Request,
-    RequestHandler,
-    Response,
-    Router,
-} from 'express';
+import express, { NextFunction, Request, RequestHandler, Response, Router } from 'express';
 import HttpStatus from 'http-status-codes';
 import { validationResult } from 'express-validator';
-import { auth } from './auth';
+import { checkPerms, checkToken } from './auth';
 import { engspaceValidationResult } from '../validation';
 
 interface RouteHandler {
@@ -18,7 +12,8 @@ interface RouteHandler {
 interface RouteInit {
     method: string;
     path: string;
-    auth: string;
+    auth?: boolean;
+    perms: string[];
     validation?: RequestHandler[];
     handler: RouteHandler;
 }
@@ -35,15 +30,8 @@ export function buildRouter(routeSet: RouteSet): Router {
 }
 
 function validationGuard(): RequestHandler {
-    return async (
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> => {
-        const errors = [].concat(
-            validationResult(req).array(),
-            engspaceValidationResult(req)
-        );
+    return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        const errors = [].concat(validationResult(req).array(), engspaceValidationResult(req));
 
         if (errors.length !== 0) {
             res.status(HttpStatus.BAD_REQUEST).json({ errors });
@@ -73,14 +61,16 @@ function handle(handler: RouteHandler): RequestHandler {
 export class Route {
     readonly method: string;
     readonly path: string;
-    readonly auth: string;
+    readonly auth: boolean;
+    readonly perms: string[];
     readonly validation: RequestHandler[];
     readonly handler: RouteHandler;
 
     constructor(init: RouteInit) {
         this.method = init.method;
         this.path = init.path;
-        this.auth = init.auth;
+        this.auth = init.auth ? true : false;
+        this.perms = init.perms;
         this.validation = init.validation || [];
         this.handler = init.handler;
     }
@@ -88,24 +78,8 @@ export class Route {
     get middlewareChain(): RequestHandler[] {
         let chain: RequestHandler[] = [];
 
-        if (this.auth) {
-            switch (this.auth) {
-                case 'USER':
-                    chain = chain.concat(auth.user);
-                    break;
-                case 'ADMIN':
-                    chain = chain.concat(auth.admin);
-                    break;
-                case 'MANAGER':
-                    chain = chain.concat(auth.manager);
-                    break;
-                case 'NONE':
-                    break;
-                default:
-                    throw new Error(
-                        `unknown authorization level: ${this.auth}`
-                    );
-            }
+        if (this.auth || this.perms.length) {
+            chain = chain.concat(checkToken, checkPerms(this.perms));
         }
 
         if (this.validation) {

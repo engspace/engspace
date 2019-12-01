@@ -12,17 +12,14 @@ import { engspaceBodyValidator } from '../validation';
 
 export const projectRoutes = {
     getByCode: new Route({
-        auth: 'USER',
+        perms: ['project.get'],
         method: 'GET',
         path: '/by-code/:code',
         validation: [param('code').isString()],
         handler: async (req: Request, res: Response): Promise<void> =>
             Pool.connect(async db => {
                 try {
-                    const project = await ProjectDao.findByCode(
-                        db,
-                        req.params.code
-                    );
+                    const project = await ProjectDao.findByCode(db, req.params.code);
                     res.json(project);
                 } catch (err) {
                     console.log(err);
@@ -33,7 +30,7 @@ export const projectRoutes = {
     }),
 
     search: new Route({
-        auth: 'USER',
+        perms: ['project.get'],
         method: 'GET',
         path: '/',
         validation: [
@@ -51,9 +48,7 @@ export const projectRoutes = {
             Pool.connect(async db => {
                 const { search, limit, offset } = req.query;
 
-                const buildWhereClause = (
-                    args: Array<string | number>
-                ): string => {
+                const buildWhereClause = (args: Array<string | number>): string => {
                     if (search) {
                         args.push(`%${search.replace(/s/g, '%')}%`);
                         const num = args.length;
@@ -65,18 +60,14 @@ export const projectRoutes = {
                     }
                     return '';
                 };
-                const buildLimitClause = (
-                    args: Array<string | number>
-                ): string => {
+                const buildLimitClause = (args: Array<string | number>): string => {
                     if (limit) {
                         args.push(Number(limit));
                         return `LIMIT $${args.length}`;
                     }
                     return '';
                 };
-                const buildOffsetClause = (
-                    args: Array<string | number>
-                ): string => {
+                const buildOffsetClause = (args: Array<string | number>): string => {
                     if (offset) {
                         args.push(Number(offset));
                         return `OFFSET $${args.length}`;
@@ -89,9 +80,7 @@ export const projectRoutes = {
                     const wc = buildWhereClause(args);
                     const lc = buildLimitClause(args);
                     const oc = buildOffsetClause(args);
-                    const clauses = [wc, lc, oc]
-                        .filter(c => c.length !== 0)
-                        .join(' ');
+                    const clauses = [wc, lc, oc].filter(c => c.length !== 0).join(' ');
                     return sql`
                         SELECT id, name, code, description
                         FROM project
@@ -104,10 +93,7 @@ export const projectRoutes = {
                     async qr =>
                         new Project({
                             ...qr,
-                            members: await ProjectDao.findMembersByProjectId(
-                                db,
-                                qr.id as number
-                            ),
+                            members: await ProjectDao.findMembersByProjectId(db, qr.id as number),
                         })
                 );
 
@@ -115,10 +101,7 @@ export const projectRoutes = {
                     const buildCountQuery = (): SqlLiteral<number> => {
                         const args: Array<string | number> = [];
                         const wc = buildWhereClause(args);
-                        return sql`SELECT count(*) FROM project ${raw(
-                            wc,
-                            args
-                        )}`;
+                        return sql`SELECT count(*) FROM project ${raw(wc, args)}`;
                     };
                     const count = await db.oneFirst(buildCountQuery());
                     res.set('Total-Count', String(count));
@@ -130,7 +113,7 @@ export const projectRoutes = {
     }),
 
     create: new Route({
-        auth: 'MANAGER',
+        perms: ['project.post'],
         method: 'POST',
         path: '/',
 
@@ -152,7 +135,7 @@ export const projectRoutes = {
     }),
 
     update: new Route({
-        auth: 'MANAGER',
+        perms: ['project.patch'],
         method: 'PUT',
         path: '/',
 

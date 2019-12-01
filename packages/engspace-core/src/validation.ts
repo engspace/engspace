@@ -29,9 +29,7 @@ export function createValidation<T extends object>(
         if (validate(obj)) {
             return obj as T;
         }
-        const errors = validate.errors
-            ? `:\n - ${validate.errors.join('\n - ')}`
-            : '';
+        const errors = validate.errors ? `:\n - ${validate.errors.join('\n - ')}` : '';
 
         throw new TypeError(`Could not validate object as ${name}${errors}`);
     };

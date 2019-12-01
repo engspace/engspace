@@ -3,14 +3,8 @@ import { EngspaceClass } from '@engspace/core';
 
 const validationSymbol = Symbol('@engspace/server-routes/validation');
 
-export function engspaceBodyValidator<T extends object>(
-    clas: EngspaceClass<T>
-): RequestHandler {
-    return async (
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> => {
+export function engspaceBodyValidator<T extends object>(clas: EngspaceClass<T>): RequestHandler {
+    return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         const errs = clas.validate(req.body);
         if (errs.length !== 0) {
             if (!req[validationSymbol]) {

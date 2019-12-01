@@ -1,6 +1,7 @@
 export enum Role {
     Admin = 'admin',
     Manager = 'manager',
+    User = 'user',
 }
 
 export interface IUser {
@@ -9,7 +10,6 @@ export interface IUser {
     email: string;
     fullName: string;
     roles: Role[];
-    permissions: string[];
     password?: string;
 }
 

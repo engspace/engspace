@@ -32,9 +32,7 @@ async function create(dbConfig: DbConfig): Promise<DatabasePoolType> {
     await pool0.connect(async db => {
         if (dbConfig.formatDb) {
             console.log(`deleting database "${dbConfig.name}"`);
-            await db.query(
-                sql`${raw(`DROP DATABASE IF EXISTS ${dbConfig.name}`)}`
-            );
+            await db.query(sql`${raw(`DROP DATABASE IF EXISTS ${dbConfig.name}`)}`);
         }
         const hasDb = await db.oneFirst(sql`
             SELECT COUNT(datname) FROM pg_database
@@ -69,9 +67,7 @@ export class Pool {
         return (pool as DatabasePoolType).connect(handler);
     }
 
-    static async transaction<T>(
-        handler: TransactionFunctionType<T>
-    ): Promise<T> {
+    static async transaction<T>(handler: TransactionFunctionType<T>): Promise<T> {
         return (pool as DatabasePoolType).transaction(handler);
     }
 }

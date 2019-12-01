@@ -1,7 +1,6 @@
 import chai from 'chai';
 import { sql } from 'slonik';
 
-import { IUser } from '@engspace/core';
 import { prepareUsers, prepareUsersWithPswd } from '@engspace/demo-data';
 import { Pool, UserDao } from '../src';
 
@@ -12,15 +11,8 @@ async function deleteAll(): Promise<void> {
 }
 
 describe('UserDao', () => {
-    let users: IUser[];
-    let usersWithPswd: IUser[];
-
-    before(async () => {
-        await Pool.connect(async db => {
-            users = await prepareUsers(db);
-            usersWithPswd = await prepareUsersWithPswd(db);
-        });
-    });
+    const users = prepareUsers();
+    const usersWithPswd = prepareUsersWithPswd();
 
     before(deleteAll);
     afterEach(deleteAll);

@@ -1,7 +1,7 @@
 {
     "db": {
         "uri": "postgresql://postgres:postgres@localhost",
-        "name": "engspace_test",
+        "name": "engspace_test_db",
         "options": {
             "idleTimeout": 1000
         },

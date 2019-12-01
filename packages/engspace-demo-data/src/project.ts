@@ -60,9 +60,7 @@ export const projectInput = [
     },
 ];
 
-export async function prepareProjects(
-    db: CommonQueryMethodsType
-): Promise<Project[]> {
+export async function prepareProjects(db: CommonQueryMethodsType): Promise<Project[]> {
     return Promise.all(
         projectInput.map(async p => {
             const newP = {
@@ -82,9 +80,7 @@ export async function prepareProjects(
     );
 }
 
-export async function createProjects(
-    db: CommonQueryMethodsType
-): Promise<Project[]> {
+export async function createProjects(db: CommonQueryMethodsType): Promise<Project[]> {
     const projects = await prepareProjects(db);
     return await Promise.all(projects.map(p => ProjectDao.create(db, p)));
 }

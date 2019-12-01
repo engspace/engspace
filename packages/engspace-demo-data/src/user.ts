@@ -1,6 +1,6 @@
 import { CommonQueryMethodsType } from 'slonik';
 import { User, Role } from '@engspace/core';
-import { UserDao, Pool } from '@engspace/server-db';
+import { UserDao } from '@engspace/server-db';
 
 export const userInput = [
     // email is [name]@engspace.demo
@@ -18,77 +18,67 @@ export const userInput = [
     {
         name: 'tania',
         fullName: 'Tania Program Leader',
-        roles: [],
+        roles: [Role.User],
     },
     {
         name: 'alphonse',
         fullName: 'Alphonse Program Leader',
-        roles: [],
+        roles: [Role.User],
     },
     {
         name: 'robin',
         fullName: 'Robin Designer',
-        roles: [],
+        roles: [Role.User],
     },
     {
         name: 'fatima',
         fullName: 'Fatima Designer',
-        roles: [],
+        roles: [Role.User],
     },
     {
         name: 'sophie',
         fullName: 'Sophie Designer',
-        roles: [],
+        roles: [Role.User],
     },
     {
         name: 'philippe',
         fullName: 'Philippe Designer',
-        roles: [],
+        roles: [Role.User],
     },
     {
         name: 'sylvie',
         fullName: 'Sylvie Engineer',
-        roles: [],
+        roles: [Role.User],
     },
     {
         name: 'pascal',
         fullName: 'Pascal Engineer',
-        roles: [],
+        roles: [Role.User],
     },
 ];
 
-export async function prepareUsers(
-    db: CommonQueryMethodsType
-): Promise<User[]> {
-    return Promise.all(
-        userInput.map(
-            async u =>
-                new User({
-                    email: `${u.name}@engspace.demo`,
-                    permissions: await UserDao.rolesPermissions(db, u.roles),
-                    ...u,
-                })
-        )
+export function prepareUsers(): User[] {
+    return userInput.map(
+        u =>
+            new User({
+                email: `${u.name}@engspace.demo`,
+                ...u,
+            })
     );
 }
 
-export async function prepareUsersWithPswd(
-    db: CommonQueryMethodsType
-): Promise<User[]> {
-    return Promise.all(
-        userInput.map(
-            async u =>
-                new User({
-                    email: `${u.name}@engspace.demo`,
-                    password: u.name,
-                    permissions: await UserDao.rolesPermissions(db, u.roles),
-                    ...u,
-                })
-        )
+export function prepareUsersWithPswd(): User[] {
+    return userInput.map(
+        u =>
+            new User({
+                email: `${u.name}@engspace.demo`,
+                password: u.name,
+                ...u,
+            })
     );
 }
 
 export async function createUsers(db: CommonQueryMethodsType): Promise<User[]> {
-    const users = await prepareUsersWithPswd(db);
+    const users = prepareUsersWithPswd();
     return await Promise.all(users.map(u => UserDao.create(db, u)));
 }

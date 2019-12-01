@@ -3,16 +3,12 @@ CREATE TABLE metadata (
     application_id text
 );
 
-CREATE TABLE role_permission (
-    role text NOT NULL,
-    perm text NOT NULL
-);
-
 CREATE TABLE "user" (
     id serial PRIMARY KEY,
     name text NOT NULL UNIQUE,
     email text NOT NULL UNIQUE,
     full_name text NOT NULL,
+    roles text[],
     password text,
     updated_on timestamp NOT NULL
 );

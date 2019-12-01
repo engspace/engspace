@@ -6,22 +6,20 @@ const { expect } = chai;
 describe('User', () => {
     it('should allow default value', () => {
         const user = new User();
-        expect(user).to.include({
+        expect(user).to.deep.include({
             name: '',
             email: '',
             fullName: '',
-            admin: false,
-            manager: false,
+            roles: [],
         });
     });
     it('should allow partial value', () => {
         const user = new User({ name: 'username' });
-        expect(user).to.include({
+        expect(user).to.deep.include({
             name: 'username',
             email: '',
             fullName: '',
-            admin: false,
-            manager: false,
+            roles: [],
         });
     });
     it('should validate value', () => {
@@ -33,8 +31,7 @@ describe('User', () => {
             name: 'username',
             email: 'username@test.com',
             fullName: 'User Name',
-            admin: false,
-            manager: false,
+            roles: [],
         };
         let res = false;
         if (User.check(user)) {
@@ -46,8 +43,7 @@ describe('User', () => {
         const user = {
             name: 'username',
             fullName: 'User Name',
-            admin: false,
-            manager: false,
+            roles: [],
         };
         let res = false;
         if (User.check(user)) {

@@ -5,18 +5,13 @@ import chaiHttp from 'chai-http';
 import { IUser } from '@engspace/core';
 
 import { app } from '../src';
-import { userTemplates } from './user';
 
 export interface UserSet {
-    admin: IUser;
-    manager: IUser;
-    user: IUser;
+    [name: string]: IUser;
 }
 
 export interface TokenSet {
-    admin: string;
-    manager: string;
-    user: string;
+    [name: string]: string;
 }
 
 export interface UsersAndTokens {
@@ -30,23 +25,15 @@ export const loginToken = async (user: IUser): Promise<string> => {
         .post('/api/login')
         .send({
             nameOrEmail: user.name,
-            password: user.password,
+            password: user.name,
         });
     return res.body.token;
 };
 
-export const userToken = async (): Promise<string> =>
-    loginToken(userTemplates.user);
-export const managerToken = async (): Promise<string> =>
-    loginToken(userTemplates.manager);
-export const adminToken = async (): Promise<string> =>
-    loginToken(userTemplates.admin);
-
-export const userTokens = async (): Promise<TokenSet> => {
-    const toks = await Promise.all([userToken(), managerToken(), adminToken()]);
-    return {
-        user: toks[0],
-        manager: toks[1],
-        admin: toks[2],
-    };
+export const userTokens = async (users: UserSet): Promise<TokenSet> => {
+    const tokSet: TokenSet = {};
+    for (const key in users) {
+        tokSet[key] = await loginToken(users[key]);
+    }
+    return tokSet;
 };

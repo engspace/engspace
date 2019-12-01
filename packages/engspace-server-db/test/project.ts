@@ -1,9 +1,5 @@
 import chai from 'chai';
-import {
-    createUsers,
-    createProjects,
-    prepareProjects,
-} from '@engspace/demo-data';
+import { createUsers, createProjects, prepareProjects } from '@engspace/demo-data';
 import { IUser, IProject } from '@engspace/core';
 import { Pool, ProjectDao, UserDao } from '../src';
 
@@ -26,18 +22,13 @@ describe('ProjectDao', () => {
     );
 
     describe('create', () => {
-        after('clean up', async () =>
-            Pool.connect(async db => ProjectDao.deleteAll(db))
-        );
+        after('clean up', async () => Pool.connect(async db => ProjectDao.deleteAll(db)));
 
         it('should create project', async () =>
             Pool.connect(async db => {
                 const returned = await ProjectDao.create(db, projects[0]);
                 expect(returned).to.deep.include(projects[0]);
-                const created = await ProjectDao.findByCode(
-                    db,
-                    projects[0].code
-                );
+                const created = await ProjectDao.findByCode(db, projects[0].code);
                 expect(created.id).to.equal(returned.id);
                 expect(created).to.deep.include(projects[0]);
             }));
@@ -53,19 +44,13 @@ describe('ProjectDao', () => {
 
         it('should find project by id', async () =>
             Pool.connect(async db => {
-                const project = await ProjectDao.findById(
-                    db,
-                    dbProjects[0].id as number
-                );
+                const project = await ProjectDao.findById(db, dbProjects[0].id as number);
                 expect(project).to.deep.include(dbProjects[0]);
             }));
 
         it('should find project by code', async () =>
             Pool.connect(async db => {
-                const project = await ProjectDao.findByCode(
-                    db,
-                    dbProjects[0].code
-                );
+                const project = await ProjectDao.findByCode(db, dbProjects[0].code);
                 expect(project).to.deep.include(dbProjects[0]);
             }));
 
@@ -78,23 +63,17 @@ describe('ProjectDao', () => {
                     description: 'a new description',
                     members: [
                         {
-                            user: dbUsers.find(
-                                u => u.name === 'alphonse'
-                            ) as IUser,
+                            user: dbUsers.find(u => u.name === 'alphonse') as IUser,
                             designer: true,
                             leader: true,
                         },
                         {
-                            user: dbUsers.find(
-                                u => u.name === 'fatima'
-                            ) as IUser,
+                            user: dbUsers.find(u => u.name === 'fatima') as IUser,
                             designer: true,
                             leader: true,
                         },
                         {
-                            user: dbUsers.find(
-                                u => u.name === 'philippe'
-                            ) as IUser,
+                            user: dbUsers.find(u => u.name === 'philippe') as IUser,
                             designer: true,
                             leader: false,
                         },
@@ -102,10 +81,7 @@ describe('ProjectDao', () => {
                 };
                 const returned = await ProjectDao.updateById(db, proj);
                 expect(returned).to.deep.include(proj);
-                const updated = await ProjectDao.findById(
-                    db,
-                    proj.id as number
-                );
+                const updated = await ProjectDao.findById(db, proj.id as number);
                 expect(updated).to.deep.include(proj);
             }));
     });

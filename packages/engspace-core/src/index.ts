@@ -1,13 +1,8 @@
 import { Role, IUser, IProject, IProjectMember } from './schema';
 import UserSchema from './schema/IUser.json';
 import ProjectSchema from './schema/IProject.json';
-import {
-    CheckFunction,
-    ValidateFunction,
-    AssertFunction,
-    createValidation,
-} from './validation';
-export { rolePermissions } from './permissions';
+import { CheckFunction, ValidateFunction, AssertFunction, createValidation } from './validation';
+export { getRolePerms, getRolesPerms } from './permissions';
 
 export { Role, IUser, IProject, IProjectMember };
 
@@ -23,7 +18,6 @@ export class User implements IUser {
     email = '';
     fullName = '';
     roles = [];
-    permissions = [];
     password?: string | undefined;
 
     static check: CheckFunction<IUser>;

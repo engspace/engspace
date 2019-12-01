@@ -1,13 +1,17 @@
 import config from 'config';
 import jwt from 'jsonwebtoken';
 import HttpStatus from 'http-status-codes';
+import { RequestHandler } from 'express';
 import { NextFunction, Request, Response } from 'express';
+import { Role, getRolesPerms } from '@engspace/core';
+
+export const UserReqSymbol = Symbol('@engspace/routes/user-req');
 
 export interface UserTokenInput {
     id: number;
+    name: string;
     fullName: string;
-    admin: boolean;
-    manager: boolean;
+    roles: Role[];
 }
 
 export async function signToken(user: UserTokenInput): Promise<string> {
@@ -15,9 +19,9 @@ export async function signToken(user: UserTokenInput): Promise<string> {
         jwt.sign(
             {
                 id: user.id,
+                name: user.name,
                 fullName: user.fullName,
-                admin: user.admin,
-                manager: user.manager,
+                roles: user.roles,
             },
             config.get<string>('jwtSecret'),
             {
@@ -32,11 +36,7 @@ export async function signToken(user: UserTokenInput): Promise<string> {
     });
 }
 
-async function checkToken(
-    req: Request,
-    res: Response,
-    next: NextFunction
-): Promise<void> {
+export async function checkToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     let tok = req.get('x-access-token') || req.get('authorization');
     if (tok) {
         if (tok.startsWith('Bearer ')) {
@@ -44,14 +44,15 @@ async function checkToken(
         }
         jwt.verify(tok, config.get('jwtSecret'), (err, decoded) => {
             if (err) {
+                console.log('could not verify token');
                 res.status(HttpStatus.FORBIDDEN).end();
             } else {
-                const obj = decoded as any;
+                const obj = decoded as UserTokenInput;
                 // eslint-disable-next-line no-param-reassign
-                (req as any).user = {
+                req[UserReqSymbol] = {
                     id: obj.id,
-                    admin: obj.admin,
-                    manager: obj.manager,
+                    name: obj.name,
+                    roles: obj.roles,
                 };
                 next();
             }
@@ -61,34 +62,23 @@ async function checkToken(
     }
 }
 
-async function checkAdmin(
-    req: Request,
-    res: Response,
-    next: NextFunction
-): Promise<void> {
-    const r = req as any;
-    if (r.user && r.user.admin === true) {
-        next();
-    } else {
-        res.status(HttpStatus.FORBIDDEN).end();
-    }
+export function checkPerms(perms: string[]): RequestHandler {
+    perms = perms.sort();
+    return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        const user: UserTokenInput = req[UserReqSymbol];
+        if (user) {
+            const userPerms = getRolesPerms(user.roles).sort();
+            let ind = 0;
+            for (const p of perms) {
+                ind = userPerms.indexOf(p, ind);
+                if (ind == -1) {
+                    res.status(HttpStatus.FORBIDDEN).end();
+                    return;
+                }
+            }
+            next();
+        } else {
+            res.status(HttpStatus.FORBIDDEN).end();
+        }
+    };
 }
-
-async function checkManager(
-    req: Request,
-    res: Response,
-    next: NextFunction
-): Promise<void> {
-    const r = req as any;
-    if (r.user && r.user.manager === true) {
-        next();
-    } else {
-        res.status(HttpStatus.FORBIDDEN).end();
-    }
-}
-
-export const auth = {
-    user: checkToken,
-    admin: [checkToken, checkAdmin],
-    manager: [checkToken, checkManager],
-};

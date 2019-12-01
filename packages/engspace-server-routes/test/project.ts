@@ -6,96 +6,34 @@ import { Pool, UserDao, ProjectDao } from '@engspace/server-db';
 import { app } from '../src';
 
 import { usersAndTokens, deleteUsers } from './user';
+import { prepareProjects, createProjects } from '@engspace/demo-data';
 
 const { expect } = chai;
-
-export const projectTemplates = [
-    {
-        name: 'Project1',
-        code: 'proj001',
-        description: "That's an awesome project",
-        members: [
-            {
-                user: 'user', // to be converted to id instead
-                leader: false,
-                designer: true,
-            },
-            {
-                user: 'manager', // to be converted to id instead
-                leader: true,
-                designer: false,
-            },
-        ],
-    },
-    {
-        name: 'Project2',
-        code: 'proj002',
-        description: "That's another awesome project",
-        members: [
-            {
-                user: 'user', // to be converted to actual user
-                leader: true,
-                designer: false,
-            },
-            {
-                user: 'manager', // to be converted to actual user
-                leader: false,
-                designer: true,
-            },
-        ],
-    },
-];
-
-export const mapProjectMembers = (proj: any): Promise<IProject> =>
-    Pool.connect(async db => {
-        const newProj = Object.assign({}, proj);
-        newProj.members = await Promise.all(
-            proj.members.map(async (m: any) => ({
-                user: await UserDao.findByName(db, m.user),
-                leader: m.leader,
-                designer: m.designer,
-            }))
-        );
-        return newProj as IProject;
-    });
-
-// export const createProjects = async () => Pool.connect(db => Promise.all(
-//     projectTemplates.map(
-//         pt => ProjectDao.create(db, pt),
-//     ),
-// ));
 
 export const deleteProjects = async (): Promise<void> => {
     return Pool.connect(db => ProjectDao.deleteAll(db));
 };
 
 describe('Projects', () => {
-    let userToks: any;
-    let projects: any;
+    let userToks;
+    let projects;
     before('create users and get tokens', async () => {
         userToks = await usersAndTokens();
     });
     before('prepare projects', async () => {
-        projects = await Promise.all(projectTemplates.map(mapProjectMembers));
+        projects = await Pool.connect(async db => prepareProjects(db));
     });
     after('clean up users', deleteUsers);
 
     describe('GET /api/projects/by-code', () => {
         let dbProjects: IProject[];
         before('create projects', async () => {
-            dbProjects = await Pool.connect(async db =>
-                Promise.all(
-                    projects.map((p: IProject) => ProjectDao.create(db, p))
-                )
-            );
+            dbProjects = await Pool.connect(async db => createProjects(db));
         });
-
         after('clean up projects', deleteProjects);
 
         it('should reject unauthorized access', async () => {
-            const res = await chai
-                .request(app)
-                .get(`/api/projects/by-code/${dbProjects[0].code}`);
+            const res = await chai.request(app).get(`/api/projects/by-code/${dbProjects[0].code}`);
             expect(res).to.have.status(HttpStatus.UNAUTHORIZED);
         });
 
@@ -103,7 +41,7 @@ describe('Projects', () => {
             const res = await chai
                 .request(app)
                 .get(`/api/projects/by-code/${dbProjects[0].code}`)
-                .set('Authorization', `Bearer ${userToks.tokens.user}`);
+                .set('Authorization', `Bearer ${userToks.tokens.philippe}`);
             expect(res).to.have.status(HttpStatus.OK);
             expect(res).to.have.property('body');
             expect(res.body).to.deep.include(dbProjects[0]);
@@ -125,7 +63,7 @@ describe('Projects', () => {
             const res = await chai
                 .request(app)
                 .post('/api/projects')
-                .set('Authorization', `Bearer ${userToks.tokens.admin}`)
+                .set('Authorization', `Bearer ${userToks.tokens.philippe}`)
                 .send(projects[0]);
             expect(res).to.have.status(HttpStatus.FORBIDDEN);
         });
@@ -134,7 +72,7 @@ describe('Projects', () => {
             const res = await chai
                 .request(app)
                 .post('/api/projects')
-                .set('Authorization', `Bearer ${userToks.tokens.manager}`)
+                .set('Authorization', `Bearer ${userToks.tokens.ambre}`)
                 .send(projects[0]);
             expect(res).to.have.status(HttpStatus.OK);
             expect(res).to.have.property('body');
@@ -151,11 +89,7 @@ describe('Projects', () => {
     describe('PUT /api/projects', async () => {
         let dbProjects: IProject[];
         before('create projects', async () => {
-            dbProjects = await Pool.connect(async db =>
-                Promise.all(
-                    projects.map((p: IProject) => ProjectDao.create(db, p))
-                )
-            );
+            dbProjects = await Pool.connect(async db => createProjects(db));
         });
         after('clean up projects', deleteProjects);
 
@@ -169,14 +103,14 @@ describe('Projects', () => {
                 members: [
                     {
                         user: {
-                            id: userToks.users.user.id,
+                            id: userToks.users.philippe.id,
                         },
                         leader: false,
                         designer: true,
                     },
                     {
                         user: {
-                            id: userToks.users.admin.id,
+                            id: userToks.users.sophie.id,
                         },
                         leader: true,
                         designer: false,
@@ -186,7 +120,7 @@ describe('Projects', () => {
             const res = await chai
                 .request(app)
                 .put('/api/projects')
-                .set('Authorization', `Bearer ${userToks.tokens.manager}`)
+                .set('Authorization', `Bearer ${userToks.tokens.ambre}`)
                 .send(newProj);
             expect(res).to.have.status(HttpStatus.OK);
             expect(res).to.have.property('body');

@@ -1,24 +1,14 @@
 import path from 'path';
 import fs from 'fs';
 import util from 'util';
-import {
-    CommonQueryMethodsType,
-    sql,
-    DatabaseTransactionConnectionType,
-} from 'slonik';
+import { CommonQueryMethodsType, sql, DatabaseTransactionConnectionType } from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
 
-import { rolePermissions, Role } from '@engspace/core';
-
 import metadata from './sql/metadata.json';
-import { create } from 'domain';
 
 const readFileAsync = util.promisify(fs.readFile);
 
-async function executeSqlFile(
-    db: CommonQueryMethodsType,
-    filename: string
-): Promise<void> {
+async function executeSqlFile(db: CommonQueryMethodsType, filename: string): Promise<void> {
     const sqlPath = path.join(__dirname, 'sql', filename);
     const sqlContent = await readFileAsync(sqlPath);
     const commands = sqlContent
@@ -36,24 +26,9 @@ async function executeSqlFile(
     }
 }
 
-async function createPermissions(
-    db: DatabaseTransactionConnectionType
-): Promise<void> {
-    for (const r of Object.values(Role)) {
-        const perms = rolePermissions[r].map(p => [r, p]);
-        await db.query(sql`
-            INSERT INTO role_permission (role, perm)
-            SELECT * FROM ${sql.unnest(perms, ['text', 'text'])}
-        `);
-    }
-}
-
-async function createSchema(
-    db: DatabaseTransactionConnectionType
-): Promise<void> {
+async function createSchema(db: DatabaseTransactionConnectionType): Promise<void> {
     await executeSqlFile(db, 'extensions.sql');
     await executeSqlFile(db, 'schema.sql');
-    await createPermissions(db);
 }
 
 async function upgradeSchema(
@@ -66,9 +41,7 @@ async function upgradeSchema(
     }
 }
 
-export async function initSchema(
-    db: DatabaseTransactionConnectionType
-): Promise<void> {
+export async function initSchema(db: DatabaseTransactionConnectionType): Promise<void> {
     const hasMetadataTable = await db.maybeOneFirst(sql`
             SELECT COUNT(table_name)
             FROM information_schema.tables
@@ -82,9 +55,7 @@ export async function initSchema(
             sql`SELECT schema_version, application_id FROM metadata`
         );
         if (application != 'engspace') {
-            throw new Error(
-                "Database has a metadata table, but not from 'Engineering space'"
-            );
+            throw new Error("Database has a metadata table, but not from 'Engineering space'");
         }
         await upgradeSchema(db, dbVersion, metadata.currentVersion);
     }
