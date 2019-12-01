@@ -3,6 +3,13 @@ import { CommonQueryMethodsType, sql } from 'slonik';
 import { IProject, IProjectMember } from '@engspace/core';
 import { UserDao } from './user';
 
+export interface ProjectSearch {
+    phrase?: string;
+    member?: string;
+    limit?: number;
+    offset?: number;
+}
+
 interface DbProject {
     id: number;
     name: string;
@@ -118,6 +125,53 @@ export class ProjectDao {
             WHERE id = ${project.id as number}
         `);
         return ProjectDao.findById(db, project.id as number);
+    }
+
+    static async search(
+        db: CommonQueryMethodsType,
+        search: ProjectSearch
+    ): Promise<{ count: number; projects: IProject[] }> {
+        const boolExpressions = [sql`TRUE`];
+        if (search.phrase) {
+            const phrase = `%${search.phrase.replace(/s/g, '%')}%`;
+            boolExpressions.push(sql`(
+                p.name ILIKE ${phrase} OR
+                p.code ILIKE ${phrase} OR
+                p.description ILIKE ${phrase})`);
+        }
+        if (search.member) {
+            boolExpressions.push(sql`
+                u.name = ${search.member}
+            `);
+        }
+        const whereToken = sql.join(boolExpressions, sql` AND `);
+        const limitToken = sql`${search.limit ? search.limit : 1000}`;
+        const offset = search.offset ? search.offset : 0;
+        const offsetToken = sql`${offset}`;
+        const projectsWoMembers: IProject[] = await db.any(sql`
+            SELECT p.id, p.name, p.code, p.description FROM project AS p
+            LEFT OUTER JOIN project_member AS pm ON pm.project_id = p.id
+            LEFT OUTER JOIN "user" AS u ON u.id = pm.user_id
+            WHERE ${whereToken}
+            LIMIT ${limitToken}
+            OFFSET ${offsetToken}
+        `);
+        const projects = await Promise.all(
+            projectsWoMembers.map(async p => ({
+                roles: await this.findMembersByProjectId(db, p.id),
+                ...p,
+            }))
+        );
+        let count = projects.length + offset;
+        if (search.limit && projects.length === search.limit) {
+            count = (await db.oneFirst(sql`
+                SELECT COUNT(p.id) FROM project AS p
+                LEFT OUTER JOIN project_member AS pm ON pm.project_id = p.id
+                LEFT OUTER JOIN "user" AS u ON u.id = pm.user_id
+                WHERE ${whereToken}
+            `)) as number;
+        }
+        return { count, projects };
     }
 
     static async deleteAll(db: CommonQueryMethodsType): Promise<void> {

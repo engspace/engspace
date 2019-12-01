@@ -1,11 +1,9 @@
 import { Request, Response } from 'express';
 import { body, param, query } from 'express-validator';
 import HttpStatus from 'http-status-codes';
-import { sql } from 'slonik';
-import { raw } from 'slonik-sql-tag-raw';
 
-import { IProject, Project } from '@engspace/core';
-import { Pool, SqlLiteral, ProjectDao } from '@engspace/server-db';
+import { Project } from '@engspace/core';
+import { Pool, ProjectDao } from '@engspace/server-db';
 
 import { Route } from './routegen';
 import { engspaceBodyValidator } from '../validation';
@@ -37,6 +35,9 @@ export const projectRoutes = {
             query('search')
                 .optional()
                 .isString(),
+            query('member')
+                .optional()
+                .isString(),
             query('offset')
                 .optional()
                 .isInt(),
@@ -44,72 +45,13 @@ export const projectRoutes = {
                 .optional()
                 .isInt(),
         ],
-        handler: async (req: Request, res: Response): Promise<void> =>
-            Pool.connect(async db => {
-                const { search, limit, offset } = req.query;
-
-                const buildWhereClause = (args: Array<string | number>): string => {
-                    if (search) {
-                        args.push(`%${search.replace(/s/g, '%')}%`);
-                        const num = args.length;
-                        return `
-                        WHERE name ILIKE $${num}
-                            OR code ILIKE $${num}
-                            OR description ILIKE $${num}
-                    `;
-                    }
-                    return '';
-                };
-                const buildLimitClause = (args: Array<string | number>): string => {
-                    if (limit) {
-                        args.push(Number(limit));
-                        return `LIMIT $${args.length}`;
-                    }
-                    return '';
-                };
-                const buildOffsetClause = (args: Array<string | number>): string => {
-                    if (offset) {
-                        args.push(Number(offset));
-                        return `OFFSET $${args.length}`;
-                    }
-                    return '';
-                };
-
-                const buildQuery = (): SqlLiteral<IProject> => {
-                    const args: Array<string | number> = [];
-                    const wc = buildWhereClause(args);
-                    const lc = buildLimitClause(args);
-                    const oc = buildOffsetClause(args);
-                    const clauses = [wc, lc, oc].filter(c => c.length !== 0).join(' ');
-                    return sql`
-                        SELECT id, name, code, description
-                        FROM project
-                        ${raw(clauses, args)}
-                    `;
-                };
-
-                const queryRes = await db.any(buildQuery());
-                const projects = queryRes.map(
-                    async qr =>
-                        new Project({
-                            ...qr,
-                            members: await ProjectDao.findMembersByProjectId(db, qr.id as number),
-                        })
-                );
-
-                if (limit && projects.length === Number(limit)) {
-                    const buildCountQuery = (): SqlLiteral<number> => {
-                        const args: Array<string | number> = [];
-                        const wc = buildWhereClause(args);
-                        return sql`SELECT count(*) FROM project ${raw(wc, args)}`;
-                    };
-                    const count = await db.oneFirst(buildCountQuery());
-                    res.set('Total-Count', String(count));
-                } else {
-                    res.set('Total-Count', String(projects.length));
-                }
-                res.json(await Promise.all(projects));
-            }),
+        handler: async (req: Request, res: Response): Promise<void> => {
+            const { count, projects } = await Pool.connect(async db =>
+                ProjectDao.search(db, req.query)
+            );
+            res.set('Total-Count', String(count));
+            res.json(projects);
+        },
     }),
 
     create: new Route({
@@ -127,11 +69,10 @@ export const projectRoutes = {
             body('members.*.designer').isBoolean(),
         ],
 
-        handler: async (req: Request, res: Response): Promise<void> =>
-            Pool.connect(async db => {
-                const proj = await ProjectDao.create(db, req.body);
-                res.json(proj);
-            }),
+        handler: async (req: Request, res: Response): Promise<void> => {
+            const proj = await Pool.transaction(async db => ProjectDao.create(db, req.body));
+            res.json(proj);
+        },
     }),
 
     update: new Route({
@@ -141,10 +82,9 @@ export const projectRoutes = {
 
         validation: [engspaceBodyValidator(Project)],
 
-        handler: async (req: Request, res: Response): Promise<void> =>
-            Pool.connect(async db => {
-                const proj = await ProjectDao.updateById(db, req.body);
-                res.json(proj);
-            }),
+        handler: async (req: Request, res: Response): Promise<void> => {
+            const proj = await Pool.transaction(async db => ProjectDao.updateById(db, req.body));
+            res.json(proj);
+        },
     }),
 };

@@ -1,13 +1,12 @@
 import chai from 'chai';
 import HttpStatus from 'http-status-codes';
-import { CommonQueryMethodsType, sql } from 'slonik';
+import { CommonQueryMethodsType } from 'slonik';
 
 import { Role, User } from '@engspace/core';
 import { createUsers, prepareUsersWithPswd } from '@engspace/demo-data';
 import { Pool, UserDao } from '@engspace/server-db';
 import { app } from '../src';
 import { userTokens, UserSet, UsersAndTokens, loginToken } from './auth';
-import { filter } from 'minimatch';
 
 const { expect } = chai;
 
