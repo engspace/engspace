@@ -1,6 +1,6 @@
 import chai from 'chai';
 import HttpStatus from 'http-status-codes';
-import { CommonQueryMethodsType } from 'slonik';
+import { CommonQueryMethodsType, sql } from 'slonik';
 
 import { Role, User } from '@engspace/core';
 import { createUsers, prepareUsersWithPswd } from '@engspace/demo-data';
@@ -235,64 +235,64 @@ describe('Users', function() {
             expect(email).to.equal('other.email@engspace.test');
         });
 
-        // it('should update with same user access', async () => {
-        //     const res = await chai
-        //         .request(app)
-        //         .patch(`/api/users/${users.sophie.id}`)
-        //         .set('Authorization', `Bearer ${tokens.sophie}`)
-        //         .send(emailUpdate);
-        //     expect(res).to.have.status(HttpStatus.OK);
-        //     expect(res).to.have.property('body');
-        //     expect(res.body).to.include({
-        //         name: 'sophie',
-        //         email: 'other.email@engspace.test',
+        it('should update with same user access', async () => {
+            const res = await chai
+                .request(app)
+                .patch(`/api/users/${users.sophie.id}`)
+                .set('Authorization', `Bearer ${tokens.sophie}`)
+                .send(emailUpdate);
+            expect(res).to.have.status(HttpStatus.OK);
+            expect(res).to.have.property('body');
+            expect(res.body).to.include({
+                name: 'sophie',
+                email: 'other.email@engspace.test',
+            });
+            const email = await Pool.connect(
+                async db => (await UserDao.findById(db, users.sophie.id)).email
+            );
+            expect(email).to.equal('other.email@engspace.test');
+        });
+
+        //     it('should let user set password', async () => {
+        //         const res = await chai
+        //             .request(app)
+        //             .patch(`/api/users/${users.sophie.id}`)
+        //             .set('Authorization', `Bearer ${tokens.sophie}`)
+        //             .send({ password: 'new_password' });
+        //         expect(res).to.have.status(HttpStatus.OK);
+        //         expect(await checkPassword(users.sophie.id, 'new_password')).to.be.true;
         //     });
-        //     const email = await Pool.connect(
-        //         async db => (await UserDao.findById(db, users.sophie.id)).email
-        //     );
-        //     expect(email).to.equal('other.email@engspace.test');
-        // });
 
-        // it('should let user set password', async () => {
-        //     const res = await chai
-        //         .request(app)
-        //         .patch(`/api/users/${users.user.id}`)
-        //         .set('Authorization', `Bearer ${tokens.user}`)
-        //         .send({ password: 'new_password' });
-        //     expect(res).to.have.status(HttpStatus.OK);
-        //     expect(await checkPassword(users.user.id, 'new_password')).to.be.true;
-        // });
+        //     it("shouldn't let user reset password to null", async () => {
+        //         const res = await chai
+        //             .request(app)
+        //             .patch(`/api/users/${users.user.id}`)
+        //             .set('Authorization', `Bearer ${tokens.user}`)
+        //             .send({ password: null });
+        //         expect(res).to.have.status(HttpStatus.FORBIDDEN);
+        //     });
 
-        // it("shouldn't let user reset password to null", async () => {
-        //     const res = await chai
-        //         .request(app)
-        //         .patch(`/api/users/${users.user.id}`)
-        //         .set('Authorization', `Bearer ${tokens.user}`)
-        //         .send({ password: null });
-        //     expect(res).to.have.status(HttpStatus.FORBIDDEN);
-        // });
+        //     it("shouldn't let admin set password", async () => {
+        //         // TODO: send password reset email
+        //         const res = await chai
+        //             .request(app)
+        //             .patch(`/api/users/${users.user.id}`)
+        //             .set('Authorization', `Bearer ${tokens.admin}`)
+        //             .send({ password: 'new_password' });
+        //         expect(res).to.have.status(HttpStatus.FORBIDDEN);
+        //     });
 
-        // it("shouldn't let admin set password", async () => {
-        //     // TODO: send password reset email
-        //     const res = await chai
-        //         .request(app)
-        //         .patch(`/api/users/${users.user.id}`)
-        //         .set('Authorization', `Bearer ${tokens.admin}`)
-        //         .send({ password: 'new_password' });
-        //     expect(res).to.have.status(HttpStatus.FORBIDDEN);
-        // });
-
-        // it('should let admin reset password to null', async () => {
-        //     // TODO: send password reset email
-        //     const res = await chai
-        //         .request(app)
-        //         .patch(`/api/users/${users.user.id}`)
-        //         .set('Authorization', `Bearer ${tokens.admin}`)
-        //         .send({ password: null });
-        //     expect(res).to.have.status(HttpStatus.OK);
-        //     const has = await Pool.connect(async db => UserDao.hasPasswordById(db, users.user.id));
-        //     expect(has).to.be.true;
-        // });
+        //     it('should let admin reset password to null', async () => {
+        //         // TODO: send password reset email
+        //         const res = await chai
+        //             .request(app)
+        //             .patch(`/api/users/${users.user.id}`)
+        //             .set('Authorization', `Bearer ${tokens.admin}`)
+        //             .send({ password: null });
+        //         expect(res).to.have.status(HttpStatus.OK);
+        //         const has = await Pool.connect(async db => UserDao.hasPasswordById(db, users.user.id));
+        //         expect(has).to.be.true;
+        //     });
     });
 });
 

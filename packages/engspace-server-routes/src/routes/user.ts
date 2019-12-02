@@ -41,9 +41,6 @@ export const userRoutes = {
         path: '/:id',
         validation: [
             param('id').isInt(),
-            body('name')
-                .optional()
-                .isString(),
             body('email')
                 .optional()
                 .isString(),
@@ -60,20 +57,16 @@ export const userRoutes = {
         handler: async (req: Request, res: Response): Promise<void> => {
             const id = Number(req.params.id);
             // checking authorizations and request validity
-            // TODO check for permission instead of role
             const user: IUser = req[UserReqSymbol];
             const isAdmin = user.roles.includes(Role.Admin);
             if (user.id !== id && !isAdmin) {
                 return res.status(HttpStatus.FORBIDDEN).end();
             }
-            if ('name' in req.body || 'admin' in req.body || 'manager' in req.body) {
-                if (!isAdmin) {
-                    return res.status(HttpStatus.FORBIDDEN).end();
-                }
+            if ('name' in req.body && !isAdmin) {
+                return res.status(HttpStatus.FORBIDDEN).end();
             }
-            let password;
             if ('password' in req.body) {
-                ({ password } = req.body);
+                const { password } = req.body;
                 if (password !== null && !password) {
                     // must be set or null
                     return res.status(HttpStatus.BAD_REQUEST).end();

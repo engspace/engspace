@@ -7,7 +7,10 @@ interface RolePerm {
 
 const rolePerms: { [role: string]: RolePerm } = {
     [Role.User]: {
-        permissions: ['project.get', 'user.get'],
+        permissions: ['project.get', 'user.get', 'user.patch'],
+        // Simple users can only patch themselves. Admin can patch all users.
+        // This is ensured only in client and server code, but not expressed in
+        // the permission system.
     },
     [Role.Manager]: {
         inherits: Role.User,
@@ -15,7 +18,7 @@ const rolePerms: { [role: string]: RolePerm } = {
     },
     [Role.Admin]: {
         inherits: Role.Manager,
-        permissions: ['user.post', 'user.patch', 'user.delete', 'project.delete'],
+        permissions: ['user.post', 'user.delete', 'project.delete'],
     },
 };
 
