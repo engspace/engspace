@@ -1,0 +1,29 @@
+{
+    "name": "@engspace/server-logic",
+    "version": "0.1.0",
+    "description": "Main server business logic for Engineering Space",
+    "author": "Remi Thebault <remi.thebault@gmail.com>",
+    "license": "MIT",
+    "private": true,
+    "main": "dist/index",
+    "scripts": {
+        "lint": "eslint --ext .js,.ts .",
+        "lint:fix": "eslint --fix --ext .js,.ts .",
+        "build": "tsc -p tsconfig.json",
+        "clean": "rimraf ./dist/"
+    },
+    "dependencies": {
+        "@engspace/core": "^0.1.0",
+        "@engspace/server-db": "^0.1.0"
+    },
+    "devDependencies": {
+        "@engspace/eslint-config": "^0.1.0",
+        "@engspace/prettier-config": "^0.1.0",
+        "eslint": "^6.6.0",
+        "eslint-config-prettier": "^6.6.0",
+        "eslint-plugin-prettier": "^3.1.1",
+        "prettier": "^1.19.1",
+        "rimraf": "^3.0.0",
+        "typescript": "^3.7.2"
+    }
+}
