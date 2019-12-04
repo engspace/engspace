@@ -1,0 +1,42 @@
+{
+    "name": "@engspace/server-gql",
+    "version": "0.1.0",
+    "description": "GraphQL server for Engineering Space",
+    "author": "Remi Thebault <remi.thebault@gmail.com>",
+    "license": "MIT",
+    "private": true,
+    "main": "dist/index",
+    "types": "dist/index",
+    "scripts": {
+        "lint": "eslint --ext .js,.ts .",
+        "lint:fix": "eslint --fix --ext .js,.ts .",
+        "build": "tsc -p tsconfig.json",
+        "clean": "rimraf ./dist/"
+    },
+    "dependencies": {
+        "@engspace/server-db": "^0.1.0",
+        "@engspace/server-logic": "^0.1.0",
+        "apollo-server-koa": "^2.9.12",
+        "config": "^3.2.4",
+        "graphql": "^14.5.8",
+        "http-status-codes": "^1.4.0",
+        "jsonwebtoken": "^8.5.1",
+        "koa": "^2.11.0",
+        "koa-bodyparser": "^4.2.1",
+        "koa-router": "^7.4.0"
+    },
+    "devDependencies": {
+        "@engspace/eslint-config": "^0.1.0",
+        "@engspace/prettier-config": "^0.1.0",
+        "@types/config": "^0.0.36",
+        "@types/jsonwebtoken": "^8.3.5",
+        "@types/koa": "^2.11.0",
+        "@types/koa-router": "^7.0.42",
+        "eslint": "^6.6.0",
+        "eslint-config-prettier": "^6.6.0",
+        "eslint-plugin-prettier": "^3.1.1",
+        "prettier": "^1.19.1",
+        "rimraf": "^3.0.0",
+        "typescript": "^3.7.2"
+    }
+}
