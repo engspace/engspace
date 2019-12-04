@@ -11,7 +11,7 @@
     "scripts": {
         "lint": "eslint --ext .js,.ts .",
         "lint:fix": "eslint --fix --ext .js,.ts .",
-        "build": "tsc -p tsconfig.json",
+        "build": "tsc -b .",
         "test": "cross-env NODE_ENV=test mocha -r ts-node/register test/**/*.ts",
         "clean": "rimraf ./dist/ tsconfig.tsbuildinfo"
     },

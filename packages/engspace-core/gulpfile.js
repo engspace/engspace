@@ -6,7 +6,7 @@ const through = require('through2');
 const del = require('del');
 const tjs = require('typescript-json-schema');
 const localTsJson = require('./tsconfig.json');
-const rootTsJson = require('../../tsconfig.json');
+const rootTsJson = require('../../tsconfig.base.json');
 
 const schemaTypes = ['IUser', 'IProject'];
 

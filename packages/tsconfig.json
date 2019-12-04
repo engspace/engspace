@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./engspace-core" },
+    { "path": "./engspace-demo-data" },
+    { "path": "./engspace-demo-server" },
+    { "path": "./engspace-server-app" },
+    { "path": "./engspace-server-db" },
+    { "path": "./engspace-server-routes" }
+  ]
+}

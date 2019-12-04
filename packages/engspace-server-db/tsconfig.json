@@ -1,12 +1,15 @@
 {
-    "extends": "../../tsconfig.json",
+    "extends": "../../tsconfig.base.json",
 
     "compilerOptions": {
         "outDir": "./dist",
-        "rootDir": "./src"
+        "rootDir": "./src",
+        "resolveJsonModule": true,
+        "tsBuildInfoFile": "../../.build-cache/server-db.tsbuildinfo"
     },
 
-    "include": [
-        "src/**/*"
+    "include": [ "src", "src/**/*.json" ],
+    "references": [
+        { "path": "../engspace-core", "prepend": false }
     ]
 }
