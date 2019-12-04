@@ -9,7 +9,42 @@ export interface UserSearch {
     offset?: number;
 }
 
+export interface UserWithId extends IUser {
+    id: number;
+}
+
 export class UserDao {
+    static async checkLogin(
+        db: CommonQueryMethodsType,
+        nameOrEmail: string,
+        password: string
+    ): Promise<UserWithId | null> {
+        interface Result {
+            id: number;
+            name: string;
+            email: string;
+            fullName: string;
+            ok: boolean;
+        }
+        const result: Result = await db.one(sql`
+            SELECT id, name, email, full_name,
+                (password = crypt(${password}, password)) AS ok
+            FROM "user"
+            WHERE name = ${nameOrEmail} OR email = ${nameOrEmail}
+        `);
+        if (result.ok) {
+            return {
+                id: result.id,
+                name: result.name,
+                email: result.email,
+                fullName: result.fullName,
+                roles: await userRoles(db, result.id),
+            };
+        } else {
+            return null;
+        }
+    }
+
     static async create(db: CommonQueryMethodsType, user: IUser): Promise<IUser> {
         const { name, email, fullName, password } = user;
         const { id } = await db.one(sql`

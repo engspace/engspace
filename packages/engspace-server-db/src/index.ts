@@ -1,11 +1,12 @@
 import {
+    ClientUserConfigurationType,
+    CommonQueryMethodsType,
     ConnectionRoutineType,
     createPool,
     DatabasePoolType,
-    TransactionFunctionType,
-    ClientUserConfigurationType,
-    SqlSqlTokenType,
     sql,
+    SqlSqlTokenType,
+    TransactionFunctionType,
 } from 'slonik';
 import { createInterceptors } from 'slonik-interceptor-preset';
 import { raw } from 'slonik-sql-tag-raw';
@@ -23,6 +24,7 @@ export interface DbConfig {
     formatDb: boolean;
 }
 
+export type Db = CommonQueryMethodsType;
 export type SqlLiteral<T = any> = SqlSqlTokenType<T>;
 
 async function create(dbConfig: DbConfig): Promise<DatabasePoolType> {
