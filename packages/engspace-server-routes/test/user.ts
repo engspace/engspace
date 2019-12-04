@@ -1,6 +1,6 @@
 import chai from 'chai';
 import HttpStatus from 'http-status-codes';
-import { CommonQueryMethodsType, sql } from 'slonik';
+import { CommonQueryMethodsType } from 'slonik';
 
 import { Role, User } from '@engspace/core';
 import { createUsers, prepareUsersWithPswd } from '@engspace/demo-data';
