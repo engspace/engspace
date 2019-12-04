@@ -1,14 +1,3 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "target": "es5",
-        "declaration": true,
-        "sourceMap": true,
-        "declarationMap": true,
-        "esModuleInterop": true,
-        "resolveJsonModule": true,
-        "rootDir": "."
-    },
-
-    "exclude": ["node_modules", "dist"]
+    "extends": "./tsconfig.base.json"
 }

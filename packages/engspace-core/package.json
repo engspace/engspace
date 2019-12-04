@@ -12,7 +12,7 @@
         "lint": "eslint --ext .js,.ts .",
         "lint:fix": "eslint --fix --ext .js,.ts .",
         "build:schema": "gulp schema",
-        "build:ts": "tsc -p tsconfig.json",
+        "build:ts": "tsc -b .",
         "build": "npm-run-all build:schema build:ts",
         "test": "mocha -r ts-node/register test/**/*.ts",
         "clean:schema": "gulp cleanSchema",

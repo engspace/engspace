@@ -12,7 +12,7 @@
         "lint": "eslint --ext .js,.ts .",
         "lint:fix": "eslint --fix --ext .js,.ts .",
         "build:sql": "gulp copySql",
-        "build:ts": "tsc -p tsconfig.json",
+        "build:ts": "tsc -b .",
         "build": "npm-run-all build:sql build:ts",
         "test": "cross-env NODE_ENV=test mocha -r ts-node/register test/**/*.ts",
         "clean:sql": "gulp cleanSql",
