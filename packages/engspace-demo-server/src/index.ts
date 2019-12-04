@@ -1,6 +1,6 @@
 import events from 'events';
 import config from 'config';
-import { app } from '@engspace/server-routes';
+import { app } from '@engspace/server-gql';
 import { Pool } from '@engspace/server-db';
 import { populateDemo } from '@engspace/demo-data';
 
