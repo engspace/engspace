@@ -1,6 +1,7 @@
-import { CommonQueryMethodsType, sql } from 'slonik';
+import { sql } from 'slonik';
 
 import { IProject, IProjectMember } from '@engspace/core';
+import { Db } from '..';
 import { UserDao } from './user';
 
 export interface ProjectSearch {
@@ -18,7 +19,7 @@ interface DbProject {
 }
 
 async function upsertMembers(
-    db: CommonQueryMethodsType,
+    db: Db,
     members: IProjectMember[],
     projId: number,
     deleteAfter = false
@@ -48,7 +49,7 @@ async function upsertMembers(
 }
 
 export class ProjectDao {
-    static async findById(db: CommonQueryMethodsType, id: number): Promise<IProject> {
+    static async findById(db: Db, id: number): Promise<IProject> {
         const proj = await db.one<DbProject>(sql`
             SELECT id, name, code, description
             FROM project
@@ -61,7 +62,7 @@ export class ProjectDao {
         };
     }
 
-    static async findByCode(db: CommonQueryMethodsType, code: string): Promise<IProject> {
+    static async findByCode(db: Db, code: string): Promise<IProject> {
         const proj = await db.one<DbProject>(sql`
             SELECT id, name, code, description
             FROM project
@@ -74,10 +75,7 @@ export class ProjectDao {
         };
     }
 
-    static async findMembersByProjectId(
-        db: CommonQueryMethodsType,
-        projectId: number
-    ): Promise<IProjectMember[]> {
+    static async findMembersByProjectId(db: Db, projectId: number): Promise<IProjectMember[]> {
         const res: any[] = await db.any(sql`
             SELECT
                 user_id,
@@ -96,7 +94,7 @@ export class ProjectDao {
         );
     }
 
-    static async create(db: CommonQueryMethodsType, proj: IProject): Promise<IProject> {
+    static async create(db: Db, proj: IProject): Promise<IProject> {
         const { name, code, description } = proj;
         const project: DbProject = await db.one(sql`
             INSERT INTO project (
@@ -115,7 +113,7 @@ export class ProjectDao {
         };
     }
 
-    static async updateById(db: CommonQueryMethodsType, project: IProject): Promise<IProject> {
+    static async updateById(db: Db, project: IProject): Promise<IProject> {
         await upsertMembers(db, project.members, project.id as number, true);
         await db.query(sql`
             UPDATE project SET
@@ -128,7 +126,7 @@ export class ProjectDao {
     }
 
     static async search(
-        db: CommonQueryMethodsType,
+        db: Db,
         search: ProjectSearch
     ): Promise<{ count: number; projects: IProject[] }> {
         const boolExpressions = [sql`TRUE`];
@@ -174,12 +172,12 @@ export class ProjectDao {
         return { count, projects };
     }
 
-    static async deleteAll(db: CommonQueryMethodsType): Promise<void> {
+    static async deleteAll(db: Db): Promise<void> {
         await db.query(sql`DELETE FROM project_member`);
         await db.query(sql`DELETE FROM project`);
     }
 
-    static async deleteById(db: CommonQueryMethodsType, id: number): Promise<void> {
+    static async deleteById(db: Db, id: number): Promise<void> {
         await db.query(sql`DELETE FROM project_member WHERE project_id = ${id}`);
         await db.query(sql`DELETE FROM project WHERE id = ${id}`);
     }

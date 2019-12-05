@@ -8,7 +8,7 @@
         "tsBuildInfoFile": "../../.build-cache/server-db.tsbuildinfo"
     },
 
-    "include": [ "src", "src/**/*.json" ],
+    "include": [ "src/**/*.ts", "src/**/*.json" ],
     "references": [
         { "path": "../engspace-core", "prepend": false }
     ]

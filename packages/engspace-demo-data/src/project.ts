@@ -1,6 +1,5 @@
-import { CommonQueryMethodsType } from 'slonik';
 import { Project } from '@engspace/core';
-import { UserDao, ProjectDao } from '@engspace/server-db';
+import { Db, UserDao, ProjectDao } from '@engspace/server-db';
 
 export const projectInput = [
     // must map user before using as project
@@ -60,7 +59,7 @@ export const projectInput = [
     },
 ];
 
-export async function prepareProjects(db: CommonQueryMethodsType): Promise<Project[]> {
+export async function prepareProjects(db: Db): Promise<Project[]> {
     return Promise.all(
         projectInput.map(async p => {
             const newP = {
@@ -80,7 +79,7 @@ export async function prepareProjects(db: CommonQueryMethodsType): Promise<Proje
     );
 }
 
-export async function createProjects(db: CommonQueryMethodsType): Promise<Project[]> {
+export async function createProjects(db: Db): Promise<Project[]> {
     const projects = await prepareProjects(db);
     return await Promise.all(projects.map(p => ProjectDao.create(db, p)));
 }

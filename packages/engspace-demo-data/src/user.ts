@@ -1,6 +1,5 @@
-import { CommonQueryMethodsType } from 'slonik';
 import { User, Role } from '@engspace/core';
-import { UserDao } from '@engspace/server-db';
+import { Db, UserDao } from '@engspace/server-db';
 
 export const userInput = [
     // email is [name]@engspace.demo
@@ -78,7 +77,7 @@ export function prepareUsersWithPswd(): User[] {
     );
 }
 
-export async function createUsers(db: CommonQueryMethodsType): Promise<User[]> {
+export async function createUsers(db: Db): Promise<User[]> {
     const users = prepareUsersWithPswd();
     return await Promise.all(users.map(u => UserDao.create(db, u)));
 }

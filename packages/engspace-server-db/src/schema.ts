@@ -1,14 +1,15 @@
 import path from 'path';
 import fs from 'fs';
 import util from 'util';
-import { CommonQueryMethodsType, sql, DatabaseTransactionConnectionType } from 'slonik';
+import { sql, DatabaseTransactionConnectionType } from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
 
+import { Db } from '.';
 import metadata from './sql/metadata.json';
 
 const readFileAsync = util.promisify(fs.readFile);
 
-async function executeSqlFile(db: CommonQueryMethodsType, filename: string): Promise<void> {
+async function executeSqlFile(db: Db, filename: string): Promise<void> {
     const sqlPath = path.join(__dirname, 'sql', filename);
     const sqlContent = await readFileAsync(sqlPath);
     const commands = sqlContent

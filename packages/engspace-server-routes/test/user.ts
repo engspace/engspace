@@ -1,17 +1,16 @@
 import chai from 'chai';
 import HttpStatus from 'http-status-codes';
-import { CommonQueryMethodsType } from 'slonik';
 
 import { Role, User } from '@engspace/core';
 import { createUsers, prepareUsersWithPswd } from '@engspace/demo-data';
-import { Pool, UserDao } from '@engspace/server-db';
+import { Db, Pool, UserDao } from '@engspace/server-db';
 import { app } from '../src';
 import { userTokens, UserSet, UsersAndTokens, loginToken } from './auth';
 
 const { expect } = chai;
 
 export const createUserSet = async (): Promise<UserSet> =>
-    Pool.connect(async (db: CommonQueryMethodsType) => {
+    Pool.connect(async (db: Db) => {
         const users = await createUsers(db);
         const userSet: UserSet = {};
         for (const u of users) {

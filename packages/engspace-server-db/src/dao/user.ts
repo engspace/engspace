@@ -1,5 +1,6 @@
-import { CommonQueryMethodsType, sql } from 'slonik';
+import { sql } from 'slonik';
 import { IUser, Role } from '@engspace/core';
+import { Db } from '..';
 import { partialAssignmentList } from '../util';
 
 export interface UserSearch {
@@ -15,7 +16,7 @@ export interface UserWithId extends IUser {
 
 export class UserDao {
     static async checkLogin(
-        db: CommonQueryMethodsType,
+        db: Db,
         nameOrEmail: string,
         password: string
     ): Promise<UserWithId | null> {
@@ -45,7 +46,7 @@ export class UserDao {
         }
     }
 
-    static async create(db: CommonQueryMethodsType, user: IUser): Promise<IUser> {
+    static async create(db: Db, user: IUser): Promise<IUser> {
         const { name, email, fullName, password } = user;
         const { id } = await db.one(sql`
             INSERT INTO "user" (
@@ -59,7 +60,7 @@ export class UserDao {
         return this.findById(db, id);
     }
 
-    static async adminRegistered(db: CommonQueryMethodsType): Promise<boolean> {
+    static async adminRegistered(db: Db): Promise<boolean> {
         const count = await db.oneFirst(sql`
             SELECT count(*) FROM "user" AS u
             LEFT OUTER JOIN user_role AS ur ON ur.user_id = u.id
@@ -68,7 +69,7 @@ export class UserDao {
         return count !== 0;
     }
 
-    static async findById(db: CommonQueryMethodsType, id: number): Promise<IUser> {
+    static async findById(db: Db, id: number): Promise<IUser> {
         const user: IUser = await db.one(sql`
             SELECT id, name, email, full_name
             FROM "user"
@@ -78,7 +79,7 @@ export class UserDao {
         return user;
     }
 
-    static async findByName(db: CommonQueryMethodsType, name: string): Promise<IUser> {
+    static async findByName(db: Db, name: string): Promise<IUser> {
         const user: IUser = await db.maybeOne(sql`
             SELECT id, name, email, full_name
             FROM "user"
@@ -88,7 +89,7 @@ export class UserDao {
         return user;
     }
 
-    static async findByEmail(db: CommonQueryMethodsType, email: string): Promise<IUser> {
+    static async findByEmail(db: Db, email: string): Promise<IUser> {
         const user: IUser = await db.maybeOne(sql`
             SELECT id, name, email, full_name
             FROM "user"
@@ -98,10 +99,7 @@ export class UserDao {
         return user;
     }
 
-    static async findByNameOrEmail(
-        db: CommonQueryMethodsType,
-        nameOrEmail: string
-    ): Promise<IUser> {
+    static async findByNameOrEmail(db: Db, nameOrEmail: string): Promise<IUser> {
         const user: IUser = await db.maybeOne(sql`
             SELECT id, name, email, full_name
             FROM "user"
@@ -111,7 +109,7 @@ export class UserDao {
         return user;
     }
 
-    static async hasPasswordById(db: CommonQueryMethodsType, id: number): Promise<boolean> {
+    static async hasPasswordById(db: Db, id: number): Promise<boolean> {
         const password = await db.oneFirst(sql`
             SELECT password
             FROM "user"
@@ -120,11 +118,7 @@ export class UserDao {
         return password !== null;
     }
 
-    static async checkPasswordById(
-        db: CommonQueryMethodsType,
-        id: number,
-        password: string
-    ): Promise<boolean> {
+    static async checkPasswordById(db: Db, id: number, password: string): Promise<boolean> {
         const ok = await db.oneFirst(sql`
             SELECT (password = crypt(${password}, password)) as ok
             FROM "user" WHERE id = ${id}
@@ -132,10 +126,7 @@ export class UserDao {
         return (ok as unknown) as boolean;
     }
 
-    static async search(
-        db: CommonQueryMethodsType,
-        search: UserSearch
-    ): Promise<{ count: number; users: IUser[] }> {
+    static async search(db: Db, search: UserSearch): Promise<{ count: number; users: IUser[] }> {
         const boolExpressions = [sql`TRUE`];
         if (search.phrase) {
             const phrase = `%${search.phrase.replace(/s/g, '%')}%`;
@@ -178,11 +169,7 @@ export class UserDao {
         return { count, users };
     }
 
-    static async patch(
-        db: CommonQueryMethodsType,
-        id: number,
-        user: Partial<IUser>
-    ): Promise<IUser> {
+    static async patch(db: Db, id: number, user: Partial<IUser>): Promise<IUser> {
         if (user.id) throw new Error('Cannot patch user id!');
         const assignments = partialAssignmentList(user, ['name', 'email', 'fullName']);
         if (user.password) {
@@ -203,16 +190,16 @@ export class UserDao {
         return this.findById(db, id);
     }
 
-    static async deleteAll(db: CommonQueryMethodsType): Promise<void> {
+    static async deleteAll(db: Db): Promise<void> {
         await db.query(sql`DELETE FROM "user"`);
     }
 
-    static async deleteById(db: CommonQueryMethodsType, id: number): Promise<void> {
+    static async deleteById(db: Db, id: number): Promise<void> {
         await db.query(sql`DELETE FROM "user" WHERE id = ${id}`);
     }
 }
 
-async function userRoles(db: CommonQueryMethodsType, id: number): Promise<Role[]> {
+async function userRoles(db: Db, id: number): Promise<Role[]> {
     const roles = await db.anyFirst(sql`
         SELECT role FROM user_role
         WHERE user_id = ${id}
@@ -220,7 +207,7 @@ async function userRoles(db: CommonQueryMethodsType, id: number): Promise<Role[]
     return roles as Role[];
 }
 
-async function insertRoles(db: CommonQueryMethodsType, roles: Role[], id: number): Promise<void> {
+async function insertRoles(db: Db, roles: Role[], id: number): Promise<void> {
     const roleArr = roles.map(r => [id, r]);
     await db.any(sql`
         INSERT INTO user_role(
