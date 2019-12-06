@@ -25,9 +25,10 @@ export interface DbConfig {
 }
 
 export type Db = CommonQueryMethodsType;
+export type DbPool = DatabasePoolType;
 export type SqlLiteral<T = any> = SqlSqlTokenType<T>;
 
-async function create(dbConfig: DbConfig): Promise<DatabasePoolType> {
+export async function createDbPool(dbConfig: DbConfig): Promise<DbPool> {
     const pool0 = createPool(dbConfig.uri, {
         maximumPoolSize: 1,
     });
@@ -60,7 +61,7 @@ async function create(dbConfig: DbConfig): Promise<DatabasePoolType> {
 
 export class Pool {
     static init(dbConfig: DbConfig): Promise<void> {
-        return create(dbConfig).then(p => {
+        return createDbPool(dbConfig).then(p => {
             pool = p;
         });
     }

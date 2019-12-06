@@ -10,5 +10,6 @@
         },
         "formatDb": true
     },
-    "jwtSecret": "not_a_production_password"
+    "jwtSecret": "not_a_production_password",
+    "gqlPlaygroundUsername": "ambre"
 }

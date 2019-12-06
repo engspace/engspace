@@ -2,10 +2,10 @@ import { gql } from 'apollo-server-koa';
 
 export const typeDefs = gql`
     type Query {
-        users(phrase: String, offset: Int 0, limit: Int 1000): [User!]!
+        userSearch(phrase: String, offset: Int = 0, limit: Int = 1000): UserSearch!
         user(id: ID!): User
 
-        projects(phrase: String, offset: Int 0, limit: Int 1000): [Project!]!
+        projects(phrase: String, offset: Int = 0, limit: Int = 1000): [Project!]!
         project(id: ID!): Project
     }
 
@@ -19,6 +19,11 @@ export const typeDefs = gql`
         email: String!
         fullName: String
         roles: [String!]!
+    }
+
+    type UserSearch {
+        count: Int!
+        users: [User!]!
     }
 
     type Project {
