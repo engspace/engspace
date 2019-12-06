@@ -5,12 +5,22 @@ export const typeDefs = gql`
         userSearch(phrase: String, offset: Int = 0, limit: Int = 1000): UserSearch!
         user(id: ID!): User
 
-        projects(phrase: String, offset: Int = 0, limit: Int = 1000): [Project!]!
+        projectSearch(phrase: String, offset: Int = 0, limit: Int = 1000): ProjectSearch!
         project(id: ID!): Project
     }
 
     type Mutation {
         login(nameOrEmail: String): String
+    }
+
+    type UserSearch {
+        count: Int!
+        users: [User!]!
+    }
+
+    type ProjectSearch {
+        count: Int!
+        projects: [Project!]!
     }
 
     type User {
@@ -19,11 +29,6 @@ export const typeDefs = gql`
         email: String!
         fullName: String
         roles: [String!]!
-    }
-
-    type UserSearch {
-        count: Int!
-        users: [User!]!
     }
 
     type Project {
