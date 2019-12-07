@@ -7,8 +7,13 @@ export { userInput, prepareUsers, prepareUsersWithPswd } from './user';
 export { projectInput, prepareProjects } from './project';
 
 export async function populateDemo(pool: DbPool): Promise<void> {
-    return pool.connect(async db => {
-        await createUsers(db);
-        await createProjects(db);
-    });
+    try {
+        return pool.connect(async db => {
+            await createUsers(db);
+            await createProjects(db);
+        });
+    } catch (err) {
+        console.error('error while populating the demo data set:');
+        console.error(err);
+    }
 }

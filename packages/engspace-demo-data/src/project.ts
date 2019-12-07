@@ -1,4 +1,4 @@
-import { Project } from '@engspace/core';
+import { Project, ProjectInput } from '@engspace/core';
 import { Db, UserDao, ProjectDao } from '@engspace/server-db';
 
 export const projectInput = [
@@ -59,7 +59,7 @@ export const projectInput = [
     },
 ];
 
-export async function prepareProjects(db: Db): Promise<Project[]> {
+export async function prepareProjects(db: Db): Promise<ProjectInput[]> {
     return Promise.all(
         projectInput.map(async p => {
             const newP = {
@@ -70,16 +70,16 @@ export async function prepareProjects(db: Db): Promise<Project[]> {
                     p.members.map(async m => ({
                         leader: m.leader,
                         designer: m.designer,
-                        user: await UserDao.findByName(db, m.user),
+                        user: await UserDao.byName(db, m.user),
                     }))
                 ),
             };
-            return new Project(newP);
+            return newP;
         })
     );
 }
 
 export async function createProjects(db: Db): Promise<Project[]> {
     const projects = await prepareProjects(db);
-    return await Promise.all(projects.map(p => ProjectDao.create(db, p)));
+    return Promise.all(projects.map(p => ProjectDao.create(db, p)));
 }

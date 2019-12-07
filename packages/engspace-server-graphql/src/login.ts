@@ -3,7 +3,7 @@ import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import config from 'config';
 import { getRolesPerms } from '@engspace/core';
-import { DbPool, UserDao2 } from '@engspace/server-db';
+import { DbPool, LoginDao, UserDao } from '@engspace/server-db';
 import { Context, Next } from 'koa';
 import { DatabasePoolType } from 'slonik';
 
@@ -65,7 +65,7 @@ export function loginRouter(pool: DatabasePoolType): Router {
 
         const user = await pool.connect(async db => {
             console.log('will check user');
-            return UserDao2.checkLogin(db, nameOrEmail, password);
+            return LoginDao.login(db, nameOrEmail, password);
         });
         console.log(user);
         if (user) {
@@ -83,7 +83,7 @@ export function loginRouter(pool: DatabasePoolType): Router {
     return router;
 }
 
-const USER_TOKEN_SYMBOL = Symbol('@engspace/server-gql/userToken');
+const USER_TOKEN_SYMBOL = Symbol('@engspace//userToken');
 
 export function checkAuth(pool: DbPool) {
     return async (ctx: Context, next: Next): Promise<void> => {
@@ -91,8 +91,8 @@ export function checkAuth(pool: DbPool) {
         if (ctx.path === '/graphql/playground') {
             const username = config.get<string>('gqlPlaygroundUsername');
             const user = await pool.connect(async db => {
-                const user = await UserDao2.byName(db, username);
-                user.roles = await UserDao2.rolesById(db, user.id);
+                const user = await UserDao.byName(db, username);
+                user.roles = await UserDao.rolesById(db, user.id);
                 return user;
             });
             const perms = getRolesPerms(user.roles);

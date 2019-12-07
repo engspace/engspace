@@ -1,5 +1,5 @@
 {
-    "name": "@engspace/server-gql",
+    "name": "@engspace/server-graphql",
     "version": "0.1.0",
     "description": "GraphQL server for Engineering Space",
     "author": "Remi Thebault <remi.thebault@gmail.com>",
@@ -11,11 +11,12 @@
         "lint": "eslint --ext .js,.ts .",
         "lint:fix": "eslint --fix --ext .js,.ts .",
         "build": "tsc -p tsconfig.json",
-        "clean": "rimraf ./dist/"
+        "clean": "rimraf ./dist/ ../../.build-cache/server-graphql.tsbuildinfo"
     },
     "dependencies": {
         "@engspace/core": "^0.1.0",
         "@engspace/server-db": "^0.1.0",
+        "apollo-server-koa": "^2.9.13",
         "config": "^3.2.4",
         "graphql": "^14.5.8",
         "http-status-codes": "^1.4.0",

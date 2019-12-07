@@ -80,7 +80,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import HttpStatus from 'http-status-codes';
-import { Project, IProjectMember } from '@engspace/core';
+import { Project, ProjectMember } from '@engspace/core';
 import { Api } from '../api';
 
 export default Vue.extend({
@@ -117,7 +117,7 @@ export default Vue.extend({
         }
     },
     methods: {
-        memberRoles(member: IProjectMember) {
+        memberRoles(member: ProjectMember) {
             const roles = [];
             if (member.leader) roles.push('Leader');
             if (member.designer) roles.push('Designer');

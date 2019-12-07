@@ -36,7 +36,7 @@ export async function buildGqlApp(pool: DbPool): Promise<Koa> {
     app.use(checkAuth(pool));
 
     const GQL_PATH = '/graphql';
-    const DB_SYMBOL = Symbol('@engspace/server-gql/db');
+    const DB_SYMBOL = Symbol('@engspace//db');
 
     app.use(async (ctx, next) => {
         if (ctx.path === GQL_PATH || ctx.path === '/graphql/playground') {

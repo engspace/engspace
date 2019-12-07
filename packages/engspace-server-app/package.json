@@ -13,11 +13,10 @@
         "lint:fix": "eslint --fix --ext .js,.ts .",
         "build": "tsc -b .",
         "serve": "node .",
-        "clean": "rimraf ./dist/ tsconfig.tsbuildinfo"
+        "clean": "rimraf ./dist/ ../../.build-cache/server-app.tsbuildinfo"
     },
     "dependencies": {
         "@engspace/server-db": "^0.1.0",
-        "@engspace/server-routes": "^0.1.0",
         "config": "^3.2.4"
     },
     "devDependencies": {

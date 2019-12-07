@@ -11,13 +11,11 @@
     "scripts": {
         "lint": "eslint --ext .js,.ts .",
         "lint:fix": "eslint --fix --ext .js,.ts .",
-        "build:sql": "gulp copySql",
+        "build:sql": "copyfiles -u 1 \"src/sql/*\" dist",
         "build:ts": "tsc -b .",
         "build": "npm-run-all build:sql build:ts",
         "test": "cross-env NODE_ENV=test mocha -r ts-node/register test/**/*.ts",
-        "clean:sql": "gulp cleanSql",
-        "clean:ts": "rimraf ./dist/ tsconfig.tsbuildinfo",
-        "clean": "npm-run-all clean:sql clean:ts"
+        "clean": "rimraf ./dist/ ../../.build-cache/server-db.tsbuildinfo"
     },
     "dependencies": {
         "@engspace/core": "^0.1.0",
@@ -37,6 +35,7 @@
         "@typescript-eslint/eslint-plugin": "^2.7.0",
         "@typescript-eslint/parser": "^2.7.0",
         "chai": "^4.2.0",
+        "copyfiles": "^2.1.1",
         "cross-env": "^6.0.3",
         "del": "^5.1.0",
         "eslint": "^6.6.0",

@@ -1,13 +1,13 @@
 import chai from 'chai';
 import { createUsers, createProjects, prepareProjects } from '@engspace/demo-data';
-import { IUser, IProject } from '@engspace/core';
+import { User, Project } from '@engspace/core';
 import { Pool, ProjectDao, UserDao } from '../src';
 
 const { expect } = chai;
 
 describe('ProjectDao', () => {
-    let dbUsers: IUser[];
-    let projects: IProject[];
+    let dbUsers: User[];
+    let projects: Project[];
     before('make projects', async () => {
         projects = await Pool.connect(async db => {
             dbUsers = await createUsers(db);
@@ -35,7 +35,7 @@ describe('ProjectDao', () => {
     });
 
     describe('find, update', () => {
-        let dbProjects: IProject[];
+        let dbProjects: Project[];
         before('populate projects', async () =>
             Pool.connect(async db => {
                 dbProjects = await createProjects(db);
@@ -56,24 +56,24 @@ describe('ProjectDao', () => {
 
         it('should update project by id', async () =>
             Pool.connect(async db => {
-                const proj: IProject = {
+                const proj: Project = {
                     id: dbProjects[1].id as number,
                     code: 'a_new_code',
                     name: 'a new name',
                     description: 'a new description',
                     members: [
                         {
-                            user: dbUsers.find(u => u.name === 'alphonse') as IUser,
+                            user: dbUsers.find(u => u.name === 'alphonse') as User,
                             designer: true,
                             leader: true,
                         },
                         {
-                            user: dbUsers.find(u => u.name === 'fatima') as IUser,
+                            user: dbUsers.find(u => u.name === 'fatima') as User,
                             designer: true,
                             leader: true,
                         },
                         {
-                            user: dbUsers.find(u => u.name === 'philippe') as IUser,
+                            user: dbUsers.find(u => u.name === 'philippe') as User,
                             designer: true,
                             leader: false,
                         },

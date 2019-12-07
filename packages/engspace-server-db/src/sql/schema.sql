@@ -8,9 +8,15 @@ CREATE TABLE "user" (
     name text NOT NULL UNIQUE,
     email text NOT NULL UNIQUE,
     full_name text NOT NULL,
-    roles text[],
-    password text,
     updated_on timestamp NOT NULL
+);
+
+CREATE TABLE user_login (
+    user_id integer PRIMARY KEY,
+    password text NOT NULL,
+    updated_on timestamp NOT NULL,
+
+    FOREIGN KEY(user_id) REFERENCES "user"(id) ON DELETE CASCADE
 );
 
 CREATE TABLE user_role (

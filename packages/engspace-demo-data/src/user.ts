@@ -1,5 +1,9 @@
-import { User, Role } from '@engspace/core';
-import { Db, UserDao } from '@engspace/server-db';
+import { User, UserInput, Role } from '@engspace/core';
+import { Db, LoginDao, UserDao } from '@engspace/server-db';
+
+export interface UserInputWithPswd extends UserInput {
+    password: string;
+}
 
 export const userInput = [
     // email is [name]@engspace.demo
@@ -56,28 +60,28 @@ export const userInput = [
     },
 ];
 
-export function prepareUsers(): User[] {
-    return userInput.map(
-        u =>
-            new User({
-                email: `${u.name}@engspace.demo`,
-                ...u,
-            })
-    );
+export function prepareUsers(): UserInput[] {
+    return userInput.map(u => ({
+        email: `${u.name}@engspace.demo`,
+        ...u,
+    }));
 }
 
-export function prepareUsersWithPswd(): User[] {
-    return userInput.map(
-        u =>
-            new User({
-                email: `${u.name}@engspace.demo`,
-                password: u.name,
-                ...u,
-            })
-    );
+export function prepareUsersWithPswd(): UserInputWithPswd[] {
+    return userInput.map(u => ({
+        email: `${u.name}@engspace.demo`,
+        password: u.name,
+        ...u,
+    }));
 }
 
 export async function createUsers(db: Db): Promise<User[]> {
     const users = prepareUsersWithPswd();
-    return await Promise.all(users.map(u => UserDao.create(db, u)));
+    return Promise.all(
+        users.map(async u => {
+            const user = await UserDao.create(db, u);
+            await LoginDao.create(db, user.id, u.password);
+            return user;
+        })
+    );
 }

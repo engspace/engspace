@@ -1,6 +1,6 @@
 import { sql } from 'slonik';
 
-import { IProject, IProjectMember } from '@engspace/core';
+import { Project, ProjectInput, ProjectMember } from '@engspace/core';
 import { Db } from '..';
 import { UserDao } from './user';
 
@@ -20,7 +20,7 @@ interface DbProject {
 
 async function upsertMembers(
     db: Db,
-    members: IProjectMember[],
+    members: ProjectMember[],
     projId: number,
     deleteAfter = false
 ): Promise<void> {
@@ -49,33 +49,33 @@ async function upsertMembers(
 }
 
 export class ProjectDao {
-    static async findById(db: Db, id: number): Promise<IProject> {
+    static async byId(db: Db, id: number): Promise<Project> {
         const proj = await db.one<DbProject>(sql`
             SELECT id, name, code, description
             FROM project
             WHERE id = ${id}
         `);
-        const members = await ProjectDao.findMembersByProjectId(db, proj.id);
+        const members = await ProjectDao.membersById(db, proj.id);
         return {
             ...proj,
             members,
         };
     }
 
-    static async findByCode(db: Db, code: string): Promise<IProject> {
+    static async byCode(db: Db, code: string): Promise<Project> {
         const proj = await db.one<DbProject>(sql`
             SELECT id, name, code, description
             FROM project
             WHERE code = ${code}
         `);
-        const members = await ProjectDao.findMembersByProjectId(db, proj.id);
+        const members = await ProjectDao.membersById(db, proj.id);
         return {
             ...proj,
             members,
         };
     }
 
-    static async findMembersByProjectId(db: Db, projectId: number): Promise<IProjectMember[]> {
+    static async membersById(db: Db, projectId: number): Promise<ProjectMember[]> {
         const res: any[] = await db.any(sql`
             SELECT
                 user_id,
@@ -87,14 +87,14 @@ export class ProjectDao {
         `);
         return Promise.all(
             res.map(async r => ({
-                user: await UserDao.findById(db, r.userId),
+                user: await UserDao.byId(db, r.userId),
                 leader: r.leader,
                 designer: r.designer,
             }))
         );
     }
 
-    static async create(db: Db, proj: IProject): Promise<IProject> {
+    static async create(db: Db, proj: ProjectInput): Promise<Project> {
         const { name, code, description } = proj;
         const project: DbProject = await db.one(sql`
             INSERT INTO project (
@@ -106,15 +106,15 @@ export class ProjectDao {
         `);
 
         upsertMembers(db, proj.members, project.id, false);
-        const members = await ProjectDao.findMembersByProjectId(db, project.id);
+        const members = await ProjectDao.membersById(db, project.id);
         return {
             ...project,
             members,
         };
     }
 
-    static async updateById(db: Db, project: IProject): Promise<IProject> {
-        await upsertMembers(db, project.members, project.id as number, true);
+    static async updateById(db: Db, project: Project): Promise<Project> {
+        await upsertMembers(db, project.members, project.id, true);
         await db.query(sql`
             UPDATE project SET
                 name = ${project.name},
@@ -122,13 +122,13 @@ export class ProjectDao {
                 description = ${project.description}
             WHERE id = ${project.id as number}
         `);
-        return ProjectDao.findById(db, project.id as number);
+        return ProjectDao.byId(db, project.id);
     }
 
     static async search(
         db: Db,
         search: ProjectSearch
-    ): Promise<{ count: number; projects: IProject[] }> {
+    ): Promise<{ count: number; projects: Project[] }> {
         const boolExpressions = [sql`TRUE`];
         if (search.phrase) {
             const phrase = `%${search.phrase.replace(/s/g, '%')}%`;
@@ -137,29 +137,30 @@ export class ProjectDao {
                 p.code ILIKE ${phrase} OR
                 p.description ILIKE ${phrase})`);
         }
+        let joinToken = sql``;
         if (search.member) {
-            boolExpressions.push(sql`
-                u.name = ${search.member}
-            `);
+            const member = `%${search.member.replace(/s/g, '%')}%`;
+            boolExpressions.push(sql`(
+                u.name ILIKE ${member} OR
+                u.email ILIKE ${member} OR
+                u.full_name ILIKE ${member}
+            )`);
+            joinToken = sql`
+                LEFT OUTER JOIN project_member AS pm ON pm.project_id = p.id
+                LEFT OUTER JOIN "user" AS u ON u.id = pm.user_id
+            `;
         }
         const whereToken = sql.join(boolExpressions, sql` AND `);
         const limitToken = sql`${search.limit ? search.limit : 1000}`;
         const offset = search.offset ? search.offset : 0;
         const offsetToken = sql`${offset}`;
-        const projectsWoMembers: IProject[] = await db.any(sql`
+        const projects: Project[] = await db.any(sql`
             SELECT p.id, p.name, p.code, p.description FROM project AS p
-            LEFT OUTER JOIN project_member AS pm ON pm.project_id = p.id
-            LEFT OUTER JOIN "user" AS u ON u.id = pm.user_id
+            ${joinToken}
             WHERE ${whereToken}
             LIMIT ${limitToken}
             OFFSET ${offsetToken}
         `);
-        const projects = await Promise.all(
-            projectsWoMembers.map(async p => ({
-                roles: await this.findMembersByProjectId(db, p.id),
-                ...p,
-            }))
-        );
         let count = projects.length + offset;
         if (search.limit && projects.length === search.limit) {
             count = (await db.oneFirst(sql`
@@ -173,12 +174,10 @@ export class ProjectDao {
     }
 
     static async deleteAll(db: Db): Promise<void> {
-        await db.query(sql`DELETE FROM project_member`);
         await db.query(sql`DELETE FROM project`);
     }
 
     static async deleteById(db: Db, id: number): Promise<void> {
-        await db.query(sql`DELETE FROM project_member WHERE project_id = ${id}`);
         await db.query(sql`DELETE FROM project WHERE id = ${id}`);
     }
 }

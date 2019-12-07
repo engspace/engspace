@@ -1,28 +1,38 @@
 export enum Role {
-    Admin = 'admin',
-    Manager = 'manager',
     User = 'user',
+    Manager = 'manager',
+    Admin = 'admin',
 }
 
-export interface IUser {
-    id?: number;
+export enum ProjectRole {
+    Leader = 'leader',
+    Designer = 'designer',
+}
+
+export interface UserInput {
     name: string;
     email: string;
     fullName: string;
-    roles: Role[];
-    password?: string;
+    roles?: Role[];
 }
 
-export interface IProjectMember {
-    user: IUser | { id: number };
-    leader: boolean;
-    designer: boolean;
+export interface User extends UserInput {
+    id: number;
 }
 
-export interface IProject {
-    id?: number;
+export interface ProjectInput {
     name: string;
     code: string;
     description: string;
-    members: IProjectMember[];
+    members?: ProjectMember[];
+}
+
+export interface Project extends ProjectInput {
+    id: number;
+}
+
+export interface ProjectMember {
+    user: { id: number } | User;
+    leader: boolean;
+    designer: boolean;
 }

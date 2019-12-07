@@ -5,7 +5,12 @@ export const typeDefs = gql`
         userSearch(phrase: String, offset: Int = 0, limit: Int = 1000): UserSearch!
         user(id: ID!): User
 
-        projectSearch(phrase: String, offset: Int = 0, limit: Int = 1000): ProjectSearch!
+        projectSearch(
+            phrase: String
+            member: String
+            offset: Int = 0
+            limit: Int = 1000
+        ): ProjectSearch!
         project(id: ID!): Project
     }
 

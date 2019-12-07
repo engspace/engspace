@@ -11,6 +11,6 @@
     "references": [
         { "path": "../engspace-demo-data", "prepend": false },
         { "path": "../engspace-server-db", "prepend": false },
-        { "path": "../engspace-server-gql", "prepend": false }
+        { "path": "../engspace-server-graphql", "prepend": false }
     ]
 }

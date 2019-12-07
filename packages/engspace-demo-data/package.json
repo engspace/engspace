@@ -12,7 +12,7 @@
         "lint": "eslint --ext .js,.ts .",
         "lint:fix": "eslint --fix --ext .js,.ts .",
         "build": "tsc -b .",
-        "clean": "rimraf ./dist/ tsconfig.tsbuildinfo"
+        "clean": "rimraf ./dist/ ../../.build-cache/demo-data.tsbuildinfo"
     },
     "dependencies": {
         "@engspace/core": "^0.1.0",

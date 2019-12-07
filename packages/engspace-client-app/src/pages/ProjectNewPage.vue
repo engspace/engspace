@@ -106,7 +106,7 @@
 import Vue from 'vue';
 import debounce from 'lodash.debounce';
 import HttpStatus from 'http-status-codes';
-import { IProjectMember, IUser, Project } from '@engspace/core';
+import { ProjectMember, User, Project } from '@engspace/core';
 import { Api } from '../api';
 
 export default Vue.extend({
@@ -124,7 +124,7 @@ export default Vue.extend({
             searchPhrase: '',
             searchPag: {} as { page: number; rowsPerPage: number },
             searchLoad: false,
-            searchResult: [] as IUser[],
+            searchResult: [] as User[],
             searchCount: 0,
             searchHeaders: [
                 { text: 'Name', value: 'fullName' },
@@ -136,7 +136,7 @@ export default Vue.extend({
         };
     },
     computed: {
-        searchCandidates(): IUser[] {
+        searchCandidates(): User[] {
             const proj = this.project;
             return this.searchResult.filter(u => proj.members.every(m => m.user.id !== u.id));
         },
@@ -175,14 +175,14 @@ export default Vue.extend({
                 this.searchLoad = false;
             }
         },
-        addMember(user: IUser) {
+        addMember(user: User) {
             this.project.members.push({
                 user,
                 leader: false,
                 designer: false,
             });
         },
-        removeMember(member: IProjectMember) {
+        removeMember(member: ProjectMember) {
             const proj = this.project;
             proj.members = proj.members.filter(m => m.user.id !== member.user.id);
         },

@@ -1,10 +1,10 @@
-import { Project2, ProjectMember2, User2, Role } from '@engspace/core';
+import { Project, ProjectMember, User, Role } from '@engspace/core';
 import { searchProjects, searchUsers, userRoles, projectMembers } from './controllers';
 import { GqlContext } from '.';
 
 export const resolvers = {
     Query: {
-        userSearch(parent, args, ctx: GqlContext): Promise<{ count: number; users: User2[] }> {
+        userSearch(parent, args, ctx: GqlContext): Promise<{ count: number; users: User[] }> {
             const { phrase, offset, limit } = args;
             return searchUsers(ctx, phrase, { offset, limit });
         },
@@ -12,20 +12,20 @@ export const resolvers = {
             parent,
             args,
             ctx: GqlContext
-        ): Promise<{ count: number; projects: Project2[] }> {
-            const { phrase, offset, limit } = args;
-            return searchProjects(ctx, phrase, { offset, limit });
+        ): Promise<{ count: number; projects: Project[] }> {
+            const { phrase, member, offset, limit } = args;
+            return searchProjects(ctx, phrase, member, { offset, limit });
         },
     },
 
     User: {
-        roles({ id }: User2, args, ctx: GqlContext): Promise<Role[]> {
+        roles({ id }: User, args, ctx: GqlContext): Promise<Role[]> {
             return userRoles(ctx, id);
         },
     },
 
     Project: {
-        members({ id }: Project2, args, ctx: GqlContext): Promise<ProjectMember2[]> {
+        members({ id }: Project, args, ctx: GqlContext): Promise<ProjectMember[]> {
             return projectMembers(ctx, id);
         },
     },
