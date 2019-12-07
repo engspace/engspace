@@ -3,14 +3,13 @@ import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import config from 'config';
 import { getRolesPerms } from '@engspace/core';
-import { DbPool, UserDao } from '@engspace/server-db';
+import { DbPool, UserDao2 } from '@engspace/server-db';
 import { Context, Next } from 'koa';
 import { DatabasePoolType } from 'slonik';
 
 export interface UserToken {
     id: number;
     name: string;
-    fullName: string;
     perms: string[];
 }
 
@@ -20,7 +19,6 @@ async function signToken(token: UserToken): Promise<string> {
             {
                 id: token.id,
                 name: token.name,
-                fullName: token.fullName,
                 perms: token.perms,
             },
             config.get<string>('jwtSecret'),
@@ -67,7 +65,7 @@ export function loginRouter(pool: DatabasePoolType): Router {
 
         const user = await pool.connect(async db => {
             console.log('will check user');
-            return UserDao.checkLogin(db, nameOrEmail, password);
+            return UserDao2.checkLogin(db, nameOrEmail, password);
         });
         console.log(user);
         if (user) {
@@ -92,12 +90,15 @@ export function checkAuth(pool: DbPool) {
         // faking the authentication for playground
         if (ctx.path === '/graphql/playground') {
             const username = config.get<string>('gqlPlaygroundUsername');
-            const user = await pool.connect(db => UserDao.findByName(db, username));
+            const user = await pool.connect(async db => {
+                const user = await UserDao2.byName(db, username);
+                user.roles = await UserDao2.rolesById(db, user.id);
+                return user;
+            });
             const perms = getRolesPerms(user.roles);
             (ctx.state as any)[USER_TOKEN_SYMBOL] = {
                 id: user.id,
                 name: user.name,
-                fullName: user.fullName,
                 perms,
             };
             return next();

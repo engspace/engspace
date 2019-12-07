@@ -3,6 +3,7 @@ import UserSchema from './schema/IUser.json';
 import ProjectSchema from './schema/IProject.json';
 import { CheckFunction, ValidateFunction, AssertFunction, createValidation } from './validation';
 export { getRolePerms, getRolesPerms } from './permissions';
+export { User2, ProjectRole2, Project2, ProjectMember2 } from './schema2';
 
 export { Role, IUser, IProject, IProjectMember };
 

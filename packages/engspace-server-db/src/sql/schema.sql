@@ -14,10 +14,11 @@ CREATE TABLE "user" (
 );
 
 CREATE TABLE user_role (
-    user_id integer REFERENCES "user"(id) ON DELETE CASCADE,
+    user_id integer,
     role text NOT NULL,
 
-    PRIMARY KEY(user_id, role)
+    PRIMARY KEY(user_id, role),
+    FOREIGN KEY(user_id) REFERENCES "user"(id) ON DELETE CASCADE
 );
 
 CREATE TABLE project (
@@ -29,11 +30,14 @@ CREATE TABLE project (
 );
 
 CREATE TABLE project_member (
-    project_id integer REFERENCES project(id),
-    user_id integer REFERENCES "user"(id),
+    project_id integer,
+    user_id integer,
     ind integer DEFAULT 0,
     leader boolean NOT NULL,
     designer boolean NOT NULL,
     updated_on timestamp NOT NULL,
-    PRIMARY KEY(project_id, user_id)
+
+    PRIMARY KEY(project_id, user_id),
+    FOREIGN KEY(project_id) REFERENCES project(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES "user"(id)
 );

@@ -13,6 +13,7 @@ import { raw } from 'slonik-sql-tag-raw';
 import { initSchema } from './schema';
 
 export { ProjectDao, UserDao } from './dao';
+export { ProjectDao2, UserDao2 } from './dao2';
 export { initSchema } from './schema';
 
 let pool: DatabasePoolType | null = null;
