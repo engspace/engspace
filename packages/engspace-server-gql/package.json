@@ -14,9 +14,8 @@
         "clean": "rimraf ./dist/"
     },
     "dependencies": {
+        "@engspace/core": "^0.1.0",
         "@engspace/server-db": "^0.1.0",
-        "@engspace/server-logic": "^0.1.0",
-        "apollo-server-koa": "^2.9.12",
         "config": "^3.2.4",
         "graphql": "^14.5.8",
         "http-status-codes": "^1.4.0",
