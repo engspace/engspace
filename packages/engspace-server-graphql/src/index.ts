@@ -1,13 +1,15 @@
-import Koa, { Context } from 'koa';
+import Koa, { Context, Next } from 'koa';
+import logger from 'koa-logger';
 import bodyParser from 'koa-bodyparser';
 import cors from 'koa2-cors';
-
-import { loginRouter, checkAuth, userToken, UserToken } from './login';
 import { ApolloServer } from 'apollo-server-koa';
 
+import { Db, DbPool } from '@engspace/server-db';
+
+import { loginRouter, checkAuth, userToken, UserToken } from './login';
+import { setupPlayground } from './playground';
 import { typeDefs } from './schema';
 import { resolvers } from './resolvers';
-import { Db, DbPool } from '@engspace/server-db';
 
 export interface GqlContext {
     koaCtx: Koa.Context;
@@ -15,8 +17,39 @@ export interface GqlContext {
     db: Db;
 }
 
+const DB_SYMBOL = Symbol('@engspace/engspace-graphql/db');
+
+export function attachDb(pool: DbPool, path: string) {
+    return async (ctx: Context, next: Next): Promise<void> => {
+        if (ctx.path !== path) {
+            return next();
+        }
+        const attachAndCallNext = async (db: Db): Promise<void> => {
+            (ctx.state as any)[DB_SYMBOL] = db;
+            await next();
+            delete (ctx.state as any)[DB_SYMBOL];
+        };
+        if (ctx.method === 'GET') {
+            return pool.connect(attachAndCallNext);
+        } else if (ctx.method === 'POST') {
+            return pool.transaction(attachAndCallNext);
+        } else {
+            throw new Error(`unsupported HTTP method for graphql: ${ctx.method}`);
+        }
+    };
+}
+
+export function buildContext({ ctx }): GqlContext {
+    return {
+        koaCtx: ctx,
+        user: userToken(ctx),
+        db: ctx.state[DB_SYMBOL],
+    };
+}
+
 export async function buildGqlApp(pool: DbPool): Promise<Koa> {
     const app = new Koa();
+    app.use(logger());
     app.use(
         bodyParser({
             enableTypes: ['json', 'text', 'form'],
@@ -28,69 +61,29 @@ export async function buildGqlApp(pool: DbPool): Promise<Koa> {
         })
     );
 
-    const login = loginRouter(pool);
+    setupPlayground(app, pool);
 
+    const login = loginRouter(pool);
     app.use(login.routes());
     app.use(login.allowedMethods());
 
-    app.use(checkAuth(pool));
-
-    const GQL_PATH = '/graphql';
-    const DB_SYMBOL = Symbol('@engspace//db');
-
-    app.use(async (ctx, next) => {
-        if (ctx.path === GQL_PATH || ctx.path === '/graphql/playground') {
-            const attachAndCall = async (db: Db): Promise<void> => {
-                (ctx.state as any)[DB_SYMBOL] = db;
-                await next();
-                delete (ctx.state as any)[DB_SYMBOL];
-            };
-            if (ctx.method === 'GET') {
-                return pool.connect(attachAndCall);
-            } else if (ctx.method === 'POST') {
-                return pool.transaction(attachAndCall);
-            } else {
-                throw new Error(`unsupported HTTP method for graphql: ${ctx.method}`);
-            }
-        }
-        return next();
-    });
+    app.use(checkAuth);
+    app.use(attachDb(pool, '/graphql'));
 
     const graphQL = new ApolloServer({
         typeDefs,
         resolvers,
         introspection: false,
         playground: false,
-        context: ({ ctx }): GqlContext => ({
-            koaCtx: ctx,
-            user: userToken(ctx),
-            db: ctx.state[DB_SYMBOL],
-        }),
+        context: buildContext,
     });
-
-    const graphQLPlayground = new ApolloServer({
-        typeDefs,
-        resolvers,
-        introspection: true,
-        playground: true,
-        context: ({ ctx }): GqlContext => ({
-            koaCtx: ctx,
-            user: userToken(ctx),
-            db: ctx.state[DB_SYMBOL],
-        }),
-    });
-
     app.use(
         graphQL.getMiddleware({
-            path: GQL_PATH,
+            path: '/graphql',
         })
     );
 
-    app.use(
-        graphQLPlayground.getMiddleware({
-            path: '/graphql/playground',
-        })
-    );
+    setupPlayground(app, pool);
 
     return app;
 }

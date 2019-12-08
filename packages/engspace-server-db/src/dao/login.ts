@@ -19,7 +19,7 @@ export class LoginDao {
         const result: Result = await db.one(sql`
             SELECT u.id, u.name, (ul.password = crypt(${password}, ul.password)) AS ok
             FROM "user" AS u
-            LEFT OUTER JOIN user AS ul ON u.id = ul.user_id
+            LEFT OUTER JOIN user_login AS ul ON u.id = ul.user_id
             WHERE u.name = ${nameOrEmail} OR u.email = ${nameOrEmail}
         `);
         if (result.ok) {

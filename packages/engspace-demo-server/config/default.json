@@ -11,5 +11,5 @@
         "formatDb": true
     },
     "jwtSecret": "not_a_production_password",
-    "gqlPlaygroundUsername": "ambre"
+    "sessionSigningKeys": ["some key", "some other key"]
 }

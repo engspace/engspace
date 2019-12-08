@@ -7,13 +7,15 @@ import { DbPool, LoginDao, UserDao } from '@engspace/server-db';
 import { Context, Next } from 'koa';
 import { DatabasePoolType } from 'slonik';
 
+export const USER_TOKEN_SYMBOL = Symbol('@engspace/server-graphql/userToken');
+
 export interface UserToken {
     id: number;
     name: string;
     perms: string[];
 }
 
-async function signToken(token: UserToken): Promise<string> {
+export async function signToken(token: UserToken): Promise<string> {
     return new Promise((resolve, reject) => {
         jwt.sign(
             {
@@ -34,7 +36,7 @@ async function signToken(token: UserToken): Promise<string> {
     });
 }
 
-async function verifyToken(token: string): Promise<UserToken> {
+export async function verifyToken(token: string): Promise<UserToken> {
     return new Promise((resolve, reject) => {
         jwt.verify(token, config.get<string>('jwtSecret'), (err, decoded) => {
             if (err) {
@@ -64,10 +66,8 @@ export function loginRouter(pool: DatabasePoolType): Router {
         );
 
         const user = await pool.connect(async db => {
-            console.log('will check user');
             return LoginDao.login(db, nameOrEmail, password);
         });
-        console.log(user);
         if (user) {
             const perms = getRolesPerms(user.roles);
             ctx.body = {
@@ -83,41 +83,23 @@ export function loginRouter(pool: DatabasePoolType): Router {
     return router;
 }
 
-const USER_TOKEN_SYMBOL = Symbol('@engspace//userToken');
-
-export function checkAuth(pool: DbPool) {
-    return async (ctx: Context, next: Next): Promise<void> => {
-        // faking the authentication for playground
-        if (ctx.path === '/graphql/playground') {
-            const username = config.get<string>('gqlPlaygroundUsername');
-            const user = await pool.connect(async db => {
-                const user = await UserDao.byName(db, username);
-                user.roles = await UserDao.rolesById(db, user.id);
-                return user;
-            });
-            const perms = getRolesPerms(user.roles);
-            (ctx.state as any)[USER_TOKEN_SYMBOL] = {
-                id: user.id,
-                name: user.name,
-                perms,
-            };
-            return next();
+export async function checkAuth(ctx: Context, next: Next): Promise<void> {
+    if (ctx.path !== '/graphql') {
+        return next();
+    }
+    const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
+    if (header) {
+        const token = header.startsWith('Bearer ') ? header.slice(7) : header;
+        try {
+            (ctx.state as any)[USER_TOKEN_SYMBOL] = await verifyToken(token);
+        } catch (err) {
+            console.error(err);
+            ctx.throw(HttpStatus.FORBIDDEN);
         }
-
-        const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
-        if (header) {
-            const token = header.startsWith('Bearer ') ? header.slice(7) : header;
-            try {
-                (ctx.state as any)[USER_TOKEN_SYMBOL] = await verifyToken(token);
-            } catch (err) {
-                console.error(err);
-                ctx.throw(HttpStatus.FORBIDDEN);
-            }
-            return next();
-        } else {
-            ctx.throw(HttpStatus.UNAUTHORIZED);
-        }
-    };
+        return next();
+    } else {
+        ctx.throw(HttpStatus.UNAUTHORIZED);
+    }
 }
 
 export function userToken(ctx: Context): UserToken {
