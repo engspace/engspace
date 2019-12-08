@@ -81,6 +81,7 @@ export async function createUsers(db: Db): Promise<User[]> {
         users.map(async u => {
             const user = await UserDao.create(db, u);
             await LoginDao.create(db, user.id, u.password);
+            user.roles = await UserDao.rolesById(db, user.id);
             return user;
         })
     );

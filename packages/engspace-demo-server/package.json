@@ -13,7 +13,6 @@
         "lint:fix": "eslint --fix --ext .js,.ts .",
         "build": "tsc -b .",
         "serve:dist": "tsc -b . && node .",
-        "serve:old": "tsc -b && nodemon -e ts,html -w src -w ../engspace-server-graphql --exec npm-run-all serve:dist",
         "serve": "tsc -b && nodemon --exec npm-run-all serve:dist",
         "clean": "rimraf ./dist/ ../../.build-cache/demo-server.tsbuildinfo"
     },
@@ -32,6 +31,7 @@
         "eslint": "^6.6.0",
         "eslint-config-prettier": "^6.6.0",
         "eslint-plugin-prettier": "^3.1.1",
+        "nodemon": "^2.0.1",
         "prettier": "^1.19.1",
         "rimraf": "^3.0.0",
         "typescript": "^3.7.2"

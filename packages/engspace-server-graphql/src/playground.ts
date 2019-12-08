@@ -62,8 +62,6 @@ export function setupPlayground(app: Koa, pool: DbPool): void {
                 return next();
             }
             const token = ctx.cookies.get('playground-token', { signed: true });
-            console.log('checking token');
-            console.log(token);
             if (!token) {
                 ctx.redirect('/graphql/playground/login');
                 return;

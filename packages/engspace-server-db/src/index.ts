@@ -1,12 +1,10 @@
 import {
     ClientUserConfigurationType,
     CommonQueryMethodsType,
-    ConnectionRoutineType,
     createPool,
     DatabasePoolType,
     sql,
     SqlSqlTokenType,
-    TransactionFunctionType,
 } from 'slonik';
 import { createInterceptors } from 'slonik-interceptor-preset';
 import { raw } from 'slonik-sql-tag-raw';
@@ -14,8 +12,6 @@ import { initSchema } from './schema';
 
 export { LoginDao, ProjectDao, UserDao } from './dao';
 export { initSchema } from './schema';
-
-let pool: DatabasePoolType | null = null;
 
 export interface DbConfig {
     uri: string;
@@ -57,20 +53,4 @@ export async function createDbPool(dbConfig: DbConfig): Promise<DbPool> {
     await pool.transaction(async db => initSchema(db));
 
     return pool;
-}
-
-export class Pool {
-    static init(dbConfig: DbConfig): Promise<void> {
-        return createDbPool(dbConfig).then(p => {
-            pool = p;
-        });
-    }
-
-    static async connect<T>(handler: ConnectionRoutineType<T>): Promise<T> {
-        return (pool as DatabasePoolType).connect(handler);
-    }
-
-    static async transaction<T>(handler: TransactionFunctionType<T>): Promise<T> {
-        return (pool as DatabasePoolType).transaction(handler);
-    }
 }

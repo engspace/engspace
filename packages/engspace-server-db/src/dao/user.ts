@@ -2,6 +2,7 @@ import { sql } from 'slonik';
 import { User, Role, UserInput } from '@engspace/core';
 import { Db } from '..';
 import { partialAssignmentList } from '../util';
+import { idsFindMap } from '.';
 
 export interface UserSearch {
     phrase?: string;
@@ -12,13 +13,13 @@ export interface UserSearch {
 
 export class UserDao {
     static async create(db: Db, user: UserInput): Promise<User> {
-        const id = await db.oneFirst(sql`
+        const res: User = await db.one(sql`
             INSERT INTO "user"(name, email, full_name, updated_on)
             VALUES(${user.name}, ${user.email}, ${user.fullName}, now())
-            RETURNING id
+            RETURNING id, name, email, full_name
         `);
-        await insertRoles(db, user.roles, id as number);
-        return UserDao.byId(db, id as number);
+        await insertRoles(db, user.roles, res.id);
+        return res;
     }
 
     static async byId(db: Db, id: number): Promise<User> {
@@ -37,6 +38,15 @@ export class UserDao {
             WHERE name = ${name}
         `);
         return user;
+    }
+
+    static async batchByIds(db: Db, ids: readonly number[]): Promise<User[]> {
+        const users: User[] = await db.any(sql`
+            SELECT id, name, email, full_name
+            FROM "user"
+            WHERE id = ANY(${sql.array(ids as number[], 'int4')})
+        `);
+        return idsFindMap(ids, users);
     }
 
     static async search(db: Db, search: UserSearch): Promise<{ count: number; users: User[] }> {

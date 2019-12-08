@@ -1,12 +1,12 @@
 import { Project, ProjectMember, User, Role } from '@engspace/core';
-import { searchProjects, searchUsers, userRoles, projectMembers } from './controllers';
+import { UserControl, ProjectControl } from './controllers';
 import { GqlContext } from '.';
 
 export const resolvers = {
     Query: {
         userSearch(parent, args, ctx: GqlContext): Promise<{ count: number; users: User[] }> {
             const { phrase, offset, limit } = args;
-            return searchUsers(ctx, phrase, { offset, limit });
+            return UserControl.search(ctx, phrase, { offset, limit });
         },
         projectSearch(
             parent,
@@ -14,19 +14,19 @@ export const resolvers = {
             ctx: GqlContext
         ): Promise<{ count: number; projects: Project[] }> {
             const { phrase, member, offset, limit } = args;
-            return searchProjects(ctx, phrase, member, { offset, limit });
+            return ProjectControl.search(ctx, phrase, member, { offset, limit });
         },
     },
 
     User: {
         roles({ id }: User, args, ctx: GqlContext): Promise<Role[]> {
-            return userRoles(ctx, id);
+            return ctx.loaders.roles.load(id);
         },
     },
 
     Project: {
         members({ id }: Project, args, ctx: GqlContext): Promise<ProjectMember[]> {
-            return projectMembers(ctx, id);
+            return ProjectControl.members(ctx, id);
         },
     },
 };

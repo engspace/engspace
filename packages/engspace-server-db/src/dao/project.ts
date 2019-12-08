@@ -3,6 +3,7 @@ import { sql } from 'slonik';
 import { Project, ProjectInput, ProjectMember } from '@engspace/core';
 import { Db } from '..';
 import { UserDao } from './user';
+import { idsFindMap } from '.';
 
 export interface ProjectSearch {
     phrase?: string;
@@ -50,16 +51,19 @@ async function upsertMembers(
 
 export class ProjectDao {
     static async byId(db: Db, id: number): Promise<Project> {
-        const proj = await db.one<DbProject>(sql`
+        return db.one<DbProject>(sql`
             SELECT id, name, code, description
             FROM project
             WHERE id = ${id}
         `);
-        const members = await ProjectDao.membersById(db, proj.id);
-        return {
-            ...proj,
-            members,
-        };
+    }
+    static async batchByIds(db: Db, ids: readonly number[]): Promise<Project[]> {
+        const projs: Project[] = await db.any<DbProject>(sql`
+            SELECT id, name, code, description
+            FROM project
+            WHERE id = ANY(${sql.array(ids as number[], 'int4')})
+        `);
+        return idsFindMap(ids, projs);
     }
 
     static async byCode(db: Db, code: string): Promise<Project> {

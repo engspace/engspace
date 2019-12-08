@@ -10,11 +10,13 @@ import { loginRouter, checkAuth, userToken, UserToken } from './login';
 import { setupPlayground } from './playground';
 import { typeDefs } from './schema';
 import { resolvers } from './resolvers';
+import { GqlLoaders, makeLoaders } from './loaders';
 
 export interface GqlContext {
     koaCtx: Koa.Context;
     user: UserToken;
     db: Db;
+    loaders: GqlLoaders;
 }
 
 const DB_SYMBOL = Symbol('@engspace/engspace-graphql/db');
@@ -40,11 +42,14 @@ export function attachDb(pool: DbPool, path: string) {
 }
 
 export function buildContext({ ctx }): GqlContext {
-    return {
+    const gqlCtx = {
         koaCtx: ctx,
         user: userToken(ctx),
         db: ctx.state[DB_SYMBOL],
+        loaders: null,
     };
+    gqlCtx.loaders = makeLoaders(gqlCtx);
+    return gqlCtx;
 }
 
 export async function buildGqlApp(pool: DbPool): Promise<Koa> {
