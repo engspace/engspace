@@ -1,4 +1,4 @@
-# engspace-client-app
+# @engspace/client-app
 
 ## Project setup
 ```

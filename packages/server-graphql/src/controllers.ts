@@ -2,7 +2,6 @@ import { ForbiddenError } from 'apollo-server-koa';
 import { User, Project, ProjectMember, Role } from '@engspace/core';
 import { UserDao, ProjectDao } from '@engspace/server-db';
 import { GqlContext } from '.';
-import assert = require('http-assert');
 
 function assertPerm(ctx: GqlContext, perm: string, message?: string): void {
     if (!ctx.user.perms.includes(perm))

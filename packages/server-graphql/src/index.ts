@@ -19,7 +19,7 @@ export interface GqlContext {
     loaders: GqlLoaders;
 }
 
-const DB_SYMBOL = Symbol('@engspace/engspace-graphql/db');
+const DB_SYMBOL = Symbol('@engspace/server-graphql/db');
 
 export function attachDb(pool: DbPool, path: string) {
     return async (ctx: Context, next: Next): Promise<void> => {

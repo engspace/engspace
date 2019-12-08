@@ -1,9 +1,0 @@
-{
-    "watch": [
-        "src",
-        "../engspace-server-graphql",
-        "../engspace-server-db",
-        "../engspace-server-core"
-    ],
-    "ext": "ts,html"
-}

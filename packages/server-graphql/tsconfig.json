@@ -9,7 +9,7 @@
 
     "include": [ "src" ],
     "references": [
-        { "path": "../engspace-core", "prepend": false },
-        { "path": "../engspace-server-db", "prepend": false }
+        { "path": "../core", "prepend": false },
+        { "path": "../server-db", "prepend": false }
     ]
 }

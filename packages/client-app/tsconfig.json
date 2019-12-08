@@ -22,5 +22,5 @@
     },
     "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "tests/**/*.ts", "tests/**/*.tsx"],
     "exclude": ["node_modules"],
-    "references": [{ "path": "../engspace-core", "prepend": false }]
+    "references": [{ "path": "../core", "prepend": false }]
 }

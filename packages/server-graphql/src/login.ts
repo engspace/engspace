@@ -3,7 +3,7 @@ import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import config from 'config';
 import { getRolesPerms } from '@engspace/core';
-import { DbPool, LoginDao, UserDao } from '@engspace/server-db';
+import { LoginDao } from '@engspace/server-db';
 import { Context, Next } from 'koa';
 import { DatabasePoolType } from 'slonik';
 

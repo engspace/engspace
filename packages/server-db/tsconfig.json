@@ -10,6 +10,6 @@
 
     "include": [ "src/**/*.ts", "src/**/*.json" ],
     "references": [
-        { "path": "../engspace-core", "prepend": false }
+        { "path": "../core", "prepend": false }
     ]
 }

@@ -1,12 +1,12 @@
 {
   "files": [],
   "references": [
-    { "path": "./engspace-core" },
-    { "path": "./engspace-client-app" },
-    { "path": "./engspace-demo-data" },
-    { "path": "./engspace-demo-server" },
-    { "path": "./engspace-server-app" },
-    { "path": "./engspace-server-db" },
-    { "path": "./engspace-server-routes" }
+    { "path": "./client-app" },
+    { "path": "./core" },
+    { "path": "./demo-data" },
+    { "path": "./demo-server" },
+    { "path": "./server-app" },
+    { "path": "./server-db" },
+    { "path": "./server-graphql" }
   ]
 }
