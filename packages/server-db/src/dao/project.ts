@@ -80,22 +80,37 @@ export class ProjectDao {
     }
 
     static async membersById(db: Db, projectId: number): Promise<ProjectMember[]> {
-        const res: any[] = await db.any(sql`
+        interface Row {
+            id: number;
+            name: string;
+            email: string;
+            fullName: string;
+            leader: boolean;
+            designer: boolean;
+        }
+        const rows: Row[] = await db.any(sql`
             SELECT
-                user_id,
-                leader,
-                designer
-            FROM project_member
-            WHERE project_id = ${projectId}
-            ORDER BY ind
+                u.id,
+                u.name,
+                u.email,
+                u.full_name,
+                pm.leader,
+                pm.designer
+            FROM project_member pm
+            INNER JOIN "user" u ON u.id = pm.user_id
+            WHERE pm.project_id = ${projectId}
+            ORDER BY pm.ind
         `);
-        return Promise.all(
-            res.map(async r => ({
-                user: await UserDao.byId(db, r.userId),
-                leader: r.leader,
-                designer: r.designer,
-            }))
-        );
+        return rows.map(r => ({
+            user: {
+                id: r.id,
+                name: r.name,
+                email: r.email,
+                fullName: r.fullName,
+            },
+            leader: r.leader,
+            designer: r.designer,
+        }));
     }
 
     static async create(db: Db, proj: ProjectInput): Promise<Project> {

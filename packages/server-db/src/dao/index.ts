@@ -7,5 +7,5 @@ interface WithId<Id> {
 }
 
 export function idsFindMap<Id, T extends WithId<Id>>(ids: readonly Id[], objs: T[]): T[] {
-    return ids.map(id => objs.find(o => o.id === id));
+    return ids.map(id => objs.find(o => o.id == id));
 }

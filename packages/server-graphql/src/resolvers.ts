@@ -4,9 +4,15 @@ import { GqlContext } from '.';
 
 export const resolvers = {
     Query: {
+        user(parent, { id }, ctx: GqlContext): Promise<User> {
+            return ctx.loaders.user.load(id);
+        },
         userSearch(parent, args, ctx: GqlContext): Promise<{ count: number; users: User[] }> {
             const { phrase, offset, limit } = args;
             return UserControl.search(ctx, phrase, { offset, limit });
+        },
+        project(parent, { id }, ctx: GqlContext): Promise<Project> {
+            return ctx.loaders.project.load(id);
         },
         projectSearch(
             parent,
@@ -26,7 +32,7 @@ export const resolvers = {
 
     Project: {
         members({ id }: Project, args, ctx: GqlContext): Promise<ProjectMember[]> {
-            return ProjectControl.members(ctx, id);
+            return ctx.loaders.members.load(id);
         },
     },
 };
