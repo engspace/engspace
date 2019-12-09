@@ -2,7 +2,7 @@ import Router from 'koa-router';
 import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import config from 'config';
-import { getRolesPerms } from '@engspace/core';
+import { getRolesPerms, Id } from '@engspace/core';
 import { LoginDao } from '@engspace/server-db';
 import { Context, Next } from 'koa';
 import { DatabasePoolType } from 'slonik';
@@ -10,7 +10,7 @@ import { DatabasePoolType } from 'slonik';
 export const USER_TOKEN_SYMBOL = Symbol('@engspace/server-graphql/userToken');
 
 export interface UserToken {
-    id: number;
+    id: Id;
     name: string;
     perms: string[];
 }

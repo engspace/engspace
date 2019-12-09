@@ -1,7 +1,7 @@
 import { sql } from 'slonik';
-import { User, Role, UserInput } from '@engspace/core';
-import { Db } from '..';
+import { Id, User, Role, UserInput } from '@engspace/core';
 import { partialAssignmentList } from '../util';
+import { Db } from '..';
 import { idsFindMap } from '.';
 
 export interface UserSearch {
@@ -22,7 +22,7 @@ export class UserDao {
         return res;
     }
 
-    static async byId(db: Db, id: number): Promise<User> {
+    static async byId(db: Db, id: Id): Promise<User> {
         const user: User = await db.one(sql`
             SELECT id, name, email, full_name
             FROM "user"
@@ -40,11 +40,11 @@ export class UserDao {
         return user;
     }
 
-    static async batchByIds(db: Db, ids: readonly number[]): Promise<User[]> {
+    static async batchByIds(db: Db, ids: readonly Id[]): Promise<User[]> {
         const users: User[] = await db.any(sql`
             SELECT id, name, email, full_name
             FROM "user"
-            WHERE id = ANY(${sql.array(ids as number[], 'int4')})
+            WHERE id = ANY(${sql.array(ids as Id[], 'uuid')})
         `);
         return idsFindMap(ids, users);
     }
@@ -86,7 +86,7 @@ export class UserDao {
         return { count, users };
     }
 
-    static async rolesById(db: Db, id: number): Promise<Role[]> {
+    static async rolesById(db: Db, id: Id): Promise<Role[]> {
         const roles = await db.anyFirst(sql`
             SELECT role FROM user_role
             WHERE user_id = ${id}
@@ -94,7 +94,7 @@ export class UserDao {
         return roles as Role[];
     }
 
-    static async patch(db: Db, id: number, user: Partial<User>): Promise<User> {
+    static async patch(db: Db, id: Id, user: Partial<User>): Promise<User> {
         const assignments = partialAssignmentList(user, ['name', 'email', 'fullName']);
         await db.query(sql`
             UPDATE "user" SET ${sql.join(assignments, sql`, `)}
@@ -113,16 +113,16 @@ export class UserDao {
         await db.query(sql`DELETE FROM "user"`);
     }
 
-    static async deleteById(db: Db, id: number): Promise<void> {
+    static async deleteById(db: Db, id: Id): Promise<void> {
         await db.query(sql`DELETE FROM "user" WHERE id = ${id}`);
     }
 }
-async function insertRoles(db: Db, roles: Role[], id: number): Promise<void> {
+async function insertRoles(db: Db, roles: Role[], id: Id): Promise<void> {
     const roleArr = roles.map(r => [id, r]);
     await db.any(sql`
         INSERT INTO user_role(
             user_id, role
         )
-        SELECT * FROM ${sql.unnest(roleArr, ['int4', 'text'])}
+        SELECT * FROM ${sql.unnest(roleArr, ['uuid', 'text'])}
     `);
 }

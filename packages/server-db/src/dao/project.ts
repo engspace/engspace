@@ -1,8 +1,7 @@
 import { sql } from 'slonik';
 
-import { Project, ProjectInput, ProjectMember } from '@engspace/core';
+import { Id, Project, ProjectInput, ProjectMember } from '@engspace/core';
 import { Db } from '..';
-import { UserDao } from './user';
 import { idsFindMap } from '.';
 
 export interface ProjectSearch {
@@ -12,17 +11,10 @@ export interface ProjectSearch {
     offset?: number;
 }
 
-interface DbProject {
-    id: number;
-    name: string;
-    code: string;
-    description: string;
-}
-
 async function upsertMembers(
     db: Db,
     members: ProjectMember[],
-    projId: number,
+    projId: Id,
     deleteAfter = false
 ): Promise<void> {
     const now = new Date();
@@ -32,7 +24,7 @@ async function upsertMembers(
         INSERT INTO project_member AS pm (
             project_id, user_id, ind, leader, designer, updated_on
         )
-        SELECT * FROM ${sql.unnest(memb, ['int4', 'int4', 'int4', 'bool', 'bool', 'timestamp'])}
+        SELECT * FROM ${sql.unnest(memb, ['uuid', 'uuid', 'int4', 'bool', 'bool', 'timestamp'])}
         ON CONFLICT(project_id, user_id) DO
             UPDATE SET
                 ind = EXCLUDED.ind,
@@ -50,24 +42,24 @@ async function upsertMembers(
 }
 
 export class ProjectDao {
-    static async byId(db: Db, id: number): Promise<Project> {
-        return db.one<DbProject>(sql`
+    static async byId(db: Db, id: Id): Promise<Project> {
+        return db.one<Project>(sql`
             SELECT id, name, code, description
             FROM project
             WHERE id = ${id}
         `);
     }
-    static async batchByIds(db: Db, ids: readonly number[]): Promise<Project[]> {
-        const projs: Project[] = await db.any<DbProject>(sql`
+    static async batchByIds(db: Db, ids: readonly Id[]): Promise<Project[]> {
+        const projs: Project[] = await db.any<Project>(sql`
             SELECT id, name, code, description
             FROM project
-            WHERE id = ANY(${sql.array(ids as number[], 'int4')})
+            WHERE id = ANY(${sql.array(ids as Id[], 'int4')})
         `);
         return idsFindMap(ids, projs);
     }
 
     static async byCode(db: Db, code: string): Promise<Project> {
-        const proj = await db.one<DbProject>(sql`
+        const proj = await db.one<Project>(sql`
             SELECT id, name, code, description
             FROM project
             WHERE code = ${code}
@@ -79,9 +71,9 @@ export class ProjectDao {
         };
     }
 
-    static async membersById(db: Db, projectId: number): Promise<ProjectMember[]> {
+    static async membersById(db: Db, projectId: Id): Promise<ProjectMember[]> {
         interface Row {
-            id: number;
+            id: Id;
             name: string;
             email: string;
             fullName: string;
@@ -115,7 +107,7 @@ export class ProjectDao {
 
     static async create(db: Db, proj: ProjectInput): Promise<Project> {
         const { name, code, description } = proj;
-        const project: DbProject = await db.one(sql`
+        const project = await db.one<Project>(sql`
             INSERT INTO project (
                 name, code, description, updated_on
             ) VALUES (
@@ -139,7 +131,7 @@ export class ProjectDao {
                 name = ${project.name},
                 code = ${project.code},
                 description = ${project.description}
-            WHERE id = ${project.id as number}
+            WHERE id = ${project.id}
         `);
         return ProjectDao.byId(db, project.id);
     }
@@ -196,7 +188,7 @@ export class ProjectDao {
         await db.query(sql`DELETE FROM project`);
     }
 
-    static async deleteById(db: Db, id: number): Promise<void> {
+    static async deleteById(db: Db, id: Id): Promise<void> {
         await db.query(sql`DELETE FROM project WHERE id = ${id}`);
     }
 }

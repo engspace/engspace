@@ -1,3 +1,5 @@
+export type Id = string;
+
 export enum Role {
     User = 'user',
     Manager = 'manager',
@@ -17,7 +19,7 @@ export interface UserInput {
 }
 
 export interface User extends UserInput {
-    id: number;
+    id: Id;
 }
 
 export interface ProjectInput {
@@ -28,11 +30,11 @@ export interface ProjectInput {
 }
 
 export interface Project extends ProjectInput {
-    id: number;
+    id: Id;
 }
 
 export interface ProjectMember {
-    user: { id: number } | User;
+    user: { id: Id } | User;
     leader: boolean;
     designer: boolean;
 }

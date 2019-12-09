@@ -106,7 +106,7 @@
 import Vue from 'vue';
 import debounce from 'lodash.debounce';
 import HttpStatus from 'http-status-codes';
-import { ProjectMember, User, Project } from '@engspace/core';
+import { Id, ProjectMember, User, Project } from '@engspace/core';
 import { Api } from '../api';
 
 export default Vue.extend({
@@ -191,7 +191,7 @@ export default Vue.extend({
                 ...this.project,
                 members: this.project.members.map(m => ({
                     ...m,
-                    user: { id: m.user.id as number },
+                    user: { id: m.user.id as Id },
                 })),
             });
             const res = await Api.post('/projects', proj);

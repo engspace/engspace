@@ -4,7 +4,7 @@ CREATE TABLE metadata (
 );
 
 CREATE TABLE "user" (
-    id serial PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name text NOT NULL UNIQUE,
     email text NOT NULL UNIQUE,
     full_name text NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE "user" (
 );
 
 CREATE TABLE user_login (
-    user_id integer PRIMARY KEY,
+    user_id uuid PRIMARY KEY,
     password text NOT NULL,
     updated_on timestamp NOT NULL,
 
@@ -20,7 +20,7 @@ CREATE TABLE user_login (
 );
 
 CREATE TABLE user_role (
-    user_id integer,
+    user_id uuid,
     role text NOT NULL,
 
     PRIMARY KEY(user_id, role),
@@ -28,7 +28,7 @@ CREATE TABLE user_role (
 );
 
 CREATE TABLE project (
-    id serial PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name text NOT NULL,
     code text NOT NULL UNIQUE,
     description text,
@@ -36,8 +36,8 @@ CREATE TABLE project (
 );
 
 CREATE TABLE project_member (
-    project_id integer,
-    user_id integer,
+    project_id uuid NOT NULL,
+    user_id uuid NOT NULL,
     ind integer DEFAULT 0,
     leader boolean NOT NULL,
     designer boolean NOT NULL,

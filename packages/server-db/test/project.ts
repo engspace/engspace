@@ -45,7 +45,7 @@ describe('ProjectDao', () => {
 
         it('should find project by id', async () =>
             pool.connect(async db => {
-                const project = await ProjectDao.byId(db, dbProjects[0].id as number);
+                const project = await ProjectDao.byId(db, dbProjects[0].id);
                 expect(project).to.deep.include(dbProjects[0]);
             }));
 
@@ -58,7 +58,7 @@ describe('ProjectDao', () => {
         it('should update project by id', async () =>
             pool.connect(async db => {
                 const proj: Project = {
-                    id: dbProjects[1].id as number,
+                    id: dbProjects[1].id,
                     code: 'a_new_code',
                     name: 'a new name',
                     description: 'a new description',
@@ -82,7 +82,7 @@ describe('ProjectDao', () => {
                 };
                 const returned = await ProjectDao.updateById(db, proj);
                 expect(returned).to.deep.include(proj);
-                const updated = await ProjectDao.byId(db, proj.id as number);
+                const updated = await ProjectDao.byId(db, proj.id);
                 expect(updated).to.deep.include(proj);
             }));
     });

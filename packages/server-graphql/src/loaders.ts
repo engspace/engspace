@@ -1,19 +1,19 @@
 import DataLoader from 'dataloader';
-import { Role, User, Project, ProjectMember } from '@engspace/core';
+import { Id, Role, User, Project, ProjectMember } from '@engspace/core';
 import { GqlContext } from '.';
 import { UserControl, ProjectControl } from './controllers';
 
 export interface GqlLoaders {
-    user: DataLoader<number, User>;
-    roles: DataLoader<number, Role[]>;
-    project: DataLoader<number, Project>;
-    members: DataLoader<number, ProjectMember[]>;
+    user: DataLoader<Id, User>;
+    roles: DataLoader<Id, Role[]>;
+    project: DataLoader<Id, Project>;
+    members: DataLoader<Id, ProjectMember[]>;
 }
 
 export function makeLoaders(ctx: GqlContext): GqlLoaders {
     return {
         user: new DataLoader(ids => UserControl.byIds(ctx, ids)),
-        roles: new DataLoader((userIds: number[]) =>
+        roles: new DataLoader(userIds =>
             Promise.all(userIds.map(id => UserControl.roles(ctx, id)))
         ),
         project: new DataLoader(ids => ProjectControl.byIds(ctx, ids)),

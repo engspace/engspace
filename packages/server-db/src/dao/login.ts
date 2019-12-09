@@ -1,10 +1,10 @@
 import { sql } from 'slonik';
-import { Role } from '@engspace/core';
+import { Id, Role } from '@engspace/core';
 import { Db } from '..';
 import { UserDao } from './user';
 
 export interface LoginResult {
-    id: number;
+    id: Id;
     name: string;
     roles: Role[];
 }
@@ -12,7 +12,7 @@ export interface LoginResult {
 export class LoginDao {
     static async login(db: Db, nameOrEmail: string, password: string): Promise<LoginResult | null> {
         interface Result {
-            id: number;
+            id: Id;
             name: string;
             ok: boolean;
         }
@@ -33,7 +33,7 @@ export class LoginDao {
         }
     }
 
-    static async checkById(db: Db, id: number, password: string): Promise<boolean> {
+    static async checkById(db: Db, id: Id, password: string): Promise<boolean> {
         const ok = await db.oneFirst(sql`
             SELECT (password = crypt(${password}, password)) as ok
             FROM user_login WHERE id = ${id}
@@ -41,10 +41,10 @@ export class LoginDao {
         return (ok as unknown) as boolean;
     }
 
-    static async create(db: Db, userId: number, password: string): Promise<void> {
+    static async create(db: Db, userId: Id, password: string): Promise<void> {
         await db.query(sql`
             INSERT INTO user_login(user_id, password, updated_on)
-            VALUES(${userId}, crypt(${password as string}, gen_salt('bf')), now())
+            VALUES(${userId}, crypt(${password}, gen_salt('bf')), now())
         `);
     }
 }
