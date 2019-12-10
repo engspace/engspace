@@ -1,5 +1,6 @@
 import { createLogins, createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data';
 import chai from 'chai';
+import { sql } from 'slonik';
 import { pool } from '.';
 import { LoginDao } from '../dist';
 import { UserDao } from '../src';
@@ -98,6 +99,32 @@ describe('Login', () => {
             const nok = await pool.connect(db =>
                 LoginDao.checkById(db, users.tania.id, 'not_her_new_password')
             );
+            expect(ok).to.be.true;
+            expect(nok).to.be.false;
+        });
+    });
+
+    describe('Delete', async () => {
+        beforeEach('Create all logins', () =>
+            pool.connect(db => createLogins(db, Promise.resolve(users)))
+        );
+        afterEach('Delete logins', () => pool.connect(db => LoginDao.deleteAll(db)));
+
+        it('should delete a login', async () => {
+            const count = async (): Promise<number> =>
+                pool.connect(async db => {
+                    const c = await db.oneFirst(sql`SELECT COUNT(*) FROM user_login`);
+                    return c as number;
+                });
+            expect(await count()).to.equal(10);
+            const ok = await pool.connect(db =>
+                LoginDao.checkById(db, users.alphonse.id, 'alphonse')
+            );
+            await pool.connect(db => LoginDao.deleteById(db, users.alphonse.id));
+            const nok = await pool.connect(db =>
+                LoginDao.checkById(db, users.alphonse.id, 'alphonse')
+            );
+            expect(await count()).to.equal(9);
             expect(ok).to.be.true;
             expect(nok).to.be.false;
         });

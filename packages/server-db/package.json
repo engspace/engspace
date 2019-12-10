@@ -14,8 +14,18 @@
         "copy:sql": "copyfiles -u 1 \"src/sql/*\" dist",
         "build:ts": "tsc -b .",
         "build": "npm-run-all copy:sql build:ts",
-        "test": "cross-env NODE_ENV=test mocha -r ts-node/register test/**/*.ts",
+        "test": "cross-env NODE_ENV=test nyc mocha",
         "clean": "rimraf ./dist/ ../../.build-cache/server-db.tsbuildinfo"
+    },
+    "nyc": {
+        "extension": [
+            "ts"
+        ],
+        "exclude": [
+            "test/**/*",
+            "*.js"
+        ],
+        "all": true
     },
     "dependencies": {
         "@engspace/core": "^0.1.0",
@@ -43,6 +53,7 @@
         "eslint-plugin-prettier": "^3.1.1",
         "mocha": "^6.2.2",
         "npm-run-all": "^4.1.5",
+        "nyc": "^14.1.1",
         "prettier": "^1.19.1",
         "rimraf": "^3.0.0",
         "ts-node": "^8.5.2",

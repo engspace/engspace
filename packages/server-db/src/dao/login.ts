@@ -51,11 +51,11 @@ export class LoginDao {
     }
 
     static async checkById(db: Db, userId: Id, password: string): Promise<boolean> {
-        const ok = await db.oneFirst(sql`
+        const ok = await db.maybeOneFirst(sql`
             SELECT (password = crypt(${password}, password)) as ok
             FROM user_login WHERE user_id = ${userId}
         `);
-        return (ok as unknown) as boolean;
+        return (ok || false) as boolean;
     }
 
     static async patch(db: Db, userId: Id, password: string): Promise<void> {
