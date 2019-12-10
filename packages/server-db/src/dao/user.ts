@@ -1,8 +1,8 @@
+import { Id, Role, User, UserInput } from '@engspace/core';
 import { sql } from 'slonik';
-import { Id, User, Role, UserInput } from '@engspace/core';
-import { partialAssignmentList } from '../util';
-import { Db } from '..';
 import { idsFindMap } from '.';
+import { Db } from '..';
+import { partialAssignmentList } from '../util';
 
 export interface UserSearch {
     phrase?: string;
@@ -13,13 +13,15 @@ export interface UserSearch {
 
 export class UserDao {
     static async create(db: Db, user: UserInput): Promise<User> {
-        const res: User = await db.one(sql`
+        const row: User = await db.one(sql`
             INSERT INTO "user"(name, email, full_name, updated_on)
             VALUES(${user.name}, ${user.email}, ${user.fullName}, now())
             RETURNING id, name, email, full_name
         `);
-        await insertRoles(db, user.roles, res.id);
-        return res;
+        if (user.roles) {
+            row.roles = await insertRoles(db, row.id, user.roles);
+        }
+        return row;
     }
 
     static async byId(db: Db, id: Id): Promise<User> {
@@ -96,17 +98,26 @@ export class UserDao {
 
     static async patch(db: Db, id: Id, user: Partial<User>): Promise<User> {
         const assignments = partialAssignmentList(user, ['name', 'email', 'fullName']);
-        await db.query(sql`
-            UPDATE "user" SET ${sql.join(assignments, sql`, `)}
-            WHERE id = ${id}
-        `);
+        if (!assignments.length && !user.roles) {
+            throw new Error('no valid field to patch');
+        }
+        let row: User;
+        if (assignments.length) {
+            row = await db.one(sql`
+                UPDATE "user" SET ${sql.join(assignments, sql`, `)}
+                WHERE id = ${id}
+                RETURNING id, name, email, full_name
+            `);
+        } else {
+            row = await UserDao.byId(db, id);
+        }
         if (user.roles) {
             await db.query(sql`
                 DELETE FROM user_role WHERE user_id = ${id}
             `);
-            insertRoles(db, user.roles, id);
+            row.roles = await insertRoles(db, row.id, user.roles);
         }
-        return this.byId(db, id);
+        return row;
     }
 
     static async deleteAll(db: Db): Promise<void> {
@@ -117,12 +128,14 @@ export class UserDao {
         await db.query(sql`DELETE FROM "user" WHERE id = ${id}`);
     }
 }
-async function insertRoles(db: Db, roles: Role[], id: Id): Promise<void> {
-    const roleArr = roles.map(r => [id, r]);
-    await db.any(sql`
+async function insertRoles(db: Db, id: Id, roles: Role[]): Promise<Role[]> {
+    return (await db.manyFirst(sql`
         INSERT INTO user_role(
             user_id, role
-        )
-        SELECT * FROM ${sql.unnest(roleArr, ['uuid', 'text'])}
-    `);
+        ) VALUES ${sql.join(
+            roles.map(role => sql`(${id}, ${role})`),
+            sql`, `
+        )}
+        RETURNING role
+    `)) as Role[];
 }

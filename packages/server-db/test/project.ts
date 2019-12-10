@@ -1,89 +1,85 @@
+import { createProjects, DemoProjectSet, prepareProjects } from '@engspace/demo-data';
 import chai from 'chai';
-import { createUsers, createProjects, prepareProjects } from '@engspace/demo-data';
-import { User, Project, ProjectInput } from '@engspace/core';
-import { ProjectDao, UserDao } from '../src';
 import { pool } from '.';
+import { ProjectDao } from '../src';
 
 const { expect } = chai;
 
-describe('ProjectDao', () => {
-    let dbUsers: User[];
-    let projects: ProjectInput[];
-    before('make projects', async () => {
-        projects = await pool.connect(async db => {
-            dbUsers = await createUsers(db);
-            return prepareProjects(db);
-        });
-    });
-    after('clean up', async () =>
-        pool.connect(async db => {
-            await ProjectDao.deleteAll(db);
-            await UserDao.deleteAll(db);
-        })
-    );
+async function deleteAll(): Promise<void> {
+    await pool.connect(db => ProjectDao.deleteAll(db));
+}
 
+describe('ProjectDao', () => {
     describe('create', () => {
-        after('clean up', async () => pool.connect(async db => ProjectDao.deleteAll(db)));
+        const projects = prepareProjects();
+
+        after('clean up', deleteAll);
 
         it('should create project', async () =>
             pool.connect(async db => {
-                const returned = await ProjectDao.create(db, projects[0]);
-                expect(returned).to.deep.include(projects[0]);
-                const created = await ProjectDao.byCode(db, projects[0].code);
+                const returned = await ProjectDao.create(db, projects.chair);
+                expect(returned).to.deep.include(projects.chair);
+                const created = await ProjectDao.byCode(db, 'chair');
                 expect(created.id).to.equal(returned.id);
-                expect(created).to.deep.include(projects[0]);
+                expect(created).to.deep.include(projects.chair);
             }));
     });
 
-    describe('find, update', () => {
-        let dbProjects: Project[];
-        before('populate projects', async () =>
-            pool.connect(async db => {
-                dbProjects = await createProjects(db);
-            })
-        );
+    describe('Find', () => {
+        let projects: DemoProjectSet;
+        before('create projects', async () => {
+            projects = await pool.connect(db => createProjects(db, prepareProjects()));
+        });
+        after('delete projects', deleteAll);
 
         it('should find project by id', async () =>
             pool.connect(async db => {
-                const project = await ProjectDao.byId(db, dbProjects[0].id);
-                expect(project).to.deep.include(dbProjects[0]);
+                const project = await ProjectDao.byId(db, projects.desk.id);
+                expect(project).to.deep.include(projects.desk);
             }));
 
         it('should find project by code', async () =>
             pool.connect(async db => {
-                const project = await ProjectDao.byCode(db, dbProjects[0].code);
-                expect(project).to.deep.include(dbProjects[0]);
+                const project = await ProjectDao.byCode(db, 'desk');
+                expect(project).to.deep.include(projects.desk);
+            }));
+    });
+
+    describe('Patch', async () => {
+        let projects: DemoProjectSet;
+        beforeEach('create projects', async () => {
+            projects = await pool.connect(db => createProjects(db, prepareProjects()));
+        });
+        afterEach('delete projects', deleteAll);
+
+        it('should patch project description', async () =>
+            pool.connect(async db => {
+                const patch = {
+                    description: 'A stool chair',
+                };
+
+                const returned = await ProjectDao.patch(db, projects.chair.id, patch);
+                expect(returned).to.include(patch);
+                const updated = await ProjectDao.byCode(db, 'chair');
+                expect(updated).to.deep.equal({
+                    ...projects.chair,
+                    ...patch,
+                });
             }));
 
-        it('should update project by id', async () =>
+        it('should patch project code', async () =>
             pool.connect(async db => {
-                const proj: Project = {
-                    id: dbProjects[1].id,
-                    code: 'a_new_code',
-                    name: 'a new name',
-                    description: 'a new description',
-                    members: [
-                        {
-                            user: dbUsers.find(u => u.name === 'alphonse') as User,
-                            designer: true,
-                            leader: true,
-                        },
-                        {
-                            user: dbUsers.find(u => u.name === 'fatima') as User,
-                            designer: true,
-                            leader: true,
-                        },
-                        {
-                            user: dbUsers.find(u => u.name === 'philippe') as User,
-                            designer: true,
-                            leader: false,
-                        },
-                    ],
+                const patch = {
+                    code: 'drawing-table',
                 };
-                const returned = await ProjectDao.updateById(db, proj);
-                expect(returned).to.deep.include(proj);
-                const updated = await ProjectDao.byId(db, proj.id);
-                expect(updated).to.deep.include(proj);
+
+                const returned = await ProjectDao.patch(db, projects.desk.id, patch);
+                expect(returned).to.include(patch);
+                const updated = await ProjectDao.byCode(db, 'drawing-table');
+                expect(updated).to.deep.equal({
+                    ...projects.desk,
+                    ...patch,
+                });
             }));
     });
 });

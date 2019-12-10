@@ -1,5 +1,5 @@
-import { sql } from 'slonik';
 import { Id, Role } from '@engspace/core';
+import { sql } from 'slonik';
 import { Db } from '..';
 import { UserDao } from './user';
 
@@ -9,6 +9,14 @@ export interface LoginResult {
     roles: Role[];
 }
 
+/**
+ * Interface to the "user_login" table that is used for
+ * local username+password authentication
+ *
+ * The password is seperated from the "user" table to
+ * allow an Engspace application to have more advanced
+ * authentication strategy
+ */
 export class LoginDao {
     static async login(db: Db, nameOrEmail: string, password: string): Promise<LoginResult | null> {
         interface Result {

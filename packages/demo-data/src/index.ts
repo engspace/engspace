@@ -1,16 +1,20 @@
 import { DbPool } from '@engspace/server-db';
-import { createUsers } from './user';
-import { createProjects } from './project';
+import { createLogins } from './login';
+import { createMembers } from './member';
+import { createProjects, prepareProjects } from './project';
+import { createUsers, prepareUsers } from './user';
 
-export { createUsers, createProjects };
-export { userInput, prepareUsers, prepareUsersWithPswd } from './user';
-export { projectInput, prepareProjects } from './project';
+export { DemoProjectInputSet, DemoProjectSet } from './project';
+export { DemoUserInputSet, DemoUserSet } from './user';
+export { createLogins, createMembers, createProjects, prepareProjects, createUsers, prepareUsers };
 
 export async function populateDemo(pool: DbPool): Promise<void> {
     try {
-        return pool.connect(async db => {
-            await createUsers(db);
-            await createProjects(db);
+        await pool.connect(async db => {
+            const users = createUsers(db, prepareUsers());
+            const projects = createProjects(db, prepareProjects());
+            const members = createMembers(db, projects, users);
+            await Promise.all([members, createLogins(db, users)]);
         });
     } catch (err) {
         console.error('error while populating the demo data set:');

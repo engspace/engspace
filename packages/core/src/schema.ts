@@ -23,10 +23,9 @@ export interface User extends UserInput {
 }
 
 export interface ProjectInput {
-    name: string;
     code: string;
+    name: string;
     description: string;
-    members?: ProjectMember[];
 }
 
 export interface Project extends ProjectInput {
@@ -34,7 +33,7 @@ export interface Project extends ProjectInput {
 }
 
 export interface ProjectMember {
+    project: { id: Id } | Project;
     user: { id: Id } | User;
-    leader: boolean;
-    designer: boolean;
+    roles?: ProjectRole[];
 }

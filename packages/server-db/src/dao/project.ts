@@ -1,8 +1,8 @@
+import { Id, Project, ProjectInput } from '@engspace/core';
 import { sql } from 'slonik';
-
-import { Id, Project, ProjectInput, ProjectMember } from '@engspace/core';
-import { Db } from '..';
 import { idsFindMap } from '.';
+import { Db } from '..';
+import { partialAssignmentList } from '../util';
 
 export interface ProjectSearch {
     phrase?: string;
@@ -11,47 +11,29 @@ export interface ProjectSearch {
     offset?: number;
 }
 
-async function upsertMembers(
-    db: Db,
-    members: ProjectMember[],
-    projId: Id,
-    deleteAfter = false
-): Promise<void> {
-    const now = new Date();
-    const isoNow = now.toISOString();
-    const memb = members.map((m, ind) => [projId, m.user.id, ind, m.leader, m.designer, isoNow]);
-    await db.query(sql`
-        INSERT INTO project_member AS pm (
-            project_id, user_id, ind, leader, designer, updated_on
-        )
-        SELECT * FROM ${sql.unnest(memb, ['uuid', 'uuid', 'int4', 'bool', 'bool', 'timestamp'])}
-        ON CONFLICT(project_id, user_id) DO
-            UPDATE SET
-                ind = EXCLUDED.ind,
-                leader = EXCLUDED.leader,
-                designer = EXCLUDED.designer,
-                updated_on = EXCLUDED.updated_on
-            WHERE pm.project_id = EXCLUDED.project_id AND pm.user_id = EXCLUDED.user_id
-    `);
-    if (deleteAfter) {
-        await db.query(sql`
-            DELETE FROM project_member
-            WHERE project_id = ${projId} AND updated_on <> ${isoNow}
+export class ProjectDao {
+    static async create(db: Db, proj: ProjectInput): Promise<Project> {
+        const { code, name, description } = proj;
+        return db.one(sql`
+            INSERT INTO project (
+                code, name, description, updated_on
+            ) VALUES (
+                ${code}, ${name}, ${description}, now()
+            ) RETURNING
+                id, code, name, description
         `);
     }
-}
 
-export class ProjectDao {
     static async byId(db: Db, id: Id): Promise<Project> {
-        return db.one<Project>(sql`
-            SELECT id, name, code, description
+        return db.one(sql`
+            SELECT id, code, name, description
             FROM project
             WHERE id = ${id}
         `);
     }
     static async batchByIds(db: Db, ids: readonly Id[]): Promise<Project[]> {
-        const projs: Project[] = await db.any<Project>(sql`
-            SELECT id, name, code, description
+        const projs: Project[] = await db.any(sql`
+            SELECT id, code, name, description
             FROM project
             WHERE id = ANY(${sql.array(ids as Id[], 'int4')})
         `);
@@ -59,81 +41,20 @@ export class ProjectDao {
     }
 
     static async byCode(db: Db, code: string): Promise<Project> {
-        const proj = await db.one<Project>(sql`
-            SELECT id, name, code, description
+        return db.one(sql`
+            SELECT id, code, name, description
             FROM project
             WHERE code = ${code}
         `);
-        const members = await ProjectDao.membersById(db, proj.id);
-        return {
-            ...proj,
-            members,
-        };
     }
 
-    static async membersById(db: Db, projectId: Id): Promise<ProjectMember[]> {
-        interface Row {
-            id: Id;
-            name: string;
-            email: string;
-            fullName: string;
-            leader: boolean;
-            designer: boolean;
-        }
-        const rows: Row[] = await db.any(sql`
-            SELECT
-                u.id,
-                u.name,
-                u.email,
-                u.full_name,
-                pm.leader,
-                pm.designer
-            FROM project_member pm
-            INNER JOIN "user" u ON u.id = pm.user_id
-            WHERE pm.project_id = ${projectId}
-            ORDER BY pm.ind
+    static async patch(db: Db, id: Id, project: Partial<Project>): Promise<Project> {
+        const assignments = partialAssignmentList(project, ['name', 'code', 'description']);
+        return db.one(sql`
+            UPDATE project SET ${sql.join(assignments, sql`, `)}
+            WHERE id = ${id}
+            RETURNING id, code, name, description
         `);
-        return rows.map(r => ({
-            user: {
-                id: r.id,
-                name: r.name,
-                email: r.email,
-                fullName: r.fullName,
-            },
-            leader: r.leader,
-            designer: r.designer,
-        }));
-    }
-
-    static async create(db: Db, proj: ProjectInput): Promise<Project> {
-        const { name, code, description } = proj;
-        const project = await db.one<Project>(sql`
-            INSERT INTO project (
-                name, code, description, updated_on
-            ) VALUES (
-                ${name}, ${code}, ${description}, now()
-            ) RETURNING
-                id, name, code, description
-        `);
-
-        upsertMembers(db, proj.members, project.id, false);
-        const members = await ProjectDao.membersById(db, project.id);
-        return {
-            ...project,
-            members,
-        };
-    }
-
-    static async updateById(db: Db, project: Project): Promise<Project> {
-        await upsertMembers(db, project.members, project.id, true);
-        await db.query(sql`
-            UPDATE project SET
-                name = ${project.name},
-                code = ${project.code},
-                description = ${project.description}
-            WHERE id = ${project.id}
-        `);
-        return ProjectDao.byId(db, project.id);
     }
 
     static async search(

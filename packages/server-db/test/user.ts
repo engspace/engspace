@@ -1,9 +1,9 @@
+import { Role } from '@engspace/core';
+import { createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data';
 import chai from 'chai';
 import { sql } from 'slonik';
-
-import { prepareUsers, prepareUsersWithPswd, createUsers } from '@engspace/demo-data';
-import { UserDao } from '../src';
 import { pool } from '.';
+import { UserDao } from '../src';
 
 const { expect } = chai;
 
@@ -14,29 +14,50 @@ async function deleteAll(): Promise<void> {
 describe('UserDao', () => {
     describe('Create', () => {
         const users = prepareUsers();
-        const usersWithPswd = prepareUsersWithPswd();
         afterEach(deleteAll);
         it('should create user', async () => {
             await pool.connect(async db => {
-                const returned = await UserDao.create(db, usersWithPswd[0]);
-                returned.roles = await UserDao.rolesById(db, returned.id);
-                expect(returned).to.deep.include(users[0]);
+                const returned = await UserDao.create(db, users.gerard);
+                expect(returned).to.deep.include(users.gerard);
             });
         });
     });
 
-    describe('Update', () => {
-        let users;
-        before('create users', async () => {
-            users = await pool.transaction(db => createUsers(db));
+    describe('Patch', () => {
+        let users: DemoUserSet;
+        beforeEach('create users', async () => {
+            users = await pool.transaction(async db => await createUsers(db, prepareUsers()));
         });
-        after(deleteAll);
-        it('should patch user', async () => {
+        afterEach(deleteAll);
+        it('should patch user full name', async () => {
             const patch = {
                 fullName: 'New Name',
             };
-            const returned = await pool.connect(async db => UserDao.patch(db, users[5].id, patch));
+            const returned = await pool.connect(async db =>
+                UserDao.patch(db, users.alphonse.id, patch)
+            );
             expect(returned).to.include(patch);
+            // role is not returned because not patched
+            const { id, name, email } = users.alphonse;
+            expect(returned).to.deep.include({
+                id,
+                name,
+                email,
+                ...patch,
+            });
+        });
+        it('should patch user roles', async () => {
+            const patch = {
+                roles: [Role.Admin, Role.Manager],
+            };
+            const returned = await pool.connect(async db =>
+                UserDao.patch(db, users.tania.id, patch)
+            );
+            expect(returned).to.deep.include(patch);
+            expect(returned).to.deep.include({
+                ...users.tania,
+                ...patch,
+            });
         });
     });
 });

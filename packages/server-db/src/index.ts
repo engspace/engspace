@@ -10,7 +10,7 @@ import { createInterceptors } from 'slonik-interceptor-preset';
 import { raw } from 'slonik-sql-tag-raw';
 import { initSchema } from './schema';
 
-export { LoginDao, ProjectDao, UserDao } from './dao';
+export { LoginDao, MemberDao, ProjectDao, UserDao } from './dao';
 export { initSchema } from './schema';
 
 export interface DbConfig {

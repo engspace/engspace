@@ -38,12 +38,19 @@ CREATE TABLE project (
 CREATE TABLE project_member (
     project_id uuid NOT NULL,
     user_id uuid NOT NULL,
-    ind integer DEFAULT 0,
-    leader boolean NOT NULL,
-    designer boolean NOT NULL,
     updated_on timestamp NOT NULL,
 
     PRIMARY KEY(project_id, user_id),
     FOREIGN KEY(project_id) REFERENCES project(id) ON DELETE CASCADE,
     FOREIGN KEY(user_id) REFERENCES "user"(id)
 );
+
+CREATE TABLE project_member_role (
+    project_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    role text NOT NULL,
+
+    PRIMARY KEY(project_id, user_id, role),
+    FOREIGN KEY(project_id, user_id) REFERENCES project_member(project_id, user_id)
+            ON DELETE CASCADE
+)

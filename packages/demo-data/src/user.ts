@@ -1,88 +1,94 @@
-import { User, UserInput, Role } from '@engspace/core';
-import { Db, LoginDao, UserDao } from '@engspace/server-db';
+import { Role, User, UserInput } from '@engspace/core';
+import { Db, UserDao } from '@engspace/server-db';
 
-export interface UserInputWithPswd extends UserInput {
-    password: string;
+export enum DemoUser {
+    Gerard = 'gerard',
+    Ambre = 'ambre',
+    Tania = 'tania',
+    Alphonse = 'alphonse',
+    Robin = 'robin',
+    Fatima = 'fatima',
+    Sophie = 'sophie',
+    Philippe = 'philippe',
+    Sylvie = 'sylvie',
+    Pascal = 'pascal',
 }
 
-export const userInput = [
+export interface DemoUserInputSet {
+    [name: string]: UserInput;
+}
+
+export interface DemoUserSet {
+    [name: string]: User;
+}
+
+interface Input {
+    fullName: string;
+    roles: Role[];
+}
+
+export const userInput: { [idx: string]: Input } = {
     // email is [name]@engspace.demo
     // password is [name]
-    {
-        name: 'gerard',
+    gerard: {
         fullName: 'Gerard Admin',
         roles: [Role.Admin],
     },
-    {
-        name: 'ambre',
+    ambre: {
         fullName: 'Ambre Manager',
         roles: [Role.Manager],
     },
-    {
-        name: 'tania',
+    tania: {
         fullName: 'Tania Program Leader',
         roles: [Role.User],
     },
-    {
-        name: 'alphonse',
+    alphonse: {
         fullName: 'Alphonse Program Leader',
         roles: [Role.User],
     },
-    {
-        name: 'robin',
+    robin: {
         fullName: 'Robin Designer',
         roles: [Role.User],
     },
-    {
-        name: 'fatima',
+    fatima: {
         fullName: 'Fatima Designer',
         roles: [Role.User],
     },
-    {
-        name: 'sophie',
+    sophie: {
         fullName: 'Sophie Designer',
         roles: [Role.User],
     },
-    {
-        name: 'philippe',
+    philippe: {
         fullName: 'Philippe Designer',
         roles: [Role.User],
     },
-    {
-        name: 'sylvie',
+    sylvie: {
         fullName: 'Sylvie Engineer',
         roles: [Role.User],
     },
-    {
-        name: 'pascal',
+    pascal: {
         fullName: 'Pascal Engineer',
         roles: [Role.User],
     },
-];
+};
 
-export function prepareUsers(): UserInput[] {
-    return userInput.map(u => ({
-        email: `${u.name}@engspace.demo`,
-        ...u,
-    }));
-}
-
-export function prepareUsersWithPswd(): UserInputWithPswd[] {
-    return userInput.map(u => ({
-        email: `${u.name}@engspace.demo`,
-        password: u.name,
-        ...u,
-    }));
-}
-
-export async function createUsers(db: Db): Promise<User[]> {
-    const users = prepareUsersWithPswd();
-    return Promise.all(
-        users.map(async u => {
-            const user = await UserDao.create(db, u);
-            await LoginDao.create(db, user.id, u.password);
-            user.roles = await UserDao.rolesById(db, user.id);
-            return user;
-        })
+export function prepareUsers(): DemoUserInputSet {
+    return Object.fromEntries(
+        Object.entries(userInput).map(([name, { fullName, roles }]) => [
+            name,
+            {
+                name,
+                email: `${name}@engspace.demo`,
+                fullName,
+                roles,
+            },
+        ])
     );
+}
+
+export async function createUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
+    const keyVals = await Promise.all(
+        Object.entries(users).map(async ([name, input]) => [name, await UserDao.create(db, input)])
+    );
+    return Object.fromEntries(keyVals);
 }
