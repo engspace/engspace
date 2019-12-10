@@ -1,13 +1,15 @@
+import { Id, Project, ProjectMember, ProjectRole, Role, User } from '@engspace/core';
 import DataLoader from 'dataloader';
-import { Id, Role, User, Project, ProjectMember } from '@engspace/core';
 import { GqlContext } from '.';
-import { UserControl, ProjectControl } from './controllers';
+import { MemberControl, ProjectControl, UserControl } from './controllers';
 
 export interface GqlLoaders {
     user: DataLoader<Id, User>;
     roles: DataLoader<Id, Role[]>;
     project: DataLoader<Id, Project>;
-    members: DataLoader<Id, ProjectMember[]>;
+    membersByProj: DataLoader<Id, ProjectMember[]>;
+    membersByUser: DataLoader<Id, ProjectMember[]>;
+    memberRoles: DataLoader<{ projectId: Id; userId: Id }, ProjectRole[]>;
 }
 
 export function makeLoaders(ctx: GqlContext): GqlLoaders {
@@ -17,8 +19,18 @@ export function makeLoaders(ctx: GqlContext): GqlLoaders {
             Promise.all(userIds.map(id => UserControl.roles(ctx, id)))
         ),
         project: new DataLoader(ids => ProjectControl.byIds(ctx, ids)),
-        members: new DataLoader(projIds =>
-            Promise.all(projIds.map(id => ProjectControl.members(ctx, id)))
+        membersByProj: new DataLoader(projIds =>
+            Promise.all(projIds.map(id => MemberControl.byProjectId(ctx, id)))
+        ),
+        membersByUser: new DataLoader(userIds =>
+            Promise.all(userIds.map(id => MemberControl.byUserId(ctx, id)))
+        ),
+        memberRoles: new DataLoader(userProjIds =>
+            Promise.all(
+                userProjIds.map(({ projectId, userId }) =>
+                    MemberControl.roles(ctx, projectId, userId)
+                )
+            )
         ),
     };
 }

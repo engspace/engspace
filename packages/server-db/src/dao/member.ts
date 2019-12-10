@@ -1,7 +1,6 @@
+import { Id, ProjectMember, ProjectRole } from '@engspace/core';
 import { sql } from 'slonik';
-import { ProjectMember, Id } from '@engspace/core';
 import { Db } from '..';
-import { ProjectRole } from 'core/src/schema';
 
 export class MemberDao {
     /**
@@ -21,7 +20,7 @@ export class MemberDao {
             )
             RETURNING project_id, user_id
         `);
-        if (member.roles) {
+        if (member.roles && member.roles.length) {
             row.roles = await insertRoles(db, member);
         }
         return row;
@@ -109,6 +108,21 @@ export class MemberDao {
             project: { id: r.projectId },
             user: { id: r.userId },
         }));
+    }
+
+    /**
+     * Get project roles for a single project member
+     *
+     * @param db The databse connection
+     * @param projectId the id of the project
+     * @param userId the id of the user
+     */
+    static async rolesByProjAndUserId(db: Db, projectId: Id, userId: Id): Promise<ProjectRole[]> {
+        const rows = await db.anyFirst<ProjectRole>(sql`
+            SELECT role from project_member_role
+            WHERE project_id = ${projectId} AND user_id = ${userId}
+        `);
+        return rows as ProjectRole[];
     }
 
     /**

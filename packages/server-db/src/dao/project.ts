@@ -35,7 +35,7 @@ export class ProjectDao {
         const projs: Project[] = await db.any(sql`
             SELECT id, code, name, description
             FROM project
-            WHERE id = ANY(${sql.array(ids as Id[], 'int4')})
+            WHERE id = ANY(${sql.array(ids as Id[], 'uuid')})
         `);
         return idsFindMap(ids, projs);
     }

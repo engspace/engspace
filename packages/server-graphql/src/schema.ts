@@ -34,6 +34,7 @@ export const typeDefs = gql`
         email: String!
         fullName: String
         roles: [String!]!
+        membership: [ProjectMember!]!
     }
 
     type Project {
@@ -45,6 +46,7 @@ export const typeDefs = gql`
     }
 
     type ProjectMember {
+        project: Project!
         user: User!
         roles: [String!]!
     }

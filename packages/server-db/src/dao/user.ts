@@ -18,7 +18,7 @@ export class UserDao {
             VALUES(${user.name}, ${user.email}, ${user.fullName}, now())
             RETURNING id, name, email, full_name
         `);
-        if (user.roles) {
+        if (user.roles && user.roles.length) {
             row.roles = await insertRoles(db, row.id, user.roles);
         }
         return row;

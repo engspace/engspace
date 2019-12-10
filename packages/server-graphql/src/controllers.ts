@@ -1,11 +1,11 @@
+import { Id, Project, ProjectMember, ProjectRole, Role, User } from '@engspace/core';
+import { MemberDao, ProjectDao, UserDao } from '@engspace/server-db';
 import { ForbiddenError } from 'apollo-server-koa';
-import { User, Project, ProjectMember, Role, Id } from '@engspace/core';
-import { UserDao, ProjectDao } from '@engspace/server-db';
 import { GqlContext } from '.';
 
 function assertPerm(ctx: GqlContext, perm: string, message?: string): void {
     if (!ctx.user.perms.includes(perm))
-        throw new ForbiddenError(message ? message : `Missing permission: "${perm}"`);
+        throw new ForbiddenError(message ? message : `Missing permission: '${perm}'`);
 }
 
 export interface Pagination {
@@ -60,9 +60,21 @@ export class ProjectControl {
             limit,
         });
     }
+}
 
-    static async members(ctx: GqlContext, projId: Id): Promise<ProjectMember[]> {
-        assertPerm(ctx, 'project.get');
-        return ProjectDao.membersById(ctx.db, projId);
+export class MemberControl {
+    static async byProjectId(ctx: GqlContext, projId: Id): Promise<ProjectMember[]> {
+        assertPerm(ctx, 'member.get');
+        return MemberDao.byProjectId(ctx.db, projId);
+    }
+
+    static async byUserId(ctx: GqlContext, userId: Id): Promise<ProjectMember[]> {
+        assertPerm(ctx, 'member.get');
+        return MemberDao.byUserId(ctx.db, userId);
+    }
+
+    static async roles(ctx: GqlContext, projId: Id, userId: Id): Promise<ProjectRole[]> {
+        assertPerm(ctx, 'member.get');
+        return MemberDao.rolesByProjAndUserId(ctx.db, projId, userId);
     }
 }
