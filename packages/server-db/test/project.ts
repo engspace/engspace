@@ -25,7 +25,7 @@ describe('ProjectDao', () => {
             }));
     });
 
-    describe('Find', () => {
+    describe('Get', () => {
         let projects: DemoProjectSet;
         before('create projects', async () => {
             projects = await pool.connect(db => createProjects(db, prepareProjects()));
@@ -42,6 +42,24 @@ describe('ProjectDao', () => {
             pool.connect(async db => {
                 const project = await ProjectDao.byCode(db, 'desk');
                 expect(project).to.deep.include(projects.desk);
+            }));
+    });
+
+    describe('Search', () => {
+        let projects: DemoProjectSet;
+        before('create projects', async () => {
+            projects = await pool.connect(db => createProjects(db, prepareProjects()));
+        });
+        after('delete projects', deleteAll);
+
+        it('should find project by partial code', async () =>
+            pool.connect(async db => {
+                const expected = {
+                    count: 1,
+                    projects: [projects.chair],
+                };
+                const result = await ProjectDao.search(db, { phrase: 'ch' });
+                expect(result).to.eql(expected);
             }));
     });
 

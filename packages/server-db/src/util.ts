@@ -1,10 +1,10 @@
 import { sql, SqlTokenType, ValueExpressionType } from 'slonik';
 
-export function sleep(ms: number): Promise<void> {
-    return new Promise(resolve => {
-        setTimeout(resolve, ms);
-    });
-}
+// export function sleep(ms: number): Promise<void> {
+//     return new Promise(resolve => {
+//         setTimeout(resolve, ms);
+//     });
+// }
 
 export function identJsToSql(ident: string): string {
     const frags = [];

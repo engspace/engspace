@@ -32,15 +32,15 @@ async function createSchema(db: DatabaseTransactionConnectionType): Promise<void
     await executeSqlFile(db, 'schema.sql');
 }
 
-async function upgradeSchema(
-    db: DatabaseTransactionConnectionType,
-    dbVersion: number,
-    appVersion: number
-): Promise<void> {
-    if (dbVersion != appVersion) {
-        // TODO
-    }
-}
+// async function upgradeSchema(
+//     db: DatabaseTransactionConnectionType,
+//     dbVersion: number,
+//     appVersion: number
+// ): Promise<void> {
+//     if (dbVersion != appVersion) {
+//         // TODO
+//     }
+// }
 
 export async function initSchema(db: DatabaseTransactionConnectionType): Promise<void> {
     const hasMetadataTable = await db.maybeOneFirst(sql`
@@ -51,13 +51,13 @@ export async function initSchema(db: DatabaseTransactionConnectionType): Promise
                 table_name = 'metadata'`);
     if (!hasMetadataTable) {
         await createSchema(db);
-    } else {
-        const { dbVersion, application } = await db.one(
-            sql`SELECT schema_version, application_id FROM metadata`
-        );
-        if (application != 'engspace') {
-            throw new Error("Database has a metadata table, but not from 'Engineering space'");
-        }
-        await upgradeSchema(db, dbVersion, metadata.currentVersion);
+    // } else {
+    //     const { dbVersion, application } = await db.one(
+    //         sql`SELECT schema_version, application_id FROM metadata`
+    //     );
+    //     if (application != 'engspace') {
+    //         throw new Error("Database has a metadata table, but not from 'Engineering space'");
+    //     }
+    //     await upgradeSchema(db, dbVersion, metadata.currentVersion);
     }
 }

@@ -1,7 +1,7 @@
 import chai from 'chai';
 import config from 'config';
 import { sql } from 'slonik';
-import { createDbPool, DbConfig } from '../src';
+import { createDbPool, DbConfig, initSchema } from '../src';
 
 const { expect } = chai;
 
@@ -12,11 +12,24 @@ describe('Pool creation', async () => {
         name: 'engspace_db_test2',
         formatDb: true,
     };
-    it('should create a pool with schema', async function() {
+    it('should create a virgin pool', async function() {
         this.timeout(5000);
         const pool = await createDbPool(localConf);
         const tables = await pool.connect(db =>
-            db.manyFirst(sql`
+            db.anyFirst(sql`
+                SELECT table_name FROM information_schema.tables
+                WHERE table_schema = 'public'
+            `)
+        );
+        expect(tables).to.have.members([]);
+    });
+
+    it('should create a pool and a schema', async function() {
+        this.timeout(5000);
+        const pool = await createDbPool(localConf);
+        await pool.transaction(db => initSchema(db));
+        const tables = await pool.connect(db =>
+            db.anyFirst(sql`
                 SELECT table_name FROM information_schema.tables
                 WHERE table_schema = 'public'
             `)

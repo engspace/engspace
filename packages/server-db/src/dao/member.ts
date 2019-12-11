@@ -12,7 +12,7 @@ export class MemberDao {
      * @param member member to be added
      */
     static async create(db: Db, member: ProjectMember): Promise<ProjectMember> {
-        const row = await db.one<ProjectMember>(sql`
+        const row = await db.one(sql`
             INSERT INTO project_member(
                 project_id, user_id, updated_on
             ) VALUES (
@@ -20,10 +20,14 @@ export class MemberDao {
             )
             RETURNING project_id, user_id
         `);
+        const res: ProjectMember = {
+            project: { id: row.projectId as Id },
+            user: { id: row.userId as Id },
+        };
         if (member.roles && member.roles.length) {
-            row.roles = await insertRoles(db, member);
+            res.roles = await insertRoles(db, member);
         }
-        return row;
+        return res;
     }
 
     /**
@@ -137,7 +141,7 @@ export class MemberDao {
 }
 
 async function insertRoles(db: Db, member: ProjectMember): Promise<ProjectRole[]> {
-    return db.many<ProjectRole>(sql`
+    const roles = await db.manyFirst<ProjectRole>(sql`
         INSERT INTO project_member_role(
             project_id, user_id, role
         ) VALUES ${sql.join(
@@ -146,4 +150,5 @@ async function insertRoles(db: Db, member: ProjectMember): Promise<ProjectRole[]
         )}
         RETURNING role
     `);
+    return roles as ProjectRole[];
 }

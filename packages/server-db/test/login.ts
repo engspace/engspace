@@ -2,8 +2,7 @@ import { createLogins, createUsers, DemoUserSet, prepareUsers } from '@engspace/
 import chai from 'chai';
 import { sql } from 'slonik';
 import { pool } from '.';
-import { LoginDao } from '../dist';
-import { UserDao } from '../src';
+import { UserDao, LoginDao } from '../src';
 
 const { expect } = chai;
 
