@@ -42,11 +42,20 @@ export class UserDao {
         return user;
     }
 
+    static async byEmail(db: Db, email: string): Promise<User> {
+        const user: User = await db.one(sql`
+            SELECT id, name, email, full_name
+            FROM "user"
+            WHERE email = ${email}
+        `);
+        return user;
+    }
+
     static async batchByIds(db: Db, ids: readonly Id[]): Promise<User[]> {
         const users: User[] = await db.any(sql`
             SELECT id, name, email, full_name
             FROM "user"
-            WHERE id = ANY(${sql.array(ids as Id[], sql`uuid`)})
+            WHERE id = ANY(${sql.array(ids as Id[], sql`uuid[]`)})
         `);
         return idsFindMap(ids, users);
     }

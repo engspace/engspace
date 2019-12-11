@@ -42,7 +42,7 @@ export async function createDbPool(dbConfig: DbConfig): Promise<DbPool> {
             await db.query(sql`${raw(`CREATE DATABASE ${dbConfig.name}`)}`);
         }
     });
-    await (pool0 as any).end(); //? typedef ?
+    await pool0.end();
 
     const connString = `${dbConfig.uri}/${dbConfig.name}`;
     const pool = createPool(connString, {
