@@ -1,7 +1,7 @@
 import events from 'events';
 import config from 'config';
 import { buildGqlApp } from '@engspace/server-graphql';
-import { createDbPool } from '@engspace/server-db';
+import { createDbPool, initSchema, initSchema } from '@engspace/server-db';
 import { populateDemo } from '@engspace/demo-data';
 
 events.EventEmitter.defaultMaxListeners = 100;
@@ -12,6 +12,7 @@ createDbPool(config.get('db'))
         return pool;
     })
     .then(async pool => {
+        await pool.transaction(db => initSchema(db));
         const { port } = config.get('server');
         const app = await buildGqlApp(pool);
         app.listen(port, () => {

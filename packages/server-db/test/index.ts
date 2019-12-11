@@ -1,7 +1,7 @@
 import config from 'config';
 import events from 'events';
 import _ from 'lodash';
-import { createDbPool, DbConfig, DbPool } from '../src';
+import { createDbPool, DbConfig, DbPool, initSchema } from '../src';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -19,4 +19,5 @@ before('db setup', async function() {
     const dbConf: DbConfig = config.get('db');
     console.log('starting tests with Db config:', dbConf);
     pool = await createDbPool(dbConf);
+    await pool.transaction(db => initSchema(db));
 });
