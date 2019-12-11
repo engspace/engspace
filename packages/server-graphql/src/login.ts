@@ -1,11 +1,10 @@
-import Router from 'koa-router';
+import { getRolesPerms, Id } from '@engspace/core';
+import { DbPool, LoginDao } from '@engspace/server-db';
+import config from 'config';
 import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
-import config from 'config';
-import { getRolesPerms, Id } from '@engspace/core';
-import { LoginDao } from '@engspace/server-db';
 import { Context, Next } from 'koa';
-import { DatabasePoolType } from 'slonik';
+import Router from 'koa-router';
 
 export const USER_TOKEN_SYMBOL = Symbol('@engspace/server-graphql/userToken');
 
@@ -48,7 +47,7 @@ export async function verifyToken(token: string): Promise<UserToken> {
     });
 }
 
-export function loginRouter(pool: DatabasePoolType): Router {
+export function loginRouter(pool: DbPool): Router {
     const router = new Router();
     router.post('/login', async (ctx, next) => {
         const { nameOrEmail, password } = ctx.request.body;

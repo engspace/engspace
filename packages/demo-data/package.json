@@ -16,13 +16,11 @@
     },
     "dependencies": {
         "@engspace/core": "^0.1.0",
-        "@engspace/server-db": "^0.1.0",
-        "slonik": "^21.4.0"
+        "@engspace/server-db": "^0.1.0"
     },
     "devDependencies": {
         "@engspace/eslint-config": "^0.1.0",
         "@engspace/prettier-config": "^0.1.0",
-        "@types/slonik": "^19.0.1",
         "@typescript-eslint/eslint-plugin": "^2.7.0",
         "@typescript-eslint/parser": "^2.7.0",
         "eslint": "^6.6.0",

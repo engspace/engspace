@@ -1,5 +1,5 @@
 import {
-    ClientUserConfigurationType,
+    ClientConfigurationType,
     CommonQueryMethodsType,
     createPool,
     DatabasePoolType,
@@ -16,7 +16,7 @@ export { initSchema } from './schema';
 export interface DbConfig {
     uri: string;
     name: string;
-    options: ClientUserConfigurationType;
+    options: ClientConfigurationType;
     formatDb: boolean;
 }
 

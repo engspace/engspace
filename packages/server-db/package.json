@@ -30,7 +30,7 @@
     "dependencies": {
         "@engspace/core": "^0.1.0",
         "config": "^3.2.4",
-        "slonik": "^21.4.0",
+        "slonik": "^21.4.1",
         "slonik-interceptor-preset": "^1.2.9",
         "slonik-sql-tag-raw": "^1.0.1"
     },
@@ -41,7 +41,7 @@
         "@types/chai": "^4.2.5",
         "@types/config": "^0.0.36",
         "@types/mocha": "^5.2.7",
-        "@types/slonik": "^19.0.1",
+        "@types/slonik": "^21.4.0",
         "@typescript-eslint/eslint-plugin": "^2.7.0",
         "@typescript-eslint/parser": "^2.7.0",
         "chai": "^4.2.0",

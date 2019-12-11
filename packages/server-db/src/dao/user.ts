@@ -46,7 +46,7 @@ export class UserDao {
         const users: User[] = await db.any(sql`
             SELECT id, name, email, full_name
             FROM "user"
-            WHERE id = ANY(${sql.array(ids as Id[], 'uuid')})
+            WHERE id = ANY(${sql.array(ids as Id[], sql`uuid`)})
         `);
         return idsFindMap(ids, users);
     }
