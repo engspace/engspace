@@ -43,6 +43,12 @@ describe('ProjectDao', () => {
                 const project = await ProjectDao.byCode(db, 'desk');
                 expect(project).to.deep.include(projects.desk);
             }));
+        it('should get by ordered batch', async () => {
+            const projs = await pool.connect(db =>
+                ProjectDao.batchByIds(db, [projects.desk.id, projects.chair.id])
+            );
+            expect(projs).to.eql([projects.desk, projects.chair]);
+        });
     });
 
     describe('Search', () => {
@@ -99,5 +105,22 @@ describe('ProjectDao', () => {
                     ...patch,
                 });
             }));
+    });
+
+    describe('Delete', () => {
+        let projects: DemoProjectSet;
+        beforeEach('create projects', async () => {
+            projects = await pool.connect(db => createProjects(db, prepareProjects()));
+        });
+        afterEach('delete projects', deleteAll);
+
+        it('should delete by id', async () => {
+            await pool.connect(db => ProjectDao.deleteById(db, projects.chair.id));
+            const result = await pool.connect(db => ProjectDao.search(db, {}));
+            expect(result).to.deep.equal({
+                count: 1,
+                projects: [projects.desk],
+            });
+        });
     });
 });

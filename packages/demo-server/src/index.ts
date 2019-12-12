@@ -1,18 +1,18 @@
-import events from 'events';
-import config from 'config';
-import { buildGqlApp } from '@engspace/server-graphql';
-import { createDbPool, initSchema, initSchema } from '@engspace/server-db';
 import { populateDemo } from '@engspace/demo-data';
+import { createDbPool, initSchema } from '@engspace/server-db';
+import { buildGqlApp } from '@engspace/server-graphql';
+import config from 'config';
+import events from 'events';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
 createDbPool(config.get('db'))
     .then(async pool => {
+        await pool.transaction(db => initSchema(db));
         await populateDemo(pool);
         return pool;
     })
     .then(async pool => {
-        await pool.transaction(db => initSchema(db));
         const { port } = config.get('server');
         const app = await buildGqlApp(pool);
         app.listen(port, () => {

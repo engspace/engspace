@@ -28,11 +28,16 @@ export const membersInput = [
     {
         project: 'desk',
         user: 'alphonse',
-        roles: [ProjectRole.Leader],
+        roles: [ProjectRole.Leader, ProjectRole.Designer],
     },
     {
         project: 'desk',
         user: 'robin',
+        roles: [ProjectRole.Designer],
+    },
+    {
+        project: 'desk',
+        user: 'fatima',
         roles: [ProjectRole.Designer],
     },
     {
@@ -54,7 +59,7 @@ export async function createMembers(
 ): Promise<ProjectMember[]> {
     const [projs, usrs] = await Promise.all([projects, users]);
     return Promise.all(
-        membersInput.map(async m =>
+        membersInput.map(m =>
             MemberDao.create(db, {
                 project: { id: projs[m.project].id },
                 user: { id: usrs[m.user].id },

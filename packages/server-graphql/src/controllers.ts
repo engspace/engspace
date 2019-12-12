@@ -73,8 +73,8 @@ export class MemberControl {
         return MemberDao.byUserId(ctx.db, userId);
     }
 
-    static async roles(ctx: GqlContext, projId: Id, userId: Id): Promise<ProjectRole[]> {
+    static async roles(ctx: GqlContext, projectId: Id, userId: Id): Promise<ProjectRole[]> {
         assertPerm(ctx, 'member.get');
-        return MemberDao.rolesByProjAndUserId(ctx.db, projId, userId);
+        return MemberDao.rolesByProjectAndUserId(ctx.db, { projectId, userId });
     }
 }
