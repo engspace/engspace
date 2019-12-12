@@ -1,13 +1,23 @@
-import events from 'events';
+import { createDbPool, initSchema } from '@engspace/server-db';
+import { buildGqlApp } from '@engspace/server-graphql';
 import config from 'config';
-import { app } from '@engspace/server-routes';
-import { Pool } from '@engspace/server-db';
+import events from 'events';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
-Pool.init(config.get('db')).then(() => {
-    const { port } = config.get('server');
-    app.listen(port, () => {
-        console.log(`API listening to port ${port}`);
+createDbPool(config.get('db'))
+    .then(async pool => {
+        await pool.transaction(db => initSchema(db));
+        return pool;
+    })
+    .then(async pool => {
+        const { port } = config.get('server');
+        const app = await buildGqlApp(pool);
+        app.listen(port, () => {
+            console.log(`API listening to port ${port}`);
+        });
+    })
+    .catch(err => {
+        console.error('error during the demo app');
+        console.error(err);
     });
-});
