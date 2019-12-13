@@ -4,7 +4,7 @@ import { ApolloLink } from 'apollo-link';
 import { createHttpLink } from 'apollo-link-http';
 import Vue from 'vue';
 import VueApollo from 'vue-apollo';
-import store from '../store';
+import store from './store';
 
 const host = process.env.VUE_APP_API_HOST || window.location.hostname;
 const port = process.env.VUE_APP_API_PORT || 3000;
@@ -35,6 +35,6 @@ const apolloClient = new ApolloClient({
 
 Vue.use(VueApollo);
 
-export const apolloProvider = new VueApollo({
+export default new VueApollo({
     defaultClient: apolloClient,
 });

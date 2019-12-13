@@ -10,12 +10,9 @@ Vue.use(Router);
 type NextCallback = (to?: Location) => void;
 
 function requiresUserAuth(to: Route, from: Route, next: NextCallback): void {
-    console.log('checking auth');
     if (store.getters.isAuth) {
-        console.log('is auth');
         next();
     } else {
-        console.log('is not auth');
         const redirectQuery = to.path !== '/' ? `?redirect=${to.path}` : '';
         next({ path: `/login${redirectQuery}` });
     }

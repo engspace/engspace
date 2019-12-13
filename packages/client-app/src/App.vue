@@ -23,12 +23,10 @@ export default {
         };
     },
     created() {
-        console.log('will check auth from store');
         if (this.$store.getters.isAuth) {
-            console.log('is auth from store');
             // if already authenticated, we double check the token here
             // as it can have expired
-            Api.get('/check_token').catch(() => {
+            Api.get('/auth/check_token').catch(() => {
                 this.$store.dispatch(AUTH_LOGOUT);
                 this.$router.push('/login');
             });

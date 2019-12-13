@@ -1,17 +1,17 @@
-import path from 'path';
+import { getRolesPerms } from '@engspace/core';
+import { DbPool, LoginDao } from '@engspace/server-db';
+import { ApolloServer } from 'apollo-server-koa';
+import config from 'config';
+import HttpStatus from 'http-status-codes';
 import Koa from 'koa';
 import Router from 'koa-router';
 import send from 'koa-send';
 import session from 'koa-session';
-import config from 'config';
-import HttpStatus from 'http-status-codes';
-import { ApolloServer } from 'apollo-server-koa';
-import { getRolesPerms } from '@engspace/core';
-import { DbPool, LoginDao } from '@engspace/server-db';
-import { signToken, verifyToken, USER_TOKEN_SYMBOL } from './login';
-import { typeDefs } from './schema';
+import path from 'path';
+import { attachDb, buildContext } from '.';
+import { AUTH_TOKEN_SYMBOL, signToken, verifyToken } from './auth';
 import { resolvers } from './resolvers';
-import { buildContext, attachDb } from '.';
+import { typeDefs } from './schema';
 
 export function setupPlayground(app: Koa, pool: DbPool): void {
     app.keys = config.get<string[]>('sessionSigningKeys');
@@ -45,7 +45,11 @@ export function setupPlayground(app: Koa, pool: DbPool): void {
         });
         if (user) {
             const perms = getRolesPerms(user.roles);
-            const token = await signToken({ ...user, perms });
+            const token = await signToken({
+                userId: user.id,
+                userRoles: user.roles,
+                userPerms: perms,
+            });
             ctx.cookies.set('playground-token', token, { signed: true });
             return ctx.redirect('/graphql/playground');
         } else {
@@ -67,7 +71,7 @@ export function setupPlayground(app: Koa, pool: DbPool): void {
                 return;
             }
             try {
-                (ctx.state as any)[USER_TOKEN_SYMBOL] = await verifyToken(token);
+                (ctx.state as any)[AUTH_TOKEN_SYMBOL] = await verifyToken(token);
             } catch (err) {
                 ctx.redirect('/graphql/playground/login?wrongCredentials=true');
                 return;

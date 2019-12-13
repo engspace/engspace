@@ -1,20 +1,18 @@
-import Koa, { Context, Next } from 'koa';
-import logger from 'koa-logger';
-import bodyParser from 'koa-bodyparser';
-import cors from 'koa2-cors';
-import { ApolloServer } from 'apollo-server-koa';
-
 import { Db, DbPool } from '@engspace/server-db';
-
-import { loginRouter, checkAuth, userToken, UserToken } from './login';
-import { setupPlayground } from './playground';
-import { typeDefs } from './schema';
-import { resolvers } from './resolvers';
+import { ApolloServer } from 'apollo-server-koa';
+import Koa, { Context, Next } from 'koa';
+import bodyParser from 'koa-bodyparser';
+import logger from 'koa-logger';
+import cors from 'koa2-cors';
+import { authToken, AuthToken, setupAuth } from './auth';
 import { GqlLoaders, makeLoaders } from './loaders';
+import { setupPlayground } from './playground';
+import { resolvers } from './resolvers';
+import { typeDefs } from './schema';
 
 export interface GqlContext {
     koaCtx: Koa.Context;
-    user: UserToken;
+    auth: AuthToken;
     db: Db;
     loaders: GqlLoaders;
 }
@@ -44,7 +42,7 @@ export function attachDb(pool: DbPool, path: string) {
 export function buildContext({ ctx }): GqlContext {
     const gqlCtx = {
         koaCtx: ctx,
-        user: userToken(ctx),
+        auth: authToken(ctx),
         db: ctx.state[DB_SYMBOL],
         loaders: null,
     };
@@ -68,11 +66,8 @@ export async function buildGqlApp(pool: DbPool): Promise<Koa> {
 
     setupPlayground(app, pool);
 
-    const login = loginRouter(pool);
-    app.use(login.routes());
-    app.use(login.allowedMethods());
+    setupAuth(app, pool);
 
-    app.use(checkAuth);
     app.use(attachDb(pool, '/graphql'));
 
     const graphQL = new ApolloServer({

@@ -67,9 +67,9 @@ import gql from 'graphql-tag';
 export default {
     name: 'ToolBar',
     apollo: {
-        fullName: {
+        user: {
             query: gql`
-                query GetFullName($userId: ID!) {
+                query GetUserFullName($userId: ID!) {
                     user(id: $userId) {
                         fullName
                     }
@@ -77,7 +77,7 @@ export default {
             `,
             variables() {
                 return {
-                    userId: this.user.id,
+                    userId: this.auth.userId,
                 };
             },
         },
@@ -87,11 +87,11 @@ export default {
             drawer: false,
             isAdmin: false,
             isManager: false,
-            fullName: '',
+            user: { fullName: '' },
         };
     },
     computed: {
-        ...mapGetters(['user']),
+        ...mapGetters(['auth']),
     },
     methods: {
         logout() {

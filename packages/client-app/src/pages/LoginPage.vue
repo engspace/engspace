@@ -68,7 +68,7 @@ export default Vue.extend({
     },
     async created() {
         try {
-            const resp = await Api.get('/first_admin');
+            const resp = await Api.get('/auth/first_admin');
             const { hasAdmin } = resp.data;
             if (!hasAdmin) {
                 this.$router.push('/first_admin');

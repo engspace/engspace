@@ -4,7 +4,7 @@ import { ForbiddenError } from 'apollo-server-koa';
 import { GqlContext } from '.';
 
 function assertPerm(ctx: GqlContext, perm: string, message?: string): void {
-    if (!ctx.user.perms.includes(perm))
+    if (!ctx.auth.userPerms.includes(perm))
         throw new ForbiddenError(message ? message : `Missing permission: '${perm}'`);
 }
 

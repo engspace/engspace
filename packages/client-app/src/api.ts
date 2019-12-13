@@ -1,11 +1,10 @@
 import axios from 'axios';
-
 import store from './store';
 
 const host = process.env.VUE_APP_API_HOST || window.location.hostname;
 const port = process.env.VUE_APP_API_PORT || 3000;
 function resource(path: string): string {
-    return `http://${host}:${port}/api${path}`;
+    return `http://${host}:${port}${path}`;
 }
 function authHeader(): any {
     if (store.getters.isAuth) {

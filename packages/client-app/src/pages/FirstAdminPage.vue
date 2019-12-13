@@ -92,7 +92,7 @@ export default Vue.extend({
     },
     async created() {
         try {
-            const resp = await Api.get('/first_admin');
+            const resp = await Api.get('/');
             if (resp.hasAdmin) {
                 this.$router.push('/');
             }
@@ -109,7 +109,7 @@ export default Vue.extend({
                 password: this.password,
                 manager: this.manager,
             };
-            await Api.post('/first_admin', form);
+            await Api.post('/auth/first_admin', form);
             await this.$store.dispatch(AUTH_LOGIN, {
                 nameOrEmail: form.name,
                 password: form.password,

@@ -7,24 +7,18 @@ import { AUTH_TOKEN } from './mutations';
 
 Vue.use(Vuex);
 
-const nullUser = {
-    id: null,
-    name: null,
-    perms: null,
-};
-
 const store = new Vuex.Store({
     state: {
         token: localStorage.getItem('auth-token') || '',
     },
     getters: {
         isAuth: state => !!state.token,
-        user: state => (state.token ? jwtDecode(state.token) : nullUser),
+        auth: state => (state.token ? jwtDecode(state.token) : null),
     },
     actions: {
         async [AUTH_LOGIN]({ commit }, cred) {
             try {
-                const resp = await Api.post('/login', cred);
+                const resp = await Api.post('/auth/login', cred);
                 localStorage.setItem('auth-token', resp.data.token);
                 commit(AUTH_TOKEN, resp.data.token);
             } catch (err) {
