@@ -5,20 +5,17 @@
                 <v-expansion-panel-header>
                     Projects
                 </v-expansion-panel-header>
-                <v-expansion-panel-content>
-                    <project-table />
-                </v-expansion-panel-content>
+                <v-expansion-panel-content> </v-expansion-panel-content>
             </v-expansion-panel>
         </v-expansion-panels>
     </div>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
-import ProjectTable from '../components/ProjectTable.vue';
+<script>
+// import ProjectTable from '../components/ProjectTable.vue';
 
-export default Vue.extend({
+export default {
     name: 'HomePage',
-    components: { ProjectTable },
-});
+    //components: { ProjectTable },
+};
 </script>

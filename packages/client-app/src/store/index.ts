@@ -1,7 +1,6 @@
+import jwtDecode from 'jwt-decode';
 import Vue from 'vue';
 import Vuex from 'vuex';
-import jwtDecode from 'jwt-decode';
-
 import { Api } from '../api';
 import { AUTH_LOGIN, AUTH_LOGOUT } from './actions';
 import { AUTH_TOKEN } from './mutations';
@@ -9,10 +8,9 @@ import { AUTH_TOKEN } from './mutations';
 Vue.use(Vuex);
 
 const nullUser = {
-    id: 0,
-    fullName: '',
-    admin: false,
-    manager: false,
+    id: null,
+    name: null,
+    perms: null,
 };
 
 const store = new Vuex.Store({

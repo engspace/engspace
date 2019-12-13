@@ -35,7 +35,7 @@
             </v-menu>
         </v-app-bar>
         <v-navigation-drawer v-model="drawer" app absolute temporary>
-            <template v-if="user.admin">
+            <template v-if="isAdmin">
                 <v-subheader>Admin space</v-subheader>
                 <v-list-item to="/admin/users">
                     <v-list-item-title>Users</v-list-item-title>
@@ -48,7 +48,7 @@
                 </v-list-item>
                 <v-divider />
             </template>
-            <template v-if="user.manager">
+            <template v-if="isManager">
                 <v-subheader>Manager space</v-subheader>
                 <v-list-item to="/project/new">
                     <v-list-item-title>New Project</v-list-item-title>
@@ -59,16 +59,35 @@
     </div>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
+<script>
 import { mapGetters } from 'vuex';
 import { AUTH_LOGOUT } from '../store/actions';
+import gql from 'graphql-tag';
 
-export default Vue.extend({
+export default {
     name: 'ToolBar',
+    apollo: {
+        fullName: {
+            query: gql`
+                query GetFullName($userId: ID!) {
+                    user(id: $userId) {
+                        fullName
+                    }
+                }
+            `,
+            variables() {
+                return {
+                    userId: this.user.id,
+                };
+            },
+        },
+    },
     data() {
         return {
             drawer: false,
+            isAdmin: false,
+            isManager: false,
+            fullName: '',
         };
     },
     computed: {
@@ -80,7 +99,7 @@ export default Vue.extend({
             this.$router.push('/login');
         },
     },
-});
+};
 </script>
 
 <style>
