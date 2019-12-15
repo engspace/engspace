@@ -1,10 +1,11 @@
+import { AuthToken } from '@engspace/core';
 import { Db, DbPool } from '@engspace/server-db';
 import { ApolloServer } from 'apollo-server-koa';
 import Koa, { Context, Next } from 'koa';
 import bodyParser from 'koa-bodyparser';
 import logger from 'koa-logger';
 import cors from 'koa2-cors';
-import { authToken, AuthToken, setupAuth } from './auth';
+import { authToken, setupAuth } from './auth';
 import { GqlLoaders, makeLoaders } from './loaders';
 import { setupPlayground } from './playground';
 import { resolvers } from './resolvers';

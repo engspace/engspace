@@ -1,4 +1,4 @@
-import { getRolesPerms, Id, Role } from '@engspace/core';
+import { AuthToken, getRolesPerms, Role } from '@engspace/core';
 import { DbPool, LoginDao, UserDao } from '@engspace/server-db';
 import config from 'config';
 import HttpStatus from 'http-status-codes';
@@ -9,19 +9,12 @@ import validator from 'validator';
 
 export const AUTH_TOKEN_SYMBOL = Symbol('@engspace/server-graphql/authToken');
 
-export interface AuthToken {
-    userId: Id;
-    userRoles: Role[];
-    userPerms: string[];
-}
-
 export async function signToken(token: AuthToken): Promise<string> {
-    const { userId, userRoles, userPerms } = token;
+    const { userId, userPerms } = token;
     return new Promise((resolve, reject) => {
         jwt.sign(
             {
                 userId,
-                userRoles,
                 userPerms,
             },
             config.get<string>('jwtSecret'),
@@ -75,7 +68,6 @@ export function setupAuth(app: Koa, pool: DbPool): void {
             ctx.body = {
                 token: await signToken({
                     userId: user.id,
-                    userRoles: user.roles,
                     userPerms: perms,
                 }),
             };

@@ -47,7 +47,6 @@ export function setupPlayground(app: Koa, pool: DbPool): void {
             const perms = getRolesPerms(user.roles);
             const token = await signToken({
                 userId: user.id,
-                userRoles: user.roles,
                 userPerms: perms,
             });
             ctx.cookies.set('playground-token', token, { signed: true });

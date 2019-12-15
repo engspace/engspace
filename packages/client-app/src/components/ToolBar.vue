@@ -60,6 +60,7 @@
 </template>
 
 <script>
+import { Role } from '@engspace/core';
 import { mapGetters } from 'vuex';
 import { AUTH_LOGOUT } from '../store/actions';
 import gql from 'graphql-tag';
@@ -69,9 +70,10 @@ export default {
     apollo: {
         user: {
             query: gql`
-                query GetUserFullName($userId: ID!) {
+                query GetUserInfo($userId: ID!) {
                     user(id: $userId) {
                         fullName
+                        roles
                     }
                 }
             `,
@@ -85,13 +87,17 @@ export default {
     data() {
         return {
             drawer: false,
-            isAdmin: false,
-            isManager: false,
-            user: { fullName: '' },
+            user: { fullName: '', roles: [] },
         };
     },
     computed: {
         ...mapGetters(['auth']),
+        isAdmin() {
+            return this.user.roles.includes(Role.Admin);
+        },
+        isManager() {
+            return this.user.roles.includes(Role.Manager);
+        },
     },
     methods: {
         logout() {

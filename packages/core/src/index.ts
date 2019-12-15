@@ -1,3 +1,5 @@
+import { Id } from './schema';
+
 export { getRolePerms, getRolesPerms } from './permissions';
 export {
     Id,
@@ -9,3 +11,8 @@ export {
     User,
     UserInput,
 } from './schema';
+
+export interface AuthToken {
+    userId: Id;
+    userPerms: string[];
+}
