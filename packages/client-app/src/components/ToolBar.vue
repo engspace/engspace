@@ -62,7 +62,7 @@
 <script>
 import { Role } from '@engspace/core';
 import { mapGetters } from 'vuex';
-import { AUTH_LOGOUT } from '../store/actions';
+import { AUTH_LOGOUT_ACTION } from '../store';
 import gql from 'graphql-tag';
 
 export default {
@@ -101,7 +101,7 @@ export default {
     },
     methods: {
         logout() {
-            this.$store.dispatch(AUTH_LOGOUT);
+            this.$store.dispatch(AUTH_LOGOUT_ACTION);
             this.$router.push('/login');
         },
     },

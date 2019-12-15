@@ -48,7 +48,7 @@
 <script>
 import { Api } from '../api';
 
-import { AUTH_LOGIN } from '../store/actions';
+import { AUTH_LOGIN_ACTION } from '../store';
 
 export default {
     name: 'LoginPage',
@@ -79,7 +79,7 @@ export default {
     methods: {
         async login() {
             const { nameOrEmail, password } = this;
-            await this.$store.dispatch(AUTH_LOGIN, { nameOrEmail, password });
+            await this.$store.dispatch(AUTH_LOGIN_ACTION, { nameOrEmail, password });
             if (this.$store.getters.isAuth) {
                 this.wrongCred = false;
                 const { redirect } = this.$route.query;

@@ -10,7 +10,7 @@
 <script>
 import { Api } from './api';
 import ToolBar from './components/ToolBar.vue';
-import { AUTH_LOGOUT } from './store/actions';
+import { AUTH_LOGOUT_ACTION } from './store';
 
 export default {
     name: 'App',
@@ -27,7 +27,7 @@ export default {
             // if already authenticated, we double check the token here
             // as it can have expired
             Api.get('/auth/check_token').catch(() => {
-                this.$store.dispatch(AUTH_LOGOUT);
+                this.$store.dispatch(AUTH_LOGOUT_ACTION);
                 this.$router.push('/login');
             });
         }

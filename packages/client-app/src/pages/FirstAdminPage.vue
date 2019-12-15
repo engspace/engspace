@@ -73,7 +73,7 @@
 
 <script>
 import { Api } from '../api';
-import { AUTH_LOGIN } from '../store/actions';
+import { AUTH_LOGIN_ACTION } from '../store';
 
 export default {
     name: 'RegisterPage',
@@ -109,7 +109,7 @@ export default {
                 manager: this.manager,
             };
             await Api.post('/auth/first_admin', form);
-            await this.$store.dispatch(AUTH_LOGIN, {
+            await this.$store.dispatch(AUTH_LOGIN_ACTION, {
                 nameOrEmail: form.name,
                 password: form.password,
             });
