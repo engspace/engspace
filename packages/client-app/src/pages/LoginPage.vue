@@ -45,13 +45,12 @@
     </v-container>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
+<script>
 import { Api } from '../api';
 
 import { AUTH_LOGIN } from '../store/actions';
 
-export default Vue.extend({
+export default {
     name: 'LoginPage',
     data() {
         return {
@@ -60,7 +59,7 @@ export default Vue.extend({
             wrongCred: false,
             showPswd: false,
             rules: {
-                required: (value: string) => {
+                required: value => {
                     return !!value || 'Required.';
                 },
             },
@@ -84,11 +83,11 @@ export default Vue.extend({
             if (this.$store.getters.isAuth) {
                 this.wrongCred = false;
                 const { redirect } = this.$route.query;
-                this.$router.push((redirect as string) || '/');
+                this.$router.push(redirect || '/');
             } else {
                 this.wrongCred = true;
             }
         },
     },
-});
+};
 </script>

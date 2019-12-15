@@ -71,12 +71,11 @@
     </v-container>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
+<script>
 import { Api } from '../api';
 import { AUTH_LOGIN } from '../store/actions';
 
-export default Vue.extend({
+export default {
     name: 'RegisterPage',
     data() {
         return {
@@ -117,5 +116,5 @@ export default Vue.extend({
             this.$router.push('/');
         },
     },
-});
+};
 </script>
