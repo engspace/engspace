@@ -134,9 +134,6 @@ export function setupAuth(app: Koa, pool: DbPool): void {
 }
 
 export async function checkAuth(ctx: Context, next: Next): Promise<void> {
-    if (ctx.path !== '/graphql') {
-        return next();
-    }
     const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
     if (header) {
         const token = header.startsWith('Bearer ') ? header.slice(7) : header;
