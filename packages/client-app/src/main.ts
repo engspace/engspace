@@ -1,6 +1,6 @@
 import vuetify from '@/plugins/vuetify';
 import Vue from 'vue';
-import apollo from './apollo';
+import { apolloProvider } from './apollo';
 import App from './App.vue';
 import router from './router';
 import store from './store';
@@ -11,6 +11,6 @@ new Vue({
     router,
     store,
     vuetify,
-    apolloProvider: apollo,
+    apolloProvider,
     render: h => h(App),
 }).$mount('#app');

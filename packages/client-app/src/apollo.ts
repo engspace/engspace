@@ -28,13 +28,13 @@ const authLink = new ApolloLink((operation, forward) => {
 const cache = new InMemoryCache();
 
 // Create the apollo client
-const apolloClient = new ApolloClient({
+export const apolloClient = new ApolloClient({
     link: authLink.concat(httpLink),
     cache,
 });
 
 Vue.use(VueApollo);
 
-export default new VueApollo({
+export const apolloProvider = new VueApollo({
     defaultClient: apolloClient,
 });
