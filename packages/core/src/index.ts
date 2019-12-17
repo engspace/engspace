@@ -1,5 +1,6 @@
 import { Id } from './schema';
 
+export { CUser } from './ctor';
 export { getRolePerms, getRolesPerms } from './permissions';
 export {
     Id,
