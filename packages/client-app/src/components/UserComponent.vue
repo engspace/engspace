@@ -19,7 +19,7 @@ export default {
     props: {
         user: {
             type: Object,
-            default: new CUser(),
+            default: () => new CUser(),
         },
     },
     computed: {
