@@ -1,5 +1,9 @@
+import { Role } from '@engspace/core';
+import gql from 'graphql-tag';
 import Vue from 'vue';
 import Router, { Location, Route } from 'vue-router';
+import { apolloClient } from './apollo';
+import AdminUserPage from './pages/AdminUserPage.vue';
 import FirstAdminPage from './pages/FirstAdminPage.vue';
 import HomePage from './pages/HomePage.vue';
 import LoginPage from './pages/LoginPage.vue';
@@ -9,32 +13,58 @@ Vue.use(Router);
 
 type NextCallback = (to?: Location) => void;
 
-function requiresUserAuth(to: Route, from: Route, next: NextCallback): void {
+function redirectLogin(to: Route, next: NextCallback): void {
+    const redirectQuery = to.path !== '/' ? `?redirect=${to.path}` : '';
+    next({ path: `/login${redirectQuery}` });
+}
+
+function requiresAuth(to: Route, from: Route, next: NextCallback): void {
     if (store.getters.isAuth) {
         next();
     } else {
-        const redirectQuery = to.path !== '/' ? `?redirect=${to.path}` : '';
-        next({ path: `/login${redirectQuery}` });
+        redirectLogin(to, next);
     }
 }
 
-// function requiresManagerAuth(to: Route, from: Route, next: NextCallback): void {
-//     if (store.getters.user.manager) {
-//         next();
-//     } else {
-//         const redirectQuery = to.path !== '/' ? `?redirect=${to.path}` : '';
-//         next({ path: `/login${redirectQuery}` });
-//     }
+// function requirePerm(perm: string) {
+//     return (to: Route, from: Route, next: NextCallback): void => {
+//         if (store.getters.isAuth && store.getters.auth.userPerms.contains(perm)) {
+//             next();
+//         } else {
+//             redirectLogin(to, next);
+//         }
+//     };
 // }
 
-// function requiresAdminAuth(to: Route, from: Route, next: NextCallback): void {
-//     if (store.getters.user.admin) {
-//         next();
-//     } else {
-//         const redirectQuery = to.path !== '/' ? `?redirect=${to.path}` : '';
-//         next({ path: `/login${redirectQuery}` });
-//     }
-// }
+function requireRole(role: Role) {
+    return async (to: Route, from: Route, next: NextCallback): Promise<void> => {
+        if (store.getters.isAuth) {
+            try {
+                const { userId } = store.getters.auth;
+                const q = await apolloClient.query({
+                    query: gql`
+                        query GetRoles($userId: ID!) {
+                            user(id: $userId) {
+                                roles
+                            }
+                        }
+                    `,
+                    variables: {
+                        userId,
+                    },
+                });
+                if (q.data.user.roles && q.data.user.roles.includes(role)) {
+                    next();
+                    return;
+                }
+            } catch (err) {
+                console.error(err);
+                return;
+            }
+        }
+        redirectLogin(to, next);
+    };
+}
 
 export default new Router({
     mode: 'history',
@@ -43,7 +73,7 @@ export default new Router({
         {
             path: '/',
             component: HomePage,
-            beforeEnter: requiresUserAuth,
+            beforeEnter: requiresAuth,
         },
         {
             path: '/first_admin',
@@ -52,6 +82,11 @@ export default new Router({
         {
             path: '/login',
             component: LoginPage,
+        },
+        {
+            path: '/admin/users',
+            component: AdminUserPage,
+            beforeEnter: requireRole(Role.Admin),
         },
     ],
 });
