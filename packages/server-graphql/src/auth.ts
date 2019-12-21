@@ -1,6 +1,6 @@
 import { AuthToken, getRolesPerms, Role } from '@engspace/core';
 import { DbPool, LoginDao, UserDao } from '@engspace/server-db';
-import config from 'config';
+import crypto from 'crypto';
 import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import Koa, { Context, Next } from 'koa';
@@ -8,6 +8,8 @@ import Router from 'koa-router';
 import validator from 'validator';
 
 export const AUTH_TOKEN_SYMBOL = Symbol('@engspace/server-graphql/authToken');
+
+const jwtSecret = crypto.randomBytes(32).toString('base64');
 
 export async function signToken(token: AuthToken): Promise<string> {
     const { userId, userPerms } = token;
@@ -17,7 +19,7 @@ export async function signToken(token: AuthToken): Promise<string> {
                 userId,
                 userPerms,
             },
-            config.get<string>('jwtSecret'),
+            jwtSecret,
             {
                 algorithm: 'HS256',
                 expiresIn: '12h',
@@ -32,7 +34,7 @@ export async function signToken(token: AuthToken): Promise<string> {
 
 export async function verifyToken(token: string): Promise<AuthToken> {
     return new Promise((resolve, reject) => {
-        jwt.verify(token, config.get<string>('jwtSecret'), (err, decoded) => {
+        jwt.verify(token, jwtSecret, (err, decoded) => {
             if (err) {
                 reject(err);
             } else {

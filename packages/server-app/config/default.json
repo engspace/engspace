@@ -8,6 +8,5 @@
         "options": {},
         "formatDb": false
     },
-    "jwtSecret": "not_a_production_password",
     "sessionSigningKeys": ["some key", "some other key"]
 }
