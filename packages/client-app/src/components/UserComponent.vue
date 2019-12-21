@@ -7,8 +7,16 @@
             {{ roleString }}
         </v-card-subtitle>
         <v-card-text>
-            <v-text-field v-model="user.name" label="Login"></v-text-field>
-            <v-text-field v-model="user.email" label="E-Mail"></v-text-field>
+            <v-container>
+                <v-row>
+                    <v-col :cols="3" tag="span" class="label">Login</v-col
+                    ><v-col :cols="9" tag="span" class="value">{{ user.name }}</v-col>
+                </v-row>
+                <v-row>
+                    <v-col :cols="3" tag="span" class="label">E-Mail</v-col
+                    ><v-col :cols="9" tag="span" class="value">{{ user.email }}</v-col>
+                </v-row>
+            </v-container>
         </v-card-text>
     </v-card>
 </template>
@@ -29,3 +37,11 @@ export default {
     },
 };
 </script>
+
+<style scoped>
+.label {
+    text-decoration: underline;
+}
+.value {
+}
+</style>

@@ -59,7 +59,6 @@ function requireRole(role: Role) {
                 }
             } catch (err) {
                 console.error(err);
-                return;
             }
         }
         redirectLogin(to, next);

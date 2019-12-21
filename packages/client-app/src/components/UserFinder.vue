@@ -17,6 +17,16 @@
                 :server-items-length="totalUsers"
                 :options-sync="tableOptions"
             >
+                <template v-slot:item="props">
+                    <tr
+                        :class="{ primary: props.item.id === selectedId }"
+                        @click="activeRow(props.item)"
+                    >
+                        <td>{{ props.item.name }}</td>
+                        <td>{{ props.item.email }}</td>
+                        <td>{{ props.item.fullName }}</td>
+                    </tr>
+                </template>
             </v-data-table>
         </v-card-text>
     </v-card>
@@ -52,6 +62,10 @@ export default {
                 return typeof value.phrase === 'string';
             },
         },
+        value: {
+            type: String,
+            default: '',
+        },
     },
     data() {
         return {
@@ -63,6 +77,7 @@ export default {
                 { text: 'Name', value: 'fullName' },
             ],
             tableOptions: {},
+            selectedId: this.value,
             totalUsers: 0,
             loading: false,
             debouncedGqlSearch: null,
@@ -74,6 +89,9 @@ export default {
         },
         tableOptions() {
             this.gqlSearch();
+        },
+        selectedId() {
+            this.$emit('input', this.selectedId);
         },
     },
     created() {
@@ -93,7 +111,13 @@ export default {
             });
             this.users = res.data.userSearch.users;
             this.totalUsers = res.data.count;
+            if (this.selectedId && this.users.filter(u => u.id === this.selectedId).length === 0) {
+                this.selectedId = '';
+            }
             this.loading = false;
+        },
+        activeRow(item) {
+            this.selectedId = item.id;
         },
     },
 };
