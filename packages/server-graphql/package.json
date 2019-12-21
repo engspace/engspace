@@ -16,6 +16,7 @@
     "dependencies": {
         "@engspace/core": "^0.1.0",
         "@engspace/server-db": "^0.1.0",
+        "apollo-log": "^0.1.0",
         "apollo-server-koa": "^2.9.13",
         "config": "^3.2.4",
         "dataloader": "^2.0.0",

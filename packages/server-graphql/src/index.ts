@@ -1,5 +1,6 @@
 import { AuthToken } from '@engspace/core';
 import { Db, DbPool } from '@engspace/server-db';
+import { ApolloLogExtension } from 'apollo-log';
 import { ApolloServer } from 'apollo-server-koa';
 import Koa, { Context, Next } from 'koa';
 import bodyParser from 'koa-bodyparser';
@@ -71,11 +72,15 @@ export async function buildGqlApp(pool: DbPool): Promise<Koa> {
 
     app.use(attachDb(pool, '/graphql'));
 
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const extensions = [() => new ApolloLogExtension()];
+
     const graphQL = new ApolloServer({
         typeDefs,
         resolvers,
         introspection: false,
         playground: false,
+        extensions,
         context: buildContext,
     });
     app.use(
