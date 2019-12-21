@@ -60,11 +60,7 @@ export async function buildGqlApp(pool: DbPool): Promise<Koa> {
             enableTypes: ['json', 'text', 'form'],
         })
     );
-    app.use(
-        cors({
-            exposedHeaders: ['Total-Count'],
-        })
-    );
+    app.use(cors());
 
     setupPlayground(app, pool);
 
