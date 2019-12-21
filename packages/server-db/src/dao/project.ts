@@ -71,7 +71,7 @@ export class ProjectDao {
         }
         let joinToken = sql``;
         if (search.member) {
-            const member = `%${search.member.replace(/s/g, '%')}%`;
+            const member = `%${search.member.replace(/\s/g, '%')}%`;
             boolExpressions.push(sql`(
                 u.name ILIKE ${member} OR
                 u.email ILIKE ${member} OR

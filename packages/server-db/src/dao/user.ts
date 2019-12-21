@@ -63,7 +63,7 @@ export class UserDao {
     static async search(db: Db, search: UserSearch): Promise<{ count: number; users: User[] }> {
         const boolExpressions = [sql`TRUE`];
         if (search.phrase) {
-            const phrase = `%${search.phrase.replace(/s/g, '%')}%`;
+            const phrase = `%${search.phrase.replace(/\s/g, '%')}%`;
             boolExpressions.push(sql`(
                 u.name ILIKE ${phrase} OR
                 u.email ILIKE ${phrase} OR
