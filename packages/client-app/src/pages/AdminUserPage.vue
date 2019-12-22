@@ -5,16 +5,22 @@
                 <user-finder v-model="currentUserId"></user-finder>
             </v-col>
             <v-col :cols="12" :md="4">
-                <transition>
-                    <component
-                        :is="currentUserComp"
-                        v-show="currentUserId"
+                <transition v-if="currentUserId" name="comp-fade" mode="out-in">
+                    <user-read
+                        v-if="!editing"
+                        key="read"
                         :user="currentUser"
                         :loading="loading"
                         :show-edit="true"
-                        @edit="currentUserComp = 'user-edit'"
+                        @edit="editing = true"
+                    ></user-read>
+                    <user-edit
+                        v-if="editing"
+                        key="edit"
+                        :user="currentUser"
+                        :loading="loading"
                         @save="saveUser($event)"
-                    ></component>
+                    ></user-edit>
                 </transition>
             </v-col>
         </v-row>
@@ -51,13 +57,13 @@ export default {
         return {
             currentUserId: '',
             currentUser: new CUser(),
-            currentUserComp: 'user-read',
             loading: false,
+            editing: false,
         };
     },
     watch: {
         async currentUserId() {
-            this.currentUserComp = 'user-read';
+            this.editing = false;
             if (!this.currentUserId) {
                 this.currentUser = new CUser();
                 return;
@@ -77,8 +83,19 @@ export default {
         saveUser(user) {
             // const { id, name, email, fullName, roles } = user;
             this.currentUser = user;
-            this.currentUserComp = 'user-read';
+            this.editing = false;
         },
     },
 };
 </script>
+
+<style scoped>
+.comp-fade-enter-active,
+.comp-fade-leave-active {
+    transition: opacity 0.15s ease;
+}
+.comp-fade-enter,
+.comp-fade-leave-to {
+    opacity: 0;
+}
+</style>
