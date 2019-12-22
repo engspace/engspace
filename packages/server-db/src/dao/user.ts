@@ -69,10 +69,12 @@ export class UserDao {
                 u.email ILIKE ${phrase} OR
                 u.full_name ILIKE ${phrase})`);
         }
+        let joinToken = sql``;
         if (search.role) {
             boolExpressions.push(sql`
                 ur.role = ${search.role}
             `);
+            joinToken = sql`LEFT OUTER JOIN user_role AS ur ON ur.user_id = u.id`;
         }
         const whereToken = sql.join(boolExpressions, sql` AND `);
         const limitToken = sql`${search.limit ? search.limit : 1000}`;
@@ -81,7 +83,7 @@ export class UserDao {
         const users: User[] = await db.any(sql`
             SELECT u.id, u.name, u.email, u.full_name
             FROM "user" AS u
-            LEFT OUTER JOIN user_role AS ur ON ur.user_id = u.id
+            ${joinToken}
             WHERE ${whereToken}
             LIMIT ${limitToken}
             OFFSET ${offsetToken}
