@@ -107,7 +107,20 @@ export class UserDao {
         return roles as Role[];
     }
 
-    static async patch(db: Db, id: Id, user: Partial<User>): Promise<User> {
+    static async update(db: Db, id: Id, user: UserInput): Promise<User> {
+        const { name, email, fullName, roles } = user;
+        const row = await db.one<User>(sql`
+            UPDATE "user" SET name=${name}, email=${email}, full_name=${fullName}
+            WHERE id=${id}
+            RETURNING id, name, email, full_name
+        `);
+        if (roles) {
+            row.roles = await updateRoles(db, id, roles);
+        }
+        return row;
+    }
+
+    static async patch(db: Db, id: Id, user: Partial<UserInput>): Promise<User> {
         const assignments = partialAssignmentList(user, ['name', 'email', 'fullName']);
         if (!assignments.length && !user.roles) {
             throw new Error('no valid field to patch');
@@ -149,4 +162,11 @@ async function insertRoles(db: Db, id: Id, roles: Role[]): Promise<Role[]> {
         )}
         RETURNING role
     `)) as Role[];
+}
+
+async function updateRoles(db: Db, id: Id, roles: Role[]): Promise<Role[]> {
+    await db.query(sql`
+        DELETE FROM user_role WHERE user_id = ${id}
+    `);
+    return insertRoles(db, id, roles);
 }
