@@ -1,10 +1,10 @@
 <template>
-    <v-container fluid fill-height>
-        <v-layout align-center justify-center>
-            <v-flex xs12 sm8 md4>
+    <v-container fluid class="fill-height">
+        <v-row align="center" justify="center">
+            <v-col cols="12" sm="8" md="4">
                 <v-form @submit.prevent="login">
-                    <v-card elevation-12>
-                        <v-toolbar dark color="primary">
+                    <v-card class="elevation-12">
+                        <v-toolbar dark color="primary" flat>
                             <v-toolbar-title>Enter credentials</v-toolbar-title>
                         </v-toolbar>
                         <v-card-text>
@@ -43,8 +43,8 @@
                         </v-card-actions>
                     </v-card>
                 </v-form>
-            </v-flex>
-        </v-layout>
+            </v-col>
+        </v-row>
     </v-container>
 </template>
 
