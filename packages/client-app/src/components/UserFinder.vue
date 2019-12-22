@@ -116,6 +116,12 @@ export default {
             }
             this.loading = false;
         },
+        notifyUpdate(user) {
+            const ind = this.users.findIndex(u => u.id === user.id);
+            if (ind !== -1) {
+                this.users.splice(ind, 1, user);
+            }
+        },
         activeRow(item) {
             this.selectedId = item.id;
         },

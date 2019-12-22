@@ -2,7 +2,7 @@
     <v-container fluid>
         <v-row>
             <v-col :cols="12" :md="8">
-                <user-finder v-model="currentUserId"></user-finder>
+                <user-finder ref="userFinder" v-model="currentUserId"></user-finder>
             </v-col>
             <v-col :cols="12" :md="4">
                 <transition v-if="currentUserId" name="comp-fade" mode="out-in">
@@ -47,6 +47,18 @@ const GET_USER = gql`
     }
 `;
 
+const UPDATE_USER = gql`
+    mutation UpdateUser($id: ID!, $user: UserInput!) {
+        updateUser(id: $id, user: $user) {
+            id
+            name
+            email
+            fullName
+            roles
+        }
+    }
+`;
+
 export default {
     components: {
         UserEdit,
@@ -80,10 +92,20 @@ export default {
         },
     },
     methods: {
-        saveUser(user) {
-            // const { id, name, email, fullName, roles } = user;
-            this.currentUser = user;
+        async saveUser(user) {
+            this.loading = true;
+            const { id, name, email, fullName, roles } = user;
+            const res = await apolloClient.mutate({
+                mutation: UPDATE_USER,
+                variables: {
+                    id,
+                    user: { name, email, fullName, roles },
+                },
+            });
+            this.currentUser = res.data.updateUser;
+            this.$refs.userFinder.notifyUpdate(res.data.updateUser);
             this.editing = false;
+            this.loading = false;
         },
     },
 };
