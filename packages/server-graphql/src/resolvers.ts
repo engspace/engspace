@@ -1,4 +1,4 @@
-import { Project, ProjectMember, ProjectRole, Role, User } from '@engspace/core';
+import { Id, Project, ProjectMember, ProjectRole, Role, User, UserInput } from '@engspace/core';
 import { GqlContext } from '.';
 import { ProjectControl, UserControl } from './controllers';
 
@@ -23,9 +23,19 @@ export const resolvers = {
             return ProjectControl.search(ctx, phrase, member, { offset, limit });
         },
     },
+    Mutation: {
+        async updateUser(
+            parent,
+            { id, user }: { id: Id; user: UserInput },
+            ctx: GqlContext
+        ): Promise<User> {
+            return UserControl.update(ctx, id, user);
+        },
+    },
 
     User: {
-        roles({ id }: User, args, ctx: GqlContext): Promise<Role[]> {
+        async roles({ id, roles }: User, args, ctx: GqlContext): Promise<Role[]> {
+            if (roles) return roles;
             return ctx.loaders.roles.load(id);
         },
         membership({ id }: User, args, ctx: GqlContext): Promise<ProjectMember[]> {
