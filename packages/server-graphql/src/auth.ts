@@ -1,10 +1,10 @@
 import { AuthToken, getRolesPerms, Role } from '@engspace/core';
 import { DbPool, LoginDao, UserDao } from '@engspace/server-db';
+import Router from '@koa/router';
 import crypto from 'crypto';
 import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import Koa, { Context, Next } from 'koa';
-import Router from 'koa-router';
 import validator from 'validator';
 
 export const AUTH_TOKEN_SYMBOL = Symbol('@engspace/server-graphql/authToken');
