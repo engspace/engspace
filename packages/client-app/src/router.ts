@@ -3,10 +3,10 @@ import gql from 'graphql-tag';
 import Vue from 'vue';
 import Router, { Location, Route } from 'vue-router';
 import { apolloClient } from './apollo';
-import AdminUserPage from './pages/AdminUserPage.vue';
 import FirstAdminPage from './pages/FirstAdminPage.vue';
 import HomePage from './pages/HomePage.vue';
 import LoginPage from './pages/LoginPage.vue';
+import UserAdminPage from './pages/UserAdminPage.vue';
 import store from './store';
 
 Vue.use(Router);
@@ -84,7 +84,7 @@ export default new Router({
         },
         {
             path: '/admin/users',
-            component: AdminUserPage,
+            component: UserAdminPage,
             beforeEnter: requireRole(Role.Admin),
         },
     ],
