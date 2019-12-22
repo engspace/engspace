@@ -8,6 +8,9 @@
                             <v-toolbar-title>Enter credentials</v-toolbar-title>
                         </v-toolbar>
                         <v-card-text>
+                            <p v-show="networkError" class="red--text">
+                                Server unreachable!
+                            </p>
                             <p v-show="wrongCred" class="red--text">
                                 Wrong credentials. Try again!
                             </p>
@@ -46,7 +49,8 @@
 </template>
 
 <script>
-import { Api } from '../api';
+import HttpStatus from 'http-status-codes';
+import { rest } from '../rest';
 
 import { AUTH_LOGIN_ACTION } from '../store';
 
@@ -56,6 +60,7 @@ export default {
         return {
             nameOrEmail: '',
             password: '',
+            networkError: false,
             wrongCred: false,
             showPswd: false,
             rules: {
@@ -67,25 +72,33 @@ export default {
     },
     async created() {
         try {
-            const resp = await Api.get('/auth/first_admin');
+            const resp = await rest.get('/auth/first_admin');
             const { hasAdmin } = resp.data;
             if (!hasAdmin) {
                 this.$router.push('/first_admin');
             }
         } catch (err) {
-            console.error(err);
+            if (!err.response) {
+                this.networkError = true;
+            }
         }
     },
     methods: {
         async login() {
             const { nameOrEmail, password } = this;
-            await this.$store.dispatch(AUTH_LOGIN_ACTION, { nameOrEmail, password });
-            if (this.$store.getters.isAuth) {
-                this.wrongCred = false;
-                const { redirect } = this.$route.query;
-                this.$router.push(redirect || '/');
-            } else {
-                this.wrongCred = true;
+            this.wrongCred = false;
+            this.networkError = false;
+            try {
+                const resp = await rest.post('/auth/login', { nameOrEmail, password });
+                if (resp.status === HttpStatus.OK) {
+                    this.$store.dispatch(AUTH_LOGIN_ACTION, resp.data.token);
+                    const { redirect } = this.$route.query;
+                    this.$router.push(redirect || '/');
+                } else {
+                    this.wrongCred = true;
+                }
+            } catch (err) {
+                this.networkError = true;
             }
         },
     },

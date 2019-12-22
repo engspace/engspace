@@ -72,7 +72,7 @@
 </template>
 
 <script>
-import { Api } from '../api';
+import { rest } from '../rest';
 import { AUTH_LOGIN_ACTION } from '../store';
 
 export default {
@@ -91,8 +91,9 @@ export default {
     },
     async created() {
         try {
-            const resp = await Api.get('/');
-            if (resp.hasAdmin) {
+            const resp = await rest.get('/auth/first_admin');
+            const { hasAdmin } = resp.data;
+            if (hasAdmin) {
                 this.$router.push('/');
             }
         } catch (_) {
@@ -108,11 +109,12 @@ export default {
                 password: this.password,
                 manager: this.manager,
             };
-            await Api.post('/auth/first_admin', form);
-            await this.$store.dispatch(AUTH_LOGIN_ACTION, {
+            await rest.post('/auth/first_admin', form);
+            const resp = await rest.post('/auth/login', {
                 nameOrEmail: form.name,
                 password: form.password,
             });
+            this.$store.dispatch(AUTH_LOGIN_ACTION, resp.data.token);
             this.$router.push('/');
         },
     },

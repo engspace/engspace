@@ -1,7 +1,6 @@
 import jwtDecode from 'jwt-decode';
 import Vue from 'vue';
 import Vuex from 'vuex';
-import { Api } from './api';
 
 Vue.use(Vuex);
 
@@ -18,17 +17,11 @@ const store = new Vuex.Store({
         auth: state => (state.token ? jwtDecode(state.token) : null),
     },
     actions: {
-        async [AUTH_LOGIN_ACTION]({ commit }, cred) {
-            try {
-                const resp = await Api.post('/auth/login', cred);
-                localStorage.setItem('auth-token', resp.data.token);
-                commit(AUTH_TOKEN_MUTATION, resp.data.token);
-            } catch (err) {
-                localStorage.removeItem('auth-token');
-                commit(AUTH_TOKEN_MUTATION, '');
-            }
+        [AUTH_LOGIN_ACTION]({ commit }, token) {
+            localStorage.setItem('auth-token', token);
+            commit(AUTH_TOKEN_MUTATION, token);
         },
-        async [AUTH_LOGOUT_ACTION]({ commit }) {
+        [AUTH_LOGOUT_ACTION]({ commit }) {
             localStorage.removeItem('auth-token');
             commit(AUTH_TOKEN_MUTATION, '');
         },
