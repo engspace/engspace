@@ -1,11 +1,11 @@
 import { AuthToken } from '@engspace/core';
 import { Db, DbPool } from '@engspace/server-db';
+import cors from '@koa/cors';
 import { ApolloLogExtension } from 'apollo-log';
 import { ApolloServer } from 'apollo-server-koa';
 import Koa, { Context, Next } from 'koa';
 import bodyParser from 'koa-bodyparser';
 import logger from 'koa-logger';
-import cors from 'koa2-cors';
 import { authToken, setupAuth } from './auth';
 import { GqlLoaders, makeLoaders } from './loaders';
 import { setupPlayground } from './playground';
@@ -60,7 +60,11 @@ export async function buildGqlApp(pool: DbPool): Promise<Koa> {
             enableTypes: ['json', 'text', 'form'],
         })
     );
-    app.use(cors());
+    app.use(
+        cors({
+            keepHeadersOnError: true,
+        })
+    );
 
     setupPlayground(app, pool);
 

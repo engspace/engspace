@@ -16,6 +16,7 @@
     "dependencies": {
         "@engspace/core": "^0.1.0",
         "@engspace/server-db": "^0.1.0",
+        "@koa/cors": "^3.0.0",
         "apollo-log": "^0.1.0",
         "apollo-server-koa": "^2.9.13",
         "config": "^3.2.4",
@@ -29,7 +30,6 @@
         "koa-router": "^7.4.0",
         "koa-send": "^5.0.0",
         "koa-session": "^5.12.3",
-        "koa2-cors": "^2.0.6",
         "validator": "^12.1.0"
     },
     "devDependencies": {
