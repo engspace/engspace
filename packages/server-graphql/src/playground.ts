@@ -19,13 +19,13 @@ export function setupPlayground(app: Koa, pool: DbPool): void {
 
     const router = new Router();
 
-    router.get('/graphql/playground/login', async (ctx, next) => {
+    router.get('/graphql/playground/login', async ctx => {
         await send(ctx, 'playground-login.html', {
             root: path.normalize(path.join(__dirname, '../pages')),
         });
     });
 
-    router.post('/graphql/playground/login', async (ctx, next) => {
+    router.post('/graphql/playground/login', async ctx => {
         const { username, password } = ctx.request.body;
 
         ctx.assert(

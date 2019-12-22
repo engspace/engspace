@@ -1,11 +1,11 @@
-import path from 'path';
 import fs from 'fs';
-import util from 'util';
-import { sql, DatabaseTransactionConnectionType } from 'slonik';
+import path from 'path';
+import { DatabaseTransactionConnectionType, sql } from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
-
+import util from 'util';
 import { Db } from '.';
-import metadata from './sql/metadata.json';
+
+// import metadata from './sql/metadata.json';
 
 const readFileAsync = util.promisify(fs.readFile);
 
@@ -51,13 +51,13 @@ export async function initSchema(db: DatabaseTransactionConnectionType): Promise
                 table_name = 'metadata'`);
     if (!hasMetadataTable) {
         await createSchema(db);
-    // } else {
-    //     const { dbVersion, application } = await db.one(
-    //         sql`SELECT schema_version, application_id FROM metadata`
-    //     );
-    //     if (application != 'engspace') {
-    //         throw new Error("Database has a metadata table, but not from 'Engineering space'");
-    //     }
-    //     await upgradeSchema(db, dbVersion, metadata.currentVersion);
+        // } else {
+        //     const { dbVersion, application } = await db.one(
+        //         sql`SELECT schema_version, application_id FROM metadata`
+        //     );
+        //     if (application != 'engspace') {
+        //         throw new Error("Database has a metadata table, but not from 'Engineering space'");
+        //     }
+        //     await upgradeSchema(db, dbVersion, metadata.currentVersion);
     }
 }

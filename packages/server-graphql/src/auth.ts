@@ -47,7 +47,7 @@ export async function verifyToken(token: string): Promise<AuthToken> {
 export function setupAuth(app: Koa, pool: DbPool): void {
     const restRouter = new Router();
 
-    restRouter.post('/auth/login', async (ctx, next) => {
+    restRouter.post('/auth/login', async ctx => {
         const { nameOrEmail, password } = ctx.request.body;
 
         ctx.assert(
@@ -78,7 +78,7 @@ export function setupAuth(app: Koa, pool: DbPool): void {
         }
     });
 
-    restRouter.get('/auth/first_admin', async (ctx, next) => {
+    restRouter.get('/auth/first_admin', async ctx => {
         const result = await pool.connect(db =>
             UserDao.search(db, {
                 role: Role.Admin,
@@ -89,7 +89,7 @@ export function setupAuth(app: Koa, pool: DbPool): void {
         };
     });
 
-    restRouter.post('/auth/first_admin', async (ctx, next) => {
+    restRouter.post('/auth/first_admin', async ctx => {
         await pool.transaction(async db => {
             const adminSearch = await UserDao.search(db, {
                 role: Role.Admin,
