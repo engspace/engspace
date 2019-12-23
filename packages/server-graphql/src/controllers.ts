@@ -21,6 +21,11 @@ export interface Pagination {
 }
 
 export class UserControl {
+    static async create(ctx: GqlContext, user: UserInput): Promise<User> {
+        assertPerm(ctx, 'user.post');
+        return UserDao.create(ctx.db, user);
+    }
+
     static async search(
         ctx: GqlContext,
         phrase: string,

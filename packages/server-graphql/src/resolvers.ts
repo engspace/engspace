@@ -24,6 +24,9 @@ export const resolvers = {
         },
     },
     Mutation: {
+        async createUser(parent, { user }: { user: UserInput }, ctx: GqlContext): Promise<User> {
+            return UserControl.create(ctx, user);
+        },
         async updateUser(
             parent,
             { id, user }: { id: Id; user: UserInput },
