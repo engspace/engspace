@@ -17,14 +17,11 @@
                 :server-items-length="totalUsers"
                 :options-sync="tableOptions"
             >
-                <template v-slot:item="props">
-                    <tr
-                        :class="{ primary: props.item.id === selectedId }"
-                        @click="activeRow(props.item)"
-                    >
-                        <td>{{ props.item.name }}</td>
-                        <td>{{ props.item.email }}</td>
-                        <td>{{ props.item.fullName }}</td>
+                <template v-slot:item="{ item }">
+                    <tr :class="{ primary: item.id === selectedId }" @click="activeRow(item)">
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.email }}</td>
+                        <td>{{ item.fullName }}</td>
                     </tr>
                 </template>
             </v-data-table>
@@ -66,13 +63,17 @@ export default {
             type: String,
             default: '',
         },
+        emptyAll: {
+            type: Boolean,
+            default: true,
+        },
     },
     data() {
         return {
             searchPhrase: this.initialSearch.phrase,
             users: [],
             userHeaders: [
-                { text: 'Id', value: 'name' },
+                { text: 'Login', value: 'name' },
                 { text: 'E-Mail', value: 'email' },
                 { text: 'Name', value: 'fullName' },
             ],
@@ -99,6 +100,12 @@ export default {
     },
     methods: {
         async gqlSearch() {
+            if (!this.emptyAll && !this.searchPhrase) {
+                this.users = [];
+                this.totalUsers = 0;
+                this.selectedId = '';
+                return;
+            }
             this.loading = true;
             const { page, itemsPerPage } = this.tableOptions;
             const res = await apolloClient.query({

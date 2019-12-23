@@ -3,9 +3,7 @@
         <v-card-title>
             {{ user.fullName }}
             <v-spacer></v-spacer>
-            <v-btn v-if="showEdit" small @click="$emit('edit')">
-                <v-icon>mdi-pencil</v-icon>
-            </v-btn>
+            <slot name="action"></slot>
         </v-card-title>
         <v-card-subtitle>
             <span class="label">Id:</span>
@@ -43,10 +41,6 @@ export default {
             type: Object,
             default: () => new CUser(),
         },
-        showEdit: {
-            type: Boolean,
-            default: false,
-        },
     },
     computed: {
         roleString() {
@@ -59,7 +53,5 @@ export default {
 <style scoped>
 .label {
     text-decoration: underline;
-}
-.value {
 }
 </style>

@@ -1,30 +1,79 @@
 <template>
-    <v-container fluid>
-        <v-row>
-            <v-col :cols="12" :md="8">
-                <user-finder ref="userFinder" v-model="currentUserId"></user-finder>
-            </v-col>
-            <v-col :cols="12" :md="4">
-                <transition v-if="currentUserId" name="comp-fade" mode="out-in">
-                    <user-read
-                        v-if="!editing"
-                        key="read"
-                        :user="currentUser"
-                        :loading="loading"
-                        :show-edit="true"
-                        @edit="editing = true"
-                    ></user-read>
-                    <user-edit
-                        v-if="editing"
-                        key="edit"
-                        :user="currentUser"
-                        :loading="loading"
-                        @save="saveUser($event)"
-                    ></user-edit>
-                </transition>
-            </v-col>
-        </v-row>
-    </v-container>
+    <div>
+        <h1>User administration</h1>
+        <v-expansion-panels :multiple="true">
+            <v-expansion-panel>
+                <v-expansion-panel-header>Create</v-expansion-panel-header>
+                <v-expansion-panel-content>
+                    <user-edit :user="createdUser" :error="createError">
+                        <template v-slot:action="{ user }">
+                            <v-badge v-model="createSuccess" color="teal" left>
+                                <template v-slot:badge>
+                                    <v-icon dark>mdi-check</v-icon>
+                                </template>
+                                <v-btn small @click="createUser(user)">
+                                    <v-icon>mdi-content-save</v-icon>
+                                    Create
+                                </v-btn>
+                            </v-badge>
+                        </template>
+                    </user-edit>
+                </v-expansion-panel-content>
+            </v-expansion-panel>
+            <v-expansion-panel>
+                <v-expansion-panel-header>Search / Update</v-expansion-panel-header>
+                <v-expansion-panel-content>
+                    <v-container fluid>
+                        <v-row>
+                            <v-col :cols="12" :md="8">
+                                <user-finder
+                                    ref="userFinder"
+                                    v-model="currentUserId"
+                                    :empty-all="false"
+                                ></user-finder>
+                            </v-col>
+                            <v-col :cols="12" :md="4">
+                                <transition v-if="currentUserId" name="comp-fade" mode="out-in">
+                                    <user-read
+                                        v-if="!editing"
+                                        key="read"
+                                        :user="currentUser"
+                                        :loading="loading"
+                                    >
+                                        <template v-slot:action>
+                                            <v-btn small @click="editing = !editing">
+                                                <v-icon>mdi-pencil</v-icon>
+                                                Edit
+                                            </v-btn>
+                                        </template>
+                                    </user-read>
+                                    <user-edit
+                                        v-if="editing"
+                                        key="edit"
+                                        :user="currentUser"
+                                        :loading="loading"
+                                        :error="updateError"
+                                    >
+                                        <template v-slot:action="{ user }">
+                                            <v-badge v-model="updateSuccess" color="teal" left>
+                                                <template v-slot:badge>
+                                                    <v-icon dark>mdi-check</v-icon>
+                                                </template>
+                                                <v-btn small @click="updateUser(user)">
+                                                    <v-icon>mdi-content-save</v-icon>
+                                                    Update
+                                                </v-btn>
+                                            </v-badge>
+                                        </template>
+                                    </user-edit>
+                                </transition>
+                            </v-col>
+                        </v-row>
+                    </v-container>
+                </v-expansion-panel-content>
+            </v-expansion-panel>
+        </v-expansion-panels>
+    </div>
 </template>
 
 <script>
@@ -59,6 +108,18 @@ const UPDATE_USER = gql`
     }
 `;
 
+const CREATE_USER = gql`
+    mutation CreateUser($user: UserInput!) {
+        createUser(user: $user) {
+            id
+            name
+            email
+            fullName
+            roles
+        }
+    }
+`;
+
 export default {
     components: {
         UserEdit,
@@ -69,8 +130,14 @@ export default {
         return {
             currentUserId: '',
             currentUser: new CUser(),
-            loading: false,
             editing: false,
+            loading: false,
+            updateSuccess: false,
+            updateError: '',
+
+            createdUser: new CUser(),
+            createSuccess: false,
+            createError: '',
         };
     },
     watch: {
@@ -92,7 +159,7 @@ export default {
         },
     },
     methods: {
-        async saveUser(user) {
+        async updateUser(user) {
             this.loading = true;
             const { id, name, email, fullName, roles } = user;
             const res = await apolloClient.mutate({
@@ -102,10 +169,35 @@ export default {
                     user: { name, email, fullName, roles },
                 },
             });
-            this.currentUser = res.data.updateUser;
-            this.$refs.userFinder.notifyUpdate(res.data.updateUser);
-            this.editing = false;
+            if (res.data && res.data.updateUser) {
+                this.currentUser = res.data.updateUser;
+                this.$refs.userFinder.notifyUpdate(res.data.updateUser);
+                this.updateSuccess = true;
+                setTimeout(() => {
+                    this.updateSuccess = false;
+                    this.editing = false;
+                }, 1000);
+            } else if (res.errors) {
+                this.updateError = res.errors.map(err => err.message).join(' ; ');
+            }
             this.loading = false;
+        },
+
+        async createUser(user) {
+            const { name, email, fullName, roles } = user;
+            const res = await apolloClient.mutate({
+                mutation: CREATE_USER,
+                variables: {
+                    user: { name, email, fullName, roles },
+                },
+            });
+            if (res.data.createUser) {
+                this.createdUser = new CUser();
+                this.createSuccess = true;
+                setTimeout(() => (this.createSuccess = false), 1000);
+            } else if (res.errors) {
+                this.createError = res.errors.map(err => err.message).join(' ; ');
+            }
         },
     },
 };

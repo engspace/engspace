@@ -1,16 +1,17 @@
 <template>
     <v-card>
         <v-card-title>
-            <v-text-field v-model="edited.fullName" dense></v-text-field>
+            <v-text-field v-model="edited.fullName" dense label="Complete Name"></v-text-field>
             <v-spacer></v-spacer>
-            <v-btn small @click="submit()">
-                <v-icon>mdi-content-save</v-icon>
-            </v-btn>
+            <slot name="action" :user="edited"></slot>
         </v-card-title>
         <v-card-subtitle v-if="edited.id">
             <span class="label">Id:</span>
             &nbsp;
             <span>{{ edited.id }}</span>
+        </v-card-subtitle>
+        <v-card-subtitle v-if="error">
+            <span class="red--text">{{ error }}</span>
         </v-card-subtitle>
         <v-card-text>
             <v-text-field v-model="edited.name" label="Login"></v-text-field>
@@ -51,15 +52,19 @@ export default {
             type: Object,
             default: () => new CUser(),
         },
+        error: {
+            type: String,
+            default: '',
+        },
     },
     data() {
         return {
             edited: new CUser(this.user),
         };
     },
-    methods: {
-        submit() {
-            this.$emit('save', new CUser(this.edited));
+    watch: {
+        user(val) {
+            this.edited = val;
         },
     },
 };
@@ -68,8 +73,6 @@ export default {
 <style scoped>
 .label {
     text-decoration: underline;
-}
-.value {
 }
 .offset-left {
     padding-left: 2em;
