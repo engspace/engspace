@@ -108,10 +108,6 @@ const CREATE_USER = gql`
     mutation CreateUser($user: UserInput!) {
         createUser(user: $user) {
             id
-            name
-            email
-            fullName
-            roles
         }
     }
 `;
@@ -129,11 +125,9 @@ export default {
             currentUser: new CUser(),
             editing: false,
             loading: false,
-            updateSuccess: false,
             updateError: '',
 
             createdUser: new CUser(),
-            createSuccess: false,
             createError: '',
         };
     },
@@ -159,37 +153,39 @@ export default {
         async updateUser(user) {
             this.loading = true;
             const { id, name, email, fullName, roles } = user;
-            const res = await apolloClient.mutate({
-                mutation: UPDATE_USER,
-                variables: {
-                    id,
-                    user: { name, email, fullName, roles },
-                },
-            });
-            if (res.data && res.data.updateUser) {
+            try {
+                const res = await apolloClient.mutate({
+                    mutation: UPDATE_USER,
+                    variables: {
+                        id,
+                        user: { name, email, fullName, roles },
+                    },
+                });
                 this.currentUser = res.data.updateUser;
                 this.$refs.userFinder.notifyUpdate(res.data.updateUser);
                 await this.$refs.updateBtn.animate();
                 this.editing = false;
-            } else if (res.errors) {
-                this.updateError = res.errors.map(err => err.message).join(' ; ');
+            } catch (err) {
+                this.updateError = err.message;
+            } finally {
+                this.loading = false;
             }
-            this.loading = false;
         },
 
         async createUser(user) {
             const { name, email, fullName, roles } = user;
-            const res = await apolloClient.mutate({
-                mutation: CREATE_USER,
-                variables: {
-                    user: { name, email, fullName, roles },
-                },
-            });
-            if (res.data.createUser) {
+            try {
+                await apolloClient.mutate({
+                    mutation: CREATE_USER,
+                    variables: {
+                        user: { name, email, fullName, roles },
+                    },
+                });
                 this.createdUser = new CUser();
                 this.$refs.createBtn.animate();
-            } else if (res.errors) {
-                this.createError = res.errors.map(err => err.message).join(' ; ');
+            } catch (err) {
+                console.error(err);
+                this.createError = err.message;
             }
         },
     },
