@@ -7,15 +7,10 @@
                 <v-expansion-panel-content>
                     <user-edit :user="createdUser" :error="createError">
                         <template v-slot:action="{ user }">
-                            <v-badge v-model="createSuccess" color="teal" left>
-                                <template v-slot:badge>
-                                    <v-icon dark>mdi-check</v-icon>
-                                </template>
-                                <v-btn small @click="createUser(user)">
-                                    <v-icon>mdi-content-save</v-icon>
-                                    Create
-                                </v-btn>
-                            </v-badge>
+                            <success-btn ref="createBtn" badge-left small @click="createUser(user)">
+                                <v-icon>mdi-content-save</v-icon>
+                                Create
+                            </success-btn>
                         </template>
                     </user-edit>
                 </v-expansion-panel-content>
@@ -55,15 +50,15 @@
                                         :error="updateError"
                                     >
                                         <template v-slot:action="{ user }">
-                                            <v-badge v-model="updateSuccess" color="teal" left>
-                                                <template v-slot:badge>
-                                                    <v-icon dark>mdi-check</v-icon>
-                                                </template>
-                                                <v-btn small @click="updateUser(user)">
-                                                    <v-icon>mdi-content-save</v-icon>
-                                                    Update
-                                                </v-btn>
-                                            </v-badge>
+                                            <success-btn
+                                                ref="updateBtn"
+                                                badge-left
+                                                small
+                                                @click="updateUser(user)"
+                                            >
+                                                <v-icon>mdi-content-save</v-icon>
+                                                Update
+                                            </success-btn>
                                         </template>
                                     </user-edit>
                                 </transition>
@@ -77,6 +72,7 @@
 </template>
 
 <script>
+import SuccessBtn from '../components/SuccessBtn';
 import UserEdit from '../components/UserEdit';
 import UserRead from '../components/UserRead';
 import UserFinder from '../components/UserFinder';
@@ -122,6 +118,7 @@ const CREATE_USER = gql`
 
 export default {
     components: {
+        SuccessBtn,
         UserEdit,
         UserRead,
         UserFinder,
@@ -172,11 +169,8 @@ export default {
             if (res.data && res.data.updateUser) {
                 this.currentUser = res.data.updateUser;
                 this.$refs.userFinder.notifyUpdate(res.data.updateUser);
-                this.updateSuccess = true;
-                setTimeout(() => {
-                    this.updateSuccess = false;
-                    this.editing = false;
-                }, 1000);
+                await this.$refs.updateBtn.animate();
+                this.editing = false;
             } else if (res.errors) {
                 this.updateError = res.errors.map(err => err.message).join(' ; ');
             }
@@ -193,8 +187,7 @@ export default {
             });
             if (res.data.createUser) {
                 this.createdUser = new CUser();
-                this.createSuccess = true;
-                setTimeout(() => (this.createSuccess = false), 1000);
+                this.$refs.createBtn.animate();
             } else if (res.errors) {
                 this.createError = res.errors.map(err => err.message).join(' ; ');
             }
