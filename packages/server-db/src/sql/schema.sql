@@ -4,7 +4,7 @@ CREATE TABLE metadata (
 );
 
 CREATE TABLE "user" (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     name text NOT NULL UNIQUE,
     email text NOT NULL UNIQUE,
     full_name text NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE user_role (
 );
 
 CREATE TABLE project (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     name text NOT NULL,
     code text NOT NULL UNIQUE,
     description text,
