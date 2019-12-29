@@ -1,11 +1,17 @@
 import { Id, Project, ProjectMember, ProjectRole, Role, User, UserInput } from '@engspace/core';
 import { GqlContext } from '.';
-import { ProjectControl, UserControl } from './controllers';
+import { ProjectControl, UserControl, MemberControl } from './controllers';
 
 export const resolvers = {
     Query: {
         user(parent, { id }, ctx: GqlContext): Promise<User> {
             return ctx.loaders.user.load(id);
+        },
+        userByName(parent, { name }, ctx: GqlContext): Promise<User> {
+            return UserControl.byName(ctx, name);
+        },
+        userByEmail(parent, { email }, ctx: GqlContext): Promise<User> {
+            return UserControl.byEmail(ctx, email);
         },
         userSearch(parent, args, ctx: GqlContext): Promise<{ count: number; users: User[] }> {
             const { phrase, offset, limit } = args;
@@ -13,6 +19,9 @@ export const resolvers = {
         },
         project(parent, { id }, ctx: GqlContext): Promise<Project> {
             return ctx.loaders.project.load(id);
+        },
+        projectByCode(parent, { code }, ctx: GqlContext): Promise<Project> {
+            return ProjectControl.byCode(ctx, code);
         },
         projectSearch(
             parent,
@@ -33,6 +42,23 @@ export const resolvers = {
             ctx: GqlContext
         ): Promise<User> {
             return UserControl.update(ctx, id, user);
+        },
+
+        async updateMember(
+            parent,
+            { projectId, userId, roles }: { projectId: Id; userId: Id; roles: string[] },
+            ctx: GqlContext
+        ): Promise<ProjectMember> {
+            return MemberControl.update(ctx, projectId, userId, roles);
+        },
+
+        async deleteMember(
+            parent,
+            { projectId, userId }: { projectId: Id; userId: Id },
+            ctx: GqlContext
+        ): Promise<boolean> {
+            await MemberControl.delete(ctx, projectId, userId);
+            return true;
         },
     },
 

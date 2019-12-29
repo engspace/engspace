@@ -26,6 +26,26 @@ export class UserControl {
         return UserDao.create(ctx.db, user);
     }
 
+    static async byIds(ctx: GqlContext, ids: readonly Id[]): Promise<User[]> {
+        assertPerm(ctx, 'user.get');
+        return UserDao.batchByIds(ctx.db, ids);
+    }
+
+    static async byName(ctx: GqlContext, name: string): Promise<User> {
+        assertPerm(ctx, 'user.get');
+        return UserDao.byName(ctx.db, name);
+    }
+
+    static async byEmail(ctx: GqlContext, email: string): Promise<User> {
+        assertPerm(ctx, 'user.get');
+        return UserDao.byEmail(ctx.db, email);
+    }
+
+    static async rolesById(ctx: GqlContext, userId: Id): Promise<Role[]> {
+        assertPerm(ctx, 'user.get');
+        return UserDao.rolesById(ctx.db, userId);
+    }
+
     static async search(
         ctx: GqlContext,
         phrase: string,
@@ -38,16 +58,6 @@ export class UserControl {
             offset,
             limit,
         });
-    }
-
-    static async byIds(ctx: GqlContext, ids: readonly Id[]): Promise<User[]> {
-        assertPerm(ctx, 'user.get');
-        return UserDao.batchByIds(ctx.db, ids);
-    }
-
-    static async rolesById(ctx: GqlContext, userId: Id): Promise<Role[]> {
-        assertPerm(ctx, 'user.get');
-        return UserDao.rolesById(ctx.db, userId);
     }
 
     static async update(ctx: GqlContext, userId: Id, user: UserInput): Promise<User> {
@@ -63,6 +73,11 @@ export class ProjectControl {
     static byIds(ctx: GqlContext, ids: readonly Id[]): Promise<Project[]> {
         assertPerm(ctx, 'project.get');
         return ProjectDao.batchByIds(ctx.db, ids);
+    }
+
+    static async byCode(ctx: GqlContext, code: string): Promise<Project> {
+        assertPerm(ctx, 'project.get');
+        return ProjectDao.byCode(ctx.db, code);
     }
 
     static async search(
@@ -96,5 +111,20 @@ export class MemberControl {
     static async roles(ctx: GqlContext, projectId: Id, userId: Id): Promise<ProjectRole[]> {
         assertPerm(ctx, 'member.get');
         return MemberDao.rolesByProjectAndUserId(ctx.db, { projectId, userId });
+    }
+
+    static async update(
+        ctx: GqlContext,
+        projectId: Id,
+        userId: Id,
+        roles: string[]
+    ): Promise<ProjectMember> {
+        assertPerm(ctx, 'member.patch');
+        return MemberDao.update(ctx.db, { projectId, userId }, roles);
+    }
+
+    static async delete(ctx: GqlContext, projectId: Id, userId: Id): Promise<void> {
+        assertPerm(ctx, 'member.delete');
+        return MemberDao.deleteById(ctx.db, { projectId, userId });
     }
 }

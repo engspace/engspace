@@ -48,20 +48,27 @@ export const typeDefs = gql`
     }
 
     type Query {
-        userSearch(phrase: String, offset: Int = 0, limit: Int = 1000): UserSearch!
         user(id: ID!): User
+        userByName(name: String!): User
+        userByEmail(email: String!): User
+        userSearch(phrase: String, offset: Int = 0, limit: Int = 1000): UserSearch!
 
+        project(id: ID!): Project
+        projectByCode(code: String!): Project
         projectSearch(
             phrase: String
             member: String
             offset: Int = 0
             limit: Int = 1000
         ): ProjectSearch!
-        project(id: ID!): Project
     }
 
     type Mutation {
         createUser(user: UserInput!): User
         updateUser(id: ID!, user: UserInput!): User
+
+        createMember(projectId: ID!, userId: ID!, roles: [String!]!): ProjectMember
+        updateMember(projectId: ID!, userId: ID!, roles: [String!]): ProjectMember
+        deleteMember(projectId: ID!, userId: ID!): Boolean
     }
 `;

@@ -150,6 +150,30 @@ export class MemberDao {
     //     return now;
     // }
 
+    static async update(
+        db: Db,
+        { projectId, userId }: { projectId: Id; userId: Id },
+        roles: string[]
+    ): Promise<ProjectMember> {
+        await db.query(sql`
+            DELETE FROM project_member_role
+            WHERE project_id = ${projectId} AND user_id=${userId}
+        `);
+
+        const inserted = roles
+            ? await insertRoles(db, {
+                  project: { id: projectId },
+                  user: { id: userId },
+                  roles: roles as ProjectRole[],
+              })
+            : [];
+        return {
+            project: { id: projectId },
+            user: { id: userId },
+            roles: inserted,
+        };
+    }
+
     /**
      * Delete a member from a project
      */
