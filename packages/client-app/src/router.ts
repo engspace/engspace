@@ -6,6 +6,7 @@ import { apolloClient } from './apollo';
 import FirstAdminPage from './pages/FirstAdminPage.vue';
 import HomePage from './pages/HomePage.vue';
 import LoginPage from './pages/LoginPage.vue';
+import ProjectPage from './pages/ProjectPage.vue';
 import UserAdminPage from './pages/UserAdminPage.vue';
 import store from './store';
 
@@ -36,19 +37,21 @@ function requiresAuth(to: Route, from: Route, next: NextCallback): void {
 //     };
 // }
 
+const GET_ROLE = gql`
+    query GetRoles($userId: ID!) {
+        user(id: $userId) {
+            roles
+        }
+    }
+`;
+
 function requireRole(role: Role) {
     return async (to: Route, from: Route, next: NextCallback): Promise<void> => {
         if (store.getters.isAuth) {
             try {
                 const { userId } = store.getters.auth;
                 const q = await apolloClient.query({
-                    query: gql`
-                        query GetRoles($userId: ID!) {
-                            user(id: $userId) {
-                                roles
-                            }
-                        }
-                    `,
+                    query: GET_ROLE,
                     variables: {
                         userId,
                     },
@@ -86,6 +89,11 @@ export default new Router({
             path: '/admin/users',
             component: UserAdminPage,
             beforeEnter: requireRole(Role.Admin),
+        },
+        {
+            path: '/project/by-code/:code',
+            component: ProjectPage,
+            beforeEnter: requireRole(Role.Manager),
         },
     ],
 });

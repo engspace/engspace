@@ -35,6 +35,8 @@
 
 <script>
 import { CUser } from '@engspace/core';
+import upperFirst from 'lodash.upperfirst';
+
 export default {
     props: {
         user: {
@@ -44,7 +46,7 @@ export default {
     },
     computed: {
         roleString() {
-            return this.user.roles.map(r => r.charAt(0).toUpperCase() + r.slice(1)).join(', ');
+            return this.user.roles.map(r => upperFirst(r)).join(', ');
         },
     },
 };
