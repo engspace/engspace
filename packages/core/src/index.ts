@@ -1,15 +1,17 @@
 import { Id } from './schema';
 
-export { CUser } from './ctor';
+export { CProject, CUser } from './ctor';
 export { getRolePerms, getRolesPerms } from './permissions';
 export {
     Id,
     Project,
+    ProjectEx,
     ProjectInput,
     ProjectMember,
     ProjectRole,
     Role,
     User,
+    UserEx,
     UserInput,
 } from './schema';
 

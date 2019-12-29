@@ -22,6 +22,10 @@ export interface User extends UserInput {
     id: Id;
 }
 
+export interface UserEx extends User {
+    membership?: ProjectMember[];
+}
+
 export interface ProjectInput {
     code: string;
     name: string;
@@ -30,6 +34,10 @@ export interface ProjectInput {
 
 export interface Project extends ProjectInput {
     id: Id;
+}
+
+export interface ProjectEx extends Project {
+    members?: ProjectMember[];
 }
 
 export interface ProjectMember {
