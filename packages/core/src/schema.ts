@@ -40,7 +40,14 @@ export interface ProjectEx extends Project {
     members?: ProjectMember[];
 }
 
+export interface ProjectMemberInput {
+    projectId: Id;
+    userId: Id;
+    roles?: ProjectRole[];
+}
+
 export interface ProjectMember {
+    id: Id;
     project: { id: Id } | Project;
     user: { id: Id } | User;
     roles?: ProjectRole[];

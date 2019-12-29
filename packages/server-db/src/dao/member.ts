@@ -1,4 +1,4 @@
-import { Id, ProjectMember, ProjectRole } from '@engspace/core';
+import { Id, ProjectMember, ProjectMemberInput, ProjectRole } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
 
@@ -11,38 +11,63 @@ export class MemberDao {
      * @param db database connection
      * @param member member to be added
      */
-    static async create(db: Db, member: ProjectMember): Promise<ProjectMember> {
+    static async create(
+        db: Db,
+        { projectId, userId, roles }: ProjectMemberInput
+    ): Promise<ProjectMember> {
         const row = await db.one(sql`
             INSERT INTO project_member(
                 project_id, user_id, updated_on
             ) VALUES (
-                ${member.project.id}, ${member.user.id}, now()
+                ${projectId}, ${userId}, now()
             )
-            RETURNING project_id, user_id
+            RETURNING id, project_id, user_id
         `);
         const res: ProjectMember = {
+            id: row.id.toString() as Id,
             project: { id: row.projectId as Id },
             user: { id: row.userId as Id },
         };
-        if (member.roles && member.roles.length) {
-            res.roles = await insertRoles(db, member);
+        if (roles && roles.length) {
+            res.roles = await insertRoles(db, res.id, roles);
         }
         return res;
     }
 
     /**
+     * Get a member by its id
+     */
+    static async byId(db: Db, id: Id): Promise<ProjectMember> {
+        interface Row {
+            id: number;
+            projectId: Id;
+            userId: Id;
+        }
+        const row = await db.one<Row>(sql`
+            SELECT id, project_id, user_id FROM project_member
+            WHERE id = ${parseInt(id)}
+        `);
+        return {
+            id: row.id.toString() as Id,
+            project: { id: row.projectId as Id },
+            user: { id: row.userId as Id },
+        };
+    }
+    /**
      * Get all members for a project id
      */
     static async byProjectId(db: Db, projectId: Id): Promise<ProjectMember[]> {
         interface Row {
+            id: number;
             projectId: Id;
             userId: Id;
         }
         const rows = await db.any<Row>(sql`
-            SELECT project_id, user_id FROM project_member
+            SELECT id, project_id, user_id FROM project_member
             WHERE project_id = ${projectId}
         `);
         return rows.map(r => ({
+            id: r.id.toString(),
             project: { id: r.projectId },
             user: { id: r.userId },
         }));
@@ -54,14 +79,16 @@ export class MemberDao {
      */
     static async byUserId(db: Db, userId: Id): Promise<ProjectMember[]> {
         interface Row {
+            id: number;
             projectId: Id;
             userId: Id;
         }
         const rows = await db.any<Row>(sql`
-            SELECT project_id, user_id FROM project_member
+            SELECT id, project_id, user_id FROM project_member
             WHERE user_id = ${userId}
         `);
         return rows.map(r => ({
+            id: r.id.toString(),
             project: { id: r.projectId },
             user: { id: r.userId },
         }));
@@ -71,36 +98,14 @@ export class MemberDao {
      * Get project roles for a single project member
      *
      * @param db The databse connection
-     * @param projectId the id of the project
-     * @param userId the id of the user
+     * @param id the id of the member
      */
-    static async rolesByProjectAndUserId(
-        db: Db,
-        { projectId, userId }: { projectId: Id; userId: Id }
-    ): Promise<ProjectRole[] | null> {
-        interface Row {
-            projectId: Id;
-            userId: Id;
-            role: ProjectRole | null;
-        }
-        const rows = await db.any<Row>(sql`
-            SELECT pm.user_id, pm.project_id, pmr.role FROM project_member AS pm
-            LEFT OUTER JOIN project_member_role AS pmr
-                ON pmr.project_id = pm.project_id
-                AND pmr.user_id = pm.user_id
-            WHERE pm.project_id = ${projectId} AND pm.user_id = ${userId}
+    static async rolesById(db: Db, id: Id): Promise<ProjectRole[]> {
+        const rows = await db.anyFirst(sql`
+            SELECT role FROM project_member_role
+            WHERE member_id = ${parseInt(id)}
         `);
-        if (rows.length === 0) {
-            return null;
-        }
-        const member: ProjectMember = {
-            project: { id: rows[0].projectId },
-            user: { id: rows[0].userId },
-        };
-        if (rows[0].role) {
-            member.roles = rows.map(r => r.role);
-        }
-        return rows.filter(r => r.role !== null).map(r => r.role);
+        return rows as ProjectRole[];
     }
 
     // /**
@@ -150,40 +155,26 @@ export class MemberDao {
     //     return now;
     // }
 
-    static async update(
-        db: Db,
-        { projectId, userId }: { projectId: Id; userId: Id },
-        roles: string[]
-    ): Promise<ProjectMember> {
+    static async updateRolesById(db: Db, id: Id, roles: ProjectRole[]): Promise<ProjectMember> {
         await db.query(sql`
             DELETE FROM project_member_role
-            WHERE project_id = ${projectId} AND user_id=${userId}
+            WHERE member_id = ${parseInt(id)}
         `);
 
-        const inserted = roles
-            ? await insertRoles(db, {
-                  project: { id: projectId },
-                  user: { id: userId },
-                  roles: roles as ProjectRole[],
-              })
-            : [];
-        return {
-            project: { id: projectId },
-            user: { id: userId },
-            roles: inserted,
-        };
+        const inserted = roles ? await insertRoles(db, id, roles) : [];
+        const member = await MemberDao.byId(db, id);
+        member.roles = inserted;
+        return member;
     }
 
     /**
      * Delete a member from a project
      */
-    static async deleteById(
-        db: Db,
-        { projectId, userId }: { projectId: Id; userId: Id }
-    ): Promise<void> {
+    static async deleteById(db: Db, id: Id): Promise<void> {
+        console.log(`will delete ${id}`);
         await db.query(sql`
             DELETE FROM project_member
-            WHERE project_id = ${projectId} AND user_id = ${userId}
+            WHERE id = ${parseInt(id)}
         `);
     }
 
@@ -208,15 +199,15 @@ export class MemberDao {
     }
 }
 
-async function insertRoles(db: Db, member: ProjectMember): Promise<ProjectRole[]> {
-    const roles = await db.manyFirst<ProjectRole>(sql`
+async function insertRoles(db: Db, id: Id, roles: ProjectRole[]): Promise<ProjectRole[]> {
+    const inserted = await db.manyFirst<ProjectRole>(sql`
         INSERT INTO project_member_role(
-            project_id, user_id, role
+            member_id, role
         ) VALUES ${sql.join(
-            member.roles.map(role => sql`(${member.project.id}, ${member.user.id}, ${role})`),
+            roles.map(role => sql`(${parseInt(id)}, ${role})`),
             sql`, `
         )}
         RETURNING role
     `);
-    return roles as ProjectRole[];
+    return inserted as ProjectRole[];
 }

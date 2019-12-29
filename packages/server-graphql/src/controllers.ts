@@ -108,23 +108,18 @@ export class MemberControl {
         return MemberDao.byUserId(ctx.db, userId);
     }
 
-    static async roles(ctx: GqlContext, projectId: Id, userId: Id): Promise<ProjectRole[]> {
+    static async rolesById(ctx: GqlContext, id: Id): Promise<ProjectRole[]> {
         assertPerm(ctx, 'member.get');
-        return MemberDao.rolesByProjectAndUserId(ctx.db, { projectId, userId });
+        return MemberDao.rolesById(ctx.db, id);
     }
 
-    static async update(
-        ctx: GqlContext,
-        projectId: Id,
-        userId: Id,
-        roles: string[]
-    ): Promise<ProjectMember> {
+    static async updateRolesById(ctx: GqlContext, id: Id, roles: string[]): Promise<ProjectMember> {
         assertPerm(ctx, 'member.patch');
-        return MemberDao.update(ctx.db, { projectId, userId }, roles);
+        return MemberDao.updateRolesById(ctx.db, id, roles as ProjectRole[]);
     }
 
-    static async delete(ctx: GqlContext, projectId: Id, userId: Id): Promise<void> {
+    static async deleteById(ctx: GqlContext, id: Id): Promise<void> {
         assertPerm(ctx, 'member.delete');
-        return MemberDao.deleteById(ctx.db, { projectId, userId });
+        return MemberDao.deleteById(ctx.db, id);
     }
 }

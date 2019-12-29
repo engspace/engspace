@@ -44,20 +44,17 @@ export const resolvers = {
             return UserControl.update(ctx, id, user);
         },
 
-        async updateMember(
+        async updateProjectMemberRoles(
             parent,
-            { projectId, userId, roles }: { projectId: Id; userId: Id; roles: string[] },
+            { id, roles }: { id: Id; roles: string[] },
             ctx: GqlContext
         ): Promise<ProjectMember> {
-            return MemberControl.update(ctx, projectId, userId, roles);
+            return MemberControl.updateRolesById(ctx, id, roles);
         },
 
-        async deleteMember(
-            parent,
-            { projectId, userId }: { projectId: Id; userId: Id },
-            ctx: GqlContext
-        ): Promise<boolean> {
-            await MemberControl.delete(ctx, projectId, userId);
+        async deleteProjectMember(parent, { id }: { id: Id }, ctx: GqlContext): Promise<boolean> {
+            console.log('within resolver');
+            await MemberControl.deleteById(ctx, id);
             return true;
         },
     },
@@ -93,8 +90,8 @@ export const resolvers = {
                 return ctx.loaders.user.load(user.id);
             }
         },
-        roles({ project, user }: ProjectMember, args, ctx: GqlContext): Promise<ProjectRole[]> {
-            return ctx.loaders.memberRoles.load({ projectId: project.id, userId: user.id });
+        roles({ id }: ProjectMember, args, ctx: GqlContext): Promise<ProjectRole[]> {
+            return ctx.loaders.memberRoles.load(id);
         },
     },
 };

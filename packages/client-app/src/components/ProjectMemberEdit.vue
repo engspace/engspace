@@ -38,8 +38,8 @@ import { apolloClient, extractGQLErrors } from '../apollo';
 import { MEMBER_FIELDS } from '../graphql';
 
 const UPDATE_MEMBER = gql`
-    mutation UpdateMember($projectId: ID!, $userId: ID!, $roles: [String!]) {
-        updateMember(projectId: $projectId, userId: $userId, roles: $roles) {
+    mutation UpdateMemberRoles($id: ID!, $roles: [String!]) {
+        updateProjectMemberRoles(id: $id, roles: $roles) {
             ...MemberFields
         }
     }
@@ -47,8 +47,8 @@ const UPDATE_MEMBER = gql`
 `;
 
 const DELETE_MEMBER = gql`
-    mutation DeleteMember($projectId: ID!, $userId: ID!) {
-        deleteMember(projectId: $projectId, userId: $userId)
+    mutation DeleteMember($id: ID!) {
+        deleteProjectMember(id: $id)
     }
 `;
 
@@ -57,10 +57,6 @@ export default {
         members: {
             type: Array,
             default: () => [],
-        },
-        projectId: {
-            type: String,
-            default: '',
         },
     },
     data() {
@@ -95,12 +91,11 @@ export default {
                 const resp = await apolloClient.mutate({
                     mutation: UPDATE_MEMBER,
                     variables: {
-                        projectId: this.projectId,
-                        userId: member.user.id,
+                        id: member.id,
                         roles: roles.length ? roles : null,
                     },
                 });
-                newMember = resp.data.updateMember;
+                newMember = resp.data.updateProjectMemberRoles;
                 this.error = '';
             } catch (err) {
                 this.error = err.message;
@@ -117,12 +112,11 @@ export default {
                 const resp = await apolloClient.mutate({
                     mutation: DELETE_MEMBER,
                     variables: {
-                        projectId: this.projectId,
-                        userId: this.userId,
+                        id: member.id,
                     },
                 });
-                if (resp.data) {
-                    this.edited = this.edited.filter(m => m.user.id === member.user.id);
+                if (resp.data.deleteProjectMember) {
+                    this.edited = this.edited.filter(m => m.user.id !== member.user.id);
                 }
             } catch (err) {
                 console.error(err);

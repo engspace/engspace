@@ -8,6 +8,7 @@ export {
     ProjectEx,
     ProjectInput,
     ProjectMember,
+    ProjectMemberInput,
     ProjectRole,
     Role,
     User,

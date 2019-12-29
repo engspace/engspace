@@ -41,7 +41,14 @@ export const typeDefs = gql`
         projects: [Project!]!
     }
 
+    input ProjectMemberInput {
+        projectId: ID!
+        userId: ID!
+        roles: [String!]!
+    }
+
     type ProjectMember {
+        id: ID!
         project: Project!
         user: User!
         roles: [String!]!
@@ -64,11 +71,11 @@ export const typeDefs = gql`
     }
 
     type Mutation {
-        createUser(user: UserInput!): User
-        updateUser(id: ID!, user: UserInput!): User
+        createUser(user: UserInput!): User!
+        updateUser(id: ID!, user: UserInput!): User!
 
-        createMember(projectId: ID!, userId: ID!, roles: [String!]!): ProjectMember
-        updateMember(projectId: ID!, userId: ID!, roles: [String!]): ProjectMember
-        deleteMember(projectId: ID!, userId: ID!): Boolean
+        createProjectMember(projectMember: ProjectMemberInput!): ProjectMember!
+        updateProjectMemberRoles(id: ID!, roles: [String!]): ProjectMember!
+        deleteProjectMember(id: ID!): Boolean!
     }
 `;

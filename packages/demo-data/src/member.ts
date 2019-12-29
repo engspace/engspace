@@ -61,8 +61,8 @@ export async function createMembers(
     return Promise.all(
         membersInput.map(m =>
             MemberDao.create(db, {
-                project: { id: projs[m.project].id },
-                user: { id: usrs[m.user].id },
+                projectId: projs[m.project].id,
+                userId: usrs[m.user].id,
                 roles: m.roles,
             })
         )
