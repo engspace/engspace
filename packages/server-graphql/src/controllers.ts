@@ -22,27 +22,27 @@ export interface Pagination {
 
 export class UserControl {
     static async create(ctx: GqlContext, user: UserInput): Promise<User> {
-        assertPerm(ctx, 'user.post');
+        assertPerm(ctx, 'user.create');
         return UserDao.create(ctx.db, user);
     }
 
     static async byIds(ctx: GqlContext, ids: readonly Id[]): Promise<User[]> {
-        assertPerm(ctx, 'user.get');
+        assertPerm(ctx, 'user.read');
         return UserDao.batchByIds(ctx.db, ids);
     }
 
     static async byName(ctx: GqlContext, name: string): Promise<User> {
-        assertPerm(ctx, 'user.get');
+        assertPerm(ctx, 'user.read');
         return UserDao.byName(ctx.db, name);
     }
 
     static async byEmail(ctx: GqlContext, email: string): Promise<User> {
-        assertPerm(ctx, 'user.get');
+        assertPerm(ctx, 'user.read');
         return UserDao.byEmail(ctx.db, email);
     }
 
     static async rolesById(ctx: GqlContext, userId: Id): Promise<Role[]> {
-        assertPerm(ctx, 'user.get');
+        assertPerm(ctx, 'user.read');
         return UserDao.rolesById(ctx.db, userId);
     }
 
@@ -51,7 +51,7 @@ export class UserControl {
         phrase: string,
         pag?: Pagination
     ): Promise<{ count: number; users: User[] }> {
-        assertPerm(ctx, 'user.get');
+        assertPerm(ctx, 'user.read');
         const { offset, limit } = pag;
         return UserDao.search(ctx.db, {
             phrase,
@@ -61,7 +61,7 @@ export class UserControl {
     }
 
     static async update(ctx: GqlContext, userId: Id, user: UserInput): Promise<User> {
-        assertPerm(ctx, 'user.patch');
+        assertPerm(ctx, 'user.update');
         if (userId !== ctx.auth.userId) {
             await assertRole(ctx, Role.Admin);
         }
@@ -71,12 +71,12 @@ export class UserControl {
 
 export class ProjectControl {
     static byIds(ctx: GqlContext, ids: readonly Id[]): Promise<Project[]> {
-        assertPerm(ctx, 'project.get');
+        assertPerm(ctx, 'project.read');
         return ProjectDao.batchByIds(ctx.db, ids);
     }
 
     static async byCode(ctx: GqlContext, code: string): Promise<Project> {
-        assertPerm(ctx, 'project.get');
+        assertPerm(ctx, 'project.read');
         return ProjectDao.byCode(ctx.db, code);
     }
 
@@ -86,7 +86,7 @@ export class ProjectControl {
         member: string,
         pag?: Pagination
     ): Promise<{ count: number; projects: Project[] }> {
-        assertPerm(ctx, 'project.get');
+        assertPerm(ctx, 'project.read');
         const { offset, limit } = pag;
         return ProjectDao.search(ctx.db, {
             phrase,
@@ -99,22 +99,22 @@ export class ProjectControl {
 
 export class MemberControl {
     static async byProjectId(ctx: GqlContext, projId: Id): Promise<ProjectMember[]> {
-        assertPerm(ctx, 'member.get');
+        assertPerm(ctx, 'member.read');
         return MemberDao.byProjectId(ctx.db, projId);
     }
 
     static async byUserId(ctx: GqlContext, userId: Id): Promise<ProjectMember[]> {
-        assertPerm(ctx, 'member.get');
+        assertPerm(ctx, 'member.read');
         return MemberDao.byUserId(ctx.db, userId);
     }
 
     static async rolesById(ctx: GqlContext, id: Id): Promise<ProjectRole[]> {
-        assertPerm(ctx, 'member.get');
+        assertPerm(ctx, 'member.read');
         return MemberDao.rolesById(ctx.db, id);
     }
 
     static async updateRolesById(ctx: GqlContext, id: Id, roles: string[]): Promise<ProjectMember> {
-        assertPerm(ctx, 'member.patch');
+        assertPerm(ctx, 'member.update');
         return MemberDao.updateRolesById(ctx.db, id, roles as ProjectRole[]);
     }
 

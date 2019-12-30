@@ -7,21 +7,21 @@ interface RolePerm {
 
 const rolePerms: { [role: string]: RolePerm } = {
     [Role.User]: {
-        permissions: ['member.get', 'project.get', 'user.get', 'login.get', 'login.patch'],
+        permissions: ['member.read', 'project.read', 'user.read', 'login.read', 'login.update'],
     },
     [Role.Manager]: {
         inherits: Role.User,
         permissions: [
-            'project.post',
-            'project.patch',
-            'member.post',
-            'member.patch',
+            'project.create',
+            'project.update',
+            'member.create',
+            'member.update',
             'member.delete',
         ],
     },
     [Role.Admin]: {
         inherits: Role.Manager,
-        permissions: ['user.post', 'user.patch', 'user.delete', 'project.delete'],
+        permissions: ['user.create', 'user.update', 'user.delete', 'project.delete'],
     },
 };
 
