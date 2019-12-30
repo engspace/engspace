@@ -9,7 +9,7 @@
                     <v-card-title>
                         Team members
                         <v-spacer></v-spacer>
-                        <v-btn v-if="canEdit" @click="toggleMemberEdit()">
+                        <v-btn v-if="canEditMembers" @click="toggleMemberEdit()">
                             <v-icon>{{ memberEdit ? 'mdi-check' : 'mdi-pencil' }}</v-icon
                             >&nbsp;
                             {{ memberEdit ? 'Done' : 'Edit' }}
@@ -91,8 +91,11 @@ export default {
         };
     },
     computed: {
-        canEdit() {
-            return this.$store.getters.auth.userPerms.includes('project.patch');
+        canEditProject() {
+            return this.hasPerm('project.update');
+        },
+        canEditMembers() {
+            return this.hasPerm('member.update');
         },
         memberActionIcon() {
             return this.memberEdit ? 'mdi-check' : 'mdi-pencil';
