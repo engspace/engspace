@@ -45,8 +45,8 @@ describe('MemberDao', () => {
         it('should create a project member', async () => {
             const created = await pool.connect(db =>
                 MemberDao.create(db, {
-                    project: projects.chair,
-                    user: users.tania,
+                    projectId: projects.chair.id,
+                    userId: users.tania.id,
                     roles: [ProjectRole.Leader],
                 })
             );
@@ -55,7 +55,8 @@ describe('MemberDao', () => {
                 user: { id: users.tania.id },
                 roles: [ProjectRole.Leader],
             };
-            expect(created).to.eql(expected);
+            expect(created.id).to.be.a('string');
+            expect(created).to.deep.include(expected);
         });
     });
 
@@ -69,39 +70,32 @@ describe('MemberDao', () => {
 
         it('should get a member project and user id', async () => {
             const taniaChair = await pool.connect(db =>
-                MemberDao.rolesByProjectAndUserId(db, {
-                    projectId: projects.chair.id,
-                    userId: users.tania.id,
-                })
+                MemberDao.byProjectAndUserId(db, projects.chair.id, users.tania.id, true)
             );
-            expect(taniaChair).to.have.members([ProjectRole.Leader]);
+            expect(taniaChair).to.not.be.null;
+            expect(taniaChair.roles).to.have.members([ProjectRole.Leader]);
         });
 
         it('should get null if user not in project', async () => {
             const taniaDesk = await pool.connect(db =>
-                MemberDao.rolesByProjectAndUserId(db, {
-                    projectId: projects.desk.id,
-                    userId: users.tania.id,
-                })
+                MemberDao.byProjectAndUserId(db, projects.desk.id, users.tania.id)
             );
             expect(taniaDesk).to.be.null;
         });
 
         it('should get more than one role if applicable', async () => {
             const alphonseDesk = await pool.connect(db =>
-                MemberDao.rolesByProjectAndUserId(db, {
-                    projectId: projects.desk.id,
-                    userId: users.alphonse.id,
-                })
+                MemberDao.byProjectAndUserId(db, projects.desk.id, users.alphonse.id, true)
             );
-            expect(alphonseDesk).to.have.members([ProjectRole.Leader, ProjectRole.Designer]);
+            expect(alphonseDesk).to.not.be.null;
+            expect(alphonseDesk.roles).to.have.members([ProjectRole.Leader, ProjectRole.Designer]);
         });
 
         it('should get members on a project', async () => {
             const chairMembers = await pool.connect(db =>
                 MemberDao.byProjectId(db, projects.chair.id)
             );
-            expect(chairMembers).to.deep.include.members([
+            expect(chairMembers).to.shallowDeepEqual([
                 {
                     user: { id: users.tania.id },
                     project: { id: projects.chair.id },
@@ -123,7 +117,7 @@ describe('MemberDao', () => {
         it('should get all projects from a user', async () => {
             const fatimaMembers = await pool.connect(db => MemberDao.byUserId(db, users.fatima.id));
             expect(fatimaMembers).to.have.lengthOf(2);
-            expect(fatimaMembers).to.deep.include.members([
+            expect(fatimaMembers).to.shallowDeepEqual([
                 {
                     user: { id: users.fatima.id },
                     project: { id: projects.chair.id },
@@ -146,10 +140,10 @@ describe('MemberDao', () => {
 
         it('should delete a specific member', async () => {
             await pool.connect(db =>
-                MemberDao.deleteById(db, { projectId: projects.desk.id, userId: users.fatima.id })
+                MemberDao.deleteByProjectAndUserId(db, projects.desk.id, users.fatima.id)
             );
             const fatimaMembers = await pool.connect(db => MemberDao.byUserId(db, users.fatima.id));
-            expect(fatimaMembers).to.deep.include.members([
+            expect(fatimaMembers).to.shallowDeepEqual([
                 {
                     user: { id: users.fatima.id },
                     project: { id: projects.chair.id },

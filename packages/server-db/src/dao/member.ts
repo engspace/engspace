@@ -53,6 +53,7 @@ export class MemberDao {
             user: { id: row.userId as Id },
         };
     }
+
     /**
      * Get all members for a project id
      */
@@ -92,6 +93,44 @@ export class MemberDao {
             project: { id: r.projectId },
             user: { id: r.userId },
         }));
+    }
+
+    /**
+     * Get a single project member by project and user id.
+     * This is used to check if a user is a member of a project.
+     *
+     * @param db The databse connection
+     * @param projectId the id of the project
+     * @param userId the id of the user
+     * @param fetchRoles whether the roles should be included in the result
+     *
+     * @returns null if no such user, or the project member
+     */
+    static async byProjectAndUserId(
+        db: Db,
+        projectId: Id,
+        userId: Id,
+        fetchRoles = false
+    ): Promise<ProjectMember | null> {
+        interface Row {
+            id: number;
+            projectId: Id;
+            userId: Id;
+        }
+        const row = await db.maybeOne<Row>(sql`
+            SELECT id, project_id, user_id FROM project_member
+            WHERE project_id=${projectId} AND user_id=${userId}
+        `);
+        if (!row) return null;
+        const res: ProjectMember = {
+            id: row.id.toString(),
+            project: { id: row.projectId },
+            user: { id: row.userId },
+        };
+        if (fetchRoles) {
+            res.roles = await this.rolesById(db, res.id);
+        }
+        return res;
     }
 
     /**
@@ -171,7 +210,6 @@ export class MemberDao {
      * Delete a member from a project
      */
     static async deleteById(db: Db, id: Id): Promise<void> {
-        console.log(`will delete ${id}`);
         await db.query(sql`
             DELETE FROM project_member
             WHERE id = ${parseInt(id)}
@@ -195,6 +233,16 @@ export class MemberDao {
         await db.query(sql`
             DELETE FROM project_member
             WHERE user_id = ${userId}
+        `);
+    }
+
+    /**
+     * Delete a member from a project
+     */
+    static async deleteByProjectAndUserId(db: Db, projectId: Id, userId: Id): Promise<void> {
+        await db.query(sql`
+            DELETE FROM project_member
+            WHERE project_id=${projectId} AND user_id=${userId}
         `);
     }
 }
