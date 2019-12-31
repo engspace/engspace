@@ -51,9 +51,3 @@ export default {
     },
 };
 </script>
-
-<style scoped>
-.label {
-    text-decoration: underline;
-}
-</style>

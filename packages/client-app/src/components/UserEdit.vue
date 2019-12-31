@@ -69,12 +69,3 @@ export default {
     },
 };
 </script>
-
-<style scoped>
-.label {
-    text-decoration: underline;
-}
-.offset-left {
-    padding-left: 2em;
-}
-</style>
