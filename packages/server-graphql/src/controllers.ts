@@ -1,4 +1,13 @@
-import { Id, Project, ProjectMember, ProjectRole, Role, User, UserInput } from '@engspace/core';
+import {
+    Id,
+    Project,
+    ProjectMember,
+    ProjectRole,
+    Role,
+    User,
+    UserInput,
+    ProjectInput,
+} from '@engspace/core';
 import { MemberDao, ProjectDao, UserDao } from '@engspace/server-db';
 import { ForbiddenError } from 'apollo-server-koa';
 import { GqlContext } from '.';
@@ -94,6 +103,11 @@ export class ProjectControl {
             offset,
             limit,
         });
+    }
+
+    static async update(ctx: GqlContext, id: Id, project: ProjectInput): Promise<Project> {
+        assertPerm(ctx, 'project.update');
+        return ProjectDao.updateById(ctx.db, id, project);
     }
 }
 

@@ -74,6 +74,8 @@ export const typeDefs = gql`
         createUser(user: UserInput!): User!
         updateUser(id: ID!, user: UserInput!): User!
 
+        updateProject(id: ID!, project: ProjectInput!): Project!
+
         createProjectMember(projectMember: ProjectMemberInput!): ProjectMember!
         updateProjectMemberRoles(id: ID!, roles: [String!]): ProjectMember!
         deleteProjectMember(id: ID!): Boolean!

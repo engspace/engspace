@@ -48,15 +48,6 @@ export class ProjectDao {
         `);
     }
 
-    static async patch(db: Db, id: Id, project: Partial<Project>): Promise<Project> {
-        const assignments = partialAssignmentList(project, ['name', 'code', 'description']);
-        return db.one(sql`
-            UPDATE project SET ${sql.join(assignments, sql`, `)}
-            WHERE id = ${id}
-            RETURNING id, code, name, description
-        `);
-    }
-
     static async search(
         db: Db,
         search: ProjectSearch
@@ -103,6 +94,24 @@ export class ProjectDao {
             `)) as number;
         }
         return { count, projects };
+    }
+
+    static async patch(db: Db, id: Id, project: Partial<Project>): Promise<Project> {
+        const assignments = partialAssignmentList(project, ['name', 'code', 'description']);
+        return db.one(sql`
+            UPDATE project SET ${sql.join(assignments, sql`, `)}
+            WHERE id = ${id}
+            RETURNING id, code, name, description
+        `);
+    }
+
+    static async updateById(db: Db, id: Id, project: ProjectInput): Promise<Project> {
+        const { code, name, description } = project;
+        return db.one(sql`
+            UPDATE project SET code=${code}, name=${name}, description=${description}
+            WHERE id=${id}
+            RETURNING id, code, name, description
+        `);
     }
 
     static async deleteAll(db: Db): Promise<void> {

@@ -1,4 +1,13 @@
-import { Id, Project, ProjectMember, ProjectRole, Role, User, UserInput } from '@engspace/core';
+import {
+    Id,
+    Project,
+    ProjectMember,
+    ProjectRole,
+    Role,
+    User,
+    UserInput,
+    ProjectInput,
+} from '@engspace/core';
 import { GqlContext } from '.';
 import { ProjectControl, UserControl, MemberControl } from './controllers';
 
@@ -42,6 +51,14 @@ export const resolvers = {
             ctx: GqlContext
         ): Promise<User> {
             return UserControl.update(ctx, id, user);
+        },
+
+        async updateProject(
+            parent,
+            { id, project }: { id: Id; project: ProjectInput },
+            ctx: GqlContext
+        ): Promise<Project> {
+            return ProjectControl.update(ctx, id, project);
         },
 
         async updateProjectMemberRoles(
