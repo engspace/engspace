@@ -3,7 +3,7 @@
         <template v-slot:badge>
             <v-icon dark>mdi-check</v-icon>
         </template>
-        <v-btn @click="$emit('click')">
+        <v-btn :small="small" @click="$emit('click')">
             <slot></slot>
         </v-btn>
     </v-badge>

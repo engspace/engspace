@@ -1,6 +1,12 @@
 <template>
     <v-card>
-        <v-card-title>{{ project.name }}</v-card-title>
+        <v-card-title>
+            {{ project.name }}
+            <v-spacer></v-spacer>
+            <v-btn v-if="canEdit" small @click="$emit('edit')">
+                <v-icon>mdi-pencil</v-icon>&nbsp;Edit
+            </v-btn>
+        </v-card-title>
         <v-card-subtitle><span class="label">Id:</span>&nbsp;{{ project.id }}</v-card-subtitle>
         <v-card-text>
             <v-container>
@@ -26,6 +32,10 @@ export default {
             default() {
                 return new CProject();
             },
+        },
+        canEdit: {
+            type: Boolean,
+            default: false,
         },
     },
 };

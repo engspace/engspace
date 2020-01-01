@@ -95,5 +95,10 @@ export default new Router({
             component: ProjectPage,
             beforeEnter: requireRole(Role.Manager),
         },
+        {
+            path: '/project/:id',
+            component: ProjectPage,
+            beforeEnter: requireRole(Role.Manager),
+        },
     ],
 });
