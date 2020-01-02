@@ -16,7 +16,7 @@
             :items="users"
             :loading="loading"
             :server-items-length="totalUsers"
-            :options-sync="tableOptions"
+            :options.sync="tableOptions"
             disable-sort
         >
             <template v-slot:item="{ item }">
@@ -147,7 +147,7 @@ export default {
                 query: SEARCH,
                 variables: {
                     phrase: this.searchPhrase,
-                    offset: page,
+                    offset: (page - 1) * itemsPerPage,
                     limit: itemsPerPage,
                 },
             });
