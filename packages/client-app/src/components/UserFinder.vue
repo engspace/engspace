@@ -40,8 +40,8 @@ import gql from 'graphql-tag';
 import { apolloClient } from '../apollo';
 
 const SEARCH = gql`
-    query SearchUsers($phrase: String, $offset: Int, $limit: Int) {
-        userSearch(phrase: $phrase, offset: $offset, limit: $limit) {
+    query SearchUsers($search: String, $offset: Int, $limit: Int) {
+        userSearch(search: $search, offset: $offset, limit: $limit) {
             count
             users {
                 id
@@ -100,15 +100,15 @@ export default {
     },
     computed: {
         hasActionSlot() {
-            return !!this.$slots['action'];
+            return !!this.$scopedSlots['action'];
         },
         dataHeaders() {
             return this.columns.map(c => ({ text: colText[c], value: c }));
         },
         userHeaders() {
-            const headers = this.dataHeaders;
+            const headers = this.columns.map(c => ({ text: colText[c], value: c }));
             if (this.hasActionSlot) {
-                headers.push({ text: 'Action', value: 'action' });
+                return [...headers, { text: '', value: 'action' }];
             }
             return headers;
         },
@@ -128,7 +128,6 @@ export default {
     },
     created() {
         this.debouncedGqlSearch = debounce(this.gqlSearch, 500);
-        console.log(this.emptyAll);
         if (this.emptyAll || this.searchPhrase) {
             this.gqlSearch();
         }
@@ -146,13 +145,13 @@ export default {
             const res = await apolloClient.query({
                 query: SEARCH,
                 variables: {
-                    phrase: this.searchPhrase,
+                    search: this.searchPhrase,
                     offset: (page - 1) * itemsPerPage,
                     limit: itemsPerPage,
                 },
             });
             this.users = res.data.userSearch.users;
-            this.totalUsers = res.data.count;
+            this.totalUsers = res.data.userSearch.count;
             if (this.selectedId && this.users.filter(u => u.id === this.selectedId).length === 0) {
                 this.selectedId = '';
             }
