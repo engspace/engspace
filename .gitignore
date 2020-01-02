@@ -1,5 +1,6 @@
 node_modules/
 dist/
-tsconfig.tsbuildinfo
+.build-cache/
 *.log
 .vscode/
+.nyc_output/

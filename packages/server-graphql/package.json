@@ -1,0 +1,53 @@
+{
+    "name": "@engspace/server-graphql",
+    "version": "0.1.0",
+    "description": "GraphQL server for Engineering Space",
+    "author": "Remi Thebault <remi.thebault@gmail.com>",
+    "license": "MIT",
+    "private": true,
+    "main": "dist/index",
+    "types": "dist/index",
+    "scripts": {
+        "lint": "eslint --ext .js,.ts .",
+        "lint:fix": "eslint --fix --ext .js,.ts .",
+        "build": "tsc -p tsconfig.json",
+        "clean": "rimraf ./dist/ ../../.build-cache/server-graphql.tsbuildinfo"
+    },
+    "dependencies": {
+        "@engspace/core": "^0.1.0",
+        "@engspace/server-db": "^0.1.0",
+        "@koa/cors": "^3.0.0",
+        "@koa/router": "^8.0.5",
+        "apollo-log": "^0.1.0",
+        "apollo-server-koa": "^2.9.13",
+        "config": "^3.2.4",
+        "dataloader": "^2.0.0",
+        "graphql": "^14.5.8",
+        "http-status-codes": "^1.4.0",
+        "jsonwebtoken": "^8.5.1",
+        "koa": "^2.11.0",
+        "koa-bodyparser": "^4.2.1",
+        "koa-logger": "^3.2.1",
+        "koa-send": "^5.0.0",
+        "koa-session": "^5.12.3",
+        "validator": "^12.1.0"
+    },
+    "devDependencies": {
+        "@engspace/eslint-config": "^0.1.0",
+        "@engspace/prettier-config": "^0.1.0",
+        "@types/config": "^0.0.36",
+        "@types/jsonwebtoken": "^8.3.5",
+        "@types/koa": "^2.11.0",
+        "@types/koa-bodyparser": "^4.3.0",
+        "@types/koa-send": "^4.1.2",
+        "@types/koa-session": "^5.10.1",
+        "@types/koa__cors": "^2.2.3",
+        "@types/koa__router": "^8.0.2",
+        "eslint": "^6.6.0",
+        "eslint-config-prettier": "^6.6.0",
+        "eslint-plugin-prettier": "^3.1.1",
+        "prettier": "^1.19.1",
+        "rimraf": "^3.0.0",
+        "typescript": "^3.7.2"
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "extends": "../../tsconfig.base.json",
+
+    "compilerOptions": {
+        "resolveJsonModule": true,
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "tsBuildInfoFile": "../../.build-cache/core.tsbuildinfo"
+    },
+
+    "include": ["src", "src/**/*.json"]
+}

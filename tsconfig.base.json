@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "module": "CommonJS",
+        "target": "ES2018",
+        "lib": ["DOM", "ES2019"],
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "rootDir": ".",
+        "baseUrl": "./packages",
+        "composite": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "paths": {
+            "@engspace/*": ["./*/src"]
+        }
+    }
+}

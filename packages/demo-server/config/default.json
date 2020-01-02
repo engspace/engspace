@@ -1,0 +1,14 @@
+{
+    "server": {
+        "port": 3000
+    },
+    "db": {
+        "uri": "postgresql://postgres:postgres@localhost",
+        "name": "engspace_demo",
+        "options": {
+            "captureStackTrace": true
+        },
+        "formatDb": true
+    },
+    "sessionSigningKeys": ["some key", "some other key"]
+}

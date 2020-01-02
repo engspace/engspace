@@ -1,0 +1,16 @@
+{
+    "extends": "../../tsconfig.base.json",
+
+    "compilerOptions": {
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "tsBuildInfoFile": "../../.build-cache/demo-server.tsbuildinfo"
+    },
+
+    "include": [ "src" ],
+    "references": [
+        { "path": "../demo-data", "prepend": false },
+        { "path": "../server-db", "prepend": false },
+        { "path": "../server-graphql", "prepend": false }
+    ]
+}

@@ -1,0 +1,40 @@
+{
+    "name": "@engspace/core",
+    "version": "0.1.0",
+    "description": "Engineering Space - Core library",
+    "main": "dist/index",
+    "types": "dist/index",
+    "repository": "https://github.com/engspace/engspace",
+    "author": "Remi Thebault <remi.thebault@gmail.com>",
+    "license": "MIT",
+    "private": true,
+    "scripts": {
+        "lint": "eslint --ext .js,.ts .",
+        "lint:fix": "eslint --fix --ext .js,.ts .",
+        "copy:json": "copyfiles -u 1 \"src/sql/*\" dist",
+        "build:ts": "tsc -b .",
+        "build": "npm-run-all copy:json build:ts",
+        "test": "mocha -r ts-node/register test/**/*.ts",
+        "clean": "rimraf ./dist/ ../../.build-cache/core.tsbuildinfo"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "@engspace/eslint-config": "^0.1.0",
+        "@engspace/prettier-config": "^0.1.0",
+        "@types/chai": "^4.1.7",
+        "@types/mocha": "^5.2.7",
+        "@typescript-eslint/eslint-plugin": "^2.7.0",
+        "@typescript-eslint/parser": "^2.7.0",
+        "chai": "^4.2.0",
+        "copyfiles": "^2.1.1",
+        "eslint": "^6.6.0",
+        "eslint-config-prettier": "^6.6.0",
+        "eslint-plugin-prettier": "^3.1.1",
+        "mocha": "^6.2.2",
+        "npm-run-all": "^4.1.5",
+        "prettier": "^1.19.1",
+        "rimraf": "^3.0.0",
+        "ts-node": "^8.5.2",
+        "typescript": "^3.7.2"
+    }
+}
