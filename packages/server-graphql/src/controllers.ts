@@ -7,6 +7,7 @@ import {
     User,
     UserInput,
     ProjectInput,
+    ProjectMemberInput,
 } from '@engspace/core';
 import { MemberDao, ProjectDao, UserDao } from '@engspace/server-db';
 import { ForbiddenError } from 'apollo-server-koa';
@@ -79,6 +80,11 @@ export class UserControl {
 }
 
 export class ProjectControl {
+    static create(ctx: GqlContext, project: ProjectInput): Promise<Project> {
+        assertPerm(ctx, 'project.create');
+        return ProjectDao.create(ctx.db, project);
+    }
+
     static byIds(ctx: GqlContext, ids: readonly Id[]): Promise<Project[]> {
         assertPerm(ctx, 'project.read');
         return ProjectDao.batchByIds(ctx.db, ids);
@@ -112,6 +118,14 @@ export class ProjectControl {
 }
 
 export class MemberControl {
+    static async create(
+        ctx: GqlContext,
+        projectMember: ProjectMemberInput
+    ): Promise<ProjectMember> {
+        assertPerm(ctx, 'member.create');
+        return MemberDao.create(ctx.db, projectMember);
+    }
+
     static async byProjectId(ctx: GqlContext, projId: Id): Promise<ProjectMember[]> {
         assertPerm(ctx, 'member.read');
         return MemberDao.byProjectId(ctx.db, projId);

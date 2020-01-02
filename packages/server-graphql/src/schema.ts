@@ -44,7 +44,7 @@ export const typeDefs = gql`
     input ProjectMemberInput {
         projectId: ID!
         userId: ID!
-        roles: [String!]!
+        roles: [String!]
     }
 
     type ProjectMember {
@@ -74,6 +74,7 @@ export const typeDefs = gql`
         createUser(user: UserInput!): User!
         updateUser(id: ID!, user: UserInput!): User!
 
+        createProject(project: ProjectInput!): Project!
         updateProject(id: ID!, project: ProjectInput!): Project!
 
         createProjectMember(projectMember: ProjectMemberInput!): ProjectMember!

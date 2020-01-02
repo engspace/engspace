@@ -7,6 +7,7 @@ import {
     User,
     UserInput,
     ProjectInput,
+    ProjectMemberInput,
 } from '@engspace/core';
 import { GqlContext } from '.';
 import { ProjectControl, UserControl, MemberControl } from './controllers';
@@ -53,6 +54,13 @@ export const resolvers = {
             return UserControl.update(ctx, id, user);
         },
 
+        async createProject(
+            parent,
+            { project }: { project: ProjectInput },
+            ctx: GqlContext
+        ): Promise<Project> {
+            return ProjectControl.create(ctx, project);
+        },
         async updateProject(
             parent,
             { id, project }: { id: Id; project: ProjectInput },
@@ -61,6 +69,13 @@ export const resolvers = {
             return ProjectControl.update(ctx, id, project);
         },
 
+        async createProjectMember(
+            parent,
+            { projectMember }: { projectMember: ProjectMemberInput },
+            ctx: GqlContext
+        ): Promise<ProjectMember> {
+            return MemberControl.create(ctx, projectMember);
+        },
         async updateProjectMemberRoles(
             parent,
             { id, roles }: { id: Id; roles: string[] },
@@ -68,7 +83,6 @@ export const resolvers = {
         ): Promise<ProjectMember> {
             return MemberControl.updateRolesById(ctx, id, roles);
         },
-
         async deleteProjectMember(parent, { id }: { id: Id }, ctx: GqlContext): Promise<boolean> {
             console.log('within resolver');
             await MemberControl.deleteById(ctx, id);
