@@ -27,11 +27,11 @@
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn small class="mr-8" @click="$emit('cancel')">
-                    <v-icon>mdi-cross</v-icon>
+                    <v-icon small>mdi-cancel</v-icon>
                     &nbsp; Cancel
                 </v-btn>
                 <success-btn ref="successBtn" small badge-left type="submit">
-                    <v-icon>mdi-content-save</v-icon>&nbsp;Save
+                    <v-icon small>mdi-content-save</v-icon>&nbsp;Save
                 </success-btn>
             </v-card-actions>
         </v-card>

@@ -58,13 +58,13 @@ export class UserControl {
 
     static async search(
         ctx: GqlContext,
-        phrase: string,
+        search: string,
         pag?: Pagination
     ): Promise<{ count: number; users: User[] }> {
         assertPerm(ctx, 'user.read');
         const { offset, limit } = pag;
         return UserDao.search(ctx.db, {
-            phrase,
+            phrase: search,
             offset,
             limit,
         });
@@ -97,15 +97,13 @@ export class ProjectControl {
 
     static async search(
         ctx: GqlContext,
-        phrase: string,
-        member: string,
+        search: string,
         pag?: Pagination
     ): Promise<{ count: number; projects: Project[] }> {
         assertPerm(ctx, 'project.read');
         const { offset, limit } = pag;
         return ProjectDao.search(ctx.db, {
-            phrase,
-            member,
+            phrase: search,
             offset,
             limit,
         });

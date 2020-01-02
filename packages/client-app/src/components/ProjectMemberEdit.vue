@@ -21,7 +21,7 @@
                     </td>
                     <td>
                         <v-btn small @click="removeMember(item)">
-                            <v-icon>mdi-account-minus</v-icon>
+                            <v-icon small>mdi-account-minus</v-icon>
                         </v-btn>
                     </td>
                 </tr>
@@ -31,7 +31,7 @@
             <template v-slot:action="{ user }">
                 <td>
                     <v-btn v-if="!hasMember(user)" small @click="addMember(user)">
-                        <v-icon>mdi-account-plus</v-icon>
+                        <v-icon small>mdi-account-plus</v-icon>
                     </v-btn>
                 </td>
             </template>

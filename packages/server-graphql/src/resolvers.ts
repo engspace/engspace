@@ -24,8 +24,8 @@ export const resolvers = {
             return UserControl.byEmail(ctx, email);
         },
         userSearch(parent, args, ctx: GqlContext): Promise<{ count: number; users: User[] }> {
-            const { phrase, offset, limit } = args;
-            return UserControl.search(ctx, phrase, { offset, limit });
+            const { search, offset, limit } = args;
+            return UserControl.search(ctx, search, { offset, limit });
         },
         project(parent, { id }, ctx: GqlContext): Promise<Project> {
             return ctx.loaders.project.load(id);
@@ -38,8 +38,8 @@ export const resolvers = {
             args,
             ctx: GqlContext
         ): Promise<{ count: number; projects: Project[] }> {
-            const { phrase, member, offset, limit } = args;
-            return ProjectControl.search(ctx, phrase, member, { offset, limit });
+            const { search, offset, limit } = args;
+            return ProjectControl.search(ctx, search, { offset, limit });
         },
     },
     Mutation: {

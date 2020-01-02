@@ -58,16 +58,11 @@ export const typeDefs = gql`
         user(id: ID!): User
         userByName(name: String!): User
         userByEmail(email: String!): User
-        userSearch(phrase: String, offset: Int = 0, limit: Int = 1000): UserSearch!
+        userSearch(search: String, offset: Int = 0, limit: Int = 1000): UserSearch!
 
         project(id: ID!): Project
         projectByCode(code: String!): Project
-        projectSearch(
-            phrase: String
-            member: String
-            offset: Int = 0
-            limit: Int = 1000
-        ): ProjectSearch!
+        projectSearch(search: String, offset: Int = 0, limit: Int = 1000): ProjectSearch!
     }
 
     type Mutation {
