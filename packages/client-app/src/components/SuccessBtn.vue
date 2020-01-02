@@ -3,7 +3,7 @@
         <template v-slot:badge>
             <v-icon dark>mdi-check</v-icon>
         </template>
-        <v-btn :small="small" @click="$emit('click')">
+        <v-btn :small="small" :type="type" @click="$emit('click')">
             <slot></slot>
         </v-btn>
     </v-badge>
@@ -28,6 +28,10 @@ export default {
         value: {
             type: Boolean,
             default: false,
+        },
+        type: {
+            type: String,
+            default: 'button',
         },
     },
     data() {
