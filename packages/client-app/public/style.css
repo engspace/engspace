@@ -5,3 +5,7 @@
 .offset-left {
     padding-left: 2em;
 }
+
+.link {
+    cursor: pointer;
+}
