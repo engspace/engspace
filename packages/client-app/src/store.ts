@@ -16,6 +16,11 @@ export default new Vuex.Store({
     getters: {
         isAuth: state => !!state.token,
         auth: (state): AuthToken | null => (state.token ? jwtDecode(state.token) : null),
+        userPermissions: (state, getters): string[] => {
+            const auth: AuthToken = getters.auth;
+            if (!auth) return [];
+            return auth.userPerms;
+        },
     },
     actions: {
         [AUTH_LOGIN_ACTION]({ commit }, token) {

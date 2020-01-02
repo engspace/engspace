@@ -63,6 +63,9 @@ export const typeDefs = gql`
         project(id: ID!): Project
         projectByCode(code: String!): Project
         projectSearch(search: String, offset: Int = 0, limit: Int = 1000): ProjectSearch!
+
+        projectMember(id: ID!): ProjectMember
+        projectMemberByProjectAndUserId(projectId: ID!, userId: ID!): ProjectMember
     }
 
     type Mutation {

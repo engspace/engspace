@@ -24,7 +24,7 @@
             "permissions": []
         },
         "leader": {
-            "permissions": []
+            "permissions": ["project.update", "member.create", "member.update", "member.delete"]
         }
     }
 }

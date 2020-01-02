@@ -61,19 +61,29 @@ import ProjectMemberEdit from '../components/ProjectMemberEdit';
 import ProjectRead from '../components/ProjectRead';
 import ProjectEdit from '../components/ProjectEdit';
 import { apolloClient, extractGQLError, extractGQLErrors } from '../apollo';
-import { MEMBER_FIELDS, PROJECT_FIELDS } from '../graphql';
+import { PROJECT_MEMBER_FIELDS, PROJECT_FIELDS, MEMBER_FIELDS } from '../graphql';
+import { rolePolicies } from '../permissions';
+
+const GET_USER_MEMBER = gql`
+    query GetUserMember($projectId: ID!, $userId: ID!) {
+        projectMemberByProjectAndUserId(projectId: $projectId, userId: $userId) {
+            ...MemberFields
+        }
+    }
+    ${MEMBER_FIELDS}
+`;
 
 const GET_PROJECT = gql`
     query GetProject($id: ID!) {
         project(id: $id) {
             ...ProjectFields
             members {
-                ...MemberFields
+                ...ProjectMemberFields
             }
         }
     }
     ${PROJECT_FIELDS}
-    ${MEMBER_FIELDS}
+    ${PROJECT_MEMBER_FIELDS}
 `;
 
 const GET_PROJECT_BY_CODE = gql`
@@ -81,12 +91,12 @@ const GET_PROJECT_BY_CODE = gql`
         projectByCode(code: $code) {
             ...ProjectFields
             members {
-                ...MemberFields
+                ...ProjectMemberFields
             }
         }
     }
     ${PROJECT_FIELDS}
-    ${MEMBER_FIELDS}
+    ${PROJECT_MEMBER_FIELDS}
 `;
 
 const UPDATE_PROJECT = gql`
@@ -111,9 +121,13 @@ export default {
             projectEdit: false,
             projectError: '',
             memberEdit: false,
+            userMember: null,
         };
     },
     computed: {
+        memberPermissions() {
+            return this.userMember ? rolePolicies.project.permissions(this.userMember.roles) : [];
+        },
         canEditProject() {
             return this.hasPerm('project.update');
         },
@@ -145,6 +159,16 @@ export default {
                 });
                 this.project = resp.data.project;
             }
+            const projectId = this.project.id;
+            const { userId } = this.$store.getters.auth;
+            const resp = await apolloClient.query({
+                query: GET_USER_MEMBER,
+                variables: {
+                    projectId,
+                    userId,
+                },
+            });
+            this.userMember = resp.data.projectMemberByProjectAndUserId;
         } catch (err) {
             console.error(err);
             if (isApolloError(err)) {
@@ -153,6 +177,12 @@ export default {
         }
     },
     methods: {
+        hasPerm(perm) {
+            return (
+                this.$store.getters.userPermissions.includes(perm) ||
+                this.memberPermissions.includes(perm)
+            );
+        },
         async saveProject(project) {
             try {
                 const oldCode = this.project.code;

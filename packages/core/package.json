@@ -11,9 +11,7 @@
     "scripts": {
         "lint": "eslint --ext .js,.ts .",
         "lint:fix": "eslint --fix --ext .js,.ts .",
-        "copy:json": "copyfiles -u 1 \"src/sql/*\" dist",
-        "build:ts": "tsc -b .",
-        "build": "npm-run-all copy:json build:ts",
+        "build": "tsc -b .",
         "test": "mocha -r ts-node/register test/**/*.ts",
         "clean": "rimraf ./dist/ ../../.build-cache/core.tsbuildinfo"
     },

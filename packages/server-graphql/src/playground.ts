@@ -7,7 +7,7 @@ import Koa from 'koa';
 import send from 'koa-send';
 import session from 'koa-session';
 import path from 'path';
-import { attachDb, buildContext } from '.';
+import { attachDb, contextBuilder } from '.';
 import { AUTH_TOKEN_SYMBOL, signToken, verifyToken } from './auth';
 import { resolvers } from './resolvers';
 import { typeDefs } from './schema';
@@ -90,7 +90,7 @@ export function setupPlayground(app: Koa, pool: DbPool, rolePolicies: AppRolePol
                 'request.credentials': 'same-origin',
             },
         },
-        context: buildContext,
+        context: contextBuilder(rolePolicies),
     });
 
     app.use(

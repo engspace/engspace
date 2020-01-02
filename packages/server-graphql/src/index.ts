@@ -15,6 +15,7 @@ import { typeDefs } from './schema';
 export interface GqlContext {
     koaCtx: Koa.Context;
     auth: AuthToken;
+    rolePolicies: AppRolePolicies;
     db: Db;
     loaders: GqlLoaders;
 }
@@ -41,15 +42,18 @@ export function attachDb(pool: DbPool, path: string) {
     };
 }
 
-export function buildContext({ ctx }): GqlContext {
-    const gqlCtx = {
-        koaCtx: ctx,
-        auth: authToken(ctx),
-        db: ctx.state[DB_SYMBOL],
-        loaders: null,
+export function contextBuilder(rolePolicies: AppRolePolicies) {
+    return ({ ctx }): GqlContext => {
+        const gqlCtx = {
+            koaCtx: ctx,
+            auth: authToken(ctx),
+            rolePolicies,
+            db: ctx.state[DB_SYMBOL],
+            loaders: null,
+        };
+        gqlCtx.loaders = makeLoaders(gqlCtx);
+        return gqlCtx;
     };
-    gqlCtx.loaders = makeLoaders(gqlCtx);
-    return gqlCtx;
 }
 
 export async function buildGqlApp(pool: DbPool, rolePolicies: AppRolePolicies): Promise<Koa> {
@@ -81,7 +85,7 @@ export async function buildGqlApp(pool: DbPool, rolePolicies: AppRolePolicies): 
         introspection: false,
         playground: false,
         extensions,
-        context: buildContext,
+        context: contextBuilder(rolePolicies),
     });
     app.use(
         graphQL.getMiddleware({

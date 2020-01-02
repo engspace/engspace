@@ -44,25 +44,25 @@ import cloneDeep from 'lodash.clonedeep';
 import upperFirst from 'lodash.upperfirst';
 import { isApolloError } from 'apollo-client';
 import { apolloClient, extractGQLErrors } from '../apollo';
-import { MEMBER_FIELDS } from '../graphql';
+import { PROJECT_MEMBER_FIELDS } from '../graphql';
 import UserFinder from './UserFinder';
 
 const UPDATE_MEMBER = gql`
     mutation UpdateMemberRoles($id: ID!, $roles: [String!]) {
         updateProjectMemberRoles(id: $id, roles: $roles) {
-            ...MemberFields
+            ...ProjectMemberFields
         }
     }
-    ${MEMBER_FIELDS}
+    ${PROJECT_MEMBER_FIELDS}
 `;
 
 const CREATE_MEMBER = gql`
     mutation CreateMember($projectMember: ProjectMemberInput!) {
         createProjectMember(projectMember: $projectMember) {
-            ...MemberFields
+            ...ProjectMemberFields
         }
     }
-    ${MEMBER_FIELDS}
+    ${PROJECT_MEMBER_FIELDS}
 `;
 
 const DELETE_MEMBER = gql`

@@ -25,6 +25,7 @@ export const resolvers = {
             const { search, offset, limit } = args;
             return UserControl.search(ctx, search, { offset, limit });
         },
+
         project(parent, { id }, ctx: GqlContext): Promise<Project> {
             return ctx.loaders.project.load(id);
         },
@@ -38,6 +39,18 @@ export const resolvers = {
         ): Promise<{ count: number; projects: Project[] }> {
             const { search, offset, limit } = args;
             return ProjectControl.search(ctx, search, { offset, limit });
+        },
+
+        projectMember(parent, { id }: { id: Id }, ctx: GqlContext): Promise<ProjectMember | null> {
+            return MemberControl.byId(ctx, id);
+        },
+
+        projectMemberByProjectAndUserId(
+            parent,
+            { projectId, userId }: { projectId: Id; userId: Id },
+            ctx: GqlContext
+        ): Promise<ProjectMember | null> {
+            return MemberControl.byProjectAndUserId(ctx, projectId, userId);
         },
     },
     Mutation: {

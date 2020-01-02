@@ -5,5 +5,5 @@
         "../server-db",
         "../server-core"
     ],
-    "ext": "ts,html"
+    "ext": "ts,html,json"
 }

@@ -11,9 +11,48 @@ import { MemberDao, ProjectDao, UserDao } from '@engspace/server-db';
 import { ForbiddenError } from 'apollo-server-koa';
 import { GqlContext } from '.';
 
-function assertPerm(ctx: GqlContext, perm: string, message?: string): void {
-    if (!ctx.auth.userPerms.includes(perm))
+function hasUserPerm(ctx: GqlContext, perm: string): boolean {
+    return ctx.auth.userPerms.includes(perm);
+}
+
+function assertUserPerm(ctx: GqlContext, perm: string, message?: string): void {
+    if (!hasUserPerm(ctx, perm)) {
         throw new ForbiddenError(message ? message : `Missing permission: '${perm}'`);
+    }
+}
+
+async function hasProjectPerm(ctx: GqlContext, projectId: Id, perm: string): Promise<boolean> {
+    const member = await MemberDao.byProjectAndUserId(ctx.db, projectId, ctx.auth.userId, true);
+    console.log(member.roles);
+    console.log(ctx.rolePolicies.project.permissions(member.roles));
+    return member && ctx.rolePolicies.project.permissions(member.roles).includes(perm);
+}
+
+async function assertProjectPerm(
+    ctx: GqlContext,
+    projectId: Id,
+    perm: string,
+    message?: string
+): Promise<void> {
+    const has = await hasProjectPerm(ctx, projectId, perm);
+    if (!has) {
+        throw new ForbiddenError(message ? message : `Missing permission: '${perm}'`);
+    }
+}
+
+async function assertUserOrProjectPerm(
+    ctx: GqlContext,
+    projectId: Id,
+    perm: string,
+    message?: string
+): Promise<void> {
+    if (hasUserPerm(ctx, perm)) {
+        return;
+    }
+    const has = await hasProjectPerm(ctx, projectId, perm);
+    if (!has) {
+        throw new ForbiddenError(message ? message : `Missing permission: '${perm}'`);
+    }
 }
 
 async function assertRole(ctx: GqlContext, role: string, message?: string): Promise<void> {
@@ -30,27 +69,27 @@ export interface Pagination {
 
 export class UserControl {
     static async create(ctx: GqlContext, user: UserInput): Promise<User> {
-        assertPerm(ctx, 'user.create');
+        assertUserPerm(ctx, 'user.create');
         return UserDao.create(ctx.db, user);
     }
 
     static async byIds(ctx: GqlContext, ids: readonly Id[]): Promise<User[]> {
-        assertPerm(ctx, 'user.read');
+        assertUserPerm(ctx, 'user.read');
         return UserDao.batchByIds(ctx.db, ids);
     }
 
     static async byName(ctx: GqlContext, name: string): Promise<User> {
-        assertPerm(ctx, 'user.read');
+        assertUserPerm(ctx, 'user.read');
         return UserDao.byName(ctx.db, name);
     }
 
     static async byEmail(ctx: GqlContext, email: string): Promise<User> {
-        assertPerm(ctx, 'user.read');
+        assertUserPerm(ctx, 'user.read');
         return UserDao.byEmail(ctx.db, email);
     }
 
     static async rolesById(ctx: GqlContext, userId: Id): Promise<string[]> {
-        assertPerm(ctx, 'user.read');
+        assertUserPerm(ctx, 'user.read');
         return UserDao.rolesById(ctx.db, userId);
     }
 
@@ -59,7 +98,7 @@ export class UserControl {
         search: string,
         pag?: Pagination
     ): Promise<{ count: number; users: User[] }> {
-        assertPerm(ctx, 'user.read');
+        assertUserPerm(ctx, 'user.read');
         const { offset, limit } = pag;
         return UserDao.search(ctx.db, {
             phrase: search,
@@ -69,9 +108,8 @@ export class UserControl {
     }
 
     static async update(ctx: GqlContext, userId: Id, user: UserInput): Promise<User> {
-        assertPerm(ctx, 'user.update');
         if (userId !== ctx.auth.userId) {
-            await assertRole(ctx, 'admin');
+            assertUserPerm(ctx, 'user.update');
         }
         return UserDao.update(ctx.db, userId, user);
     }
@@ -79,17 +117,17 @@ export class UserControl {
 
 export class ProjectControl {
     static create(ctx: GqlContext, project: ProjectInput): Promise<Project> {
-        assertPerm(ctx, 'project.create');
+        assertUserPerm(ctx, 'project.create');
         return ProjectDao.create(ctx.db, project);
     }
 
     static byIds(ctx: GqlContext, ids: readonly Id[]): Promise<Project[]> {
-        assertPerm(ctx, 'project.read');
+        assertUserPerm(ctx, 'project.read');
         return ProjectDao.batchByIds(ctx.db, ids);
     }
 
     static async byCode(ctx: GqlContext, code: string): Promise<Project> {
-        assertPerm(ctx, 'project.read');
+        assertUserPerm(ctx, 'project.read');
         return ProjectDao.byCode(ctx.db, code);
     }
 
@@ -98,7 +136,7 @@ export class ProjectControl {
         search: string,
         pag?: Pagination
     ): Promise<{ count: number; projects: Project[] }> {
-        assertPerm(ctx, 'project.read');
+        assertUserPerm(ctx, 'project.read');
         const { offset, limit } = pag;
         return ProjectDao.search(ctx.db, {
             phrase: search,
@@ -108,7 +146,7 @@ export class ProjectControl {
     }
 
     static async update(ctx: GqlContext, id: Id, project: ProjectInput): Promise<Project> {
-        assertPerm(ctx, 'project.update');
+        await assertUserOrProjectPerm(ctx, id, 'project.update');
         return ProjectDao.updateById(ctx.db, id, project);
     }
 }
@@ -118,32 +156,48 @@ export class MemberControl {
         ctx: GqlContext,
         projectMember: ProjectMemberInput
     ): Promise<ProjectMember> {
-        assertPerm(ctx, 'member.create');
+        await assertUserOrProjectPerm(ctx, projectMember.projectId, 'member.create');
         return MemberDao.create(ctx.db, projectMember);
     }
 
+    static async byId(ctx: GqlContext, id: Id): Promise<ProjectMember | null> {
+        assertUserPerm(ctx, 'member.read');
+        return MemberDao.byId(ctx.db, id);
+    }
+
+    static async byProjectAndUserId(
+        ctx: GqlContext,
+        projectId: Id,
+        userId: Id
+    ): Promise<ProjectMember | null> {
+        assertUserPerm(ctx, 'member.read');
+        return MemberDao.byProjectAndUserId(ctx.db, projectId, userId);
+    }
+
     static async byProjectId(ctx: GqlContext, projId: Id): Promise<ProjectMember[]> {
-        assertPerm(ctx, 'member.read');
+        assertUserPerm(ctx, 'member.read');
         return MemberDao.byProjectId(ctx.db, projId);
     }
 
     static async byUserId(ctx: GqlContext, userId: Id): Promise<ProjectMember[]> {
-        assertPerm(ctx, 'member.read');
+        assertUserPerm(ctx, 'member.read');
         return MemberDao.byUserId(ctx.db, userId);
     }
 
     static async rolesById(ctx: GqlContext, id: Id): Promise<string[]> {
-        assertPerm(ctx, 'member.read');
+        assertUserPerm(ctx, 'member.read');
         return MemberDao.rolesById(ctx.db, id);
     }
 
     static async updateRolesById(ctx: GqlContext, id: Id, roles: string[]): Promise<ProjectMember> {
-        assertPerm(ctx, 'member.update');
+        const mem = await MemberDao.byId(ctx.db, id);
+        await assertUserOrProjectPerm(ctx, mem.project.id, 'member.update');
         return MemberDao.updateRolesById(ctx.db, id, roles);
     }
 
     static async deleteById(ctx: GqlContext, id: Id): Promise<void> {
-        assertPerm(ctx, 'member.delete');
+        const mem = await MemberDao.byId(ctx.db, id);
+        await assertUserOrProjectPerm(ctx, mem.project.id, 'member.delete');
         return MemberDao.deleteById(ctx.db, id);
     }
 }
