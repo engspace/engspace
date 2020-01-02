@@ -1,40 +1,41 @@
 <template>
-    <v-card>
-        <v-card-title>
-            <v-text-field v-model="edited.name"></v-text-field>
-        </v-card-title>
-        <v-card-subtitle>
-            <span class="label">Id:</span>&nbsp;{{ edited.id }}
-            <br v-if="error" />
-            <span v-if="error" class="red--text">{{ error }}</span>
-        </v-card-subtitle>
-        <v-card-text>
-            <v-container>
-                <v-row>
-                    <v-col tag="span" class="label" :cols="4">code:</v-col>
-                    <v-col tag="span" class="value" :cols="8">
-                        <v-text-field v-model="edited.code" hide-details></v-text-field>
-                    </v-col>
-                </v-row>
-                <v-row>
-                    <v-col tag="span" class="label" :cols="4">description:</v-col>
-                    <v-col tag="span" class="value" :cols="8">
-                        <v-textarea v-model="edited.description" hide-details></v-textarea>
-                    </v-col>
-                </v-row>
-            </v-container>
-        </v-card-text>
-        <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn small style="margin-right:1em" @click="$emit('cancel')">
-                <v-icon>mdi-cross</v-icon>
-                &nbsp; Cancel
-            </v-btn>
-            <success-btn ref="successBtn" small @click="$emit('save', edited)">
-                <v-icon>mdi-content-save</v-icon>&nbsp;Save
-            </success-btn>
-        </v-card-actions>
-    </v-card>
+    <v-form @submit.prevent="$emit('save', edited)">
+        <v-card>
+            <v-card-text>
+                <p v-if="error" class="my-4">
+                    <span class="red--text">{{ error }}</span>
+                </p>
+                <v-text-field
+                    v-model="edited.name"
+                    label="Project name"
+                    hide-details
+                ></v-text-field>
+                <p v-if="edited.id" class="my-4">
+                    <span class="label">Id:</span>&nbsp;{{ edited.id }}
+                </p>
+                <v-text-field
+                    v-model="edited.code"
+                    label="Project code"
+                    hide-details
+                ></v-text-field>
+                <v-textarea
+                    v-model="edited.description"
+                    label="Description"
+                    hide-details
+                ></v-textarea>
+            </v-card-text>
+            <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn small class="mr-8" @click="$emit('cancel')">
+                    <v-icon>mdi-cross</v-icon>
+                    &nbsp; Cancel
+                </v-btn>
+                <success-btn ref="successBtn" small badge-left type="submit">
+                    <v-icon>mdi-content-save</v-icon>&nbsp;Save
+                </success-btn>
+            </v-card-actions>
+        </v-card>
+    </v-form>
 </template>
 
 <script>

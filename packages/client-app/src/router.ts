@@ -6,6 +6,7 @@ import { apolloClient } from './apollo';
 import FirstAdminPage from './pages/FirstAdminPage.vue';
 import HomePage from './pages/HomePage.vue';
 import LoginPage from './pages/LoginPage.vue';
+import ProjectNewPage from './pages/ProjectNewPage.vue';
 import ProjectPage from './pages/ProjectPage.vue';
 import UserAdminPage from './pages/UserAdminPage.vue';
 import store from './store';
@@ -89,6 +90,11 @@ export default new Router({
             path: '/admin/users',
             component: UserAdminPage,
             beforeEnter: requireRole(Role.Admin),
+        },
+        {
+            path: '/project/new',
+            component: ProjectNewPage,
+            beforeEnter: requireRole(Role.Manager),
         },
         {
             path: '/project/by-code/:code',

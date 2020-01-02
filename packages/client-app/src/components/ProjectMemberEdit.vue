@@ -1,8 +1,8 @@
 <template>
     <div>
-        <span v-if="error" class="red--text">{{ error }}</span>
-        <v-data-table :headers="headers" :items="edited">
-            <template v-slot:item="{ item, index }">
+        <p v-if="error" class="red--text">{{ error }}</p>
+        <v-data-table :headers="headers" :items="edited" no-data-text="no member">
+            <template v-slot:item="{ item, index }" disable-sort>
                 <tr>
                     <td>
                         <v-tooltip top>
@@ -21,12 +21,21 @@
                     </td>
                     <td>
                         <v-btn small @click="removeMember(item)">
-                            <v-icon>mdi-delete</v-icon>
+                            <v-icon>mdi-account-minus</v-icon>
                         </v-btn>
                     </td>
                 </tr>
             </template>
         </v-data-table>
+        <user-finder title="Add members" :columns="['fullName']">
+            <template v-slot:action="{ user }">
+                <td>
+                    <v-btn v-if="!hasMember(user)" small @click="addMember(user)">
+                        <v-icon>mdi-account-plus</v-icon>
+                    </v-btn>
+                </td>
+            </template>
+        </user-finder>
     </div>
 </template>
 <script>
@@ -36,10 +45,20 @@ import upperFirst from 'lodash.upperfirst';
 import { isApolloError } from 'apollo-client';
 import { apolloClient, extractGQLErrors } from '../apollo';
 import { MEMBER_FIELDS } from '../graphql';
+import UserFinder from './UserFinder';
 
 const UPDATE_MEMBER = gql`
     mutation UpdateMemberRoles($id: ID!, $roles: [String!]) {
         updateProjectMemberRoles(id: $id, roles: $roles) {
+            ...MemberFields
+        }
+    }
+    ${MEMBER_FIELDS}
+`;
+
+const CREATE_MEMBER = gql`
+    mutation CreateMember($projectMember: ProjectMemberInput!) {
+        createProjectMember(projectMember: $projectMember) {
             ...MemberFields
         }
     }
@@ -53,10 +72,18 @@ const DELETE_MEMBER = gql`
 `;
 
 export default {
+    components: {
+        UserFinder,
+    },
     props: {
         members: {
             type: Array,
             default: () => [],
+        },
+        projectId: {
+            type: String,
+            required: true,
+            validator: val => typeof val === 'string' && val.length > 0,
         },
     },
     data() {
@@ -67,14 +94,13 @@ export default {
     },
     computed: {
         allRoles() {
-            // TODO: organization-specific list
             return ['leader', 'designer'];
         },
         headers() {
             return [
-                { text: 'Name', value: 'user.fullName', sortable: false },
-                ...this.allRoles.map(r => ({ text: upperFirst(r), value: r, sortable: false })),
-                { text: 'Remove', value: 'delete', sortable: false },
+                { text: 'Name', value: 'user.fullName' },
+                ...this.allRoles.map(r => ({ text: upperFirst(r), value: r })),
+                { text: 'Remove', value: 'delete' },
             ];
         },
     },
@@ -82,17 +108,49 @@ export default {
         hasRole(member, role) {
             return member.roles.includes(role);
         },
+        hasMember(user) {
+            return this.edited.some(m => m.user.id === user.id);
+        },
+        async addMember(user) {
+            try {
+                const resp = await apolloClient.mutate({
+                    mutation: CREATE_MEMBER,
+                    variables: {
+                        projectMember: {
+                            projectId: this.projectId,
+                            userId: user.id,
+                        },
+                    },
+                });
+                const newMember = resp.data.createProjectMember;
+                if (newMember) {
+                    this.edited.push(newMember);
+                    this.error = '';
+                } else {
+                    this.error = 'Could not add member';
+                }
+            } catch (err) {
+                this.error = err.message;
+                if (isApolloError(err)) {
+                    console.error(extractGQLErrors(err));
+                }
+            }
+        },
         async setRole(member, index, role) {
             let newMember;
-            const roles = member.roles.includes(role)
-                ? member.roles.filter(r => r !== role)
-                : [...member.roles, role];
+            const roles = member.roles;
+            const newRoles = roles.includes(role)
+                ? roles.filter(r => r !== role)
+                : [...roles, role];
             try {
+                // optimistic UI update
+                member.roles = newRoles;
+                // actual mutation, followed by UI update
                 const resp = await apolloClient.mutate({
                     mutation: UPDATE_MEMBER,
                     variables: {
                         id: member.id,
-                        roles: roles.length ? roles : null,
+                        roles: newRoles.length ? newRoles : null,
                     },
                 });
                 newMember = resp.data.updateProjectMemberRoles;
@@ -104,6 +162,7 @@ export default {
                     console.error(gqlErrs);
                 }
                 newMember = cloneDeep(member);
+                newMember.roles = roles;
             }
             this.$set(this.edited, index, newMember);
         },

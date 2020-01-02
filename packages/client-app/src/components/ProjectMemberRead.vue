@@ -1,5 +1,5 @@
 <template>
-    <v-data-table :headers="headers" :items="members">
+    <v-data-table :headers="headers" :items="members" no-data-text="no member">
         <template v-slot:item="{ item }">
             <tr>
                 <td>
