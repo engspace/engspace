@@ -1,3 +1,4 @@
+import { buildDefaultAppRolePolicies } from '@engspace/core';
 import { populateDemo } from '@engspace/demo-data';
 import { createDbPool, initSchema } from '@engspace/server-db';
 import { buildGqlApp } from '@engspace/server-graphql';
@@ -14,7 +15,7 @@ createDbPool(config.get('db'))
     })
     .then(async pool => {
         const { port } = config.get('server');
-        const app = await buildGqlApp(pool);
+        const app = await buildGqlApp(pool, buildDefaultAppRolePolicies());
         app.listen(port, () => {
             console.log(`Demo API listening to port ${port}`);
         });

@@ -1,11 +1,11 @@
-import { Id, Project, Role, User } from './schema';
+import { Id, Project, User } from './schema';
 
 export class CUser implements User {
     id: Id;
     name: string;
     email: string;
     fullName: string;
-    roles: Array<Role>;
+    roles: Array<string>;
 
     constructor(user: Partial<User> = {}) {
         this.id = user.id ?? '';

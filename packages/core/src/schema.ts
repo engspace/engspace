@@ -1,21 +1,10 @@
 export type Id = string;
 
-export enum Role {
-    User = 'user',
-    Manager = 'manager',
-    Admin = 'admin',
-}
-
-export enum ProjectRole {
-    Leader = 'leader',
-    Designer = 'designer',
-}
-
 export interface UserInput {
     name: string;
     email: string;
     fullName: string;
-    roles?: Role[];
+    roles?: string[];
 }
 
 export interface User extends UserInput {
@@ -43,12 +32,12 @@ export interface ProjectEx extends Project {
 export interface ProjectMemberInput {
     projectId: Id;
     userId: Id;
-    roles?: ProjectRole[];
+    roles?: string[];
 }
 
 export interface ProjectMember {
     id: Id;
     project: { id: Id } | Project;
     user: { id: Id } | User;
-    roles?: ProjectRole[];
+    roles?: string[];
 }

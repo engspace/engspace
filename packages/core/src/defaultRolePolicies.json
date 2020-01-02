@@ -1,0 +1,30 @@
+{
+    "user": {
+        "user": {
+            "permissions": ["user.read", "project.read", "member.read"]
+        },
+        "manager": {
+            "inherits": "user",
+            "permissions": [
+                "project.create",
+                "project.update",
+                "project.delete",
+                "member.create",
+                "member.update",
+                "member.delete"
+            ]
+        },
+        "admin": {
+            "inherits": "manager",
+            "permissions": ["user.create", "user.update", "user.delete"]
+        }
+    },
+    "project": {
+        "designer": {
+            "permissions": []
+        },
+        "leader": {
+            "permissions": []
+        }
+    }
+}

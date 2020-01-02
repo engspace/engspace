@@ -1,4 +1,3 @@
-import { Role } from '@engspace/core';
 import { createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data';
 import chai from 'chai';
 import { sql } from 'slonik';
@@ -47,7 +46,7 @@ describe('UserDao', () => {
             expect(tania).to.deep.include(expected);
         });
         it('should get the roles by id', async () => {
-            const expected = [Role.Manager];
+            const expected = ['manager'];
             const roles = await pool.connect(db => UserDao.rolesById(db, users.ambre.id));
             expect(roles).to.eql(expected);
         });
@@ -150,7 +149,7 @@ describe('UserDao', () => {
         });
         it('should patch user roles', async () => {
             const patch = {
-                roles: [Role.Admin, Role.Manager],
+                roles: ['admin', 'manager'],
             };
             const returned = await pool.connect(async db =>
                 UserDao.patch(db, users.tania.id, patch)

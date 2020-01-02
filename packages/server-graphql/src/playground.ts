@@ -1,4 +1,3 @@
-import { getRolesPerms } from '@engspace/core';
 import { DbPool, LoginDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import { ApolloServer } from 'apollo-server-koa';
@@ -12,8 +11,9 @@ import { attachDb, buildContext } from '.';
 import { AUTH_TOKEN_SYMBOL, signToken, verifyToken } from './auth';
 import { resolvers } from './resolvers';
 import { typeDefs } from './schema';
+import { AppRolePolicies } from '@engspace/core';
 
-export function setupPlayground(app: Koa, pool: DbPool): void {
+export function setupPlayground(app: Koa, pool: DbPool, rolePolicies: AppRolePolicies): void {
     app.keys = config.get<string[]>('sessionSigningKeys');
     app.use(session(app));
 
@@ -44,7 +44,7 @@ export function setupPlayground(app: Koa, pool: DbPool): void {
             return LoginDao.login(db, username, password);
         });
         if (user) {
-            const perms = getRolesPerms(user.roles);
+            const perms = rolePolicies.user.permissions(user.roles);
             const token = await signToken({
                 userId: user.id,
                 userPerms: perms,

@@ -1,4 +1,4 @@
-import { ProjectMember, ProjectRole } from '@engspace/core';
+import { ProjectMember } from '@engspace/core';
 import { MemberDao } from '@engspace/server-db';
 import { DemoProjectSet } from './project';
 import { DemoUserSet } from './user';
@@ -8,17 +8,17 @@ export const membersInput = [
     {
         project: 'chair',
         user: 'tania',
-        roles: [ProjectRole.Leader],
+        roles: ['leader'],
     },
     {
         project: 'chair',
         user: 'fatima',
-        roles: [ProjectRole.Designer],
+        roles: ['designer'],
     },
     {
         project: 'chair',
         user: 'philippe',
-        roles: [ProjectRole.Designer],
+        roles: ['designer'],
     },
     {
         project: 'chair',
@@ -28,22 +28,22 @@ export const membersInput = [
     {
         project: 'desk',
         user: 'alphonse',
-        roles: [ProjectRole.Leader, ProjectRole.Designer],
+        roles: ['leader', 'designer'],
     },
     {
         project: 'desk',
         user: 'robin',
-        roles: [ProjectRole.Designer],
+        roles: ['designer'],
     },
     {
         project: 'desk',
         user: 'fatima',
-        roles: [ProjectRole.Designer],
+        roles: ['designer'],
     },
     {
         project: 'desk',
         user: 'sophie',
-        roles: [ProjectRole.Designer],
+        roles: ['designer'],
     },
     {
         project: 'desk',

@@ -1,4 +1,3 @@
-import { Role } from '@engspace/core';
 import { createLocalVue, mount } from '@vue/test-utils';
 import chai from 'chai';
 import Vuetify from 'vuetify';
@@ -26,7 +25,7 @@ describe('User', () => {
                     name: 'auser',
                     fullName: 'A User',
                     email: 'a.user@engspace.test',
-                    roles: [Role.Admin, Role.Manager],
+                    roles: ['admin', 'manager'],
                 },
             },
         });

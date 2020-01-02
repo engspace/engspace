@@ -60,7 +60,6 @@
 </template>
 
 <script>
-import { Role } from '@engspace/core';
 import { mapGetters } from 'vuex';
 import { AUTH_LOGOUT_ACTION } from '../store';
 import gql from 'graphql-tag';
@@ -93,10 +92,10 @@ export default {
     computed: {
         ...mapGetters(['auth']),
         isAdmin() {
-            return this.user.roles.includes(Role.Admin);
+            return this.user.roles.includes('admin');
         },
         isManager() {
-            return this.user.roles.includes(Role.Manager);
+            return this.user.roles.includes('manager');
         },
     },
     methods: {

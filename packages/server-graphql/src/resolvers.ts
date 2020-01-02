@@ -2,8 +2,6 @@ import {
     Id,
     Project,
     ProjectMember,
-    ProjectRole,
-    Role,
     User,
     UserInput,
     ProjectInput,
@@ -91,7 +89,7 @@ export const resolvers = {
     },
 
     User: {
-        async roles({ id, roles }: User, args, ctx: GqlContext): Promise<Role[]> {
+        async roles({ id, roles }: User, args, ctx: GqlContext): Promise<string[]> {
             if (roles) return roles;
             return ctx.loaders.roles.load(id);
         },
@@ -121,7 +119,7 @@ export const resolvers = {
                 return ctx.loaders.user.load(user.id);
             }
         },
-        roles({ id }: ProjectMember, args, ctx: GqlContext): Promise<ProjectRole[]> {
+        roles({ id }: ProjectMember, args, ctx: GqlContext): Promise<string[]> {
             return ctx.loaders.memberRoles.load(id);
         },
     },

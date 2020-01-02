@@ -1,7 +1,15 @@
+import { RolePolicy, buildRolePolicy } from './permissions';
 import { Id } from './schema';
+import defaultRolePolicies from './defaultRolePolicies.json';
 
 export { CProject, CUser } from './ctor';
-export { getRolePerms, getRolesPerms } from './permissions';
+export {
+    buildRolePolicy,
+    RoleDescriptor,
+    RoleDescriptorSet,
+    RolePolicy,
+    UnknownRoleError,
+} from './permissions';
 export {
     Id,
     Project,
@@ -9,12 +17,22 @@ export {
     ProjectInput,
     ProjectMember,
     ProjectMemberInput,
-    ProjectRole,
-    Role,
     User,
     UserEx,
     UserInput,
 } from './schema';
+
+export interface AppRolePolicies {
+    user: RolePolicy;
+    project: RolePolicy;
+}
+
+export function buildDefaultAppRolePolicies(): AppRolePolicies {
+    return {
+        user: buildRolePolicy(defaultRolePolicies.user),
+        project: buildRolePolicy(defaultRolePolicies.project),
+    };
+}
 
 export interface AuthToken {
     userId: Id;

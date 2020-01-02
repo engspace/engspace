@@ -1,4 +1,4 @@
-import { Id, Role } from '@engspace/core';
+import { Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
 import { UserDao } from './user';
@@ -6,7 +6,7 @@ import { UserDao } from './user';
 export interface LoginResult {
     id: Id;
     name: string;
-    roles: Role[];
+    roles: string[];
 }
 
 /**

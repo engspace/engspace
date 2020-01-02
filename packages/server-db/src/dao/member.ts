@@ -1,4 +1,4 @@
-import { Id, ProjectMember, ProjectMemberInput, ProjectRole } from '@engspace/core';
+import { Id, ProjectMember, ProjectMemberInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
 
@@ -139,12 +139,12 @@ export class MemberDao {
      * @param db The databse connection
      * @param id the id of the member
      */
-    static async rolesById(db: Db, id: Id): Promise<ProjectRole[]> {
+    static async rolesById(db: Db, id: Id): Promise<string[]> {
         const rows = await db.anyFirst(sql`
             SELECT role FROM project_member_role
             WHERE member_id = ${parseInt(id)}
         `);
-        return rows as ProjectRole[];
+        return rows as string[];
     }
 
     // /**
@@ -194,7 +194,7 @@ export class MemberDao {
     //     return now;
     // }
 
-    static async updateRolesById(db: Db, id: Id, roles: ProjectRole[]): Promise<ProjectMember> {
+    static async updateRolesById(db: Db, id: Id, roles: string[]): Promise<ProjectMember> {
         await db.query(sql`
             DELETE FROM project_member_role
             WHERE member_id = ${parseInt(id)}
@@ -247,8 +247,8 @@ export class MemberDao {
     }
 }
 
-async function insertRoles(db: Db, id: Id, roles: ProjectRole[]): Promise<ProjectRole[]> {
-    const inserted = await db.manyFirst<ProjectRole>(sql`
+async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
+    const inserted = await db.manyFirst(sql`
         INSERT INTO project_member_role(
             member_id, role
         ) VALUES ${sql.join(
@@ -257,5 +257,5 @@ async function insertRoles(db: Db, id: Id, roles: ProjectRole[]): Promise<Projec
         )}
         RETURNING role
     `);
-    return inserted as ProjectRole[];
+    return inserted as string[];
 }

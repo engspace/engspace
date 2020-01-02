@@ -1,4 +1,3 @@
-import { Role } from '@engspace/core';
 import gql from 'graphql-tag';
 import Vue from 'vue';
 import Router, { Location, Route } from 'vue-router';
@@ -46,7 +45,7 @@ const GET_ROLE = gql`
     }
 `;
 
-function requireRole(role: Role) {
+function requireRole(role: string) {
     return async (to: Route, from: Route, next: NextCallback): Promise<void> => {
         if (store.getters.isAuth) {
             try {
@@ -89,22 +88,22 @@ export default new Router({
         {
             path: '/admin/users',
             component: UserAdminPage,
-            beforeEnter: requireRole(Role.Admin),
+            beforeEnter: requireRole('admin'),
         },
         {
             path: '/project/new',
             component: ProjectNewPage,
-            beforeEnter: requireRole(Role.Manager),
+            beforeEnter: requireRole('manager'),
         },
         {
             path: '/project/by-code/:code',
             component: ProjectPage,
-            beforeEnter: requireRole(Role.Manager),
+            beforeEnter: requireRole('manager'),
         },
         {
             path: '/project/:id',
             component: ProjectPage,
-            beforeEnter: requireRole(Role.Manager),
+            beforeEnter: requireRole('manager'),
         },
     ],
 });

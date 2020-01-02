@@ -1,4 +1,4 @@
-import { Role, User, UserInput } from '@engspace/core';
+import { User, UserInput } from '@engspace/core';
 import { Db, UserDao } from '@engspace/server-db';
 
 export enum DemoUser {
@@ -24,7 +24,7 @@ export interface DemoUserSet {
 
 interface Input {
     fullName: string;
-    roles: Role[];
+    roles: string[];
 }
 
 export const userInput: { [idx: string]: Input } = {
@@ -32,43 +32,43 @@ export const userInput: { [idx: string]: Input } = {
     // password is [name]
     gerard: {
         fullName: 'Gerard Admin',
-        roles: [Role.Admin],
+        roles: ['admin'],
     },
     ambre: {
         fullName: 'Ambre Manager',
-        roles: [Role.Manager],
+        roles: ['manager'],
     },
     tania: {
         fullName: 'Tania Program Leader',
-        roles: [Role.User],
+        roles: ['user'],
     },
     alphonse: {
         fullName: 'Alphonse Program Leader',
-        roles: [Role.User],
+        roles: ['user'],
     },
     robin: {
         fullName: 'Robin Designer',
-        roles: [Role.User],
+        roles: ['user'],
     },
     fatima: {
         fullName: 'Fatima Designer',
-        roles: [Role.User],
+        roles: ['user'],
     },
     sophie: {
         fullName: 'Sophie Designer',
-        roles: [Role.User],
+        roles: ['user'],
     },
     philippe: {
         fullName: 'Philippe Designer',
-        roles: [Role.User],
+        roles: ['user'],
     },
     sylvie: {
         fullName: 'Sylvie Engineer',
-        roles: [Role.User],
+        roles: ['user'],
     },
     pascal: {
         fullName: 'Pascal Engineer',
-        roles: [Role.User],
+        roles: ['user'],
     },
 };
 

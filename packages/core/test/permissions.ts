@@ -1,25 +1,44 @@
 import chai from 'chai';
-import { getRolePerms, Role } from '../src';
+import { buildDefaultAppRolePolicies } from '../src';
 
 const { expect } = chai;
 
-describe('Permissions', () => {
+const policies = buildDefaultAppRolePolicies();
+
+describe('User Roles', () => {
+    it('should give all roles', () => {
+        const roles = policies.user.allRoles();
+        expect(roles).to.include('user');
+        expect(roles).to.include('manager');
+        expect(roles).to.include('admin');
+    });
+});
+
+describe('User Permissions', () => {
     it('should fetch user permissions', () => {
-        const perms = getRolePerms(Role.User);
+        const perms = policies.user.permissions(['user']);
         expect(perms).to.include('project.read');
         expect(perms).to.not.include('project.create');
         expect(perms).to.not.include('user.create');
     });
     it('should fetch manager permissions', () => {
-        const perms = getRolePerms(Role.Manager);
+        const perms = policies.user.permissions(['manager']);
         expect(perms).to.include('project.read');
         expect(perms).to.include('project.create');
         expect(perms).to.not.include('user.create');
     });
     it('should fetch admin permissions', () => {
-        const perms = getRolePerms(Role.Admin);
+        const perms = policies.user.permissions(['admin']);
         expect(perms).to.include('project.read');
         expect(perms).to.include('project.create');
         expect(perms).to.include('user.create');
+    });
+});
+
+describe('Project Roles', () => {
+    it('should give all roles', () => {
+        const roles = policies.project.allRoles();
+        expect(roles).to.include('designer');
+        expect(roles).to.include('leader');
     });
 });

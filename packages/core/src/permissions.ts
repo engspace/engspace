@@ -1,30 +1,3 @@
-import { Role } from './schema';
-
-interface RolePerm {
-    inherits?: Role;
-    permissions: string[];
-}
-
-const rolePerms: { [role: string]: RolePerm } = {
-    [Role.User]: {
-        permissions: ['member.read', 'project.read', 'user.read', 'login.read', 'login.update'],
-    },
-    [Role.Manager]: {
-        inherits: Role.User,
-        permissions: [
-            'project.create',
-            'project.update',
-            'member.create',
-            'member.update',
-            'member.delete',
-        ],
-    },
-    [Role.Admin]: {
-        inherits: Role.Manager,
-        permissions: ['user.create', 'user.update', 'user.delete', 'project.delete'],
-    },
-};
-
 export class UnknownRoleError extends Error {
     constructor(public role: string) {
         super(`Unknown Role: ${role}`);
@@ -32,55 +5,94 @@ export class UnknownRoleError extends Error {
     }
 }
 
-/**
- * Return permissions granted for a single Role
- *
- * @param role The role to fetch the permissions for.
- */
-export function getRolePerms(role: Role): string[] {
-    const rp = rolePerms[role];
-    if (!rp) {
-        throw new UnknownRoleError(role);
-    }
-    let perms = rp.permissions;
-    let inherits = rp.inherits;
-    while (inherits) {
-        const childRp = rolePerms[inherits];
-        perms = perms.concat(childRp.permissions);
-        inherits = childRp.inherits;
-    }
-    return perms;
+export interface RolePolicy {
+    allRoles(): string[];
+    permissions(roles: string[]): string[];
 }
 
-/**
- * Return permissions granted for a set of Roles
- *
- * @param roles The roles to fetch the permissions for.
- */
-export function getRolesPerms(roles: Role[]): string[] {
+export interface RoleDescriptor {
+    /** inherits permissions of another role */
+    inherits?: string;
+    /** permissions given by this role */
+    permissions: string[];
+}
+
+export interface RoleDescriptorSet {
+    [role: string]: RoleDescriptor;
+}
+
+export function buildRolePolicy(roleDescs: RoleDescriptorSet): RolePolicy {
+    return new CRolePolicy(roleDescs);
+}
+
+interface PermSet {
+    [name: string]: string[];
+}
+
+class CRolePolicy implements RolePolicy {
+    private perms: PermSet = {};
+    private roles: string[];
+
+    constructor(private roleDescs: RoleDescriptorSet) {
+        for (const role in roleDescs) {
+            this.perms[role] = getPermsForRole(roleDescs, role);
+        }
+        this.roles = Object.keys(roleDescs);
+    }
+
+    public allRoles(): string[] {
+        return this.roles;
+    }
+
+    public permissions(roles: string[]): string[] {
+        const key = roles.join('-');
+        const optimistic = this.perms[key];
+        if (optimistic) return optimistic;
+        const newSet = getPermsForRoles(this.roleDescs, roles);
+        this.perms[key] = newSet;
+        return newSet;
+    }
+}
+
+function getPermsForRole(roleDescs: RoleDescriptorSet, role: string): string[] {
+    const rd = roleDescs[role];
+    if (!rd) {
+        throw new UnknownRoleError(role);
+    }
+    let perms = rd.permissions;
+    let inherits = rd.inherits;
+    while (inherits) {
+        const childRd = roleDescs[inherits];
+        perms = perms.concat(childRd.permissions);
+        inherits = childRd.inherits;
+    }
+    return perms.sort().filter((p, i, a) => i === a.indexOf(p));
+}
+
+function getPermsForRoles(roleDescs: RoleDescriptorSet, roles: string[]): string[] {
     if (roles.length == 0) {
         return [];
     }
     if (roles.length == 1) {
-        return getRolePerms(roles[0]);
+        return getPermsForRole(roleDescs, roles[0]);
     }
-    const visited: Role[] = [];
+    const visited: string[] = [];
     let perms = [];
     for (const r of roles) {
         if (visited.includes(r)) continue;
-        const rp = rolePerms[r];
-        if (!rp) throw new UnknownRoleError(r);
-        perms = perms.concat(rp.permissions);
+        const rd = roleDescs[r];
+        if (!rd) throw new UnknownRoleError(r);
+        perms = perms.concat(rd.permissions);
         visited.push(r);
-        let inherits = rp.inherits;
+        let inherits = rd.inherits;
         while (inherits) {
-            const childRp = rolePerms[inherits];
+            const childRd = roleDescs[inherits];
             if (!visited.includes(inherits)) {
-                perms = perms.concat(childRp.permissions);
+                perms = perms.concat(childRd.permissions);
                 visited.push(inherits);
             }
-            inherits = childRp.inherits;
+            inherits = childRd.inherits;
         }
     }
-    return perms;
+    return perms.sort().filter((p, i, a) => i === a.indexOf(p));
 }

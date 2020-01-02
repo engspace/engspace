@@ -1,4 +1,3 @@
-import { ProjectRole } from '@engspace/core';
 import {
     createMembers,
     createProjects,
@@ -47,13 +46,13 @@ describe('MemberDao', () => {
                 MemberDao.create(db, {
                     projectId: projects.chair.id,
                     userId: users.tania.id,
-                    roles: [ProjectRole.Leader],
+                    roles: ['leader'],
                 })
             );
             const expected = {
                 project: { id: projects.chair.id },
                 user: { id: users.tania.id },
-                roles: [ProjectRole.Leader],
+                roles: ['leader'],
             };
             expect(created.id).to.be.a('string');
             expect(created).to.deep.include(expected);
@@ -73,7 +72,7 @@ describe('MemberDao', () => {
                 MemberDao.byProjectAndUserId(db, projects.chair.id, users.tania.id, true)
             );
             expect(taniaChair).to.not.be.null;
-            expect(taniaChair.roles).to.have.members([ProjectRole.Leader]);
+            expect(taniaChair.roles).to.have.members(['leader']);
         });
 
         it('should get null if user not in project', async () => {
@@ -88,7 +87,7 @@ describe('MemberDao', () => {
                 MemberDao.byProjectAndUserId(db, projects.desk.id, users.alphonse.id, true)
             );
             expect(alphonseDesk).to.not.be.null;
-            expect(alphonseDesk.roles).to.have.members([ProjectRole.Leader, ProjectRole.Designer]);
+            expect(alphonseDesk.roles).to.have.members(['leader', 'designer']);
         });
 
         it('should get members on a project', async () => {

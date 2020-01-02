@@ -1,4 +1,4 @@
-import { Id, Role, User, UserInput } from '@engspace/core';
+import { Id, User, UserInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { idsFindMap } from '.';
 import { Db } from '..';
@@ -6,7 +6,7 @@ import { partialAssignmentList } from '../util';
 
 export interface UserSearch {
     phrase?: string;
-    role?: Role;
+    role?: string;
     limit?: number;
     offset?: number;
 }
@@ -99,12 +99,12 @@ export class UserDao {
         return { count, users };
     }
 
-    static async rolesById(db: Db, id: Id): Promise<Role[]> {
+    static async rolesById(db: Db, id: Id): Promise<string[]> {
         const roles = await db.anyFirst(sql`
             SELECT role FROM user_role
             WHERE user_id = ${id}
         `);
-        return roles as Role[];
+        return roles as string[];
     }
 
     static async update(db: Db, id: Id, user: UserInput): Promise<User> {
@@ -152,7 +152,7 @@ export class UserDao {
         await db.query(sql`DELETE FROM "user" WHERE id = ${id}`);
     }
 }
-async function insertRoles(db: Db, id: Id, roles: Role[]): Promise<Role[]> {
+async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
     return (await db.manyFirst(sql`
         INSERT INTO user_role(
             user_id, role
@@ -161,10 +161,10 @@ async function insertRoles(db: Db, id: Id, roles: Role[]): Promise<Role[]> {
             sql`, `
         )}
         RETURNING role
-    `)) as Role[];
+    `)) as string[];
 }
 
-async function updateRoles(db: Db, id: Id, roles: Role[]): Promise<Role[]> {
+async function updateRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
     await db.query(sql`
         DELETE FROM user_role WHERE user_id = ${id}
     `);

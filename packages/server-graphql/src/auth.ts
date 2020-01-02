@@ -1,4 +1,4 @@
-import { AuthToken, getRolesPerms, Role } from '@engspace/core';
+import { AuthToken, AppRolePolicies } from '@engspace/core';
 import { DbPool, LoginDao, UserDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import crypto from 'crypto';
@@ -44,7 +44,7 @@ export async function verifyToken(token: string): Promise<AuthToken> {
     });
 }
 
-export function setupAuth(app: Koa, pool: DbPool): void {
+export function setupAuth(app: Koa, pool: DbPool, rolePolicies: AppRolePolicies): void {
     const restRouter = new Router();
 
     restRouter.post('/auth/login', async ctx => {
@@ -66,7 +66,7 @@ export function setupAuth(app: Koa, pool: DbPool): void {
             return LoginDao.login(db, nameOrEmail, password);
         });
         if (user) {
-            const perms = getRolesPerms(user.roles);
+            const perms = rolePolicies.user.permissions(user.roles);
             ctx.body = {
                 token: await signToken({
                     userId: user.id,
@@ -81,7 +81,7 @@ export function setupAuth(app: Koa, pool: DbPool): void {
     restRouter.get('/auth/first_admin', async ctx => {
         const result = await pool.connect(db =>
             UserDao.search(db, {
-                role: Role.Admin,
+                role: 'admin',
             })
         );
         ctx.response.body = {
@@ -92,7 +92,7 @@ export function setupAuth(app: Koa, pool: DbPool): void {
     restRouter.post('/auth/first_admin', async ctx => {
         await pool.transaction(async db => {
             const adminSearch = await UserDao.search(db, {
-                role: Role.Admin,
+                role: 'admin',
             });
             ctx.assert(adminSearch.count >= 1, HttpStatus.FORBIDDEN);
             const { name, email, fullName, password } = ctx.request.body;
@@ -109,7 +109,7 @@ export function setupAuth(app: Koa, pool: DbPool): void {
                 'missing password'
             );
 
-            const user = await UserDao.create(db, { name, email, fullName, roles: [Role.Admin] });
+            const user = await UserDao.create(db, { name, email, fullName, roles: ['admin'] });
             await LoginDao.create(db, user.id, password);
             ctx.response.body = user;
         });

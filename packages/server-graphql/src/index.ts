@@ -1,4 +1,4 @@
-import { AuthToken } from '@engspace/core';
+import { AuthToken, AppRolePolicies } from '@engspace/core';
 import { Db, DbPool } from '@engspace/server-db';
 import cors from '@koa/cors';
 import { ApolloLogExtension } from 'apollo-log';
@@ -52,7 +52,7 @@ export function buildContext({ ctx }): GqlContext {
     return gqlCtx;
 }
 
-export async function buildGqlApp(pool: DbPool): Promise<Koa> {
+export async function buildGqlApp(pool: DbPool, rolePolicies: AppRolePolicies): Promise<Koa> {
     const app = new Koa();
     app.use(logger());
     app.use(
@@ -66,9 +66,9 @@ export async function buildGqlApp(pool: DbPool): Promise<Koa> {
         })
     );
 
-    setupPlayground(app, pool);
+    setupPlayground(app, pool, rolePolicies);
 
-    setupAuth(app, pool);
+    setupAuth(app, pool, rolePolicies);
 
     app.use(attachDb(pool, '/graphql'));
 
@@ -89,7 +89,7 @@ export async function buildGqlApp(pool: DbPool): Promise<Koa> {
         })
     );
 
-    setupPlayground(app, pool);
+    setupPlayground(app, pool, rolePolicies);
 
     return app;
 }

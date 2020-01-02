@@ -2,8 +2,6 @@ import {
     Id,
     Project,
     ProjectMember,
-    ProjectRole,
-    Role,
     User,
     UserInput,
     ProjectInput,
@@ -18,7 +16,7 @@ function assertPerm(ctx: GqlContext, perm: string, message?: string): void {
         throw new ForbiddenError(message ? message : `Missing permission: '${perm}'`);
 }
 
-async function assertRole(ctx: GqlContext, role: Role, message?: string): Promise<void> {
+async function assertRole(ctx: GqlContext, role: string, message?: string): Promise<void> {
     const userRoles = await UserDao.rolesById(ctx.db, ctx.auth.userId);
     if (!userRoles.includes(role)) {
         throw new ForbiddenError(message ? message : `Missing role: '${role}`);
@@ -51,7 +49,7 @@ export class UserControl {
         return UserDao.byEmail(ctx.db, email);
     }
 
-    static async rolesById(ctx: GqlContext, userId: Id): Promise<Role[]> {
+    static async rolesById(ctx: GqlContext, userId: Id): Promise<string[]> {
         assertPerm(ctx, 'user.read');
         return UserDao.rolesById(ctx.db, userId);
     }
@@ -73,7 +71,7 @@ export class UserControl {
     static async update(ctx: GqlContext, userId: Id, user: UserInput): Promise<User> {
         assertPerm(ctx, 'user.update');
         if (userId !== ctx.auth.userId) {
-            await assertRole(ctx, Role.Admin);
+            await assertRole(ctx, 'admin');
         }
         return UserDao.update(ctx.db, userId, user);
     }
@@ -134,14 +132,14 @@ export class MemberControl {
         return MemberDao.byUserId(ctx.db, userId);
     }
 
-    static async rolesById(ctx: GqlContext, id: Id): Promise<ProjectRole[]> {
+    static async rolesById(ctx: GqlContext, id: Id): Promise<string[]> {
         assertPerm(ctx, 'member.read');
         return MemberDao.rolesById(ctx.db, id);
     }
 
     static async updateRolesById(ctx: GqlContext, id: Id, roles: string[]): Promise<ProjectMember> {
         assertPerm(ctx, 'member.update');
-        return MemberDao.updateRolesById(ctx.db, id, roles as ProjectRole[]);
+        return MemberDao.updateRolesById(ctx.db, id, roles);
     }
 
     static async deleteById(ctx: GqlContext, id: Id): Promise<void> {

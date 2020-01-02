@@ -1,15 +1,15 @@
-import { Id, Project, ProjectMember, ProjectRole, Role, User } from '@engspace/core';
+import { Id, Project, ProjectMember, User } from '@engspace/core';
 import DataLoader from 'dataloader';
 import { GqlContext } from '.';
 import { MemberControl, ProjectControl, UserControl } from './controllers';
 
 export interface GqlLoaders {
     user: DataLoader<Id, User>;
-    roles: DataLoader<Id, Role[]>;
+    roles: DataLoader<Id, string[]>;
     project: DataLoader<Id, Project>;
     membersByProj: DataLoader<Id, ProjectMember[]>;
     membersByUser: DataLoader<Id, ProjectMember[]>;
-    memberRoles: DataLoader<Id, ProjectRole[]>;
+    memberRoles: DataLoader<Id, string[]>;
 }
 
 export function makeLoaders(ctx: GqlContext): GqlLoaders {
