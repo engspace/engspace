@@ -1,31 +1,36 @@
 <template>
     <v-card>
         <v-card-title>
+            {{ title }}
+            <v-spacer></v-spacer>
             <v-text-field
                 v-model="searchPhrase"
                 outline
                 autofocus
-                label="search for name or email"
+                label="search by login, name or email"
                 append-icon="mdi-search"
             ></v-text-field>
         </v-card-title>
-        <v-card-text>
-            <v-data-table
-                :headers="userHeaders"
-                :items="users"
-                :loading="loading"
-                :server-items-length="totalUsers"
-                :options-sync="tableOptions"
-            >
-                <template v-slot:item="{ item }">
-                    <tr :class="{ primary: item.id === selectedId }" @click="activeRow(item)">
-                        <td>{{ item.name }}</td>
-                        <td>{{ item.email }}</td>
-                        <td>{{ item.fullName }}</td>
-                    </tr>
-                </template>
-            </v-data-table>
-        </v-card-text>
+        <v-data-table
+            :headers="userHeaders"
+            :items="users"
+            :loading="loading"
+            :server-items-length="totalUsers"
+            :options-sync="tableOptions"
+            disable-sort
+        >
+            <template v-slot:item="{ item }">
+                <tr
+                    :class="{ primary: selectable && item.id === selectedId }"
+                    @click="selectUser(item)"
+                >
+                    <td v-for="col in dataHeaders" :key="col.value">
+                        {{ item[col.value] }}
+                    </td>
+                    <slot name="action" :user="item"></slot>
+                </tr>
+            </template>
+        </v-data-table>
     </v-card>
 </template>
 
@@ -48,16 +53,30 @@ const SEARCH = gql`
     }
 `;
 
+const colText = {
+    name: 'Login',
+    email: 'E-Mail',
+    fullName: 'Name',
+};
+
 export default {
     props: {
+        columns: {
+            type: Array,
+            default: () => ['name', 'email', 'fullName'],
+            validate: val => val.every(v => v in colText),
+        },
         initialSearch: {
-            type: Object,
-            default: () => ({
-                phrase: '',
-            }),
-            validator: function(value) {
-                return typeof value.phrase === 'string';
-            },
+            type: String,
+            default: '',
+        },
+        selectable: {
+            type: Boolean,
+            default: false,
+        },
+        title: {
+            type: String,
+            default: '',
         },
         value: {
             type: String,
@@ -65,24 +84,34 @@ export default {
         },
         emptyAll: {
             type: Boolean,
-            default: true,
+            default: false,
         },
     },
     data() {
         return {
             searchPhrase: this.initialSearch.phrase,
             users: [],
-            userHeaders: [
-                { text: 'Login', value: 'name' },
-                { text: 'E-Mail', value: 'email' },
-                { text: 'Name', value: 'fullName' },
-            ],
             tableOptions: {},
             selectedId: this.value,
             totalUsers: 0,
             loading: false,
             debouncedGqlSearch: null,
         };
+    },
+    computed: {
+        hasActionSlot() {
+            return !!this.$slots['action'];
+        },
+        dataHeaders() {
+            return this.columns.map(c => ({ text: colText[c], value: c }));
+        },
+        userHeaders() {
+            const headers = this.dataHeaders;
+            if (this.hasActionSlot) {
+                headers.push({ text: 'Action', value: 'action' });
+            }
+            return headers;
+        },
     },
     watch: {
         searchPhrase() {
@@ -92,11 +121,17 @@ export default {
             this.gqlSearch();
         },
         selectedId() {
-            this.$emit('input', this.selectedId);
+            if (this.selectable) {
+                this.$emit('input', this.selectedId);
+            }
         },
     },
     created() {
         this.debouncedGqlSearch = debounce(this.gqlSearch, 500);
+        console.log(this.emptyAll);
+        if (this.emptyAll || this.searchPhrase) {
+            this.gqlSearch();
+        }
     },
     methods: {
         async gqlSearch() {
@@ -129,8 +164,10 @@ export default {
                 this.users.splice(ind, 1, user);
             }
         },
-        activeRow(item) {
-            this.selectedId = item.id;
+        selectUser(item) {
+            if (this.selectable) {
+                this.selectedId = item.id;
+            }
         },
     },
 };

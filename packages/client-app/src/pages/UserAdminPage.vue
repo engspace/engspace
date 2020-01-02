@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1>User administration</h1>
+        <h1 class="headline">User administration</h1>
         <v-expansion-panels :multiple="true">
             <v-expansion-panel>
                 <v-expansion-panel-header>Create</v-expansion-panel-header>
@@ -24,7 +24,7 @@
                                 <user-finder
                                     ref="userFinder"
                                     v-model="currentUserId"
-                                    :empty-all="false"
+                                    selectable
                                 ></user-finder>
                             </v-col>
                             <v-col :cols="12" :md="4">
