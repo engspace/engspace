@@ -1,5 +1,7 @@
 export type Id = string;
 
+export type IdOr<T extends { id: Id }> = { id: Id } | T;
+
 export interface UserInput {
     name: string;
     email: string;
@@ -37,7 +39,7 @@ export interface ProjectMemberInput {
 
 export interface ProjectMember {
     id: Id;
-    project: { id: Id } | Project;
-    user: { id: Id } | User;
+    project: IdOr<Project>;
+    user: IdOr<User>;
     roles?: string[];
 }
