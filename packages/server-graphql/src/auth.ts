@@ -1,4 +1,4 @@
-import { AuthToken, AppRolePolicies } from '@engspace/core';
+import { AppRolePolicies, AuthToken } from '@engspace/core';
 import { DbPool, LoginDao, UserDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import crypto from 'crypto';
@@ -6,8 +6,7 @@ import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import Koa, { Context, Next } from 'koa';
 import validator from 'validator';
-
-export const AUTH_TOKEN_SYMBOL = Symbol('@engspace/server-graphql/authToken');
+import { AUTH_TOKEN_SYMBOL } from './internal';
 
 const jwtSecret = crypto.randomBytes(32).toString('base64');
 

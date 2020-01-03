@@ -1,7 +1,7 @@
 import { Id, Project, ProjectMember, User } from '@engspace/core';
 import DataLoader from 'dataloader';
-import { GqlContext } from '.';
 import { MemberControl, ProjectControl, UserControl } from './controllers';
+import { GqlContext } from './internal';
 
 export interface GqlLoaders {
     user: DataLoader<Id, User>;

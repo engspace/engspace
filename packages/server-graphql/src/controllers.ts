@@ -1,15 +1,15 @@
 import {
     Id,
     Project,
+    ProjectInput,
     ProjectMember,
+    ProjectMemberInput,
     User,
     UserInput,
-    ProjectInput,
-    ProjectMemberInput,
 } from '@engspace/core';
 import { MemberDao, ProjectDao, UserDao } from '@engspace/server-db';
 import { ForbiddenError } from 'apollo-server-koa';
-import { GqlContext } from '.';
+import { GqlContext } from './internal';
 
 function hasUserPerm(ctx: GqlContext, perm: string): boolean {
     return ctx.auth.userPerms.includes(perm);
@@ -28,18 +28,6 @@ async function hasProjectPerm(ctx: GqlContext, projectId: Id, perm: string): Pro
     return member && ctx.rolePolicies.project.permissions(member.roles).includes(perm);
 }
 
-async function assertProjectPerm(
-    ctx: GqlContext,
-    projectId: Id,
-    perm: string,
-    message?: string
-): Promise<void> {
-    const has = await hasProjectPerm(ctx, projectId, perm);
-    if (!has) {
-        throw new ForbiddenError(message ? message : `Missing permission: '${perm}'`);
-    }
-}
-
 async function assertUserOrProjectPerm(
     ctx: GqlContext,
     projectId: Id,
@@ -52,13 +40,6 @@ async function assertUserOrProjectPerm(
     const has = await hasProjectPerm(ctx, projectId, perm);
     if (!has) {
         throw new ForbiddenError(message ? message : `Missing permission: '${perm}'`);
-    }
-}
-
-async function assertRole(ctx: GqlContext, role: string, message?: string): Promise<void> {
-    const userRoles = await UserDao.rolesById(ctx.db, ctx.auth.userId);
-    if (!userRoles.includes(role)) {
-        throw new ForbiddenError(message ? message : `Missing role: '${role}`);
     }
 }
 

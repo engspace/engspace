@@ -1,99 +1,41 @@
-import { AuthToken, AppRolePolicies } from '@engspace/core';
-import { Db, DbPool } from '@engspace/server-db';
-import cors from '@koa/cors';
+import { AppRolePolicies } from '@engspace/core';
+import { DbPool } from '@engspace/server-db';
 import { ApolloLogExtension } from 'apollo-log';
 import { ApolloServer } from 'apollo-server-koa';
-import Koa, { Context, Next } from 'koa';
+import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
-import logger from 'koa-logger';
-import { authToken, setupAuth } from './auth';
-import { GqlLoaders, makeLoaders } from './loaders';
-import { setupPlayground } from './playground';
+import { attachDb, gqlContextFactory } from './internal';
 import { resolvers } from './resolvers';
 import { typeDefs } from './schema';
 
-export interface GqlContext {
-    koaCtx: Koa.Context;
-    auth: AuthToken;
-    rolePolicies: AppRolePolicies;
-    db: Db;
-    loaders: GqlLoaders;
-}
+export { setupAuth } from './auth';
+export { setupPlaygroundEndpoint, setupPlaygroundLogin } from './playground';
 
-const DB_SYMBOL = Symbol('@engspace/server-graphql/db');
-
-export function attachDb(pool: DbPool, path: string) {
-    return async (ctx: Context, next: Next): Promise<void> => {
-        if (ctx.path !== path) {
-            return next();
-        }
-        const attachAndCallNext = async (db: Db): Promise<void> => {
-            (ctx.state as any)[DB_SYMBOL] = db;
-            await next();
-            delete (ctx.state as any)[DB_SYMBOL];
-        };
-        if (ctx.method === 'GET') {
-            return pool.connect(attachAndCallNext);
-        } else if (ctx.method === 'POST') {
-            return pool.transaction(attachAndCallNext);
-        } else {
-            throw new Error(`unsupported HTTP method for graphql: ${ctx.method}`);
-        }
-    };
-}
-
-export function contextBuilder(rolePolicies: AppRolePolicies) {
-    return ({ ctx }): GqlContext => {
-        const gqlCtx = {
-            koaCtx: ctx,
-            auth: authToken(ctx),
-            rolePolicies,
-            db: ctx.state[DB_SYMBOL],
-            loaders: null,
-        };
-        gqlCtx.loaders = makeLoaders(gqlCtx);
-        return gqlCtx;
-    };
-}
-
-export async function buildGqlApp(pool: DbPool, rolePolicies: AppRolePolicies): Promise<Koa> {
+export function initGqlApp(): Koa {
     const app = new Koa();
-    app.use(logger());
     app.use(
         bodyParser({
             enableTypes: ['json', 'text', 'form'],
         })
     );
-    app.use(
-        cors({
-            keepHeadersOnError: true,
-        })
-    );
+    return app;
+}
 
-    setupPlayground(app, pool, rolePolicies);
-
-    setupAuth(app, pool, rolePolicies);
-
+export function setupGqlEndpoint(app: Koa, pool: DbPool, rolePolicies: AppRolePolicies): void {
     app.use(attachDb(pool, '/graphql'));
 
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    const extensions = [() => new ApolloLogExtension()];
-
+    const extensions = [(): ApolloLogExtension => new ApolloLogExtension()];
     const graphQL = new ApolloServer({
         typeDefs,
         resolvers,
         introspection: false,
         playground: false,
         extensions,
-        context: contextBuilder(rolePolicies),
+        context: gqlContextFactory(rolePolicies),
     });
     app.use(
         graphQL.getMiddleware({
             path: '/graphql',
         })
     );
-
-    setupPlayground(app, pool, rolePolicies);
-
-    return app;
 }

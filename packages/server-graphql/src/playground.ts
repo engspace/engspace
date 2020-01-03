@@ -1,3 +1,4 @@
+import { AppRolePolicies } from '@engspace/core';
 import { DbPool, LoginDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import { ApolloServer } from 'apollo-server-koa';
@@ -7,13 +8,12 @@ import Koa from 'koa';
 import send from 'koa-send';
 import session from 'koa-session';
 import path from 'path';
-import { attachDb, contextBuilder } from '.';
-import { AUTH_TOKEN_SYMBOL, signToken, verifyToken } from './auth';
+import { signToken, verifyToken } from './auth';
+import { attachDb, AUTH_TOKEN_SYMBOL, gqlContextFactory } from './internal';
 import { resolvers } from './resolvers';
 import { typeDefs } from './schema';
-import { AppRolePolicies } from '@engspace/core';
 
-export function setupPlayground(app: Koa, pool: DbPool, rolePolicies: AppRolePolicies): void {
+export function setupPlaygroundLogin(app: Koa, pool: DbPool, rolePolicies: AppRolePolicies): void {
     app.keys = config.get<string[]>('sessionSigningKeys');
     app.use(session(app));
 
@@ -58,7 +58,13 @@ export function setupPlayground(app: Koa, pool: DbPool, rolePolicies: AppRolePol
 
     app.use(router.routes());
     app.use(router.allowedMethods());
+}
 
+export function setupPlaygroundEndpoint(
+    app: Koa,
+    pool: DbPool,
+    rolePolicies: AppRolePolicies
+): void {
     app.use(
         async (ctx, next): Promise<void> => {
             if (ctx.path !== '/graphql/playground') {
@@ -90,7 +96,7 @@ export function setupPlayground(app: Koa, pool: DbPool, rolePolicies: AppRolePol
                 'request.credentials': 'same-origin',
             },
         },
-        context: contextBuilder(rolePolicies),
+        context: gqlContextFactory(rolePolicies),
     });
 
     app.use(

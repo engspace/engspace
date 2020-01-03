@@ -1,14 +1,14 @@
 import {
     Id,
     Project,
+    ProjectInput,
     ProjectMember,
+    ProjectMemberInput,
     User,
     UserInput,
-    ProjectInput,
-    ProjectMemberInput,
 } from '@engspace/core';
-import { GqlContext } from '.';
-import { ProjectControl, UserControl, MemberControl } from './controllers';
+import { MemberControl, ProjectControl, UserControl } from './controllers';
+import { GqlContext } from './internal';
 
 export const resolvers = {
     Query: {

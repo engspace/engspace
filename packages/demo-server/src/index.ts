@@ -1,11 +1,32 @@
 import { buildDefaultAppRolePolicies } from '@engspace/core';
 import { populateDemo } from '@engspace/demo-data';
-import { createDbPool, initSchema } from '@engspace/server-db';
-import { buildGqlApp } from '@engspace/server-graphql';
+import { createDbPool, DbPool, initSchema } from '@engspace/server-db';
+import { initGqlApp, setupPlaygroundLogin, setupAuth, setupPlaygroundEndpoint, setupGqlEndpoint } from '@engspace/server-graphql';
+import cors from '@koa/cors';
+import Koa from 'koa';
+import logger from 'koa-logger';
 import config from 'config';
 import events from 'events';
 
 events.EventEmitter.defaultMaxListeners = 100;
+
+function buildGqlApp(pool: DbPool): Koa {
+    const policies = buildDefaultAppRolePolicies();
+
+    const app = initGqlApp();
+    app.use(logger());
+    app.use(cors({
+        keepHeadersOnError: true
+    }));
+
+    setupPlaygroundLogin(app, pool, policies);
+    setupPlaygroundEndpoint(app, pool, policies);
+
+    setupAuth(app, pool, policies);
+    setupGqlEndpoint(app, pool, policies);
+
+    return app;
+}
 
 createDbPool(config.get('db'))
     .then(async pool => {
@@ -15,7 +36,7 @@ createDbPool(config.get('db'))
     })
     .then(async pool => {
         const { port } = config.get('server');
-        const app = await buildGqlApp(pool, buildDefaultAppRolePolicies());
+        const app = buildGqlApp(pool);
         app.listen(port, () => {
             console.log(`Demo API listening to port ${port}`);
         });
