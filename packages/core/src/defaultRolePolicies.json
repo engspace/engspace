@@ -1,7 +1,13 @@
 {
     "user": {
         "user": {
-            "permissions": ["user.read", "project.read", "member.read"]
+            "permissions": [
+                "user.read",
+                "project.read",
+                "member.read",
+                "document.read",
+                "document.revise"
+            ]
         },
         "manager": {
             "inherits": "user",
