@@ -53,4 +53,44 @@ CREATE TABLE project_member_role (
     PRIMARY KEY(member_id, role),
     FOREIGN KEY(member_id) REFERENCES project_member(id)
             ON DELETE CASCADE
-)
+);
+
+CREATE TABLE document (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    name text NOT NULL,
+    description text,
+    created_by uuid NOT NULL,
+    created_at timestamptz NOT NULL,
+    checkout uuid,
+
+    FOREIGN KEY(created_by) REFERENCES "user"(id),
+    FOREIGN KEY(checkout) REFERENCES "user"(id)
+);
+
+CREATE TABLE document_revision (
+    id serial PRIMARY KEY,
+    document_id uuid NOT NULL,
+    revision integer NOT NULL,
+    filename text NOT NULL,
+    filesize integer NOT NULL,
+    change_description text,
+    sha1 bytea NOT NULL,
+    author uuid NOT NULL,
+    created_at timestamptz NOT NULL,
+
+    uploaded integer,
+    upload_checked boolean,
+
+    UNIQUE(document_id, revision),
+    FOREIGN KEY(document_id) REFERENCES document(id),
+    FOREIGN KEY(author) REFERENCES "user"(id)
+);
+
+CREATE TABLE document_page (
+    doc_rev_id integer NOT NULL,
+    pageno integer NOT NULL,
+    sha1 bytea NOT NULL,
+
+    PRIMARY KEY(doc_rev_id, pageno),
+    FOREIGN KEY(doc_rev_id) REFERENCES document_revision(id)
+);
