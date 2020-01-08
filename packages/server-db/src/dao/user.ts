@@ -15,7 +15,7 @@ export class UserDao {
     static async create(db: Db, user: UserInput): Promise<User> {
         const row: User = await db.one(sql`
             INSERT INTO "user"(name, email, full_name, updated_on)
-            VALUES(${user.name}, ${user.email}, ${user.fullName}, now())
+            VALUES(${user.name}, ${user.email}, ${user.fullName}, NOW())
             RETURNING id, name, email, full_name
         `);
         if (user.roles && user.roles.length) {

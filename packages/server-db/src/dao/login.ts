@@ -21,7 +21,7 @@ export class LoginDao {
     static async create(db: Db, userId: Id, password: string): Promise<void> {
         await db.query(sql`
             INSERT INTO user_login(user_id, password, updated_on)
-            VALUES(${userId}, crypt(${password}, gen_salt('bf')), now())
+            VALUES(${userId}, crypt(${password}, gen_salt('bf')), NOW())
         `);
     }
 
@@ -62,7 +62,7 @@ export class LoginDao {
         await db.query(sql`
             UPDATE user_login SET
                 password = crypt(${password}, gen_salt('bf')),
-                updated_on = now()
+                updated_on = NOW()
             WHERE
                 user_id = ${userId}
         `);

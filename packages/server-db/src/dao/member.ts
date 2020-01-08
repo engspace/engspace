@@ -19,7 +19,7 @@ export class MemberDao {
             INSERT INTO project_member(
                 project_id, user_id, updated_on
             ) VALUES (
-                ${projectId}, ${userId}, now()
+                ${projectId}, ${userId}, NOW()
             )
             RETURNING id, project_id, user_id
         `);

@@ -18,7 +18,7 @@ export class ProjectDao {
             INSERT INTO project (
                 code, name, description, updated_on
             ) VALUES (
-                ${code}, ${name}, ${description}, now()
+                ${code}, ${name}, ${description}, NOW()
             ) RETURNING
                 id, code, name, description
         `);
