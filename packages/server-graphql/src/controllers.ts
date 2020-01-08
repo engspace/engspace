@@ -1,4 +1,9 @@
 import {
+    Document,
+    DocumentInput,
+    DocumentRevision,
+    DocumentRevisionInput,
+    DocumentSearch,
     Id,
     Project,
     ProjectInput,
@@ -7,7 +12,13 @@ import {
     User,
     UserInput,
 } from '@engspace/core';
-import { MemberDao, ProjectDao, UserDao } from '@engspace/server-db';
+import {
+    DocumentDao,
+    DocumentRevisionDao,
+    MemberDao,
+    ProjectDao,
+    UserDao,
+} from '@engspace/server-db';
 import { ForbiddenError } from 'apollo-server-koa';
 import { GqlContext } from './internal';
 
@@ -180,5 +191,62 @@ export class MemberControl {
         const mem = await MemberDao.byId(ctx.db, id);
         await assertUserOrProjectPerm(ctx, mem.project.id, 'member.delete');
         return MemberDao.deleteById(ctx.db, id);
+    }
+}
+
+export class DocumentControl {
+    static async create(ctx: GqlContext, document: DocumentInput): Promise<Document> {
+        assertUserPerm(ctx, 'document.create');
+        return DocumentDao.create(ctx.db, document, ctx.auth.userId);
+    }
+
+    static async byId(ctx: GqlContext, id: Id): Promise<Document | null> {
+        assertUserPerm(ctx, 'document.read');
+        return DocumentDao.byId(ctx.db, id);
+    }
+
+    static async search(
+        ctx: GqlContext,
+        search: string,
+        offset: number,
+        limit: number
+    ): Promise<DocumentSearch> {
+        assertUserPerm(ctx, 'document.read');
+        return DocumentDao.search(ctx.db, search, offset, limit);
+    }
+
+    static async checkout(ctx: GqlContext, id: Id): Promise<Document | null> {
+        assertUserPerm(ctx, 'document.revise');
+        return DocumentDao.checkout(ctx.db, id, ctx.auth.userId);
+    }
+
+    static async discardCheckout(ctx: GqlContext, id: Id): Promise<Document | null> {
+        assertUserPerm(ctx, 'document.revise');
+        return DocumentDao.discardCheckout(ctx.db, id, ctx.auth.userId);
+    }
+}
+
+export class DocumentRevisionControl {
+    static async create(ctx: GqlContext, docRev: DocumentRevisionInput): Promise<DocumentRevision> {
+        assertUserPerm(ctx, 'document.revise');
+        return DocumentRevisionDao.create(ctx.db, docRev, ctx.auth.userId);
+    }
+
+    static async byId(ctx: GqlContext, id: Id): Promise<DocumentRevision | null> {
+        assertUserPerm(ctx, 'document.read');
+        return DocumentRevisionDao.byId(ctx.db, id);
+    }
+
+    static async byDocumentId(ctx: GqlContext, documentId: Id): Promise<DocumentRevision[]> {
+        assertUserPerm(ctx, 'document.read');
+        return DocumentRevisionDao.byDocumentId(ctx.db, documentId);
+    }
+
+    static async lastByDocumentId(
+        ctx: GqlContext,
+        documentId: Id
+    ): Promise<DocumentRevision | null> {
+        assertUserPerm(ctx, 'document.read');
+        return DocumentRevisionDao.lastByDocumentId(ctx.db, documentId);
     }
 }

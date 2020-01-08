@@ -9,6 +9,7 @@ import { resolvers } from './resolvers';
 import { typeDefs } from './schema';
 
 export { setupAuth } from './auth';
+export { setupDocumentAPI } from './document';
 export { setupPlaygroundEndpoint, setupPlaygroundLogin } from './playground';
 
 export function initGqlApp(): Koa {
@@ -31,6 +32,10 @@ export function setupGqlEndpoint(app: Koa, pool: DbPool, rolePolicies: AppRolePo
         introspection: false,
         playground: false,
         extensions,
+        formatError(err) {
+            console.log(err);
+            return err;
+        },
         context: gqlContextFactory(rolePolicies),
     });
     app.use(
