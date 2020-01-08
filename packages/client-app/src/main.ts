@@ -7,6 +7,14 @@ import store from './store';
 
 Vue.config.productionTip = false;
 
+Vue.mixin({
+    methods: {
+        hasUserPerm(perm: string): boolean {
+            return this.$store.getters.userPermissions.includes(perm);
+        },
+    },
+});
+
 new Vue({
     router,
     store,

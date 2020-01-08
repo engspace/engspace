@@ -20,11 +20,13 @@
                     </template>
                 </v-data-table>
             </search-panel>
+            <document-search-panel></document-search-panel>
         </v-expansion-panels>
     </div>
 </template>
 
 <script>
+import DocumentSearchPanel from '../components/DocumentSearchPanel.vue';
 import SearchPanel from '../components/SearchPanel.vue';
 import gql from 'graphql-tag';
 import { PROJECT_FIELDS } from '../graphql';
@@ -44,7 +46,10 @@ const SEARCH_PROJECT = gql`
 `;
 
 export default {
-    components: { SearchPanel },
+    components: {
+        DocumentSearchPanel,
+        SearchPanel,
+    },
     data() {
         const projectHeaders = [
             { text: 'Name', value: 'name' },

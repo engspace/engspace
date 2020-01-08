@@ -1,7 +1,7 @@
 import jwtDecode from 'jwt-decode';
 import Vue from 'vue';
 import Vuex from 'vuex';
-import { AuthToken } from '@engspace/core';
+import { AuthToken, Id } from '@engspace/core';
 
 Vue.use(Vuex);
 
@@ -16,10 +16,13 @@ export default new Vuex.Store({
     getters: {
         isAuth: state => !!state.token,
         auth: (state): AuthToken | null => (state.token ? jwtDecode(state.token) : null),
-        userPermissions: (state, getters): string[] => {
+        userPermissions: (state, getters): string[] | null => {
             const auth: AuthToken = getters.auth;
-            if (!auth) return [];
-            return auth.userPerms;
+            return auth ? auth.userPerms : null;
+        },
+        userId: (state, getters): Id | null => {
+            const auth: AuthToken = getters.auth;
+            return auth ? auth.userId : null;
         },
     },
     actions: {
