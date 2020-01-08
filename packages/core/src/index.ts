@@ -1,6 +1,6 @@
-import { RolePolicy, buildRolePolicy } from './permissions';
-import { Id } from './schema';
 import defaultRolePolicies from './defaultRolePolicies.json';
+import { buildRolePolicy, RolePolicy } from './permissions';
+import { Id } from './schema';
 
 export { CProject, CUser } from './ctor';
 export {
@@ -11,6 +11,12 @@ export {
     UnknownRoleError,
 } from './permissions';
 export {
+    DateTime,
+    Document,
+    DocumentInput,
+    DocumentRevision,
+    DocumentRevisionInput,
+    DocumentSearch,
     Id,
     Project,
     ProjectEx,

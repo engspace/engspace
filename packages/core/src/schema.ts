@@ -1,4 +1,5 @@
 export type Id = string;
+export type DateTime = number;
 
 export type IdOr<T extends { id: Id }> = { id: Id } | T;
 
@@ -42,4 +43,49 @@ export interface ProjectMember {
     project: IdOr<Project>;
     user: IdOr<User>;
     roles?: string[];
+}
+
+export interface DocumentInput {
+    name: string;
+    description: string;
+    initialCheckout: boolean;
+}
+
+export interface Document {
+    id: Id;
+    name: string;
+    description: string;
+    createdBy: IdOr<User>;
+    createdAt: DateTime;
+    checkout: IdOr<User>;
+    revisions?: DocumentRevision[];
+    lastRevision?: DocumentRevision;
+}
+
+export interface DocumentRevisionInput {
+    documentId: Id;
+    filename: string;
+    filesize: number;
+    sha1: string;
+    changeDescription: string;
+    retainCheckout: boolean;
+}
+
+export interface DocumentRevision {
+    id: Id;
+    document: IdOr<Document>;
+    revision: number;
+    filename: string;
+    filesize: number;
+    sha1: string;
+    changeDescription: string;
+    author: IdOr<User>;
+    createdAt: DateTime;
+    uploaded: number;
+    uploadChecked: boolean;
+}
+
+export interface DocumentSearch {
+    count: number;
+    documents: Document[];
 }
