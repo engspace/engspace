@@ -8,13 +8,13 @@ CREATE TABLE "user" (
     name text NOT NULL UNIQUE,
     email text NOT NULL UNIQUE,
     full_name text NOT NULL,
-    updated_on timestamp NOT NULL
+    updated_on timestamptz NOT NULL
 );
 
 CREATE TABLE user_login (
     user_id uuid PRIMARY KEY,
     password text NOT NULL,
-    updated_on timestamp NOT NULL,
+    updated_on timestamptz NOT NULL,
 
     FOREIGN KEY(user_id) REFERENCES "user"(id) ON DELETE CASCADE
 );
@@ -32,14 +32,14 @@ CREATE TABLE project (
     name text NOT NULL,
     code text NOT NULL UNIQUE,
     description text,
-    updated_on timestamp NOT NULL
+    updated_on timestamptz NOT NULL
 );
 
 CREATE TABLE project_member (
     id serial PRIMARY KEY NOT NULL,
     project_id uuid NOT NULL,
     user_id uuid NOT NULL,
-    updated_on timestamp NOT NULL,
+    updated_on timestamptz NOT NULL,
 
     UNIQUE(project_id, user_id),
     FOREIGN KEY(project_id) REFERENCES project(id) ON DELETE CASCADE,
