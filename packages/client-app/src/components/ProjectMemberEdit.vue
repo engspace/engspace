@@ -49,7 +49,7 @@ import UserFinder from './UserFinder';
 
 const UPDATE_MEMBER = gql`
     mutation UpdateMemberRoles($id: ID!, $roles: [String!]) {
-        updateProjectMemberRoles(id: $id, roles: $roles) {
+        projectMemberUpdateRoles(id: $id, roles: $roles) {
             ...ProjectMemberFields
         }
     }
@@ -58,7 +58,7 @@ const UPDATE_MEMBER = gql`
 
 const CREATE_MEMBER = gql`
     mutation CreateMember($projectMember: ProjectMemberInput!) {
-        createProjectMember(projectMember: $projectMember) {
+        projectMemberCreate(projectMember: $projectMember) {
             ...ProjectMemberFields
         }
     }
@@ -67,7 +67,7 @@ const CREATE_MEMBER = gql`
 
 const DELETE_MEMBER = gql`
     mutation DeleteMember($id: ID!) {
-        deleteProjectMember(id: $id)
+        projectMemberDelete(id: $id)
     }
 `;
 
@@ -122,7 +122,7 @@ export default {
                         },
                     },
                 });
-                const newMember = resp.data.createProjectMember;
+                const newMember = resp.data.projectMemberCreate;
                 if (newMember) {
                     this.edited.push(newMember);
                     this.error = '';
@@ -153,7 +153,7 @@ export default {
                         roles: newRoles.length ? newRoles : null,
                     },
                 });
-                newMember = resp.data.updateProjectMemberRoles;
+                newMember = resp.data.projectMemberUpdateRoles;
                 this.error = '';
             } catch (err) {
                 this.error = err.message;
@@ -174,7 +174,7 @@ export default {
                         id: member.id,
                     },
                 });
-                if (resp.data.deleteProjectMember) {
+                if (resp.data.projectMemberDelete) {
                     this.edited = this.edited.filter(m => m.user.id !== member.user.id);
                 }
             } catch (err) {

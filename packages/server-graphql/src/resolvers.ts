@@ -187,10 +187,10 @@ export const resolvers = {
         },
     },
     Mutation: {
-        async createUser(parent, { user }: { user: UserInput }, ctx: GqlContext): Promise<User> {
+        async userCreate(parent, { user }: { user: UserInput }, ctx: GqlContext): Promise<User> {
             return UserControl.create(ctx, user);
         },
-        async updateUser(
+        async userUpdate(
             parent,
             { id, user }: { id: Id; user: UserInput },
             ctx: GqlContext
@@ -198,14 +198,14 @@ export const resolvers = {
             return UserControl.update(ctx, id, user);
         },
 
-        async createProject(
+        async projectCreate(
             parent,
             { project }: { project: ProjectInput },
             ctx: GqlContext
         ): Promise<Project> {
             return ProjectControl.create(ctx, project);
         },
-        async updateProject(
+        async projectUpdate(
             parent,
             { id, project }: { id: Id; project: ProjectInput },
             ctx: GqlContext
@@ -213,26 +213,26 @@ export const resolvers = {
             return ProjectControl.update(ctx, id, project);
         },
 
-        async createProjectMember(
+        async projectMemberCreate(
             parent,
             { projectMember }: { projectMember: ProjectMemberInput },
             ctx: GqlContext
         ): Promise<ProjectMember> {
             return MemberControl.create(ctx, projectMember);
         },
-        async updateProjectMemberRoles(
+        async projectMemberUpdateRoles(
             parent,
             { id, roles }: { id: Id; roles: string[] },
             ctx: GqlContext
         ): Promise<ProjectMember> {
             return MemberControl.updateRolesById(ctx, id, roles);
         },
-        async deleteProjectMember(parent, { id }: { id: Id }, ctx: GqlContext): Promise<boolean> {
+        async projectMemberDelete(parent, { id }: { id: Id }, ctx: GqlContext): Promise<boolean> {
             await MemberControl.deleteById(ctx, id);
             return true;
         },
 
-        async createDocument(
+        async documentCreate(
             parent,
             { document }: { document: DocumentInput },
             ctx: GqlContext
@@ -240,11 +240,11 @@ export const resolvers = {
             return DocumentControl.create(ctx, document);
         },
 
-        async checkoutDocument(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Document> {
+        async documentCheckout(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Document> {
             return DocumentControl.checkout(ctx, id);
         },
 
-        async discardCheckoutDocument(
+        async documentDiscardCheckout(
             parent,
             { id }: { id: Id },
             ctx: GqlContext
@@ -252,7 +252,7 @@ export const resolvers = {
             return DocumentControl.discardCheckout(ctx, id);
         },
 
-        async reviseDocument(
+        async documentRevise(
             parent,
             { documentRevision }: { documentRevision: DocumentRevisionInput },
             ctx: GqlContext

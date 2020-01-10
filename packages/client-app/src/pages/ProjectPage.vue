@@ -101,7 +101,7 @@ const GET_PROJECT_BY_CODE = gql`
 
 const UPDATE_PROJECT = gql`
     mutation UpdateProject($id: ID!, $project: ProjectInput!) {
-        updateProject(id: $id, project: $project) {
+        projectUpdate(id: $id, project: $project) {
             ...ProjectFields
         }
     }
@@ -194,7 +194,7 @@ export default {
                         project: { code, name, description },
                     },
                 });
-                const newProj = resp.data.updateProject;
+                const newProj = resp.data.projectUpdate;
                 newProj.members = this.project.members;
                 this.project = newProj;
                 this.projectError = '';

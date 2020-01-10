@@ -94,7 +94,7 @@ const GET_USER = gql`
 
 const UPDATE_USER = gql`
     mutation UpdateUser($id: ID!, $user: UserInput!) {
-        updateUser(id: $id, user: $user) {
+        userUpdate(id: $id, user: $user) {
             id
             name
             email
@@ -106,7 +106,7 @@ const UPDATE_USER = gql`
 
 const CREATE_USER = gql`
     mutation CreateUser($user: UserInput!) {
-        createUser(user: $user) {
+        userCreate(user: $user) {
             id
         }
     }
@@ -161,7 +161,7 @@ export default {
                         user: { name, email, fullName, roles },
                     },
                 });
-                this.currentUser = res.data.updateUser;
+                this.currentUser = res.data.userUpdate;
                 this.$refs.userFinder.notifyUpdate(res.data.updateUser);
                 await this.$refs.updateBtn.animate();
                 this.editing = false;

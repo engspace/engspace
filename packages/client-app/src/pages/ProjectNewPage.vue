@@ -17,7 +17,7 @@ import { PROJECT_FIELDS } from '../graphql';
 
 const CREATE_PROJECT = gql`
     mutation CreateProject($project: ProjectInput!) {
-        createProject(project: $project) {
+        projectCreate(project: $project) {
             ...ProjectFields
         }
     }
@@ -50,7 +50,7 @@ export default {
                 });
                 await this.$refs.projectEditComp.animateSuccess();
                 this.error = '';
-                const { id } = resp.data.createProject;
+                const { id } = resp.data.projectCreate;
                 this.$router.push(`/project/${id}`);
             } catch (err) {
                 this.error = err.message;

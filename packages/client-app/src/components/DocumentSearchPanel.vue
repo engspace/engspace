@@ -63,11 +63,10 @@ export default {
     },
     methods: {
         checkout(doc) {
-            //const index = this.documentSearch.documents.findIndex(d => d.id === doc.id);
             this.$apollo.mutate({
                 mutation: gql`
                     mutation CheckoutDoc($id: ID!) {
-                        checkoutDocument(id: $id) {
+                        documentCheckout(id: $id) {
                             ...DocumentFields
                             lastRevision {
                                 ...DocumentRevFields
@@ -80,19 +79,13 @@ export default {
                 variables: {
                     id: doc.id,
                 },
-                // update: (store, { data: { checkoutDocument } }) => {
-                //     const data = store.readQuery(this.apollo.documentSearch);
-                //     this.$set(data.documentSearch.documents, index, checkoutDocument);
-                //     store.writeQuery({ ...this.apollo.documentSearch, data });
-                // },
             });
         },
         discardCheckout(doc) {
-            //const index = this.documentSearch.documents.findIndex(d => d.id === doc.id);
             this.$apollo.mutate({
                 mutation: gql`
                     mutation CheckoutDoc($id: ID!) {
-                        discardCheckoutDocument(id: $id) {
+                        documentDiscardCheckout(id: $id) {
                             ...DocumentFields
                             lastRevision {
                                 ...DocumentRevFields
@@ -105,11 +98,6 @@ export default {
                 variables: {
                     id: doc.id,
                 },
-                // update: (store, { data: { discardCheckoutDocument } }) => {
-                //     const data = store.readQuery(this.apollo.documentSearch);
-                //     this.$set(data.documentSearch.documents, index, discardCheckoutDocument);
-                //     store.writeQuery({ ...this.apollo.documentSearch, data });
-                // },
             });
         },
     },

@@ -114,19 +114,19 @@ export const typeDefs = gql`
     }
 
     type Mutation {
-        createUser(user: UserInput!): User!
-        updateUser(id: ID!, user: UserInput!): User!
+        userCreate(user: UserInput!): User!
+        userUpdate(id: ID!, user: UserInput!): User!
 
-        createProject(project: ProjectInput!): Project!
-        updateProject(id: ID!, project: ProjectInput!): Project!
+        projectCreate(project: ProjectInput!): Project!
+        projectUpdate(id: ID!, project: ProjectInput!): Project!
 
-        createProjectMember(projectMember: ProjectMemberInput!): ProjectMember!
-        updateProjectMemberRoles(id: ID!, roles: [String!]): ProjectMember!
-        deleteProjectMember(id: ID!): Boolean!
+        projectMemberCreate(projectMember: ProjectMemberInput!): ProjectMember!
+        projectMemberUpdateRoles(id: ID!, roles: [String!]): ProjectMember!
+        projectMemberDelete(id: ID!): Boolean!
 
-        createDocument(document: DocumentInput): Document!
-        checkoutDocument(id: ID!): Document
-        discardCheckoutDocument(id: ID!): Document
-        reviseDocument(documentRevision: DocumentRevisionInput): DocumentRevision!
+        documentCreate(document: DocumentInput): Document!
+        documentCheckout(id: ID!): Document
+        documentDiscardCheckout(id: ID!): Document
+        documentRevise(documentRevision: DocumentRevisionInput): DocumentRevision!
     }
 `;
