@@ -8,7 +8,7 @@ import { attachDb, gqlContextFactory } from './internal';
 import { resolvers } from './resolvers';
 import { typeDefs } from './schema';
 
-export { setupAuth } from './auth';
+export { authToken, checkAuth, setupAuth } from './auth';
 export { setupDocumentAPI } from './document';
 export { setupPlaygroundEndpoint, setupPlaygroundLogin } from './playground';
 
@@ -22,8 +22,13 @@ export function initGqlApp(): Koa {
     return app;
 }
 
-export function setupGqlEndpoint(app: Koa, pool: DbPool, rolePolicies: AppRolePolicies): void {
-    app.use(attachDb(pool, '/graphql'));
+export function setupGqlEndpoint(
+    path: string,
+    app: Koa,
+    pool: DbPool,
+    rolePolicies: AppRolePolicies
+): void {
+    app.use(attachDb(pool, path));
 
     const extensions = [(): ApolloLogExtension => new ApolloLogExtension()];
     const graphQL = new ApolloServer({
@@ -32,7 +37,7 @@ export function setupGqlEndpoint(app: Koa, pool: DbPool, rolePolicies: AppRolePo
         introspection: false,
         playground: false,
         extensions,
-        formatError(err) {
+        formatError(err): Error {
             console.log(err);
             return err;
         },
@@ -40,7 +45,7 @@ export function setupGqlEndpoint(app: Koa, pool: DbPool, rolePolicies: AppRolePo
     });
     app.use(
         graphQL.getMiddleware({
-            path: '/graphql',
+            path,
         })
     );
 }

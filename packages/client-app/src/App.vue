@@ -9,7 +9,7 @@
 
 <script>
 import HttpStatus from 'http-status-codes';
-import { rest, authHeader } from './rest';
+import { api, authHeader } from './api';
 import ToolBar from './components/ToolBar.vue';
 import { AUTH_LOGOUT_ACTION } from './store';
 
@@ -27,7 +27,7 @@ export default {
         if (this.$store.getters.isAuth) {
             // if already authenticated, we double check the token here
             // as it can have expired
-            const resp = await rest.get('/auth/check_token', { headers: authHeader() });
+            const resp = await api.get('/api/auth/check_token', { headers: authHeader() });
             if (resp.status !== HttpStatus.OK) {
                 this.$store.dispatch(AUTH_LOGOUT_ACTION);
                 this.$router.push('/login');

@@ -19,7 +19,7 @@
                             <v-text-field
                                 v-if="!useEmailAsUserId"
                                 v-model="name"
-                                prepend-icon="person"
+                                prepend-icon="mdi-account"
                                 name="userId"
                                 type="text"
                                 label="User Id"
@@ -27,7 +27,7 @@
                             />
                             <v-text-field
                                 v-model="email"
-                                prepend-icon="person"
+                                prepend-icon="mdi-email"
                                 name="email"
                                 type="email"
                                 label="E-Mail"
@@ -35,14 +35,14 @@
                             />
                             <v-text-field
                                 v-model="fullName"
-                                prepend-icon="person"
+                                prepend-icon="mdi-account"
                                 name="fullname"
                                 type="text"
                                 label="Full Name"
                             />
                             <v-text-field
                                 v-model="password"
-                                prepend-icon="lock"
+                                prepend-icon="mdi-lock"
                                 name="password"
                                 type="password"
                                 label="Password"
@@ -50,7 +50,7 @@
                             />
                             <v-text-field
                                 v-model="passwordCheck"
-                                prepend-icon="lock"
+                                prepend-icon="mdi-lock"
                                 name="password_check"
                                 type="password"
                                 required
@@ -72,7 +72,7 @@
 </template>
 
 <script>
-import { rest } from '../rest';
+import { api } from '../api';
 import { AUTH_LOGIN_ACTION } from '../store';
 
 export default {
@@ -91,7 +91,7 @@ export default {
     },
     async created() {
         try {
-            const resp = await rest.get('/auth/first_admin');
+            const resp = await api.get('/api/auth/first_admin');
             const { hasAdmin } = resp.data;
             if (hasAdmin) {
                 this.$router.push('/');
@@ -109,8 +109,8 @@ export default {
                 password: this.password,
                 manager: this.manager,
             };
-            await rest.post('/auth/first_admin', form);
-            const resp = await rest.post('/auth/login', {
+            await api.post('/api/auth/first_admin', form);
+            const resp = await api.post('/api/auth/login', {
                 nameOrEmail: form.name,
                 password: form.password,
             });

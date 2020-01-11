@@ -25,7 +25,7 @@ export function query(path: string, obj: any): string {
     return `${path}${buildQuery(obj)}`;
 }
 
-export const rest = axios.create({
+export const api = axios.create({
     baseURL: `http://${host}:${port}`,
     validateStatus: function(status) {
         console.log('validating status: ' + status);

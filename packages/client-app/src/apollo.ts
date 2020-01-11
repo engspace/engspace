@@ -13,7 +13,7 @@ const port = process.env.VUE_APP_API_PORT || 3000;
 
 // HTTP connection to the API
 const httpLink = createHttpLink({
-    uri: `http://${host}:${port}/graphql`,
+    uri: `http://${host}:${port}/api/graphql`,
     useGETForQueries: true,
 });
 

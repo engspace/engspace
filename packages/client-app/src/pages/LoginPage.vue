@@ -50,7 +50,7 @@
 
 <script>
 import HttpStatus from 'http-status-codes';
-import { rest } from '../rest';
+import { api } from '../api';
 
 import { AUTH_LOGIN_ACTION } from '../store';
 
@@ -72,7 +72,7 @@ export default {
     },
     async created() {
         try {
-            const resp = await rest.get('/auth/first_admin');
+            const resp = await api.get('/api/auth/first_admin');
             const { hasAdmin } = resp.data;
             if (!hasAdmin) {
                 this.$router.push('/first_admin');
@@ -89,7 +89,7 @@ export default {
             this.wrongCred = false;
             this.networkError = false;
             try {
-                const resp = await rest.post('/auth/login', { nameOrEmail, password });
+                const resp = await api.post('/api/auth/login', { nameOrEmail, password });
                 if (resp.status === HttpStatus.OK) {
                     this.$store.dispatch(AUTH_LOGIN_ACTION, resp.data.token);
                     const { redirect } = this.$route.query;

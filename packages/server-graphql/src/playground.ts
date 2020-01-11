@@ -13,19 +13,24 @@ import { attachDb, AUTH_TOKEN_SYMBOL, gqlContextFactory } from './internal';
 import { resolvers } from './resolvers';
 import { typeDefs } from './schema';
 
-export function setupPlaygroundLogin(app: Koa, pool: DbPool, rolePolicies: AppRolePolicies): void {
+export function setupPlaygroundLogin(
+    prefix: string,
+    app: Koa,
+    pool: DbPool,
+    rolePolicies: AppRolePolicies
+): void {
     app.keys = config.get<string[]>('sessionSigningKeys');
     app.use(session(app));
 
-    const router = new Router();
+    const router = new Router({ prefix });
 
-    router.get('/graphql/playground/login', async ctx => {
+    router.get('/login', async ctx => {
         await send(ctx, 'playground-login.html', {
             root: path.normalize(path.join(__dirname, '../pages')),
         });
     });
 
-    router.post('/graphql/playground/login', async ctx => {
+    router.post('/login', async ctx => {
         const { username, password } = ctx.request.body;
 
         ctx.assert(
@@ -50,42 +55,42 @@ export function setupPlaygroundLogin(app: Koa, pool: DbPool, rolePolicies: AppRo
                 userPerms: perms,
             });
             ctx.cookies.set('playground-token', token, { signed: true });
-            return ctx.redirect('/graphql/playground');
+            return ctx.redirect(prefix);
         } else {
             ctx.throw(HttpStatus.UNAUTHORIZED);
         }
     });
 
     app.use(router.routes());
-    app.use(router.allowedMethods());
 }
 
 export function setupPlaygroundEndpoint(
+    prefix: string,
     app: Koa,
     pool: DbPool,
     rolePolicies: AppRolePolicies
 ): void {
     app.use(
         async (ctx, next): Promise<void> => {
-            if (ctx.path !== '/graphql/playground') {
+            if (ctx.path !== prefix) {
                 return next();
             }
             const token = ctx.cookies.get('playground-token', { signed: true });
             if (!token) {
-                ctx.redirect('/graphql/playground/login');
+                ctx.redirect(prefix + '/login');
                 return;
             }
             try {
                 (ctx.state as any)[AUTH_TOKEN_SYMBOL] = await verifyToken(token);
             } catch (err) {
-                ctx.redirect('/graphql/playground/login?wrongCredentials=true');
+                ctx.redirect(prefix + '/login?wrongCredentials=true');
                 return;
             }
             return next();
         }
     );
 
-    app.use(attachDb(pool, '/graphql/playground'));
+    app.use(attachDb(pool, prefix));
 
     const playground = new ApolloServer({
         typeDefs,
@@ -101,7 +106,7 @@ export function setupPlaygroundEndpoint(
 
     app.use(
         playground.getMiddleware({
-            path: '/graphql/playground',
+            path: prefix,
         })
     );
 }

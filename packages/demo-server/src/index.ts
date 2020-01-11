@@ -1,7 +1,13 @@
 import { buildDefaultAppRolePolicies } from '@engspace/core';
 import { populateDemo } from '@engspace/demo-data';
 import { createDbPool, DbPool, initSchema } from '@engspace/server-db';
-import { initGqlApp, setupPlaygroundLogin, setupAuth, setupPlaygroundEndpoint, setupGqlEndpoint } from '@engspace/server-graphql';
+import {
+    initGqlApp,
+    setupPlaygroundLogin,
+    setupAuth,
+    setupPlaygroundEndpoint,
+    setupGqlEndpoint,
+} from '@engspace/server-graphql';
 import cors from '@koa/cors';
 import Koa from 'koa';
 import logger from 'koa-logger';
@@ -15,15 +21,18 @@ function buildGqlApp(pool: DbPool): Koa {
 
     const app = initGqlApp();
     app.use(logger());
-    app.use(cors({
-        keepHeadersOnError: true
-    }));
+    app.use(
+        cors({
+            keepHeadersOnError: true,
+        })
+    );
 
-    setupPlaygroundLogin(app, pool, policies);
-    setupPlaygroundEndpoint(app, pool, policies);
+    setupPlaygroundLogin('/gql-playground', app, pool, policies);
+    setupPlaygroundEndpoint('/gql-playground', app, pool, policies);
 
-    setupAuth(app, pool, policies);
-    setupGqlEndpoint(app, pool, policies);
+    setupAuth('/api/auth', app, pool, policies);
+
+    setupGqlEndpoint('/api/graphql', app, pool, policies);
 
     return app;
 }

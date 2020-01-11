@@ -43,10 +43,15 @@ export async function verifyToken(token: string): Promise<AuthToken> {
     });
 }
 
-export function setupAuth(app: Koa, pool: DbPool, rolePolicies: AppRolePolicies): void {
-    const restRouter = new Router();
+export function setupAuth(
+    prefix: string,
+    app: Koa,
+    pool: DbPool,
+    rolePolicies: AppRolePolicies
+): void {
+    const router = new Router({ prefix });
 
-    restRouter.post('/auth/login', async ctx => {
+    router.post('/login', async ctx => {
         const { nameOrEmail, password } = ctx.request.body;
 
         ctx.assert(
@@ -77,7 +82,7 @@ export function setupAuth(app: Koa, pool: DbPool, rolePolicies: AppRolePolicies)
         }
     });
 
-    restRouter.get('/auth/first_admin', async ctx => {
+    router.get('/first_admin', async ctx => {
         const result = await pool.connect(db =>
             UserDao.search(db, {
                 role: 'admin',
@@ -88,7 +93,7 @@ export function setupAuth(app: Koa, pool: DbPool, rolePolicies: AppRolePolicies)
         };
     });
 
-    restRouter.post('/auth/first_admin', async ctx => {
+    router.post('/first_admin', async ctx => {
         await pool.transaction(async db => {
             const adminSearch = await UserDao.search(db, {
                 role: 'admin',
@@ -114,11 +119,10 @@ export function setupAuth(app: Koa, pool: DbPool, rolePolicies: AppRolePolicies)
         });
     });
 
-    app.use(restRouter.routes());
-    app.use(restRouter.allowedMethods());
+    app.use(router.routes());
     app.use(checkAuth);
     app.use(async (ctx, next) => {
-        if (ctx.path === '/auth/check_token' && ctx.method === 'GET') {
+        if (ctx.path === prefix + '/check_token' && ctx.method === 'GET') {
             ctx.status = HttpStatus.OK;
         } else {
             await next();
