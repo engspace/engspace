@@ -7,7 +7,7 @@ import {
     setupAuth,
     setupPlaygroundEndpoint,
     setupGqlEndpoint,
-} from '@engspace/server-graphql';
+} from '@engspace/server-api';
 import cors from '@koa/cors';
 import Koa from 'koa';
 import logger from 'koa-logger';

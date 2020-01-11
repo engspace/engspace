@@ -10,7 +10,7 @@
     "include": [ "src" ],
     "references": [
         { "path": "../server-db", "prepend": false },
-        { "path": "../server-graphql", "prepend": false }
+        { "path": "../server-api", "prepend": false }
     ]
 
 }

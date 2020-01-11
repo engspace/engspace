@@ -1,5 +1,5 @@
 import { createDbPool, initSchema } from '@engspace/server-db';
-import { buildGqlApp } from '@engspace/server-graphql';
+import { buildGqlApp } from '@engspace/server-api';
 import config from 'config';
 import events from 'events';
 import { buildDefaultAppRolePolicies } from '@engspace/core';

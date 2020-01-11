@@ -7,6 +7,6 @@
     { "path": "./demo-server" },
     { "path": "./server-app" },
     { "path": "./server-db" },
-    { "path": "./server-graphql" }
+    { "path": "./server-api" }
   ]
 }

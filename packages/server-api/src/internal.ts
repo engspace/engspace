@@ -4,8 +4,8 @@ import Koa, { Context, Next } from 'koa';
 import { authToken } from './auth';
 import { GqlLoaders, makeLoaders } from './loaders';
 
-const DB_SYMBOL = Symbol('@engspace/server-graphql/db');
-export const AUTH_TOKEN_SYMBOL = Symbol('@engspace/server-graphql/authToken');
+const DB_SYMBOL = Symbol('@engspace/server-api/db');
+export const AUTH_TOKEN_SYMBOL = Symbol('@engspace/server-api/authToken');
 
 export interface GqlContext {
     koaCtx: Koa.Context;

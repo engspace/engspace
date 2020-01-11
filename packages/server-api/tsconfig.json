@@ -4,7 +4,7 @@
     "compilerOptions": {
         "outDir": "./dist",
         "rootDir": "./src",
-        "tsBuildInfoFile": "../../.build-cache/server-graphql.tsbuildinfo"
+        "tsBuildInfoFile": "../../.build-cache/server-api.tsbuildinfo"
     },
 
     "include": [ "src" ],

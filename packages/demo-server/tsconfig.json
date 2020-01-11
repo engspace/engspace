@@ -11,6 +11,6 @@
     "references": [
         { "path": "../demo-data", "prepend": false },
         { "path": "../server-db", "prepend": false },
-        { "path": "../server-graphql", "prepend": false }
+        { "path": "../server-api", "prepend": false }
     ]
 }

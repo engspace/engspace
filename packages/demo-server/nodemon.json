@@ -1,9 +1,4 @@
 {
-    "watch": [
-        "src",
-        "../server-graphql",
-        "../server-db",
-        "../server-core"
-    ],
+    "watch": ["src", "../server-api", "../server-db", "../server-core"],
     "ext": "ts,html,json"
 }

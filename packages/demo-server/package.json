@@ -19,7 +19,7 @@
     "dependencies": {
         "@engspace/demo-data": "^0.1.0",
         "@engspace/server-db": "^0.1.0",
-        "@engspace/server-graphql": "^0.1.0",
+        "@engspace/server-api": "^0.1.0",
         "@koa/cors": "^3.0.0",
         "config": "^3.2.4",
         "koa": "^2.11.0",
