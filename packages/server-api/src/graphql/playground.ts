@@ -1,5 +1,4 @@
-import { AppRolePolicies } from '@engspace/core';
-import { DbPool, LoginDao } from '@engspace/server-db';
+import { LoginDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import { ApolloServer } from 'apollo-server-koa';
 import config from 'config';
@@ -8,19 +7,18 @@ import Koa from 'koa';
 import send from 'koa-send';
 import session from 'koa-session';
 import path from 'path';
-import { signToken, verifyToken } from './auth';
-import { attachDb, AUTH_TOKEN_SYMBOL, gqlContextFactory } from './internal';
+import { EsServerConfig } from '../';
+import { signToken, verifyToken } from '../auth';
+import { attachDb, setAuthToken } from '../internal';
+import { gqlContextFactory } from './context';
 import { resolvers } from './resolvers';
 import { typeDefs } from './schema';
 
-export function setupPlaygroundLogin(
-    prefix: string,
-    app: Koa,
-    pool: DbPool,
-    rolePolicies: AppRolePolicies
-): void {
+export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServerConfig): void {
     app.keys = config.get<string[]>('sessionSigningKeys');
     app.use(session(app));
+
+    const { rolePolicies, pool } = esConfig;
 
     const router = new Router({ prefix });
 
@@ -64,12 +62,7 @@ export function setupPlaygroundLogin(
     app.use(router.routes());
 }
 
-export function setupPlaygroundEndpoint(
-    prefix: string,
-    app: Koa,
-    pool: DbPool,
-    rolePolicies: AppRolePolicies
-): void {
+export function setupPlaygroundEndpoint(prefix: string, app: Koa, config: EsServerConfig): void {
     app.use(
         async (ctx, next): Promise<void> => {
             if (ctx.path !== prefix) {
@@ -81,7 +74,8 @@ export function setupPlaygroundEndpoint(
                 return;
             }
             try {
-                (ctx.state as any)[AUTH_TOKEN_SYMBOL] = await verifyToken(token);
+                const authToken = await verifyToken(token);
+                setAuthToken(ctx, authToken);
             } catch (err) {
                 ctx.redirect(prefix + '/login?wrongCredentials=true');
                 return;
@@ -90,7 +84,7 @@ export function setupPlaygroundEndpoint(
         }
     );
 
-    app.use(attachDb(pool, prefix));
+    app.use(attachDb(config.pool, prefix));
 
     const playground = new ApolloServer({
         typeDefs,
@@ -101,7 +95,7 @@ export function setupPlaygroundEndpoint(
                 'request.credentials': 'same-origin',
             },
         },
-        context: gqlContextFactory(rolePolicies),
+        context: gqlContextFactory(config),
     });
 
     app.use(

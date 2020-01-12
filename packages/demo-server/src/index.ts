@@ -1,40 +1,33 @@
 import { buildDefaultAppRolePolicies } from '@engspace/core';
 import { populateDemo } from '@engspace/demo-data';
+import { EsServerApi } from '@engspace/server-api';
 import { createDbPool, DbPool, initSchema } from '@engspace/server-db';
-import {
-    initGqlApp,
-    setupPlaygroundLogin,
-    setupAuth,
-    setupPlaygroundEndpoint,
-    setupGqlEndpoint,
-} from '@engspace/server-api';
-import cors from '@koa/cors';
-import Koa from 'koa';
-import logger from 'koa-logger';
 import config from 'config';
 import events from 'events';
+import Koa from 'koa';
+import logger from 'koa-logger';
+import path from 'path';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
-function buildGqlApp(pool: DbPool): Koa {
-    const policies = buildDefaultAppRolePolicies();
+function buildServerApi(pool: DbPool): EsServerApi {
+    const app = new Koa();
+    const rolePolicies = buildDefaultAppRolePolicies();
+    const storePath = path.normalize(path.join(__dirname, '../file_store'));
 
-    const app = initGqlApp();
-    app.use(logger());
-    app.use(
-        cors({
-            keepHeadersOnError: true,
-        })
-    );
+    const api = new EsServerApi(app, {
+        pool,
+        rolePolicies,
+        storePath,
+        cors: true,
+    });
+    api.koa.use(logger());
 
-    setupPlaygroundLogin('/gql-playground', app, pool, policies);
-    setupPlaygroundEndpoint('/gql-playground', app, pool, policies);
+    api.setupPlayground('/graphql-playground');
+    api.setupAuthAndHttpRoutes('/api');
+    api.setupGqlEndpoint('/api/graphql');
 
-    setupAuth('/api/auth', app, pool, policies);
-
-    setupGqlEndpoint('/api/graphql', app, pool, policies);
-
-    return app;
+    return api;
 }
 
 createDbPool(config.get('db'))
@@ -44,9 +37,9 @@ createDbPool(config.get('db'))
         return pool;
     })
     .then(async pool => {
+        const api = buildServerApi(pool);
         const { port } = config.get('server');
-        const app = buildGqlApp(pool);
-        app.listen(port, () => {
+        api.koa.listen(port, () => {
             console.log(`Demo API listening to port ${port}`);
         });
     })

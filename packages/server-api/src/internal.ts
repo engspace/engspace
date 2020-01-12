@@ -1,19 +1,10 @@
-import { AppRolePolicies, AuthToken } from '@engspace/core';
+import { AuthToken } from '@engspace/core';
 import { Db, DbPool } from '@engspace/server-db';
-import Koa, { Context, Next } from 'koa';
-import { authToken } from './auth';
-import { GqlLoaders, makeLoaders } from './loaders';
+import HttpStatus from 'http-status-codes';
+import { Context, DefaultContext, Next } from 'koa';
 
 const DB_SYMBOL = Symbol('@engspace/server-api/db');
-export const AUTH_TOKEN_SYMBOL = Symbol('@engspace/server-api/authToken');
-
-export interface GqlContext {
-    koaCtx: Koa.Context;
-    auth: AuthToken;
-    rolePolicies: AppRolePolicies;
-    db: Db;
-    loaders: GqlLoaders;
-}
+const AUTH_TOKEN_SYMBOL = Symbol('@engspace/server-api/authToken');
 
 export function attachDb(pool: DbPool, path: string) {
     return async (ctx: Context, next: Next): Promise<void> => {
@@ -35,24 +26,18 @@ export function attachDb(pool: DbPool, path: string) {
     };
 }
 
-export interface HasKoaContext {
-    ctx: Koa.Context;
+export function getDb(ctx: DefaultContext): Db {
+    const db = (ctx.state as any)[DB_SYMBOL];
+    ctx.assert(db, HttpStatus.INTERNAL_SERVER_ERROR, 'getDb unsuccessful');
+    return db;
 }
 
-export interface GqlContextFactory {
-    (obj: HasKoaContext): GqlContext;
+export function setAuthToken(ctx: DefaultContext, token: AuthToken): void {
+    (ctx.state as any)[AUTH_TOKEN_SYMBOL] = token;
 }
 
-export function gqlContextFactory(rolePolicies: AppRolePolicies): GqlContextFactory {
-    return ({ ctx }): GqlContext => {
-        const gqlCtx = {
-            koaCtx: ctx,
-            auth: authToken(ctx),
-            rolePolicies,
-            db: (ctx.state as any)[DB_SYMBOL],
-            loaders: null,
-        };
-        gqlCtx.loaders = makeLoaders(gqlCtx);
-        return gqlCtx;
-    };
+export function getAuthToken(ctx: DefaultContext): AuthToken {
+    const up = (ctx.state as any)[AUTH_TOKEN_SYMBOL];
+    ctx.assert(up, HttpStatus.INTERNAL_SERVER_ERROR, 'getAuthToken unsuccessful');
+    return up;
 }

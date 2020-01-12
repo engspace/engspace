@@ -1,12 +1,9 @@
-import { AppRolePolicies, AuthToken } from '@engspace/core';
-import { DbPool, LoginDao, UserDao } from '@engspace/server-db';
-import Router from '@koa/router';
+import { AuthToken } from '@engspace/core';
 import crypto from 'crypto';
 import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
-import Koa, { Context, Next } from 'koa';
-import validator from 'validator';
-import { AUTH_TOKEN_SYMBOL } from './internal';
+import { Context, Next } from 'koa';
+import { setAuthToken } from './internal';
 
 const jwtSecret = crypto.randomBytes(32).toString('base64');
 
@@ -43,99 +40,13 @@ export async function verifyToken(token: string): Promise<AuthToken> {
     });
 }
 
-export function setupAuth(
-    prefix: string,
-    app: Koa,
-    pool: DbPool,
-    rolePolicies: AppRolePolicies
-): void {
-    const router = new Router({ prefix });
-
-    router.post('/login', async ctx => {
-        const { nameOrEmail, password } = ctx.request.body;
-
-        ctx.assert(
-            typeof nameOrEmail === 'string' && typeof password === 'string',
-            HttpStatus.BAD_REQUEST,
-            "login needs 'nameOrEmail' and 'password' in the request body"
-        );
-
-        ctx.assert(
-            nameOrEmail.length && password.length,
-            HttpStatus.BAD_REQUEST,
-            "'nameOrEmail' and 'password' cannot be empty"
-        );
-
-        const user = await pool.connect(async db => {
-            return LoginDao.login(db, nameOrEmail, password);
-        });
-        if (user) {
-            const perms = rolePolicies.user.permissions(user.roles);
-            ctx.body = {
-                token: await signToken({
-                    userId: user.id,
-                    userPerms: perms,
-                }),
-            };
-        } else {
-            ctx.throw(HttpStatus.UNAUTHORIZED);
-        }
-    });
-
-    router.get('/first_admin', async ctx => {
-        const result = await pool.connect(db =>
-            UserDao.search(db, {
-                role: 'admin',
-            })
-        );
-        ctx.response.body = {
-            hasAdmin: result.count >= 1,
-        };
-    });
-
-    router.post('/first_admin', async ctx => {
-        await pool.transaction(async db => {
-            const adminSearch = await UserDao.search(db, {
-                role: 'admin',
-            });
-            ctx.assert(adminSearch.count >= 1, HttpStatus.FORBIDDEN);
-            const { name, email, fullName, password } = ctx.request.body;
-            ctx.assert(
-                typeof name === 'string' && name.length > 0,
-                HttpStatus.BAD_REQUEST,
-                'empty name'
-            );
-            ctx.assert(validator.isEmail(email), HttpStatus.BAD_REQUEST, 'wrong email format');
-
-            ctx.assert(
-                typeof password === 'string' && password.length > 0,
-                HttpStatus.BAD_REQUEST,
-                'missing password'
-            );
-
-            const user = await UserDao.create(db, { name, email, fullName, roles: ['admin'] });
-            await LoginDao.create(db, user.id, password);
-            ctx.response.body = user;
-        });
-    });
-
-    app.use(router.routes());
-    app.use(checkAuth);
-    app.use(async (ctx, next) => {
-        if (ctx.path === prefix + '/check_token' && ctx.method === 'GET') {
-            ctx.status = HttpStatus.OK;
-        } else {
-            await next();
-        }
-    });
-}
-
 export async function checkAuth(ctx: Context, next: Next): Promise<void> {
     const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
     if (header) {
         const token = header.startsWith('Bearer ') ? header.slice(7) : header;
         try {
-            (ctx.state as any)[AUTH_TOKEN_SYMBOL] = await verifyToken(token);
+            const authToken = await verifyToken(token);
+            setAuthToken(ctx, authToken);
         } catch (err) {
             console.error(err);
             ctx.throw(HttpStatus.FORBIDDEN);
@@ -144,10 +55,4 @@ export async function checkAuth(ctx: Context, next: Next): Promise<void> {
     } else {
         ctx.throw(HttpStatus.UNAUTHORIZED);
     }
-}
-
-export function authToken(ctx: Context): AuthToken {
-    const up = (ctx.state as any)[AUTH_TOKEN_SYMBOL];
-    ctx.assert(up, HttpStatus.INTERNAL_SERVER_ERROR, 'userToken called without checkAuth');
-    return up;
 }

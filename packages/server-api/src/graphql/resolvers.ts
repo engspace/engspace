@@ -3,6 +3,7 @@ import {
     DocumentInput,
     DocumentRevision,
     DocumentRevisionInput,
+    DocumentSearch,
     Id,
     Project,
     ProjectInput,
@@ -10,17 +11,16 @@ import {
     ProjectMemberInput,
     User,
     UserInput,
-    DocumentSearch,
 } from '@engspace/core';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
 import {
+    DocumentControl,
+    DocumentRevisionControl,
     MemberControl,
     ProjectControl,
     UserControl,
-    DocumentControl,
-    DocumentRevisionControl,
-} from './controllers';
-import { GqlContext } from './internal';
+} from '../controllers';
+import { GqlContext } from './context';
 
 export const resolvers = {
     DateTime: new GraphQLScalarType({

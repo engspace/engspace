@@ -27,7 +27,7 @@ export default {
         if (this.$store.getters.isAuth) {
             // if already authenticated, we double check the token here
             // as it can have expired
-            const resp = await api.get('/api/auth/check_token', { headers: authHeader() });
+            const resp = await api.get('/api/check_token', { headers: authHeader() });
             if (resp.status !== HttpStatus.OK) {
                 this.$store.dispatch(AUTH_LOGOUT_ACTION);
                 this.$router.push('/login');

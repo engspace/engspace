@@ -72,7 +72,7 @@ export default {
     },
     async created() {
         try {
-            const resp = await api.get('/api/auth/first_admin');
+            const resp = await api.get('/api/first_admin');
             const { hasAdmin } = resp.data;
             if (!hasAdmin) {
                 this.$router.push('/first_admin');
@@ -89,7 +89,7 @@ export default {
             this.wrongCred = false;
             this.networkError = false;
             try {
-                const resp = await api.post('/api/auth/login', { nameOrEmail, password });
+                const resp = await api.post('/api/login', { nameOrEmail, password });
                 if (resp.status === HttpStatus.OK) {
                     this.$store.dispatch(AUTH_LOGIN_ACTION, resp.data.token);
                     const { redirect } = this.$route.query;

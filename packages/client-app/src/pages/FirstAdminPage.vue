@@ -91,7 +91,7 @@ export default {
     },
     async created() {
         try {
-            const resp = await api.get('/api/auth/first_admin');
+            const resp = await api.get('/api/first_admin');
             const { hasAdmin } = resp.data;
             if (hasAdmin) {
                 this.$router.push('/');
@@ -109,8 +109,8 @@ export default {
                 password: this.password,
                 manager: this.manager,
             };
-            await api.post('/api/auth/first_admin', form);
-            const resp = await api.post('/api/auth/login', {
+            await api.post('/api/first_admin', form);
+            const resp = await api.post('/api/login', {
                 nameOrEmail: form.name,
                 password: form.password,
             });
