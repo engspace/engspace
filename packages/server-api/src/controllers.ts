@@ -1,5 +1,4 @@
 import {
-    AppRolePolicies,
     AuthToken,
     Document,
     DocumentInput,
@@ -23,12 +22,13 @@ import {
     UserDao,
 } from '@engspace/server-db';
 import { ForbiddenError } from 'apollo-server-koa';
+import path from 'path';
+import { EsServerConfig } from '.';
 
 export interface ApiContext {
     db: Db;
     auth: AuthToken;
-    rolePolicies: AppRolePolicies;
-    storePath: string;
+    config: EsServerConfig;
 }
 
 function hasUserPerm(ctx: ApiContext, perm: string): boolean {
@@ -42,10 +42,9 @@ function assertUserPerm(ctx: ApiContext, perm: string, message?: string): void {
 }
 
 async function hasProjectPerm(ctx: ApiContext, projectId: Id, perm: string): Promise<boolean> {
+    const { rolePolicies } = ctx.config;
     const member = await MemberDao.byProjectAndUserId(ctx.db, projectId, ctx.auth.userId, true);
-    console.log(member.roles);
-    console.log(ctx.rolePolicies.project.permissions(member.roles));
-    return member && ctx.rolePolicies.project.permissions(member.roles).includes(perm);
+    return member && rolePolicies.project.permissions(member.roles).includes(perm);
 }
 
 async function assertUserOrProjectPerm(
@@ -265,6 +264,15 @@ export class DocumentRevisionControl {
         return DocumentRevisionDao.byDocumentId(ctx.db, documentId);
     }
 
+    static async byDocumentIdAndRevision(
+        ctx: ApiContext,
+        documentId: Id,
+        revision: number
+    ): Promise<DocumentRevision> {
+        assertUserPerm(ctx, 'document.read');
+        return DocumentRevisionDao.byDocumentIdAndRev(ctx.db, documentId, revision);
+    }
+
     static async lastByDocumentId(
         ctx: ApiContext,
         documentId: Id
@@ -285,7 +293,7 @@ export class DocumentRevisionControl {
         if (!docRev) return FileError.NotExist;
         return {
             docRev,
-            filepath: docRev.sha1,
+            filepath: path.join(ctx.config.storePath, docRev.sha1),
         };
     }
 }

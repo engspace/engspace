@@ -1,4 +1,4 @@
-import { AppRolePolicies } from '@engspace/core';
+import { AppRolePolicies, AuthToken } from '@engspace/core';
 import { DbPool } from '@engspace/server-db';
 import cors from '@koa/cors';
 import Router from '@koa/router';
@@ -8,14 +8,15 @@ import fs from 'fs';
 import HttpStatus from 'http-status-codes';
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
-import { checkAuth } from './auth';
+import { verifyJwt } from './crypto';
 import { gqlContextFactory } from './graphql/context';
 import { setupPlaygroundEndpoint, setupPlaygroundLogin } from './graphql/playground';
 import { resolvers } from './graphql/resolvers';
 import { typeDefs } from './graphql/schema';
+import { setupDocRoutes, setupDocTokenRoutes } from './http/document';
 import { setupFirstAdminRoutes } from './http/first_admin';
 import { setupLoginRoute } from './http/login';
-import { attachDb } from './internal';
+import { attachDb, authJwtSecret, setAuthToken } from './internal';
 
 export interface EsServerConfig {
     rolePolicies: AppRolePolicies;
@@ -26,6 +27,7 @@ export interface EsServerConfig {
 
 export class EsServerApi {
     constructor(public koa: Koa, public config: EsServerConfig) {
+        fs.mkdir(config.storePath, { recursive: true }, err => {});
         koa.use(
             bodyParser({
                 enableTypes: ['json', 'text', 'form'],
@@ -38,7 +40,6 @@ export class EsServerApi {
                 })
             );
         }
-        fs.mkdir(config.storePath, { recursive: true }, err => {});
     }
 
     setupPlayground(prefix: string): void {
@@ -50,11 +51,27 @@ export class EsServerApi {
         const router = new Router({ prefix });
         setupLoginRoute(router, this.config);
         setupFirstAdminRoutes(router, this.config);
+        setupDocRoutes(router, this.config);
         this.koa.use(router.routes());
     }
 
     setupAuthCheck(): void {
-        this.koa.use(checkAuth);
+        this.koa.use(async (ctx, next) => {
+            const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
+            if (header) {
+                const token = header.startsWith('Bearer ') ? header.slice(7) : header;
+                try {
+                    const authToken = await verifyJwt<AuthToken>(token, authJwtSecret);
+                    setAuthToken(ctx, authToken);
+                } catch (err) {
+                    console.error(err);
+                    ctx.throw(HttpStatus.FORBIDDEN);
+                }
+                return next();
+            } else {
+                ctx.throw(HttpStatus.UNAUTHORIZED);
+            }
+        });
     }
 
     setupPostAuthHttpRoutes(prefix: string): void {
@@ -62,6 +79,7 @@ export class EsServerApi {
         router.get('/check_token', async ctx => {
             ctx.status = HttpStatus.OK;
         });
+        setupDocTokenRoutes(router);
         this.koa.use(router.routes());
     }
 

@@ -17,7 +17,7 @@ export const documentInput: DemoDocInput[] = [
         name: 'Code of conduct',
         description: 'Code of conduct for Engineering Space',
         creator: DemoUser.Gerard,
-        filepath: '$DEMO_FILES/code_of_conduct.odt',
+        filepath: '$DEMO_FILES/code_of_conduct.pdf',
     },
     {
         name: 'Chair specs',
@@ -28,6 +28,30 @@ export const documentInput: DemoDocInput[] = [
 ];
 
 const demoFilePath = `${__dirname}/../demo_files`;
+
+async function mkdirRecurs(dirPath: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        fs.mkdir(dirPath, { recursive: true }, err => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+}
+
+async function copyFile(src: string, dest: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        fs.copyFile(src, dest, err => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+}
 
 function resolvePath(filepath: string): string {
     return path.normalize(filepath.replace('$DEMO_FILES', demoFilePath));
@@ -61,7 +85,12 @@ function fileSha1Hash(filepath: string): Promise<string> {
     });
 }
 
-async function createRevision(db: Db, doc: Document, filepath: string): Promise<DocumentRevision> {
+async function createRevision(
+    db: Db,
+    doc: Document,
+    filepath: string,
+    storePath: string
+): Promise<DocumentRevision> {
     const resolved = resolvePath(filepath);
     const input: DocumentRevisionInput = {
         documentId: doc.id,
@@ -71,13 +100,15 @@ async function createRevision(db: Db, doc: Document, filepath: string): Promise<
         changeDescription: 'Initial upload',
         retainCheckout: false,
     };
+    await copyFile(resolved, path.join(storePath, input.sha1));
     return DocumentRevisionDao.create(db, input, doc.createdBy.id);
 }
 
 async function createDocument(
     db: Db,
     { name, description, creator, filepath }: DemoDocInput,
-    users: Promise<DemoUserSet>
+    users: Promise<DemoUserSet>,
+    storePath: string
 ): Promise<Document> {
     const input: DocumentInput = {
         name,
@@ -86,12 +117,17 @@ async function createDocument(
     };
     const usrs = await users;
     const doc = await DocumentDao.create(db, input, usrs[creator].id);
-    const rev = await createRevision(db, doc, filepath);
+    const rev = await createRevision(db, doc, filepath, storePath);
     doc.revisions = [rev];
     doc.lastRevision = rev;
     return doc;
 }
 
-export async function createDocuments(db: Db, users: Promise<DemoUserSet>): Promise<Document[]> {
-    return Promise.all(documentInput.map(di => createDocument(db, di, users)));
+export async function createDocuments(
+    db: Db,
+    users: Promise<DemoUserSet>,
+    storePath: string
+): Promise<Document[]> {
+    await mkdirRecurs(storePath);
+    return Promise.all(documentInput.map(di => createDocument(db, di, users, storePath)));
 }

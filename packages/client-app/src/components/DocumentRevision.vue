@@ -2,7 +2,7 @@
     <span>
         <span v-if="hasLastRev">
             <span class="label mx-3">{{ document.lastRevision.revision }}</span>
-            <a v-if="canRead" :href="downloadUrl" download>{{ document.lastRevision.filename }}</a>
+            <a v-if="canRead" download @click="download()">{{ document.lastRevision.filename }}</a>
             <span v-else>{{ document.lastRevision.filename }}</span>
             <span class="mx-3">{{ byteSize }}</span>
         </span>
@@ -15,6 +15,8 @@
 
 <script>
 import { byteSizeStr } from '../utils';
+import { api, apiUrl, buildQuery, authHeader, query } from '../api';
+
 export default {
     props: {
         document: {
@@ -38,9 +40,35 @@ export default {
             );
         },
         downloadUrl() {
-            return encodeURI(
-                `/document?id=${this.document.id}&rev=${this.document.lastRevision.revision}`
+            return apiUrl(
+                `/api/document${buildQuery({
+                    id: this.document.id,
+                    rev: this.document.lastRevision.revision,
+                })}`
             );
+        },
+    },
+    methods: {
+        async download() {
+            try {
+                const resp = await api.get(
+                    query('/api/document/download_token', {
+                        documentId: this.document.id,
+                        revision: this.document.lastRevision.revision,
+                    }),
+                    {
+                        headers: authHeader(),
+                    }
+                );
+                const { downloadToken } = resp.data;
+                console.log('data:');
+                console.log(resp.data);
+                const url = apiUrl(`/api/document/download${buildQuery({ token: downloadToken })}`);
+                console.log(url);
+                window.location = url;
+            } catch (err) {
+                //
+            }
         },
     },
 };

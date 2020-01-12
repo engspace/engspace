@@ -18,15 +18,13 @@ export interface GqlContextFactory {
 }
 
 export function gqlContextFactory(config: EsServerConfig): GqlContextFactory {
-    const { rolePolicies, storePath } = config;
     return ({ ctx }): GqlContext => {
         const gqlCtx = {
-            koaCtx: ctx,
+            config,
             auth: getAuthToken(ctx),
-            rolePolicies,
             db: getDb(ctx),
+            koaCtx: ctx,
             loaders: null,
-            storePath,
         };
         gqlCtx.loaders = makeLoaders(gqlCtx);
         return gqlCtx;

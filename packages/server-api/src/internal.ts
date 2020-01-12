@@ -1,10 +1,13 @@
 import { AuthToken } from '@engspace/core';
 import { Db, DbPool } from '@engspace/server-db';
+import crypto from 'crypto';
 import HttpStatus from 'http-status-codes';
 import { Context, DefaultContext, Next } from 'koa';
 
 const DB_SYMBOL = Symbol('@engspace/server-api/db');
 const AUTH_TOKEN_SYMBOL = Symbol('@engspace/server-api/authToken');
+
+export const authJwtSecret = crypto.randomBytes(32).toString('base64');
 
 export function attachDb(pool: DbPool, path: string) {
     return async (ctx: Context, next: Next): Promise<void> => {

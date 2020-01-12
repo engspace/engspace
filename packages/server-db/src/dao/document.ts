@@ -47,12 +47,10 @@ export namespace DocumentDao {
     }
 
     export async function byId(db: Db, id: Id): Promise<Document | null> {
-        console.log('DocumentDao.byId');
         const row: Row = await db.maybeOne(sql`
             SELECT ${rowToken} FROM document
             WHERE id = ${id}
         `);
-        console.log('DocumentDao.byId ... done');
         return mapRow(row);
     }
 
@@ -62,7 +60,6 @@ export namespace DocumentDao {
         offset: number,
         limit: number
     ): Promise<DocumentSearch> {
-        console.log('DocumentDao.search');
         const boolExpressions = [sql`TRUE`];
         if (search) {
             const phrase = `%${search.replace(/s/g, '%')}%`;
@@ -87,7 +84,6 @@ export namespace DocumentDao {
                 WHERE ${whereToken}
             `)) as number;
         }
-        console.log('DocumentDao.search ... done');
         return { count, documents };
     }
 
@@ -195,23 +191,19 @@ export namespace DocumentRevisionDao {
     }
 
     export async function byId(db: Db, id: Id): Promise<DocumentRevision | null> {
-        console.log('DocumentRevisionDao.byId');
         const row: Row = await db.one(sql`
             SELECT ${rowToken} FROM document_revision
             WHERE id = ${id}
         `);
-        console.log('DocumentRevisionDao.byId ... done');
         return mapRow(row);
     }
 
     export async function byDocumentId(db: Db, documentId: Id): Promise<DocumentRevision[]> {
-        console.log('DocumentRevisionDao.byDocumentId');
         const rows: Row[] = await db.any(sql`
             SELECT ${rowToken} FROM document_revision
             WHERE document_id = ${documentId}
             ORDER BY revision
         `);
-        console.log('DocumentRevisionDao.byDocumentId ... done');
         return rows.map(r => mapRow(r));
     }
 
@@ -219,7 +211,6 @@ export namespace DocumentRevisionDao {
         db: Db,
         documentId: Id
     ): Promise<DocumentRevision | null> {
-        console.log('DocumentRevisionDao.lastByDocumentId');
         const row: Row = await db.maybeOne(sql`
             SELECT ${rowToken} FROM document_revision
             WHERE
@@ -228,7 +219,18 @@ export namespace DocumentRevisionDao {
                     SELECT MAX(revision) FROM document_revision WHERE document_id = ${documentId}
                 )
         `);
-        console.log('DocumentRevisionDao.lastByDocumentId ... done');
+        return mapRow(row);
+    }
+
+    export async function byDocumentIdAndRev(
+        db: Db,
+        documentId: Id,
+        revision: number
+    ): Promise<DocumentRevision> {
+        const row: Row = await db.maybeOne(sql`
+            SELECT ${rowToken} FROM document_revision
+            WHERE document_id = ${documentId} AND revision = ${revision}
+        `);
         return mapRow(row);
     }
 }

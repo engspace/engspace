@@ -2,7 +2,8 @@ import { LoginDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import HttpStatus from 'http-status-codes';
 import { EsServerConfig } from '..';
-import { signToken } from '../auth';
+import { signJwt } from '../crypto';
+import { authJwtSecret } from '../internal';
 
 export function setupLoginRoute(router: Router, config: EsServerConfig): void {
     const { pool, rolePolicies } = config;
@@ -27,12 +28,17 @@ export function setupLoginRoute(router: Router, config: EsServerConfig): void {
         });
         if (user) {
             const perms = rolePolicies.user.permissions(user.roles);
-            ctx.body = {
-                token: await signToken({
+            const token = await signJwt(
+                {
                     userId: user.id,
                     userPerms: perms,
-                }),
-            };
+                },
+                authJwtSecret,
+                {
+                    expiresIn: '12H',
+                }
+            );
+            ctx.body = { token };
         } else {
             ctx.throw(HttpStatus.UNAUTHORIZED);
         }

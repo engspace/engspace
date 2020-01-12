@@ -10,12 +10,12 @@ import path from 'path';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
-function buildServerApi(pool: DbPool): EsServerApi {
-    const app = new Koa();
-    const rolePolicies = buildDefaultAppRolePolicies();
-    const storePath = path.normalize(path.join(__dirname, '../file_store'));
+const storePath = path.normalize(path.join(__dirname, '../file_store'));
 
-    const api = new EsServerApi(app, {
+function buildServerApi(pool: DbPool): EsServerApi {
+    const rolePolicies = buildDefaultAppRolePolicies();
+
+    const api = new EsServerApi(new Koa(), {
         pool,
         rolePolicies,
         storePath,
@@ -33,7 +33,7 @@ function buildServerApi(pool: DbPool): EsServerApi {
 createDbPool(config.get('db'))
     .then(async pool => {
         await pool.transaction(db => initSchema(db));
-        await populateDemo(pool);
+        await populateDemo(pool, storePath);
         return pool;
     })
     .then(async pool => {

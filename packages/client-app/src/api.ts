@@ -1,8 +1,21 @@
 import axios from 'axios';
 import store from './store';
 
-const host = process.env.VUE_APP_API_HOST || window.location.hostname;
-const port = process.env.VUE_APP_API_PORT || 3000;
+export const apiHost = process.env.VUE_APP_API_HOST || window.location.hostname;
+export const apiPort = process.env.VUE_APP_API_PORT || '3000';
+
+/**
+ * Computes Url for an API resource
+ *
+ * resource should be empty or start with '/'.
+ * resource must be already URL encoded
+ *
+ * @param resource path to an API resource (should be empty or start with '/')
+ */
+export function apiUrl(resource = '') {
+    const port = apiPort === '80' ? '' : `:${apiPort}`;
+    return `http://${apiHost}${port}${resource}`;
+}
 
 export function authHeader(): { Authorization: string } {
     return { Authorization: `Bearer ${store.state.token}` };
@@ -26,7 +39,7 @@ export function query(path: string, obj: any): string {
 }
 
 export const api = axios.create({
-    baseURL: `http://${host}:${port}`,
+    baseURL: apiUrl(),
     validateStatus: function(status) {
         console.log('validating status: ' + status);
         return status >= 200 && status < 500;

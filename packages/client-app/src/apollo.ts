@@ -6,14 +6,12 @@ import { GraphQLError } from 'graphql';
 import get from 'lodash.get';
 import Vue from 'vue';
 import VueApollo from 'vue-apollo';
+import { apiHost, apiPort } from './api';
 import store from './store';
-
-const host = process.env.VUE_APP_API_HOST || window.location.hostname;
-const port = process.env.VUE_APP_API_PORT || 3000;
 
 // HTTP connection to the API
 const httpLink = createHttpLink({
-    uri: `http://${host}:${port}/api/graphql`,
+    uri: `http://${apiHost}:${apiPort}/api/graphql`,
     useGETForQueries: true,
 });
 

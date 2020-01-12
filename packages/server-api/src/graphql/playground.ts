@@ -1,3 +1,4 @@
+import { AuthToken } from '@engspace/core';
 import { LoginDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import { ApolloServer } from 'apollo-server-koa';
@@ -8,8 +9,8 @@ import send from 'koa-send';
 import session from 'koa-session';
 import path from 'path';
 import { EsServerConfig } from '../';
-import { signToken, verifyToken } from '../auth';
-import { attachDb, setAuthToken } from '../internal';
+import { signJwt, verifyJwt } from '../crypto';
+import { attachDb, authJwtSecret, setAuthToken } from '../internal';
 import { gqlContextFactory } from './context';
 import { resolvers } from './resolvers';
 import { typeDefs } from './schema';
@@ -48,10 +49,17 @@ export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServe
         });
         if (user) {
             const perms = rolePolicies.user.permissions(user.roles);
-            const token = await signToken({
-                userId: user.id,
-                userPerms: perms,
-            });
+            const token = await signJwt(
+                {
+                    userId: user.id,
+                    userPerms: perms,
+                },
+                authJwtSecret,
+                {
+                    algorithm: 'HS256',
+                    expiresIn: '12H',
+                }
+            );
             ctx.cookies.set('playground-token', token, { signed: true });
             return ctx.redirect(prefix);
         } else {
@@ -74,7 +82,7 @@ export function setupPlaygroundEndpoint(prefix: string, app: Koa, config: EsServ
                 return;
             }
             try {
-                const authToken = await verifyToken(token);
+                const authToken = await verifyJwt<AuthToken>(token, authJwtSecret);
                 setAuthToken(ctx, authToken);
             } catch (err) {
                 ctx.redirect(prefix + '/login?wrongCredentials=true');

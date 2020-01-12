@@ -17,14 +17,14 @@ export {
     prepareUsers,
 };
 
-export async function populateDemo(pool: DbPool): Promise<void> {
+export async function populateDemo(pool: DbPool, storePath: string): Promise<void> {
     try {
         await pool.connect(async db => {
             const users = createUsers(db, prepareUsers());
             const projects = createProjects(db, prepareProjects());
             await Promise.all([
                 createMembers(db, projects, users),
-                createDocuments(db, users),
+                createDocuments(db, users, storePath),
                 createLogins(db, users),
             ]);
         });
