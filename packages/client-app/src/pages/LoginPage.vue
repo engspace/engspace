@@ -8,10 +8,10 @@
                             <v-toolbar-title>Enter credentials</v-toolbar-title>
                         </v-toolbar>
                         <v-card-text>
-                            <p v-show="networkError" class="red--text">
+                            <p v-show="networkError" class="error--text">
                                 Server unreachable!
                             </p>
-                            <p v-show="wrongCred" class="red--text">
+                            <p v-show="wrongCred" class="error--text">
                                 Wrong credentials. Try again!
                             </p>
                             <v-text-field

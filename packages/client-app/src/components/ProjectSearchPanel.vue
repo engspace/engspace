@@ -1,6 +1,6 @@
 <template>
     <search-panel v-model="search" title="Projects" :debounce-ms="500">
-        <p v-if="error" class="red--text">{{ error }}</p>
+        <p v-if="error" class="error--text">{{ error }}</p>
         <v-data-table
             :headers="headers"
             :items="projectSearch.projects"

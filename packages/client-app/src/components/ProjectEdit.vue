@@ -3,7 +3,7 @@
         <v-card>
             <v-card-text>
                 <p v-if="error" class="my-4">
-                    <span class="red--text">{{ error }}</span>
+                    <span class="error--text">{{ error }}</span>
                 </p>
                 <v-text-field
                     v-model="edited.name"

@@ -11,7 +11,7 @@
             <span>{{ edited.id }}</span>
         </v-card-subtitle>
         <v-card-subtitle v-if="error">
-            <span class="red--text">{{ error }}</span>
+            <span class="error--text">{{ error }}</span>
         </v-card-subtitle>
         <v-card-text>
             <v-text-field v-model="edited.name" label="Login"></v-text-field>

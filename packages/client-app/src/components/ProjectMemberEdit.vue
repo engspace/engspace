@@ -1,6 +1,6 @@
 <template>
     <div>
-        <p v-if="error" class="red--text">{{ error }}</p>
+        <p v-if="error" class="error--text">{{ error }}</p>
         <v-data-table :headers="headers" :items="edited" no-data-text="no member">
             <template v-slot:item="{ item, index }" disable-sort>
                 <tr>
