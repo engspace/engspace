@@ -3,15 +3,14 @@
         <span :class="['mx-3', textClass]">{{
             checkout ? checkout.fullName : 'Not checked-out'
         }}</span>
-        <v-btn v-if="otherCheckout" :href="`mailto:${checkout.email}`">
-            <v-icon>mdi-email</v-icon>
+        <v-btn v-if="otherCheckout" small :href="`mailto:${checkout.email}`">
+            <v-icon small>mdi-email</v-icon>
         </v-btn>
-        <v-switch
-            v-if="canCheckout || selfCheckout"
-            class="d-inline-block"
-            :input-value="selfCheckout"
-            @change="$emit('checkout', $event)"
-        ></v-switch>
+        <v-btn v-if="canCheckout || selfCheckout" small @click="$emit('checkout', !selfCheckout)">
+            <v-icon small :color="selfCheckout ? 'accent' : 'grey'">
+                {{ selfCheckout ? 'mdi-lock' : 'mdi-lock-open' }}
+            </v-icon>
+        </v-btn>
     </span>
 </template>
 

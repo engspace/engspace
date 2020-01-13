@@ -7,7 +7,7 @@
             <span class="mx-3">{{ byteSize }}</span>
         </span>
         <span v-else>(no upload yet)</span>
-        <v-btn v-if="selfCheckout">
+        <v-btn v-if="selfCheckout" small>
             <v-icon small>mdi-upload</v-icon>
         </v-btn>
     </span>
