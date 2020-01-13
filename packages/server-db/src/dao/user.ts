@@ -11,12 +11,14 @@ export interface UserSearch {
     offset?: number;
 }
 
-export class UserDao {
-    static async create(db: Db, user: UserInput): Promise<User> {
+export namespace UserDao {
+    const rowToken = sql`id, name, email, full_name`;
+
+    export async function create(db: Db, user: UserInput): Promise<User> {
         const row: User = await db.one(sql`
-            INSERT INTO "user"(name, email, full_name, updated_on)
-            VALUES(${user.name}, ${user.email}, ${user.fullName}, NOW())
-            RETURNING id, name, email, full_name
+            INSERT INTO "user"(name, email, full_name)
+            VALUES(${user.name}, ${user.email}, ${user.fullName})
+            RETURNING ${rowToken}
         `);
         if (user.roles && user.roles.length) {
             row.roles = await insertRoles(db, row.id, user.roles);
@@ -24,43 +26,46 @@ export class UserDao {
         return row;
     }
 
-    static async byId(db: Db, id: Id): Promise<User> {
+    export async function byId(db: Db, id: Id): Promise<User> {
         const user: User = await db.one(sql`
-            SELECT id, name, email, full_name
+            SELECT ${rowToken}
             FROM "user"
             WHERE id = ${id}
         `);
         return user;
     }
 
-    static async byName(db: Db, name: string): Promise<User> {
+    export async function byName(db: Db, name: string): Promise<User> {
         const user: User = await db.one(sql`
-            SELECT id, name, email, full_name
+            SELECT ${rowToken}
             FROM "user"
             WHERE name = ${name}
         `);
         return user;
     }
 
-    static async byEmail(db: Db, email: string): Promise<User> {
+    export async function byEmail(db: Db, email: string): Promise<User> {
         const user: User = await db.one(sql`
-            SELECT id, name, email, full_name
+            SELECT ${rowToken}
             FROM "user"
             WHERE email = ${email}
         `);
         return user;
     }
 
-    static async batchByIds(db: Db, ids: readonly Id[]): Promise<User[]> {
+    export async function batchByIds(db: Db, ids: readonly Id[]): Promise<User[]> {
         const users: User[] = await db.any(sql`
-            SELECT id, name, email, full_name
+            SELECT ${rowToken}
             FROM "user"
             WHERE id = ANY(${sql.array(ids as Id[], sql`uuid[]`)})
         `);
         return idsFindMap(ids, users);
     }
 
-    static async search(db: Db, search: UserSearch): Promise<{ count: number; users: User[] }> {
+    export async function search(
+        db: Db,
+        search: UserSearch
+    ): Promise<{ count: number; users: User[] }> {
         const boolExpressions = [sql`TRUE`];
         if (search.phrase) {
             const phrase = `%${search.phrase.replace(/\s/g, '%')}%`;
@@ -99,7 +104,7 @@ export class UserDao {
         return { count, users };
     }
 
-    static async rolesById(db: Db, id: Id): Promise<string[]> {
+    export async function rolesById(db: Db, id: Id): Promise<string[]> {
         const roles = await db.anyFirst(sql`
             SELECT role FROM user_role
             WHERE user_id = ${id}
@@ -107,12 +112,12 @@ export class UserDao {
         return roles as string[];
     }
 
-    static async update(db: Db, id: Id, user: UserInput): Promise<User> {
+    export async function update(db: Db, id: Id, user: UserInput): Promise<User> {
         const { name, email, fullName, roles } = user;
         const row = await db.one<User>(sql`
             UPDATE "user" SET name=${name}, email=${email}, full_name=${fullName}
             WHERE id=${id}
-            RETURNING id, name, email, full_name
+            RETURNING ${rowToken}
         `);
         if (roles) {
             row.roles = await updateRoles(db, id, roles);
@@ -120,7 +125,7 @@ export class UserDao {
         return row;
     }
 
-    static async patch(db: Db, id: Id, user: Partial<UserInput>): Promise<User> {
+    export async function patch(db: Db, id: Id, user: Partial<UserInput>): Promise<User> {
         const assignments = partialAssignmentList(user, ['name', 'email', 'fullName']);
         if (!assignments.length && !user.roles) {
             throw new Error('no valid field to patch');
@@ -130,7 +135,7 @@ export class UserDao {
             row = await db.one(sql`
                 UPDATE "user" SET ${sql.join(assignments, sql`, `)}
                 WHERE id = ${id}
-                RETURNING id, name, email, full_name
+                RETURNING ${rowToken}
             `);
         } else {
             row = await UserDao.byId(db, id);
@@ -144,15 +149,15 @@ export class UserDao {
         return row;
     }
 
-    static async deleteAll(db: Db): Promise<void> {
+    export async function deleteAll(db: Db): Promise<void> {
         await db.query(sql`DELETE FROM "user"`);
     }
 
-    static async deleteById(db: Db, id: Id): Promise<void> {
+    export async function deleteById(db: Db, id: Id): Promise<void> {
         await db.query(sql`DELETE FROM "user" WHERE id = ${id}`);
     }
 }
-async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
+export async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
     return (await db.manyFirst(sql`
         INSERT INTO user_role(
             user_id, role
@@ -164,7 +169,7 @@ async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
     `)) as string[];
 }
 
-async function updateRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
+export async function updateRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
     await db.query(sql`
         DELETE FROM user_role WHERE user_id = ${id}
     `);

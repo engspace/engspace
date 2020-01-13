@@ -7,14 +7,12 @@ CREATE TABLE "user" (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     name text NOT NULL UNIQUE,
     email text NOT NULL UNIQUE,
-    full_name text NOT NULL,
-    updated_on timestamptz NOT NULL
+    full_name text NOT NULL
 );
 
 CREATE TABLE user_login (
     user_id uuid PRIMARY KEY,
     password text NOT NULL,
-    updated_on timestamptz NOT NULL,
 
     FOREIGN KEY(user_id) REFERENCES "user"(id) ON DELETE CASCADE
 );
@@ -31,15 +29,13 @@ CREATE TABLE project (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     name text NOT NULL,
     code text NOT NULL UNIQUE,
-    description text,
-    updated_on timestamptz NOT NULL
+    description text
 );
 
 CREATE TABLE project_member (
     id serial PRIMARY KEY NOT NULL,
     project_id uuid NOT NULL,
     user_id uuid NOT NULL,
-    updated_on timestamptz NOT NULL,
 
     UNIQUE(project_id, user_id),
     FOREIGN KEY(project_id) REFERENCES project(id) ON DELETE CASCADE,
@@ -84,13 +80,4 @@ CREATE TABLE document_revision (
     UNIQUE(document_id, revision),
     FOREIGN KEY(document_id) REFERENCES document(id),
     FOREIGN KEY(author) REFERENCES "user"(id)
-);
-
-CREATE TABLE document_page (
-    doc_rev_id integer NOT NULL,
-    pageno integer NOT NULL,
-    sha1 bytea NOT NULL,
-
-    PRIMARY KEY(doc_rev_id, pageno),
-    FOREIGN KEY(doc_rev_id) REFERENCES document_revision(id)
 );

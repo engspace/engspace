@@ -11,44 +11,44 @@ export interface ProjectSearch {
     offset?: number;
 }
 
-export class ProjectDao {
-    static async create(db: Db, proj: ProjectInput): Promise<Project> {
+export namespace ProjectDao {
+    const rowToken = sql`id, code, name, description`;
+
+    export async function create(db: Db, proj: ProjectInput): Promise<Project> {
         const { code, name, description } = proj;
         return db.one(sql`
             INSERT INTO project (
-                code, name, description, updated_on
+                code, name, description
             ) VALUES (
-                ${code}, ${name}, ${description}, NOW()
+                ${code}, ${name}, ${description}
             ) RETURNING
-                id, code, name, description
+                ${rowToken}
         `);
     }
 
-    static async byId(db: Db, id: Id): Promise<Project> {
+    export async function byId(db: Db, id: Id): Promise<Project> {
         return db.one(sql`
-            SELECT id, code, name, description
+            SELECT ${rowToken}
             FROM project
             WHERE id = ${id}
         `);
     }
-    static async batchByIds(db: Db, ids: readonly Id[]): Promise<Project[]> {
+    export async function batchByIds(db: Db, ids: readonly Id[]): Promise<Project[]> {
         const projs: Project[] = await db.any(sql`
-            SELECT id, code, name, description
-            FROM project
+            SELECT ${rowToken} FROM project
             WHERE id = ANY(${sql.array(ids as Id[], sql`uuid[]`)})
         `);
         return idsFindMap(ids, projs);
     }
 
-    static async byCode(db: Db, code: string): Promise<Project> {
+    export async function byCode(db: Db, code: string): Promise<Project> {
         return db.one(sql`
-            SELECT id, code, name, description
-            FROM project
+            SELECT ${rowToken} FROM project
             WHERE code = ${code}
         `);
     }
 
-    static async search(
+    export async function search(
         db: Db,
         search: ProjectSearch
     ): Promise<{ count: number; projects: Project[] }> {
@@ -96,29 +96,29 @@ export class ProjectDao {
         return { count, projects };
     }
 
-    static async patch(db: Db, id: Id, project: Partial<Project>): Promise<Project> {
+    export async function patch(db: Db, id: Id, project: Partial<Project>): Promise<Project> {
         const assignments = partialAssignmentList(project, ['name', 'code', 'description']);
         return db.one(sql`
             UPDATE project SET ${sql.join(assignments, sql`, `)}
             WHERE id = ${id}
-            RETURNING id, code, name, description
+            RETURNING ${rowToken}
         `);
     }
 
-    static async updateById(db: Db, id: Id, project: ProjectInput): Promise<Project> {
+    export async function updateById(db: Db, id: Id, project: ProjectInput): Promise<Project> {
         const { code, name, description } = project;
         return db.one(sql`
             UPDATE project SET code=${code}, name=${name}, description=${description}
             WHERE id=${id}
-            RETURNING id, code, name, description
+            RETURNING ${rowToken}
         `);
     }
 
-    static async deleteAll(db: Db): Promise<void> {
+    export async function deleteAll(db: Db): Promise<void> {
         await db.query(sql`DELETE FROM project`);
     }
 
-    static async deleteById(db: Db, id: Id): Promise<void> {
+    export async function deleteById(db: Db, id: Id): Promise<void> {
         await db.query(sql`DELETE FROM project WHERE id = ${id}`);
     }
 }

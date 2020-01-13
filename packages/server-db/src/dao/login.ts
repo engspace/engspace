@@ -20,8 +20,8 @@ export interface LoginResult {
 export class LoginDao {
     static async create(db: Db, userId: Id, password: string): Promise<void> {
         await db.query(sql`
-            INSERT INTO user_login(user_id, password, updated_on)
-            VALUES(${userId}, crypt(${password}, gen_salt('bf')), NOW())
+            INSERT INTO user_login(user_id, password)
+            VALUES(${userId}, crypt(${password}, gen_salt('bf')))
         `);
     }
 
@@ -61,8 +61,7 @@ export class LoginDao {
     static async patch(db: Db, userId: Id, password: string): Promise<void> {
         await db.query(sql`
             UPDATE user_login SET
-                password = crypt(${password}, gen_salt('bf')),
-                updated_on = NOW()
+                password = crypt(${password}, gen_salt('bf'))
             WHERE
                 user_id = ${userId}
         `);

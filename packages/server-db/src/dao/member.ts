@@ -2,7 +2,21 @@ import { Id, ProjectMember, ProjectMemberInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
 
-export class MemberDao {
+export namespace MemberDao {
+    interface Row {
+        id: number;
+        projectId: Id;
+        userId: Id;
+    }
+
+    function mapRow(row: Row): ProjectMember {
+        return {
+            id: row.id.toString(),
+            project: { id: row.projectId },
+            user: { id: row.userId },
+        };
+    }
+
     /**
      * Add a single member to the database.
      *
@@ -11,23 +25,19 @@ export class MemberDao {
      * @param db database connection
      * @param member member to be added
      */
-    static async create(
+    export async function create(
         db: Db,
         { projectId, userId, roles }: ProjectMemberInput
     ): Promise<ProjectMember> {
-        const row = await db.one(sql`
+        const row: Row = await db.one(sql`
             INSERT INTO project_member(
-                project_id, user_id, updated_on
+                project_id, user_id
             ) VALUES (
-                ${projectId}, ${userId}, NOW()
+                ${projectId}, ${userId}
             )
             RETURNING id, project_id, user_id
         `);
-        const res: ProjectMember = {
-            id: row.id.toString() as Id,
-            project: { id: row.projectId as Id },
-            user: { id: row.userId as Id },
-        };
+        const res = mapRow(row);
         if (roles && roles.length) {
             res.roles = await insertRoles(db, res.id, roles);
         }
@@ -37,62 +47,35 @@ export class MemberDao {
     /**
      * Get a member by its id
      */
-    static async byId(db: Db, id: Id): Promise<ProjectMember> {
-        interface Row {
-            id: number;
-            projectId: Id;
-            userId: Id;
-        }
+    export async function byId(db: Db, id: Id): Promise<ProjectMember> {
         const row = await db.one<Row>(sql`
             SELECT id, project_id, user_id FROM project_member
             WHERE id = ${parseInt(id)}
         `);
-        return {
-            id: row.id.toString() as Id,
-            project: { id: row.projectId as Id },
-            user: { id: row.userId as Id },
-        };
+        return mapRow(row);
     }
 
     /**
      * Get all members for a project id
      */
-    static async byProjectId(db: Db, projectId: Id): Promise<ProjectMember[]> {
-        interface Row {
-            id: number;
-            projectId: Id;
-            userId: Id;
-        }
+    export async function byProjectId(db: Db, projectId: Id): Promise<ProjectMember[]> {
         const rows = await db.any<Row>(sql`
             SELECT id, project_id, user_id FROM project_member
             WHERE project_id = ${projectId}
         `);
-        return rows.map(r => ({
-            id: r.id.toString(),
-            project: { id: r.projectId },
-            user: { id: r.userId },
-        }));
+        return rows.map(r => mapRow(r));
     }
 
     /**
      * Get all members for a user id.
      * This is used to fetch all projects a user is involved in.
      */
-    static async byUserId(db: Db, userId: Id): Promise<ProjectMember[]> {
-        interface Row {
-            id: number;
-            projectId: Id;
-            userId: Id;
-        }
+    export async function byUserId(db: Db, userId: Id): Promise<ProjectMember[]> {
         const rows = await db.any<Row>(sql`
             SELECT id, project_id, user_id FROM project_member
             WHERE user_id = ${userId}
         `);
-        return rows.map(r => ({
-            id: r.id.toString(),
-            project: { id: r.projectId },
-            user: { id: r.userId },
-        }));
+        return rows.map(r => mapRow(r));
     }
 
     /**
@@ -106,27 +89,18 @@ export class MemberDao {
      *
      * @returns null if no such user, or the project member
      */
-    static async byProjectAndUserId(
+    export async function byProjectAndUserId(
         db: Db,
         projectId: Id,
         userId: Id,
         fetchRoles = false
     ): Promise<ProjectMember | null> {
-        interface Row {
-            id: number;
-            projectId: Id;
-            userId: Id;
-        }
         const row = await db.maybeOne<Row>(sql`
             SELECT id, project_id, user_id FROM project_member
             WHERE project_id=${projectId} AND user_id=${userId}
         `);
         if (!row) return null;
-        const res: ProjectMember = {
-            id: row.id.toString(),
-            project: { id: row.projectId },
-            user: { id: row.userId },
-        };
+        const res = mapRow(row);
         if (fetchRoles) {
             res.roles = await this.rolesById(db, res.id);
         }
@@ -139,7 +113,7 @@ export class MemberDao {
      * @param db The databse connection
      * @param id the id of the member
      */
-    static async rolesById(db: Db, id: Id): Promise<string[]> {
+    export async function rolesById(db: Db, id: Id): Promise<string[]> {
         const rows = await db.anyFirst(sql`
             SELECT role FROM project_member_role
             WHERE member_id = ${parseInt(id)}
@@ -147,54 +121,7 @@ export class MemberDao {
         return rows as string[];
     }
 
-    // /**
-    //  * Upsert members in the db.
-    //  *
-    //  * Members not existing already are inserted.
-    //  * Members already existing have their timestamp updated.
-    //  * All members' roles are deleted and re-inserted.
-    //  *
-    //  * Everything is done in 3 SQL queries.
-    //  *
-    //  * Caller may use the returned timestamp to delete obsolete members
-    //  *
-    //  * @param db database connection
-    //  * @param members array of members to upsert in the database
-    //  *
-    //  * @returns the timestamp at which all members where updated/inserted.
-    //  */
-    // static async upsert(db: Db, members: ProjectMember[]): Promise<string> {
-    //     const now = new Date().toISOString();
-    //     const mems = members.map(m => [m.project.id, m.user.id, now]);
-
-    //     await db.query(sql`
-    //         INSERT INTO project_member AS pm (
-    //             project_id, user_id, updated_on
-    //         )
-    //         SELECT * FROM ${sql.unnest(mems, ['uuid', 'uuid', 'timestamp'])}
-    //         ON CONFLICT(project_id, user_id) DO
-    //             UPDATE SET
-    //                 updated_on = EXCLUDED.updated_on
-    //             WHERE pm.project_id = EXCLUDED.project_id AND pm.user_id = EXCLUDED.user_id
-    //     `);
-    //     await db.query(sql`
-    //         DELETE FROM project_member_role AS pmr
-    //         USING project_member AS pm
-    //         WHERE pmr.project_id = pm.project_id
-    //             AND pmr.user_id = pm.user_id
-    //             AND pm.updated_on = ${now}
-    //     `);
-    //     const roles = members.map(m => [m.project.id, m.user.id, m.roles].flat(1));
-    //     await db.query(sql`
-    //         INSERT INTO project_member_role AS pm (
-    //             project_id, user_id, role
-    //         )
-    //         SELECT * FROM ${sql.unnest(roles, ['uuid', 'uuid', 'text'])}
-    //     `);
-    //     return now;
-    // }
-
-    static async updateRolesById(db: Db, id: Id, roles: string[]): Promise<ProjectMember> {
+    export async function updateRolesById(db: Db, id: Id, roles: string[]): Promise<ProjectMember> {
         await db.query(sql`
             DELETE FROM project_member_role
             WHERE member_id = ${parseInt(id)}
@@ -209,7 +136,7 @@ export class MemberDao {
     /**
      * Delete a member from a project
      */
-    static async deleteById(db: Db, id: Id): Promise<void> {
+    export async function deleteById(db: Db, id: Id): Promise<void> {
         await db.query(sql`
             DELETE FROM project_member
             WHERE id = ${parseInt(id)}
@@ -219,7 +146,7 @@ export class MemberDao {
     /**
      * Delete all members from a project
      */
-    static async deleteByProjId(db: Db, projectId: Id): Promise<void> {
+    export async function deleteByProjId(db: Db, projectId: Id): Promise<void> {
         await db.query(sql`
             DELETE FROM project_member
             WHERE project_id = ${projectId}
@@ -229,7 +156,7 @@ export class MemberDao {
     /**
      * Delete all project memberships from a user
      */
-    static async deleteByUserId(db: Db, userId: Id): Promise<void> {
+    export async function deleteByUserId(db: Db, userId: Id): Promise<void> {
         await db.query(sql`
             DELETE FROM project_member
             WHERE user_id = ${userId}
@@ -239,7 +166,11 @@ export class MemberDao {
     /**
      * Delete a member from a project
      */
-    static async deleteByProjectAndUserId(db: Db, projectId: Id, userId: Id): Promise<void> {
+    export async function deleteByProjectAndUserId(
+        db: Db,
+        projectId: Id,
+        userId: Id
+    ): Promise<void> {
         await db.query(sql`
             DELETE FROM project_member
             WHERE project_id=${projectId} AND user_id=${userId}
