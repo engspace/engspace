@@ -87,12 +87,22 @@ export namespace DocumentDao {
         return { count, documents };
     }
 
-    export async function checkout(db: Db, id: Id, userId: Id): Promise<Document | null> {
+    export async function checkout(
+        db: Db,
+        id: Id,
+        revision: number,
+        userId: Id
+    ): Promise<Document | null> {
         const row: Row = await db.maybeOne(sql`
             UPDATE document SET checkout = COALESCE(checkout, ${userId})
-            WHERE id = ${id}
+            WHERE
+                id = ${id} AND
+                (
+                    SELECT MAX(revision) FROM document_revision WHERE document_id = ${id}
+                ) = ${revision}
             RETURNING ${rowToken}
         `);
+        if (!row) return null;
         return mapRow(row);
     }
 
@@ -104,6 +114,7 @@ export namespace DocumentDao {
             WHERE id = ${id}
             RETURNING ${rowToken}
         `);
+        if (!row) return null;
         return mapRow(row);
     }
 }
@@ -195,6 +206,7 @@ export namespace DocumentRevisionDao {
             SELECT ${rowToken} FROM document_revision
             WHERE id = ${id}
         `);
+        if (!row) return null;
         return mapRow(row);
     }
 
@@ -219,6 +231,7 @@ export namespace DocumentRevisionDao {
                     SELECT MAX(revision) FROM document_revision WHERE document_id = ${documentId}
                 )
         `);
+        if (!row) return null;
         return mapRow(row);
     }
 
@@ -231,6 +244,7 @@ export namespace DocumentRevisionDao {
             SELECT ${rowToken} FROM document_revision
             WHERE document_id = ${documentId} AND revision = ${revision}
         `);
+        if (!row) return null;
         return mapRow(row);
     }
 }

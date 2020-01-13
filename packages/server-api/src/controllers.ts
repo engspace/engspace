@@ -21,7 +21,7 @@ import {
     ProjectDao,
     UserDao,
 } from '@engspace/server-db';
-import { ForbiddenError } from 'apollo-server-koa';
+import { ForbiddenError, UserInputError } from 'apollo-server-koa';
 import path from 'path';
 import { EsServerConfig } from '.';
 
@@ -223,9 +223,13 @@ export class DocumentControl {
         return DocumentDao.search(ctx.db, search, offset, limit);
     }
 
-    static async checkout(ctx: ApiContext, id: Id): Promise<Document | null> {
+    static async checkout(ctx: ApiContext, id: Id, revision: number): Promise<Document> {
         assertUserPerm(ctx, 'document.revise');
-        return DocumentDao.checkout(ctx.db, id, ctx.auth.userId);
+        const doc = await DocumentDao.checkout(ctx.db, id, revision, ctx.auth.userId);
+        if (!doc) {
+            throw new UserInputError('Could not checkout the specified document revision');
+        }
+        return doc;
     }
 
     static async discardCheckout(ctx: ApiContext, id: Id): Promise<Document | null> {

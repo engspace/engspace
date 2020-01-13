@@ -1,5 +1,6 @@
 <template>
     <search-panel v-model="search" title="Documents" :debounce-ms="500">
+        <p v-if="error" class="error--text">{{ error }}</p>
         <document-table
             :documents="documentSearch.documents"
             :items-per-page.sync="itemsPerPage"
@@ -47,6 +48,7 @@ export default {
                 count: 0,
                 documents: [],
             },
+            error: '',
         };
     },
     apollo: {
@@ -62,24 +64,30 @@ export default {
         },
     },
     methods: {
-        checkout(doc) {
-            this.$apollo.mutate({
-                mutation: gql`
-                    mutation CheckoutDoc($id: ID!) {
-                        documentCheckout(id: $id) {
-                            ...DocumentFields
-                            lastRevision {
-                                ...DocumentRevFields
+        async checkout(doc) {
+            this.error = '';
+            try {
+                await this.$apollo.mutate({
+                    mutation: gql`
+                        mutation CheckoutDoc($id: ID!, $revision: Int!) {
+                            documentCheckout(id: $id, revision: $revision) {
+                                ...DocumentFields
+                                lastRevision {
+                                    ...DocumentRevFields
+                                }
                             }
                         }
-                    }
-                    ${DOCUMENT_FIELDS}
-                    ${DOCUMENT_REV_FIELDS}
-                `,
-                variables: {
-                    id: doc.id,
-                },
-            });
+                        ${DOCUMENT_FIELDS}
+                        ${DOCUMENT_REV_FIELDS}
+                    `,
+                    variables: {
+                        id: doc.id,
+                        revision: doc.lastRevision.revision,
+                    },
+                });
+            } catch (err) {
+                this.error = err.message;
+            }
         },
         discardCheckout(doc) {
             this.$apollo.mutate({

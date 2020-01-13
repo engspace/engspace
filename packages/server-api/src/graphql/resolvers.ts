@@ -240,8 +240,12 @@ export const resolvers = {
             return DocumentControl.create(ctx, document);
         },
 
-        async documentCheckout(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Document> {
-            return DocumentControl.checkout(ctx, id);
+        async documentCheckout(
+            parent,
+            { id, revision }: { id: Id; revision: number },
+            ctx: GqlContext
+        ): Promise<Document> {
+            return DocumentControl.checkout(ctx, id, revision);
         },
 
         async documentDiscardCheckout(

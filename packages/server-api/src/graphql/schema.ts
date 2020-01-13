@@ -125,8 +125,8 @@ export const typeDefs = gql`
         projectMemberDelete(id: ID!): Boolean!
 
         documentCreate(document: DocumentInput): Document!
-        documentCheckout(id: ID!): Document
-        documentDiscardCheckout(id: ID!): Document
+        documentCheckout(id: ID!, revision: Int!): Document!
+        documentDiscardCheckout(id: ID!): Document!
         documentRevise(documentRevision: DocumentRevisionInput): DocumentRevision!
     }
 `;
