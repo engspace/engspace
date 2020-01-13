@@ -42,9 +42,9 @@ export class EsServerApi {
         }
     }
 
-    setupPlayground(prefix: string): void {
-        setupPlaygroundLogin(prefix, this.koa, this.config);
-        setupPlaygroundEndpoint(prefix, this.koa, this.config);
+    setupPlayground(): void {
+        setupPlaygroundLogin('/graphql-playground', this.koa, this.config);
+        setupPlaygroundEndpoint('/graphql-playground', this.koa, this.config);
     }
 
     setupPreAuthHttpRoutes(prefix: string): void {

@@ -23,7 +23,7 @@ function buildServerApi(pool: DbPool): EsServerApi {
     });
     api.koa.use(logger());
 
-    api.setupPlayground('/graphql-playground');
+    api.setupPlayground();
     api.setupAuthAndHttpRoutes('/api');
     api.setupGqlEndpoint('/api/graphql');
 

@@ -25,7 +25,7 @@ export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServe
 
     router.get('/login', async ctx => {
         await send(ctx, 'playground-login.html', {
-            root: path.normalize(path.join(__dirname, '../pages')),
+            root: path.normalize(path.join(__dirname, '../../pages')),
         });
     });
 
