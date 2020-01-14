@@ -3,9 +3,10 @@ import { LoginDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import { ApolloServer } from 'apollo-server-koa';
 import config from 'config';
+import fs from 'fs';
+import mime from 'mime';
 import HttpStatus from 'http-status-codes';
 import Koa from 'koa';
-import send from 'koa-send';
 import session from 'koa-session';
 import path from 'path';
 import { EsServerConfig } from '../';
@@ -24,9 +25,11 @@ export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServe
     const router = new Router({ prefix });
 
     router.get('/login', async ctx => {
-        await send(ctx, 'playground-login.html', {
-            root: path.normalize(path.join(__dirname, '../../pages')),
-        });
+        const htmlFile = path.normalize(path.join(__dirname, '../../pages/playground-login.html'));
+        const stream = fs.createReadStream(htmlFile);
+        ctx.set('Content-Disposition', 'inline');
+        ctx.set('Content-Type', mime.getType('playground-login.html'));
+        ctx.response.body = stream;
     });
 
     router.post('/login', async ctx => {
@@ -56,7 +59,6 @@ export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServe
                 },
                 authJwtSecret,
                 {
-                    algorithm: 'HS256',
                     expiresIn: '12H',
                 }
             );
