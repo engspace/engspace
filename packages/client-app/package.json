@@ -24,6 +24,7 @@
         "graphql": "^14.5.8",
         "graphql-tag": "^2.10.1",
         "http-status-codes": "^1.4.0",
+        "js-sha1": "^0.6.0",
         "jwt-decode": "^2.2.0",
         "lodash.clonedeep": "^4.5.0",
         "lodash.debounce": "^4.0.8",
