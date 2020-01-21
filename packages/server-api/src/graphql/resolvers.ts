@@ -263,5 +263,13 @@ export const resolvers = {
         ): Promise<DocumentRevision> {
             return DocumentRevisionControl.create(ctx, documentRevision);
         },
+
+        async documentRevisionCheck(
+            parent,
+            { docRevId, sha1 }: { docRevId: Id; sha1: string },
+            ctx: GqlContext
+        ): Promise<DocumentRevision> {
+            return DocumentRevisionControl.finalizeUpload(ctx, docRevId, sha1);
+        },
     },
 };

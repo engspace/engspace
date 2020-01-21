@@ -6,7 +6,7 @@ import mime from 'mime';
 import fs from 'fs';
 import HttpStatus from 'http-status-codes';
 import { EsServerConfig } from '..';
-import { DocumentRevisionControl, FileDownload, FileError, isFileError } from '../controllers';
+import { DocumentRevisionControl } from '../controllers';
 import { getAuthToken } from '../internal';
 import { signJwt, verifyJwt } from '../crypto';
 
@@ -18,7 +18,9 @@ interface DownloadToken {
     userId: Id;
 }
 
-export function setupDocTokenRoutes(router: Router): void {
+export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): void {
+    const { pool } = config;
+
     router.get('/document/download_token', async ctx => {
         const { documentId, revision } = ctx.request.query;
         const auth = getAuthToken(ctx);
@@ -31,9 +33,43 @@ export function setupDocTokenRoutes(router: Router): void {
         );
         ctx.response.body = { downloadToken };
     });
+    router.post('/document/upload', async ctx => {
+        const { rev_id: revId } = ctx.request.query;
+        const {
+            'content-length': length,
+            'x-upload-offset': offset,
+            'x-upload-length': totalLength,
+        } = ctx.request.headers;
+        if (length === undefined) {
+            ctx.throw(HttpStatus.BAD_REQUEST, 'Missing "Content-Length" header');
+        }
+        if (offset === undefined) {
+            ctx.throw(HttpStatus.BAD_REQUEST, 'Missing "X-Upload-Offset" header');
+        }
+        if (totalLength === undefined) {
+            ctx.throw(HttpStatus.BAD_REQUEST, 'Missing "X-Upload-Length" header');
+        }
+        await pool.connect(async db =>
+            DocumentRevisionControl.uploadChunk(
+                {
+                    db,
+                    auth: getAuthToken(ctx),
+                    config,
+                },
+                revId,
+                {
+                    length: parseInt(length, 10),
+                    offset: parseInt(offset, 10),
+                    totalLength: parseInt(totalLength, 10),
+                    data: ctx.req,
+                }
+            )
+        );
+        ctx.status = HttpStatus.OK;
+    });
 }
 
-export function setupDocRoutes(router: Router, config: EsServerConfig): void {
+export function setupPreAuthDocRoutes(router: Router, config: EsServerConfig): void {
     const { pool, rolePolicies } = config;
 
     router.get('/document/download', async ctx => {
@@ -64,14 +100,14 @@ export function setupDocRoutes(router: Router, config: EsServerConfig): void {
                 documentId,
                 revision
             );
-            if (isFileError(res)) {
-                if (res === FileError.NotExist) {
+            if (DocumentRevisionControl.isFileError(res)) {
+                if (res === DocumentRevisionControl.FileError.NotExist) {
                     ctx.throw(HttpStatus.NOT_FOUND);
-                } else if (res == FileError.Forbidden) {
+                } else if (res == DocumentRevisionControl.FileError.Forbidden) {
                     ctx.throw(HttpStatus.FORBIDDEN);
                 }
             }
-            return res as FileDownload;
+            return res as DocumentRevisionControl.FileDownload;
         });
         const stream = fs.createReadStream(fd.filepath);
         ctx.set('Content-Disposition', `attachment; filename=${fd.docRev.filename}`);

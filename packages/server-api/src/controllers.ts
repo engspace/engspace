@@ -22,7 +22,11 @@ import {
     UserDao,
 } from '@engspace/server-db';
 import { ForbiddenError, UserInputError } from 'apollo-server-koa';
+import crypto from 'crypto';
+import fs from 'fs';
 import path from 'path';
+import stream from 'stream';
+import util from 'util';
 import { EsServerConfig } from '.';
 
 export interface ApiContext {
@@ -238,37 +242,37 @@ export class DocumentControl {
     }
 }
 
-export interface FileDownload {
-    docRev: DocumentRevision;
-    filepath: string;
+namespace fsp {
+    export const pipeline = util.promisify(stream.pipeline);
+    export const mkdir = util.promisify(fs.mkdir);
+    export const open = util.promisify(fs.open);
+    export const close = util.promisify(fs.close);
+    export const rename = util.promisify(fs.rename);
 }
 
-export enum FileError {
-    Forbidden,
-    NotExist,
-}
-
-export function isFileError(obj: FileDownload | FileError): obj is FileError {
-    return (obj as FileDownload).docRev === undefined;
-}
-
-export class DocumentRevisionControl {
-    static async create(ctx: ApiContext, docRev: DocumentRevisionInput): Promise<DocumentRevision> {
+export namespace DocumentRevisionControl {
+    export async function create(
+        ctx: ApiContext,
+        docRev: DocumentRevisionInput
+    ): Promise<DocumentRevision> {
         assertUserPerm(ctx, 'document.revise');
         return DocumentRevisionDao.create(ctx.db, docRev, ctx.auth.userId);
     }
 
-    static async byId(ctx: ApiContext, id: Id): Promise<DocumentRevision | null> {
+    export async function byId(ctx: ApiContext, id: Id): Promise<DocumentRevision | null> {
         assertUserPerm(ctx, 'document.read');
         return DocumentRevisionDao.byId(ctx.db, id);
     }
 
-    static async byDocumentId(ctx: ApiContext, documentId: Id): Promise<DocumentRevision[]> {
+    export async function byDocumentId(
+        ctx: ApiContext,
+        documentId: Id
+    ): Promise<DocumentRevision[]> {
         assertUserPerm(ctx, 'document.read');
         return DocumentRevisionDao.byDocumentId(ctx.db, documentId);
     }
 
-    static async byDocumentIdAndRevision(
+    export async function byDocumentIdAndRevision(
         ctx: ApiContext,
         documentId: Id,
         revision: number
@@ -277,7 +281,7 @@ export class DocumentRevisionControl {
         return DocumentRevisionDao.byDocumentIdAndRev(ctx.db, documentId, revision);
     }
 
-    static async lastByDocumentId(
+    export async function lastByDocumentId(
         ctx: ApiContext,
         documentId: Id
     ): Promise<DocumentRevision | null> {
@@ -285,8 +289,48 @@ export class DocumentRevisionControl {
         return DocumentRevisionDao.lastByDocumentId(ctx.db, documentId);
     }
 
-    static async download(
-        ctx,
+    export interface FileDownload {
+        docRev: DocumentRevision;
+        filepath: string;
+    }
+
+    export enum FileError {
+        Forbidden,
+        NotExist,
+    }
+
+    export function isFileError(obj: FileDownload | FileError): obj is FileError {
+        return (obj as FileDownload).docRev === undefined;
+    }
+
+    export interface UploadChunk {
+        length: number;
+        offset: number;
+        totalLength: number;
+        data: stream.Readable;
+    }
+
+    interface OpenUpload {
+        fd: number;
+        path: string;
+        touched: number;
+    }
+
+    const openUploadMaxAge = 5000;
+    const openUploads: { [id: string]: OpenUpload } = {};
+
+    function checkCleanup(revId: Id): void {
+        const upload = openUploads[revId];
+        if (!upload) return;
+        if (Date.now() - upload.touched >= openUploadMaxAge) {
+            delete openUploads[revId];
+            console.log('closing file');
+            fsp.close(upload.fd);
+        }
+    }
+
+    export async function download(
+        ctx: ApiContext,
         documentId: Id,
         revision: number
     ): Promise<FileDownload | FileError> {
@@ -299,5 +343,94 @@ export class DocumentRevisionControl {
             docRev,
             filepath: path.join(ctx.config.storePath, docRev.sha1),
         };
+    }
+
+    export async function uploadChunk(
+        ctx: ApiContext,
+        revisionId: Id,
+        chunk: UploadChunk
+    ): Promise<void> {
+        assertUserPerm(ctx, 'document.revise');
+
+        const tempDir = path.join(ctx.config.storePath, 'upload');
+        await fsp.mkdir(tempDir, { recursive: true });
+        const openFlags = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL;
+        const tempPath = path.join(tempDir, revisionId);
+
+        if (chunk.offset === 0 && chunk.length === chunk.totalLength) {
+            // upload is made of a single chunk
+            const ws = fs.createWriteStream(tempPath, {
+                flags: (openFlags as unknown) as string,
+                encoding: 'binary',
+            });
+            await fsp.pipeline(chunk.data, ws);
+        } else {
+            if (!openUploads[revisionId]) {
+                const fd = await fsp.open(tempPath, openFlags);
+                openUploads[revisionId] = {
+                    fd,
+                    path: tempPath,
+                    touched: 0,
+                };
+            }
+            const upload = openUploads[revisionId];
+            const ws = fs.createWriteStream('', {
+                fd: upload.fd,
+                start: chunk.offset,
+                encoding: 'binary',
+                autoClose: false,
+            });
+            await fsp.pipeline(chunk.data, ws);
+            upload.touched = Date.now();
+            setTimeout(checkCleanup, openUploadMaxAge + 10, revisionId);
+        }
+        await DocumentRevisionDao.updateAddProgress(ctx.db, revisionId, chunk.length);
+    }
+
+    async function sha1sum(filepath: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const rs = fs.createReadStream(filepath);
+            const hasher = crypto.createHash('sha1');
+            rs.on('data', function(data) {
+                hasher.update(data);
+            });
+            rs.on('end', function() {
+                return resolve(hasher.digest('hex'));
+            });
+            rs.on('error', function(err) {
+                reject(err);
+            });
+        });
+    }
+
+    export async function finalizeUpload(
+        ctx: ApiContext,
+        revisionId: Id,
+        clientSha1: string
+    ): Promise<DocumentRevision> {
+        assertUserPerm(ctx, 'document.revise');
+
+        const sha1 = clientSha1.toLowerCase();
+
+        const tempDir = path.join(ctx.config.storePath, 'upload');
+        const tempPath = path.join(tempDir, revisionId);
+        if (openUploads[revisionId]) {
+            const upload = openUploads[revisionId];
+            if (upload.path !== tempPath) {
+                throw new Error('Not matching temporary upload path');
+            }
+            fsp.close(upload.fd);
+            delete openUploads[revisionId];
+        }
+        const hash = await sha1sum(tempPath);
+        if (hash.toLowerCase() !== sha1) {
+            throw new Error(
+                `Server hash (${hash.toLowerCase()}) do not match client hash (${sha1})`
+            );
+        }
+        await fsp.mkdir(ctx.config.storePath, { recursive: true });
+        const finalPath = path.join(ctx.config.storePath, sha1);
+        await fsp.rename(tempPath, finalPath);
+        return DocumentRevisionDao.updateSha1(ctx.db, revisionId, sha1);
     }
 }

@@ -122,50 +122,51 @@ export namespace DocumentDao {
 export namespace DocumentRevisionDao {
     interface Row {
         id: Id;
-        docId: Id;
+        documentId: Id;
         revision: number;
         filename: string;
         filesize: number;
-        sha1: string;
         changeDescription: string;
         author: Id;
         createdAt: number;
         uploaded: number;
-        uploadChecked: boolean;
+        sha1: string;
     }
 
     function mapRow({
         id,
-        docId,
+        documentId,
         revision,
         filename,
         filesize,
-        sha1,
         changeDescription,
         author,
         createdAt,
         uploaded,
-        uploadChecked,
+        sha1,
     }: Row): DocumentRevision {
         if (!id) return null;
         return {
             id,
-            document: { id: docId },
+            document: { id: documentId },
             revision,
             filename,
             filesize,
-            sha1,
             changeDescription,
             author: { id: author },
             createdAt: createdAt * 1000,
             uploaded: uploaded ? uploaded : 0,
-            uploadChecked: uploadChecked ? uploadChecked : false,
+            sha1: sha1 ? sha1 : null,
         };
     }
 
     const rowToken = sql`
-        id, document_id, revision, filename, filesize, change_description, ENCODE(sha1, 'hex') AS sha1,
-        author, EXTRACT(EPOCH FROM created_at) AS created_at, uploaded, upload_checked
+        id, document_id, revision, filename, filesize, change_description,
+        author, EXTRACT(EPOCH FROM created_at) AS created_at, uploaded
+    `;
+
+    const sha1Token = sql`
+        (CASE WHEN sha1 ISNULL THEN NULL ELSE ENCODE(sha1, 'hex') END) as sha1
     `;
 
     export async function create(
@@ -173,10 +174,10 @@ export namespace DocumentRevisionDao {
         documentRev: DocumentRevisionInput,
         userId: Id
     ): Promise<DocumentRevision> {
-        const { documentId, filename, filesize, sha1, changeDescription } = documentRev;
+        const { documentId, filename, filesize, changeDescription } = documentRev;
         const row: Row = await db.one(sql`
             INSERT INTO document_revision (
-                document_id, revision, filename, filesize, change_description, sha1, author, created_at
+                document_id, revision, filename, filesize, change_description, author, created_at
             ) VALUES (
                 ${documentId},
                 COALESCE(
@@ -186,7 +187,6 @@ export namespace DocumentRevisionDao {
                 ${filename},
                 ${filesize},
                 ${changeDescription},
-                DECODE(${sha1}, 'hex'),
                 (SELECT checkout FROM document WHERE id = ${documentId} AND checkout = ${userId}),
                 NOW()
             )
@@ -203,8 +203,8 @@ export namespace DocumentRevisionDao {
 
     export async function byId(db: Db, id: Id): Promise<DocumentRevision | null> {
         const row: Row = await db.one(sql`
-            SELECT ${rowToken} FROM document_revision
-            WHERE id = ${id}
+            SELECT ${rowToken}, ${sha1Token} FROM document_revision
+            WHERE id = ${parseInt(id)}
         `);
         if (!row) return null;
         return mapRow(row);
@@ -212,7 +212,7 @@ export namespace DocumentRevisionDao {
 
     export async function byDocumentId(db: Db, documentId: Id): Promise<DocumentRevision[]> {
         const rows: Row[] = await db.any(sql`
-            SELECT ${rowToken} FROM document_revision
+            SELECT ${rowToken}, ${sha1Token} FROM document_revision
             WHERE document_id = ${documentId}
             ORDER BY revision
         `);
@@ -224,7 +224,7 @@ export namespace DocumentRevisionDao {
         documentId: Id
     ): Promise<DocumentRevision | null> {
         const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken} FROM document_revision
+            SELECT ${rowToken}, ${sha1Token} FROM document_revision
             WHERE
                 document_id = ${documentId} AND
                 revision = (
@@ -241,10 +241,34 @@ export namespace DocumentRevisionDao {
         revision: number
     ): Promise<DocumentRevision> {
         const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken} FROM document_revision
+            SELECT ${rowToken}, ${sha1Token} FROM document_revision
             WHERE document_id = ${documentId} AND revision = ${revision}
         `);
         if (!row) return null;
+        return mapRow(row);
+    }
+
+    export async function updateAddProgress(
+        db: Db,
+        revisionId: Id,
+        addUploaded: number
+    ): Promise<void> {
+        await db.query(sql`
+            UPDATE document_revision SET uploaded = uploaded+${addUploaded}
+            WHERE id = ${revisionId}
+        `);
+    }
+
+    export async function updateSha1(
+        db: Db,
+        revisionId: Id,
+        sha1: string
+    ): Promise<DocumentRevision> {
+        const row: Row = await db.maybeOne(sql`
+            UPDATE document_revision SET uploaded = filesize, sha1=DECODE(${sha1}, 'hex')
+            WHERE id = ${revisionId}
+            RETURNING ${rowToken}, ${sha1Token}
+        `);
         return mapRow(row);
     }
 }

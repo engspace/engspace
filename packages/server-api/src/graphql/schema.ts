@@ -76,7 +76,6 @@ export const typeDefs = gql`
         documentId: ID!
         filename: String!
         filesize: Int!
-        sha1: String!
         changeDescription: String
         retainCheckout: Boolean
     }
@@ -87,12 +86,11 @@ export const typeDefs = gql`
         revision: Int!
         filename: String!
         filesize: Int!
-        sha1: String!
         changeDescription: String
         author: User!
         createdAt: DateTime!
         uploaded: Int
-        uploadChecked: Boolean
+        sha1: String
     }
 
     type Query {
@@ -128,5 +126,6 @@ export const typeDefs = gql`
         documentCheckout(id: ID!, revision: Int!): Document!
         documentDiscardCheckout(id: ID!): Document!
         documentRevise(documentRevision: DocumentRevisionInput): DocumentRevision!
+        documentRevisionCheck(docRevId: ID!, sha1: String!): DocumentRevision!
     }
 `;

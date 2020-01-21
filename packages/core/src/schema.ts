@@ -66,7 +66,6 @@ export interface DocumentRevisionInput {
     documentId: Id;
     filename: string;
     filesize: number;
-    sha1: string;
     changeDescription: string;
     retainCheckout: boolean;
 }
@@ -77,12 +76,11 @@ export interface DocumentRevision {
     revision: number;
     filename: string;
     filesize: number;
-    sha1: string;
     changeDescription: string;
     author: IdOr<User>;
     createdAt: DateTime;
     uploaded: number;
-    uploadChecked: boolean;
+    sha1: string | null;
 }
 
 export interface DocumentSearch {

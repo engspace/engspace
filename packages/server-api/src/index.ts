@@ -13,7 +13,7 @@ import { gqlContextFactory } from './graphql/context';
 import { setupPlaygroundEndpoint, setupPlaygroundLogin } from './graphql/playground';
 import { resolvers } from './graphql/resolvers';
 import { typeDefs } from './graphql/schema';
-import { setupDocRoutes, setupDocTokenRoutes } from './http/document';
+import { setupPreAuthDocRoutes, setupPostAuthDocRoutes } from './http/document';
 import { setupFirstAdminRoutes } from './http/first_admin';
 import { setupLoginRoute } from './http/login';
 import { attachDb, authJwtSecret, setAuthToken } from './internal';
@@ -37,6 +37,14 @@ export class EsServerApi {
             koa.use(
                 cors({
                     keepHeadersOnError: true,
+                    allowMethods: ['GET', 'POST', 'OPTIONS'],
+                    allowHeaders: [
+                        'Authorization',
+                        'Content-Length',
+                        'Content-Type',
+                        'X-Upload-Length',
+                        'X-Upload-Offset',
+                    ],
                 })
             );
         }
@@ -51,7 +59,7 @@ export class EsServerApi {
         const router = new Router({ prefix });
         setupLoginRoute(router, this.config);
         setupFirstAdminRoutes(router, this.config);
-        setupDocRoutes(router, this.config);
+        setupPreAuthDocRoutes(router, this.config);
         this.koa.use(router.routes());
     }
 
@@ -79,7 +87,7 @@ export class EsServerApi {
         router.get('/check_token', async ctx => {
             ctx.status = HttpStatus.OK;
         });
-        setupDocTokenRoutes(router);
+        setupPostAuthDocRoutes(router, this.config);
         this.koa.use(router.routes());
     }
 

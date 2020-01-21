@@ -11,7 +11,10 @@
             {{ item.createdBy.fullName }}
         </template>
         <template v-slot:item.lastRevision="{ item }">
-            <document-revision :document="item"></document-revision>
+            <document-revision
+                :revision="item.lastRevision"
+                @upload="$emit('rev-upload', { document: item, ...$event })"
+            ></document-revision>
         </template>
         <template v-slot:item.checkout="{ item }">
             <document-checkout

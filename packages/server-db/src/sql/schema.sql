@@ -70,12 +70,11 @@ CREATE TABLE document_revision (
     filename text NOT NULL,
     filesize integer NOT NULL,
     change_description text,
-    sha1 bytea NOT NULL,
     author uuid NOT NULL,
     created_at timestamptz NOT NULL,
 
     uploaded integer,
-    upload_checked boolean,
+    sha1 bytea, -- initially null, set after check on both client and server
 
     UNIQUE(document_id, revision),
     FOREIGN KEY(document_id) REFERENCES document(id),

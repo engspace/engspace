@@ -3,6 +3,7 @@ import { DemoUserSet, DemoUser } from './user';
 import { DocumentDao, Db, DocumentRevisionDao } from '@engspace/server-db';
 import path from 'path';
 import fs from 'fs';
+import util from 'util';
 import crypto from 'crypto';
 
 interface DemoDocInput {
@@ -29,41 +30,13 @@ export const documentInput: DemoDocInput[] = [
 
 const demoFilePath = `${__dirname}/../demo_files`;
 
-async function mkdirRecurs(dirPath: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-        fs.mkdir(dirPath, { recursive: true }, err => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve();
-            }
-        });
-    });
-}
-
-async function copyFile(src: string, dest: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-        fs.copyFile(src, dest, err => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve();
-            }
-        });
-    });
-}
+const copyFileP = util.promisify(fs.copyFile);
+const mkdirP = util.promisify(fs.mkdir);
+const rmdirP = util.promisify(fs.rmdir);
+const statP = util.promisify(fs.stat);
 
 function resolvePath(filepath: string): string {
     return path.normalize(filepath.replace('$DEMO_FILES', demoFilePath));
-}
-
-async function fileSize(filepath: string): Promise<number> {
-    return new Promise((resolve, reject) => {
-        fs.stat(filepath, (err, stats) => {
-            if (err) return reject(err);
-            return resolve(stats.size);
-        });
-    });
 }
 
 function fileSha1Hash(filepath: string): Promise<string> {
@@ -78,6 +51,9 @@ function fileSha1Hash(filepath: string): Promise<string> {
             s.on('end', function() {
                 const hash = shasum.digest('hex');
                 return resolve(hash);
+            });
+            s.on('error', function(err) {
+                reject(err);
             });
         } catch (error) {
             return reject(error);
@@ -95,13 +71,14 @@ async function createRevision(
     const input: DocumentRevisionInput = {
         documentId: doc.id,
         filename: path.basename(resolved),
-        filesize: await fileSize(resolved),
-        sha1: await fileSha1Hash(resolved),
+        filesize: (await statP(resolved)).size,
         changeDescription: 'Initial upload',
         retainCheckout: false,
     };
-    await copyFile(resolved, path.join(storePath, input.sha1));
-    return DocumentRevisionDao.create(db, input, doc.createdBy.id);
+    const sha1 = (await fileSha1Hash(resolved)).toLowerCase();
+    await copyFileP(resolved, path.join(storePath, sha1));
+    const { id } = await DocumentRevisionDao.create(db, input, doc.createdBy.id);
+    return DocumentRevisionDao.updateSha1(db, id, sha1);
 }
 
 async function createDocument(
@@ -128,6 +105,7 @@ export async function createDocuments(
     users: Promise<DemoUserSet>,
     storePath: string
 ): Promise<Document[]> {
-    await mkdirRecurs(storePath);
+    await rmdirP(storePath, { recursive: true });
+    await mkdirP(storePath, { recursive: true });
     return Promise.all(documentInput.map(di => createDocument(db, di, users, storePath)));
 }
