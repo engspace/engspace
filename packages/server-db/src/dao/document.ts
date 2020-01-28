@@ -166,7 +166,7 @@ export namespace DocumentRevisionDao {
     `;
 
     const sha1Token = sql`
-        (CASE WHEN sha1 ISNULL THEN NULL ELSE ENCODE(sha1, 'hex') END) as sha1
+        ENCODE(sha1, 'hex') as sha1
     `;
 
     export async function create(
@@ -204,7 +204,7 @@ export namespace DocumentRevisionDao {
     export async function byId(db: Db, id: Id): Promise<DocumentRevision | null> {
         const row: Row = await db.one(sql`
             SELECT ${rowToken}, ${sha1Token} FROM document_revision
-            WHERE id = ${id}
+            WHERE id = ${parseInt(id)}
         `);
         if (!row) return null;
         return mapRow(row);
