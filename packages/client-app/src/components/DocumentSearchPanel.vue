@@ -111,15 +111,12 @@ export default {
         discardCheckout(doc) {
             this.$apollo.mutate({
                 mutation: gql`
-                    mutation CheckoutDoc($id: ID!) {
+                    mutation DiscardCheckoutDoc($id: ID!) {
                         documentDiscardCheckout(id: $id) {
                             ...DocSearchDocFields
-                            lastRevision {
-                            }
                         }
                     }
-                    ${DOCUMENT_FIELDS}
-                    ${DOCUMENT_REV_FIELDS}
+                    ${DOC_SEARCH_DOC_FIELDS}
                 `,
                 variables: {
                     id: doc.id,
@@ -127,7 +124,6 @@ export default {
             });
         },
         async revUpload({ document, file, changeDescription }) {
-            const ind = this.documentSearch.documents.findIndex(d => d.id === document.id);
             const newRevInput = {
                 documentId: document.id,
                 filename: file.name,
@@ -135,6 +131,7 @@ export default {
                 changeDescription,
                 retainCheckout: false,
             };
+            // step 1: register new revision in DB and get its id.
             const result = await this.$apollo.mutate({
                 mutation: gql`
                     mutation ReviseDoc($docRev: DocumentRevisionInput!) {
@@ -152,36 +149,32 @@ export default {
                     docRev: newRevInput,
                 },
                 update: (store, { data: { documentRevise } }) => {
-                    const queryOpts = {
-                        query: SEARCH_DOCS,
-                        variables: this.searchVars(),
-                    };
-                    const data = store.readQuery(queryOpts);
-                    const doc = data.documentSearch.documents[ind];
-                    if (doc.lastRevision) {
-                        doc.lastRevision = documentRevise;
-                    }
-                    if (doc.revisions) {
-                        doc.revisions = [...doc.revision, documentRevise];
-                    }
-                    store.writeQuery({ ...queryOpts, data });
+                    store.writeFragment({
+                        id: document.id,
+                        fragment: gql`
+                            fragment DocumentLastRev on Document {
+                                lastRevision
+                            }
+                        `,
+                        data: { __typename: 'Document', lastRevision: documentRevise },
+                    });
                 },
             });
+            // Step 2: actually upload the file and monitor progress
             const rev = result.data.documentRevise;
             const path = `/api/document/upload?rev_id=${rev.id}`;
             const sha1 = await uploadFile(file, path, uploaded => {
-                // TODO: writeFragment
-                const queryOpts = {
-                    query: SEARCH_DOCS,
-                    variables: this.searchVars(),
-                };
-                const data = apolloClient.readQuery(queryOpts);
-                const doc = data.documentSearch.documents[ind];
-                if (doc.lastRevision) {
-                    doc.lastRevision.uploaded = uploaded;
-                }
-                apolloClient.writeQuery({ ...queryOpts, data });
+                apolloClient.writeFragment({
+                    id: rev.id,
+                    fragment: gql`
+                        fragment DocRevUpload on DocumentRevision {
+                            uploaded
+                        }
+                    `,
+                    data: { __typename: 'DocumentRevision', uploaded },
+                });
             });
+            // Step 3: finalize transaction and let the server check the content of the file
             await this.$apollo.mutate({
                 mutation: gql`
                     mutation CheckUpload($docRevId: ID!, $sha1: String!) {
