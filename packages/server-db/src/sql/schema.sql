@@ -33,7 +33,7 @@ CREATE TABLE project (
 );
 
 CREATE TABLE project_member (
-    id serial PRIMARY KEY NOT NULL,
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     project_id uuid NOT NULL,
     user_id uuid NOT NULL,
 
@@ -43,7 +43,7 @@ CREATE TABLE project_member (
 );
 
 CREATE TABLE project_member_role (
-    member_id integer NOT NULL,
+    member_id uuid NOT NULL,
     role text NOT NULL,
 
     PRIMARY KEY(member_id, role),
@@ -64,7 +64,7 @@ CREATE TABLE document (
 );
 
 CREATE TABLE document_revision (
-    id serial PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     document_id uuid NOT NULL,
     revision integer NOT NULL,
     filename text NOT NULL,

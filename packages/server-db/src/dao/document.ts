@@ -204,7 +204,7 @@ export namespace DocumentRevisionDao {
     export async function byId(db: Db, id: Id): Promise<DocumentRevision | null> {
         const row: Row = await db.one(sql`
             SELECT ${rowToken}, ${sha1Token} FROM document_revision
-            WHERE id = ${parseInt(id)}
+            WHERE id = ${id}
         `);
         if (!row) return null;
         return mapRow(row);

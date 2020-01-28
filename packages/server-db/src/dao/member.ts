@@ -4,14 +4,14 @@ import { Db } from '..';
 
 export namespace MemberDao {
     interface Row {
-        id: number;
+        id: Id;
         projectId: Id;
         userId: Id;
     }
 
     function mapRow(row: Row): ProjectMember {
         return {
-            id: row.id.toString(),
+            id: row.id,
             project: { id: row.projectId },
             user: { id: row.userId },
         };
@@ -50,7 +50,7 @@ export namespace MemberDao {
     export async function byId(db: Db, id: Id): Promise<ProjectMember> {
         const row = await db.one<Row>(sql`
             SELECT id, project_id, user_id FROM project_member
-            WHERE id = ${parseInt(id)}
+            WHERE id = ${id}
         `);
         return mapRow(row);
     }
@@ -116,7 +116,7 @@ export namespace MemberDao {
     export async function rolesById(db: Db, id: Id): Promise<string[]> {
         const rows = await db.anyFirst(sql`
             SELECT role FROM project_member_role
-            WHERE member_id = ${parseInt(id)}
+            WHERE member_id = ${id}
         `);
         return rows as string[];
     }
@@ -124,7 +124,7 @@ export namespace MemberDao {
     export async function updateRolesById(db: Db, id: Id, roles: string[]): Promise<ProjectMember> {
         await db.query(sql`
             DELETE FROM project_member_role
-            WHERE member_id = ${parseInt(id)}
+            WHERE member_id = ${id}
         `);
 
         const inserted = roles ? await insertRoles(db, id, roles) : [];
@@ -139,7 +139,7 @@ export namespace MemberDao {
     export async function deleteById(db: Db, id: Id): Promise<void> {
         await db.query(sql`
             DELETE FROM project_member
-            WHERE id = ${parseInt(id)}
+            WHERE id = ${id}
         `);
     }
 
@@ -183,7 +183,7 @@ async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
         INSERT INTO project_member_role(
             member_id, role
         ) VALUES ${sql.join(
-            roles.map(role => sql`(${parseInt(id)}, ${role})`),
+            roles.map(role => sql`(${id}, ${role})`),
             sql`, `
         )}
         RETURNING role
