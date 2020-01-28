@@ -41,7 +41,6 @@ export function query(path: string, obj: any): string {
 export const api = axios.create({
     baseURL: apiUrl(),
     validateStatus: function(status) {
-        console.log('validating status: ' + status);
         return status >= 200 && status < 500;
     },
 });
