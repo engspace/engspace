@@ -125,6 +125,11 @@ export class ProjectControl {
         return ProjectDao.create(ctx.db, project);
     }
 
+    static byId(ctx: ApiContext, id: Id): Promise<Project> {
+        assertUserPerm(ctx, 'project.read');
+        return ProjectDao.byId(ctx.db, id);
+    }
+
     static byIds(ctx: ApiContext, ids: readonly Id[]): Promise<Project[]> {
         assertUserPerm(ctx, 'project.read');
         return ProjectDao.batchByIds(ctx.db, ids);

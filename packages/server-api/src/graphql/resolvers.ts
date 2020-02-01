@@ -43,16 +43,16 @@ export const resolvers = {
     User: {
         async roles({ id, roles }: User, args, ctx: GqlContext): Promise<string[]> {
             if (roles) return roles;
-            return ctx.loaders.roles.load(id);
+            return UserControl.rolesById(ctx, id);
         },
         membership({ id }: User, args, ctx: GqlContext): Promise<ProjectMember[]> {
-            return ctx.loaders.membersByUser.load(id);
+            return MemberControl.byUserId(ctx, id);
         },
     },
 
     Project: {
         members({ id }: Project, args, ctx: GqlContext): Promise<ProjectMember[]> {
-            return ctx.loaders.membersByProj.load(id);
+            return MemberControl.byProjectId(ctx, id);
         },
     },
 
@@ -61,7 +61,7 @@ export const resolvers = {
             if (project['code']) {
                 return Promise.resolve(project as Project);
             } else {
-                return ctx.loaders.project.load(project.id);
+                return ProjectControl.byId(ctx, project.id);
             }
         },
         user({ user }: ProjectMember, args, ctx: GqlContext): Promise<User> {
@@ -72,7 +72,7 @@ export const resolvers = {
             }
         },
         roles({ id }: ProjectMember, args, ctx: GqlContext): Promise<string[]> {
-            return ctx.loaders.memberRoles.load(id);
+            return MemberControl.rolesById(ctx, id);
         },
     },
 
@@ -142,7 +142,7 @@ export const resolvers = {
         },
 
         project(parent, { id }, ctx: GqlContext): Promise<Project> {
-            return ctx.loaders.project.load(id);
+            return ProjectControl.byId(ctx, id);
         },
         projectByCode(parent, { code }, ctx: GqlContext): Promise<Project> {
             return ProjectControl.byCode(ctx, code);
