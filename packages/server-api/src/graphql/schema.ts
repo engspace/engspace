@@ -93,6 +93,43 @@ export const typeDefs = gql`
         sha1: String
     }
 
+    type PartFamily {
+        id: ID!
+        name: String!
+        code: String!
+        counter: Int!
+    }
+
+    type PartBase {
+        id: ID!
+        family: PartFamily!
+        reference: String!
+        designation: String!
+
+        parts: [Part!]!
+    }
+
+    type Part {
+        id: ID!
+        base: PartBase!
+        reference: String!
+        designation: String!
+        createdBy: User!
+        createdAt: DateTime!
+
+        revisions: [PartRevision!]!
+    }
+
+    type PartRevision {
+        id: ID!
+        part: Part!
+        revision: Int!
+        createdBy: User!
+        createdAt: DateTime!
+
+        definitionDocs: [DocumentRevision!]!
+    }
+
     type Query {
         user(id: ID!): User
         userByName(name: String!): User
@@ -109,6 +146,11 @@ export const typeDefs = gql`
         document(id: ID!): Document
         documentSearch(search: String, offset: Int = 0, limit: Int = 1000): DocumentSearch!
         documentRevision(id: ID!): DocumentRevision
+
+        partFamily(id: ID!): PartFamily
+        partBase(id: ID!): PartBase
+        part(id: ID!): Part
+        partRevision(id: ID!): PartRevision
     }
 
     type Mutation {

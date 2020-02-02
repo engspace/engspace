@@ -80,3 +80,41 @@ CREATE TABLE document_revision (
     FOREIGN KEY(document_id) REFERENCES document(id),
     FOREIGN KEY(author) REFERENCES "user"(id)
 );
+
+CREATE TABLE part_family (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    name text NOT NULL,
+    code text NOT NULL,
+    description text
+);
+
+CREATE TABLE part_base (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    family_id uuid NOT NULL,
+    reference text NOT NULL UNIQUE,
+    designation text NOT NULL,
+    FOREIGN KEY(family_id) REFERENCES part_family(id)
+);
+
+CREATE TABLE part (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    base_id uuid NOT NULL,
+    reference text NOT NULL UNIQUE,
+    designation text NOT NULL,
+    created_by uuid NOT NULL,
+    created_at timestamptz NOT NULL,
+
+    FOREIGN KEY(base_id) REFERENCES part_base(id),
+    FOREIGN KEY(created_by) REFERENCES "user"(id)
+);
+
+CREATE TABLE part_revision (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    part_id uuid NOT NULL,
+    revision integer NOT NULL,
+    created_by uuid NOT NULL,
+    created_at timestamptz NOT NULL,
+
+    FOREIGN KEY(part_id) REFERENCES part(id),
+    FOREIGN KEY(created_by) REFERENCES "user"(id)
+);

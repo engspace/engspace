@@ -5,6 +5,10 @@ import {
     DocumentRevisionInput,
     DocumentSearch,
     Id,
+    Part,
+    PartBase,
+    PartFamily,
+    PartRevision,
     Project,
     ProjectInput,
     ProjectMember,
@@ -17,6 +21,10 @@ import {
     DocumentControl,
     DocumentRevisionControl,
     MemberControl,
+    PartBaseControl,
+    PartControl,
+    PartFamilyControl,
+    PartRevisionControl,
     ProjectControl,
     UserControl,
 } from '../controllers';
@@ -126,6 +134,45 @@ export const resolvers = {
         },
     },
 
+    PartBase: {
+        family({ family }: PartBase, args, ctx: GqlContext): Promise<PartFamily> {
+            if (family['code']) {
+                return Promise.resolve(family as PartFamily);
+            }
+            return PartFamilyControl.byId(ctx, family.id);
+        },
+    },
+
+    Part: {
+        base({ base }: Part, args, ctx: GqlContext): Promise<PartBase> {
+            if (base['reference']) {
+                return Promise.resolve(base as PartBase);
+            }
+            return PartBaseControl.byId(ctx, base.id);
+        },
+        createdBy({ createdBy }: Part, args, ctx: GqlContext): Promise<User> {
+            if (createdBy['name']) {
+                return Promise.resolve(createdBy as User);
+            }
+            return ctx.loaders.user.load(createdBy.id);
+        },
+    },
+
+    PartRevision: {
+        part({ part }: PartRevision, args, ctx: GqlContext): Promise<Part> {
+            if (part['reference']) {
+                return Promise.resolve(part as Part);
+            }
+            return PartControl.byId(ctx, part.id);
+        },
+        createdBy({ createdBy }: Part, args, ctx: GqlContext): Promise<User> {
+            if (createdBy['name']) {
+                return Promise.resolve(createdBy as User);
+            }
+            return ctx.loaders.user.load(createdBy.id);
+        },
+    },
+
     Query: {
         user(parent, { id }, ctx: GqlContext): Promise<User> {
             return ctx.loaders.user.load(id);
@@ -184,6 +231,22 @@ export const resolvers = {
             ctx: GqlContext
         ): Promise<DocumentRevision | null> {
             return DocumentRevisionControl.byId(ctx, id);
+        },
+
+        partFamily(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartFamily | null> {
+            return PartFamilyControl.byId(ctx, id);
+        },
+
+        partBase(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartBase | null> {
+            return PartBaseControl.byId(ctx, id);
+        },
+
+        part(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Part | null> {
+            return PartControl.byId(ctx, id);
+        },
+
+        partRevision(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartRevision | null> {
+            return PartRevisionControl.byId(ctx, id);
         },
     },
     Mutation: {

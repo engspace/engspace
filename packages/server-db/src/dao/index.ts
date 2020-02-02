@@ -1,8 +1,9 @@
 export { DocumentDao, DocumentRevisionDao } from './document';
 export { LoginDao } from './login';
+export { MemberDao } from './member';
+export { PartBaseDao, PartDao, PartFamilyDao, PartRevisionDao } from './part';
 export { ProjectDao } from './project';
 export { UserDao } from './user';
-export { MemberDao } from './member';
 
 interface WithId<Id> {
     id: Id;

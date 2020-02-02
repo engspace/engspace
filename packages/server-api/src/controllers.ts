@@ -12,6 +12,10 @@ import {
     ProjectMemberInput,
     User,
     UserInput,
+    Part,
+    PartFamily,
+    PartBase,
+    PartRevision,
 } from '@engspace/core';
 import {
     Db,
@@ -20,6 +24,10 @@ import {
     MemberDao,
     ProjectDao,
     UserDao,
+    PartFamilyDao,
+    PartBaseDao,
+    PartDao,
+    PartRevisionDao,
 } from '@engspace/server-db';
 import { ForbiddenError, UserInputError } from 'apollo-server-koa';
 import crypto from 'crypto';
@@ -437,5 +445,33 @@ export namespace DocumentRevisionControl {
         const finalPath = path.join(ctx.config.storePath, sha1);
         await fsp.rename(tempPath, finalPath);
         return DocumentRevisionDao.updateSha1(ctx.db, revisionId, sha1);
+    }
+}
+
+export namespace PartFamilyControl {
+    export async function byId(ctx: ApiContext, id: Id): Promise<PartFamily> {
+        assertUserPerm(ctx, 'partfamily.read');
+        return PartFamilyDao.byId(ctx.db, id);
+    }
+}
+
+export namespace PartBaseControl {
+    export async function byId(ctx: ApiContext, id: Id): Promise<PartBase> {
+        assertUserPerm(ctx, 'part.read');
+        return PartBaseDao.byId(ctx.db, id);
+    }
+}
+
+export namespace PartControl {
+    export async function byId(ctx: ApiContext, id: Id): Promise<Part> {
+        assertUserPerm(ctx, 'part.read');
+        return PartDao.byId(ctx.db, id);
+    }
+}
+
+export namespace PartRevisionControl {
+    export async function byId(ctx: ApiContext, id: Id): Promise<PartRevision> {
+        assertUserPerm(ctx, 'part.read');
+        return PartRevisionDao.byId(ctx.db, id);
     }
 }

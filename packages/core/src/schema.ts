@@ -1,6 +1,10 @@
+/** A database Id type, always unique, even across types and tables */
 export type Id = string;
+
+/** A representation of date-time (number of millisecond since Unix epoch) */
 export type DateTime = number;
 
+/** An helper used to have references to other objects, with optional loading from the database. */
 export type IdOr<T extends { id: Id }> = { id: Id } | T;
 
 export interface UserInput {
@@ -86,4 +90,39 @@ export interface DocumentRevision {
 export interface DocumentSearch {
     count: number;
     documents: Document[];
+}
+
+export interface PartFamily {
+    id: Id;
+    name: string;
+    code: string;
+    counter: number;
+}
+
+export interface PartBase {
+    id: Id;
+    family: IdOr<PartFamily>;
+    reference: string;
+    designation: string;
+
+    parts?: Part[];
+}
+
+export interface Part {
+    id: Id;
+    base: IdOr<PartBase>;
+    reference: string;
+    designation: string;
+    createdBy: IdOr<User>;
+    createdAt: DateTime;
+
+    revisions?: PartRevision[];
+}
+
+export interface PartRevision {
+    id: Id;
+    part: IdOr<Part>;
+    revision: number;
+    createdBy: IdOr<User>;
+    createdAt: DateTime;
 }
