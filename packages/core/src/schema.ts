@@ -49,16 +49,31 @@ export interface ProjectMember {
     roles?: string[];
 }
 
+export interface File {
+    id: Id;
+    name: string;
+    description: string;
+}
+
+export interface FileRevision {
+    id: Id;
+    revision: number;
+    filename: string;
+    filesize: number;
+    createdBy: IdOr<User>;
+    createdAt: DateTime;
+    changeDescription?: string;
+    uploaded: number;
+    sha1?: string;
+}
+
 export interface DocumentInput {
     name: string;
     description: string;
     initialCheckout: boolean;
 }
 
-export interface Document {
-    id: Id;
-    name: string;
-    description: string;
+export interface Document extends File {
     createdBy: IdOr<User>;
     createdAt: DateTime;
     checkout: IdOr<User>;
@@ -74,17 +89,8 @@ export interface DocumentRevisionInput {
     retainCheckout: boolean;
 }
 
-export interface DocumentRevision {
-    id: Id;
+export interface DocumentRevision extends FileRevision {
     document: IdOr<Document>;
-    revision: number;
-    filename: string;
-    filesize: number;
-    changeDescription: string;
-    author: IdOr<User>;
-    createdAt: DateTime;
-    uploaded: number;
-    sha1: string | null;
 }
 
 export interface DocumentSearch {

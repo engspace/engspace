@@ -126,11 +126,11 @@ export const resolvers = {
             }
             return DocumentControl.byId(ctx, document.id);
         },
-        author({ author }: DocumentRevision, args, ctx: GqlContext): Promise<User> {
-            if (author['name']) {
-                return Promise.resolve(author as User);
+        createdBy({ createdBy }: DocumentRevision, args, ctx: GqlContext): Promise<User> {
+            if (createdBy['name']) {
+                return Promise.resolve(createdBy as User);
             }
-            return ctx.loaders.user.load(author.id);
+            return ctx.loaders.user.load(createdBy.id);
         },
     },
 
@@ -249,6 +249,7 @@ export const resolvers = {
             return PartRevisionControl.byId(ctx, id);
         },
     },
+
     Mutation: {
         async userCreate(parent, { user }: { user: UserInput }, ctx: GqlContext): Promise<User> {
             return UserControl.create(ctx, user);

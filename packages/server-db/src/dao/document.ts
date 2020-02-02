@@ -126,9 +126,9 @@ export namespace DocumentRevisionDao {
         revision: number;
         filename: string;
         filesize: number;
-        changeDescription: string;
-        author: Id;
+        createdBy: Id;
         createdAt: number;
+        changeDescription: string;
         uploaded: number;
         sha1: string;
     }
@@ -139,9 +139,9 @@ export namespace DocumentRevisionDao {
         revision,
         filename,
         filesize,
-        changeDescription,
-        author,
+        createdBy,
         createdAt,
+        changeDescription,
         uploaded,
         sha1,
     }: Row): DocumentRevision {
@@ -152,17 +152,17 @@ export namespace DocumentRevisionDao {
             revision,
             filename,
             filesize,
-            changeDescription,
-            author: { id: author },
+            createdBy: { id: createdBy },
             createdAt: createdAt * 1000,
+            changeDescription,
             uploaded: uploaded ? uploaded : 0,
             sha1: sha1 ? sha1 : null,
         };
     }
 
     const rowToken = sql`
-        id, document_id, revision, filename, filesize, change_description,
-        author, EXTRACT(EPOCH FROM created_at) AS created_at, uploaded
+        id, document_id, revision, filename, filesize, created_by,
+        EXTRACT(EPOCH FROM created_at) AS created_at, change_description, uploaded
     `;
 
     const sha1Token = sql`
@@ -177,7 +177,7 @@ export namespace DocumentRevisionDao {
         const { documentId, filename, filesize, changeDescription } = documentRev;
         const row: Row = await db.one(sql`
             INSERT INTO document_revision (
-                document_id, revision, filename, filesize, change_description, author, created_at
+                document_id, revision, filename, filesize, created_by, created_at, change_description
             ) VALUES (
                 ${documentId},
                 COALESCE(
@@ -186,9 +186,9 @@ export namespace DocumentRevisionDao {
                 ) + 1,
                 ${filename},
                 ${filesize},
-                ${changeDescription},
                 (SELECT checkout FROM document WHERE id = ${documentId} AND checkout = ${userId}),
-                NOW()
+                NOW(),
+                ${changeDescription}
             )
             RETURNING ${rowToken}
         `);

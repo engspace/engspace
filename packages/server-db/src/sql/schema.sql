@@ -69,16 +69,16 @@ CREATE TABLE document_revision (
     revision integer NOT NULL,
     filename text NOT NULL,
     filesize integer NOT NULL,
-    change_description text,
-    author uuid NOT NULL,
+    created_by uuid NOT NULL,
     created_at timestamptz NOT NULL,
+    change_description text,
 
     uploaded integer,
     sha1 bytea, -- initially null, set after check on both client and server
 
     UNIQUE(document_id, revision),
     FOREIGN KEY(document_id) REFERENCES document(id),
-    FOREIGN KEY(author) REFERENCES "user"(id)
+    FOREIGN KEY(created_by) REFERENCES "user"(id)
 );
 
 CREATE TABLE part_family (

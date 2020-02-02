@@ -69,10 +69,11 @@ export const DOCUMENT_REV_FIELDS = gql`
         revision
         filename
         filesize
-        author {
+        createdBy {
             ...UserFields
         }
         createdAt
+        changeDescription
         uploaded
         sha1
     }

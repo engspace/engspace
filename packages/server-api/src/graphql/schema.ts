@@ -86,9 +86,9 @@ export const typeDefs = gql`
         revision: Int!
         filename: String!
         filesize: Int!
-        changeDescription: String
-        author: User!
+        createdBy: User!
         createdAt: DateTime!
+        changeDescription: String
         uploaded: Int
         sha1: String
     }
