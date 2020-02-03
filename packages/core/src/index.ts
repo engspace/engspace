@@ -11,6 +11,7 @@ export {
     UnknownRoleError,
 } from './permissions';
 export {
+    CycleStatus,
     DateTime,
     Document,
     DocumentInput,
@@ -27,6 +28,8 @@ export {
     ProjectInput,
     ProjectMember,
     ProjectMemberInput,
+    Specification,
+    SpecRevision,
     User,
     UserEx,
     UserInput,

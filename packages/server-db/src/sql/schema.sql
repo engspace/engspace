@@ -88,6 +88,34 @@ CREATE TABLE part_family (
     description text
 );
 
+CREATE TABLE specification (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    name text NOT NULL,
+    description text
+);
+
+CREATE TABLE spec_revision (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    spec_id uuid NOT NULL,
+    revision integer NOT NULL,
+    human_rev text NOT NULL,
+    filename text NOT NULL,
+    filesize integer NOT NULL,
+    created_by uuid NOT NULL,
+    created_at timestamptz NOT NULL,
+    change_description text,
+
+    uploaded integer,
+    sha1 bytea, -- initially null, set after check on both client and server
+
+    status smallint NOT NULL,
+
+    UNIQUE(spec_id, revision),
+    CHECK(status >= 0 AND status < 4),
+    FOREIGN KEY(spec_id) REFERENCES specification(id),
+    FOREIGN KEY(created_by) REFERENCES "user"(id)
+);
+
 CREATE TABLE part_base (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     family_id uuid NOT NULL,
@@ -114,7 +142,25 @@ CREATE TABLE part_revision (
     revision integer NOT NULL,
     created_by uuid NOT NULL,
     created_at timestamptz NOT NULL,
+    status smallint NOT NULL,
 
+    CHECK(status >= 0 AND status < 4),
     FOREIGN KEY(part_id) REFERENCES part(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id)
+);
+
+CREATE TABLE part_specification (
+    part_id uuid NOT NULL,
+    spec_id uuid NOT NULL,
+
+    FOREIGN KEY(part_id) REFERENCES part(id),
+    FOREIGN KEY(spec_id) REFERENCES specification(id)
+);
+
+CREATE TABLE part_rev_spec (
+    part_rev_id uuid NOT NULL,
+    spec_rev_id uuid NOT NULL,
+
+    FOREIGN KEY(part_rev_id) REFERENCES part_revision(id),
+    FOREIGN KEY(spec_rev_id) REFERENCES spec_revision(id)
 );

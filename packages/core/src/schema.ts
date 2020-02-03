@@ -7,6 +7,13 @@ export type DateTime = number;
 /** An helper used to have references to other objects, with optional loading from the database. */
 export type IdOr<T extends { id: Id }> = { id: Id } | T;
 
+export enum CycleStatus {
+    Edition,
+    Validation,
+    Release,
+    Obsolete,
+}
+
 export interface UserInput {
     name: string;
     email: string;
@@ -50,13 +57,11 @@ export interface ProjectMember {
 }
 
 export interface File {
-    id: Id;
     name: string;
     description: string;
 }
 
 export interface FileRevision {
-    id: Id;
     revision: number;
     filename: string;
     filesize: number;
@@ -74,6 +79,7 @@ export interface DocumentInput {
 }
 
 export interface Document extends File {
+    id: Id;
     createdBy: IdOr<User>;
     createdAt: DateTime;
     checkout: IdOr<User>;
@@ -90,12 +96,26 @@ export interface DocumentRevisionInput {
 }
 
 export interface DocumentRevision extends FileRevision {
+    id: Id;
     document: IdOr<Document>;
 }
 
 export interface DocumentSearch {
     count: number;
     documents: Document[];
+}
+
+export interface Specification extends File {
+    id: Id;
+    lastRevision?: SpecRevision[];
+    revisions?: SpecRevision[];
+}
+
+export interface SpecRevision extends FileRevision {
+    id: Id;
+    spec: IdOr<Specification>;
+    humanRev: string;
+    status: CycleStatus;
 }
 
 export interface PartFamily {
@@ -121,7 +141,9 @@ export interface Part {
     designation: string;
     createdBy: IdOr<User>;
     createdAt: DateTime;
+    status: CycleStatus;
 
+    specs?: Specification[];
     revisions?: PartRevision[];
 }
 
@@ -131,4 +153,6 @@ export interface PartRevision {
     revision: number;
     createdBy: IdOr<User>;
     createdAt: DateTime;
+
+    specs?: SpecRevision[];
 }

@@ -49,20 +49,30 @@ export namespace PartDao {
         designation: string;
         createdBy: Id;
         createdAt: number;
+        status: number;
     }
 
-    function mapRow(row: Row): Part {
+    function mapRow({
+        id,
+        baseId,
+        reference,
+        designation,
+        createdBy,
+        createdAt,
+        status,
+    }: Row): Part {
         return {
-            id: row.id,
-            base: { id: row.baseId },
-            reference: row.reference,
-            designation: row.designation,
-            createdBy: { id: row.createdBy },
-            createdAt: row.createdAt * 1000,
+            id,
+            base: { id: baseId },
+            reference,
+            designation,
+            createdBy: { id: createdBy },
+            createdAt: createdAt * 1000,
+            status,
         };
     }
     const rowToken = sql`id, base_id, reference, designation, created_by,
-        EXTRACT(EPOCH FROM created_at) AS created_at
+        EXTRACT(EPOCH FROM created_at) AS created_at, status
     `;
 
     export async function byId(db: Db, id: Id): Promise<Part> {

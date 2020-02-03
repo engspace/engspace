@@ -29,6 +29,7 @@ import {
     UserControl,
 } from '../controllers';
 import { GqlContext } from './context';
+import { FileRevision } from 'core/src/schema';
 
 export const resolvers = {
     DateTime: new GraphQLScalarType({
@@ -81,6 +82,20 @@ export const resolvers = {
         },
         roles({ id }: ProjectMember, args, ctx: GqlContext): Promise<string[]> {
             return MemberControl.rolesById(ctx, id);
+        },
+    },
+
+    File: {
+        __resolveType(file: File, context, info): string {
+            if (typeof file['createdAt'] !== 'undefined') return 'Document';
+            else return 'Specification';
+        },
+    },
+
+    FileRevision: {
+        __resolveType(fileRev: FileRevision, context, info): string {
+            if (typeof fileRev['status'] !== 'undefined') return 'SpecRevision';
+            else return 'DocumentRevision';
         },
     },
 

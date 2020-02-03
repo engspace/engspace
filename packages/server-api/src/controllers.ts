@@ -6,28 +6,32 @@ import {
     DocumentRevisionInput,
     DocumentSearch,
     Id,
+    Part,
+    PartBase,
+    PartFamily,
+    PartRevision,
     Project,
     ProjectInput,
     ProjectMember,
     ProjectMemberInput,
+    Specification,
+    SpecRevision,
     User,
     UserInput,
-    Part,
-    PartFamily,
-    PartBase,
-    PartRevision,
 } from '@engspace/core';
 import {
     Db,
     DocumentDao,
     DocumentRevisionDao,
     MemberDao,
-    ProjectDao,
-    UserDao,
-    PartFamilyDao,
     PartBaseDao,
     PartDao,
+    PartFamilyDao,
     PartRevisionDao,
+    ProjectDao,
+    SpecificationDao,
+    SpecRevisionDao,
+    UserDao,
 } from '@engspace/server-db';
 import { ForbiddenError, UserInputError } from 'apollo-server-koa';
 import crypto from 'crypto';
@@ -473,5 +477,27 @@ export namespace PartRevisionControl {
     export async function byId(ctx: ApiContext, id: Id): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.read');
         return PartRevisionDao.byId(ctx.db, id);
+    }
+}
+
+export namespace SpecificationControl {
+    export async function byId(ctx: ApiContext, id: Id): Promise<Specification> {
+        assertUserPerm(ctx, 'spec.read');
+        return SpecificationDao.byId(ctx.db, id);
+    }
+    export async function byPartId(ctx: ApiContext, partId: Id): Promise<Specification[]> {
+        assertUserPerm(ctx, 'spec.read');
+        return SpecificationDao.byPartId(ctx.db, partId);
+    }
+}
+
+export namespace SpecRevisionControl {
+    export async function byId(ctx: ApiContext, id: Id): Promise<SpecRevision> {
+        assertUserPerm(ctx, 'spec.read');
+        return SpecRevisionDao.byId(ctx.db, id);
+    }
+    export async function byPartRevId(ctx: ApiContext, partRevId: Id): Promise<SpecRevision[]> {
+        assertUserPerm(ctx, 'spec.read');
+        return SpecRevisionDao.byPartRevId(ctx.db, partRevId);
     }
 }

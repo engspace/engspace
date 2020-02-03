@@ -19,6 +19,8 @@ export {
     PartFamilyDao,
     PartRevisionDao,
     ProjectDao,
+    SpecificationDao,
+    SpecRevisionDao,
     UserDao,
 } from './dao';
 export { initSchema } from './schema';

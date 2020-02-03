@@ -3,6 +3,13 @@ import { gql } from 'apollo-server-koa';
 export const typeDefs = gql`
     scalar DateTime
 
+    enum CycleStatus {
+        EDITION
+        VALIDATION
+        RELEASE
+        OBSOLETE
+    }
+
     input UserInput {
         name: String!
         email: String!
@@ -51,12 +58,28 @@ export const typeDefs = gql`
         roles: [String!]!
     }
 
+    interface File {
+        name: String!
+        description: String
+    }
+
+    interface FileRevision {
+        revision: Int!
+        filename: String!
+        filesize: Int!
+        createdBy: User!
+        createdAt: DateTime!
+        changeDescription: String
+        uploaded: Int
+        sha1: String
+    }
+
     input DocumentInput {
         name: String!
         description: String
         initialCheckout: Boolean
     }
-    type Document {
+    type Document implements File {
         id: ID!
         name: String!
         description: String
@@ -80,7 +103,7 @@ export const typeDefs = gql`
         retainCheckout: Boolean
     }
 
-    type DocumentRevision {
+    type DocumentRevision implements FileRevision {
         id: ID!
         document: Document!
         revision: Int!
@@ -100,6 +123,27 @@ export const typeDefs = gql`
         counter: Int!
     }
 
+    type Specification implements File {
+        id: ID!
+        name: String!
+        description: String!
+    }
+
+    type SpecRevision implements FileRevision {
+        id: ID!
+        spec: Specification!
+        revision: Int!
+        humanRev: String!
+        filename: String!
+        filesize: Int!
+        createdBy: User!
+        createdAt: DateTime!
+        changeDescription: String
+        uploaded: Int
+        sha1: String
+        status: CycleStatus!
+    }
+
     type PartBase {
         id: ID!
         family: PartFamily!
@@ -117,6 +161,7 @@ export const typeDefs = gql`
         createdBy: User!
         createdAt: DateTime!
 
+        specs: [Specification!]
         revisions: [PartRevision!]!
     }
 
@@ -126,8 +171,9 @@ export const typeDefs = gql`
         revision: Int!
         createdBy: User!
         createdAt: DateTime!
+        status: CycleStatus!
 
-        definitionDocs: [DocumentRevision!]!
+        specs: [SpecRevision!]!
     }
 
     type Query {
