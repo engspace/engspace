@@ -1,6 +1,11 @@
 /** A database Id type, always unique, even across types and tables */
 export type Id = string;
 
+/** A resource that has a unique id */
+export interface HasId {
+    id: Id;
+}
+
 /** A representation of date-time (number of millisecond since Unix epoch) */
 export type DateTime = number;
 

@@ -18,6 +18,7 @@ export {
     DocumentRevision,
     DocumentRevisionInput,
     DocumentSearch,
+    HasId,
     Id,
     Part,
     PartBase,
