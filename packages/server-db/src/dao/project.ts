@@ -1,8 +1,8 @@
 import { Id, Project, ProjectInput } from '@engspace/core';
 import { sql } from 'slonik';
-import { idsFindMap } from '.';
 import { Db } from '..';
 import { partialAssignmentList } from '../util';
+import { DaoIdent } from './impl';
 
 export interface ProjectSearch {
     phrase?: string;
@@ -11,10 +11,10 @@ export interface ProjectSearch {
     offset?: number;
 }
 
-export namespace ProjectDao {
-    const rowToken = sql`id, code, name, description`;
+const rowToken = sql`id, code, name, description`;
 
-    export async function create(db: Db, proj: ProjectInput): Promise<Project> {
+class ProjectDao extends DaoIdent<Project> {
+    async create(db: Db, proj: ProjectInput): Promise<Project> {
         const { code, name, description } = proj;
         return db.one(sql`
             INSERT INTO project (
@@ -26,32 +26,14 @@ export namespace ProjectDao {
         `);
     }
 
-    export async function byId(db: Db, id: Id): Promise<Project> {
-        return db.one(sql`
-            SELECT ${rowToken}
-            FROM project
-            WHERE id = ${id}
-        `);
-    }
-    export async function batchByIds(db: Db, ids: readonly Id[]): Promise<Project[]> {
-        const projs: Project[] = await db.any(sql`
-            SELECT ${rowToken} FROM project
-            WHERE id = ANY(${sql.array(ids as Id[], sql`uuid[]`)})
-        `);
-        return idsFindMap(ids, projs);
-    }
-
-    export async function byCode(db: Db, code: string): Promise<Project> {
+    async byCode(db: Db, code: string): Promise<Project> {
         return db.one(sql`
             SELECT ${rowToken} FROM project
             WHERE code = ${code}
         `);
     }
 
-    export async function search(
-        db: Db,
-        search: ProjectSearch
-    ): Promise<{ count: number; projects: Project[] }> {
+    async search(db: Db, search: ProjectSearch): Promise<{ count: number; projects: Project[] }> {
         const boolExpressions = [sql`TRUE`];
         if (search.phrase) {
             const phrase = `%${search.phrase.replace(/s/g, '%')}%`;
@@ -96,7 +78,7 @@ export namespace ProjectDao {
         return { count, projects };
     }
 
-    export async function patch(db: Db, id: Id, project: Partial<Project>): Promise<Project> {
+    async patch(db: Db, id: Id, project: Partial<Project>): Promise<Project> {
         const assignments = partialAssignmentList(project, ['name', 'code', 'description']);
         return db.one(sql`
             UPDATE project SET ${sql.join(assignments, sql`, `)}
@@ -105,7 +87,7 @@ export namespace ProjectDao {
         `);
     }
 
-    export async function updateById(db: Db, id: Id, project: ProjectInput): Promise<Project> {
+    async updateById(db: Db, id: Id, project: ProjectInput): Promise<Project> {
         const { code, name, description } = project;
         return db.one(sql`
             UPDATE project SET code=${code}, name=${name}, description=${description}
@@ -113,12 +95,9 @@ export namespace ProjectDao {
             RETURNING ${rowToken}
         `);
     }
-
-    export async function deleteAll(db: Db): Promise<void> {
-        await db.query(sql`DELETE FROM project`);
-    }
-
-    export async function deleteById(db: Db, id: Id): Promise<void> {
-        await db.query(sql`DELETE FROM project WHERE id = ${id}`);
-    }
 }
+
+export const projectDao = new ProjectDao({
+    table: 'project',
+    rowToken,
+});

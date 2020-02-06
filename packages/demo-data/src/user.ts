@@ -1,5 +1,5 @@
 import { User, UserInput } from '@engspace/core';
-import { Db, UserDao } from '@engspace/server-db';
+import { Db, userDao } from '@engspace/server-db';
 
 export enum DemoUser {
     Gerard = 'gerard',
@@ -88,7 +88,7 @@ export function prepareUsers(): DemoUserInputSet {
 
 export async function createUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
     const keyVals = await Promise.all(
-        Object.entries(users).map(async ([name, input]) => [name, await UserDao.create(db, input)])
+        Object.entries(users).map(async ([name, input]) => [name, await userDao.create(db, input)])
     );
     return Object.fromEntries(keyVals);
 }

@@ -1,22 +1,25 @@
 import { Id, ProjectMember, ProjectMemberInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
+import { DaoRowMap } from './impl';
 
-export namespace MemberDao {
-    interface Row {
-        id: Id;
-        projectId: Id;
-        userId: Id;
-    }
+interface Row {
+    id: Id;
+    projectId: Id;
+    userId: Id;
+}
 
-    function mapRow(row: Row): ProjectMember {
-        return {
-            id: row.id,
-            project: { id: row.projectId },
-            user: { id: row.userId },
-        };
-    }
+function mapRow(row: Row): ProjectMember {
+    return {
+        id: row.id,
+        project: { id: row.projectId },
+        user: { id: row.userId },
+    };
+}
 
+const rowToken = sql`id, project_id, user_id`;
+
+class MemberDao extends DaoRowMap<ProjectMember, Row> {
     /**
      * Add a single member to the database.
      *
@@ -25,17 +28,14 @@ export namespace MemberDao {
      * @param db database connection
      * @param member member to be added
      */
-    export async function create(
-        db: Db,
-        { projectId, userId, roles }: ProjectMemberInput
-    ): Promise<ProjectMember> {
+    async create(db: Db, { projectId, userId, roles }: ProjectMemberInput): Promise<ProjectMember> {
         const row: Row = await db.one(sql`
             INSERT INTO project_member(
                 project_id, user_id
             ) VALUES (
                 ${projectId}, ${userId}
             )
-            RETURNING id, project_id, user_id
+            RETURNING ${rowToken}
         `);
         const res = mapRow(row);
         if (roles && roles.length) {
@@ -45,22 +45,11 @@ export namespace MemberDao {
     }
 
     /**
-     * Get a member by its id
-     */
-    export async function byId(db: Db, id: Id): Promise<ProjectMember> {
-        const row = await db.one<Row>(sql`
-            SELECT id, project_id, user_id FROM project_member
-            WHERE id = ${id}
-        `);
-        return mapRow(row);
-    }
-
-    /**
      * Get all members for a project id
      */
-    export async function byProjectId(db: Db, projectId: Id): Promise<ProjectMember[]> {
+    async byProjectId(db: Db, projectId: Id): Promise<ProjectMember[]> {
         const rows = await db.any<Row>(sql`
-            SELECT id, project_id, user_id FROM project_member
+            SELECT ${rowToken} FROM project_member
             WHERE project_id = ${projectId}
         `);
         return rows.map(r => mapRow(r));
@@ -70,9 +59,9 @@ export namespace MemberDao {
      * Get all members for a user id.
      * This is used to fetch all projects a user is involved in.
      */
-    export async function byUserId(db: Db, userId: Id): Promise<ProjectMember[]> {
+    async byUserId(db: Db, userId: Id): Promise<ProjectMember[]> {
         const rows = await db.any<Row>(sql`
-            SELECT id, project_id, user_id FROM project_member
+            SELECT ${rowToken} FROM project_member
             WHERE user_id = ${userId}
         `);
         return rows.map(r => mapRow(r));
@@ -89,14 +78,14 @@ export namespace MemberDao {
      *
      * @returns null if no such user, or the project member
      */
-    export async function byProjectAndUserId(
+    async byProjectAndUserId(
         db: Db,
         projectId: Id,
         userId: Id,
         fetchRoles = false
     ): Promise<ProjectMember | null> {
         const row = await db.maybeOne<Row>(sql`
-            SELECT id, project_id, user_id FROM project_member
+            SELECT ${rowToken} FROM project_member
             WHERE project_id=${projectId} AND user_id=${userId}
         `);
         if (!row) return null;
@@ -113,7 +102,7 @@ export namespace MemberDao {
      * @param db The databse connection
      * @param id the id of the member
      */
-    export async function rolesById(db: Db, id: Id): Promise<string[]> {
+    async rolesById(db: Db, id: Id): Promise<string[]> {
         const rows = await db.anyFirst(sql`
             SELECT role FROM project_member_role
             WHERE member_id = ${id}
@@ -121,32 +110,22 @@ export namespace MemberDao {
         return rows as string[];
     }
 
-    export async function updateRolesById(db: Db, id: Id, roles: string[]): Promise<ProjectMember> {
+    async updateRolesById(db: Db, id: Id, roles: string[]): Promise<ProjectMember> {
         await db.query(sql`
             DELETE FROM project_member_role
             WHERE member_id = ${id}
         `);
 
         const inserted = roles ? await insertRoles(db, id, roles) : [];
-        const member = await MemberDao.byId(db, id);
+        const member = await this.byId(db, id);
         member.roles = inserted;
         return member;
     }
 
     /**
-     * Delete a member from a project
-     */
-    export async function deleteById(db: Db, id: Id): Promise<void> {
-        await db.query(sql`
-            DELETE FROM project_member
-            WHERE id = ${id}
-        `);
-    }
-
-    /**
      * Delete all members from a project
      */
-    export async function deleteByProjId(db: Db, projectId: Id): Promise<void> {
+    async deleteByProjId(db: Db, projectId: Id): Promise<void> {
         await db.query(sql`
             DELETE FROM project_member
             WHERE project_id = ${projectId}
@@ -156,7 +135,7 @@ export namespace MemberDao {
     /**
      * Delete all project memberships from a user
      */
-    export async function deleteByUserId(db: Db, userId: Id): Promise<void> {
+    async deleteByUserId(db: Db, userId: Id): Promise<void> {
         await db.query(sql`
             DELETE FROM project_member
             WHERE user_id = ${userId}
@@ -166,11 +145,7 @@ export namespace MemberDao {
     /**
      * Delete a member from a project
      */
-    export async function deleteByProjectAndUserId(
-        db: Db,
-        projectId: Id,
-        userId: Id
-    ): Promise<void> {
+    async deleteByProjectAndUserId(db: Db, projectId: Id, userId: Id): Promise<void> {
         await db.query(sql`
             DELETE FROM project_member
             WHERE project_id=${projectId} AND user_id=${userId}
@@ -190,3 +165,9 @@ async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
     `);
     return inserted as string[];
 }
+
+export const memberDao = new MemberDao({
+    table: 'project_member',
+    rowToken,
+    mapRow,
+});

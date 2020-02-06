@@ -1,4 +1,4 @@
-import { LoginDao } from '@engspace/server-db';
+import { loginDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import HttpStatus from 'http-status-codes';
 import { EsServerConfig } from '..';
@@ -24,7 +24,7 @@ export function setupLoginRoute(router: Router, config: EsServerConfig): void {
         );
 
         const user = await pool.connect(async db => {
-            return LoginDao.login(db, nameOrEmail, password);
+            return loginDao.login(db, nameOrEmail, password);
         });
         if (user) {
             const perms = rolePolicies.user.permissions(user.roles);

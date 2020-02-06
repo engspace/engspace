@@ -42,6 +42,16 @@ describe('Pool creation', async () => {
             'project',
             'project_member',
             'project_member_role',
+            'document',
+            'document_revision',
+            'specification',
+            'spec_revision',
+            'part_family',
+            'part_base',
+            'part',
+            'part_revision',
+            'part_specification',
+            'part_rev_spec',
         ]);
     });
 });

@@ -1,6 +1,6 @@
 import { Document, DocumentInput, DocumentRevisionInput, DocumentRevision } from '@engspace/core';
 import { DemoUserSet, DemoUser } from './user';
-import { DocumentDao, Db, DocumentRevisionDao } from '@engspace/server-db';
+import { documentDao, Db, documentRevisionDao } from '@engspace/server-db';
 import path from 'path';
 import fs from 'fs';
 import util from 'util';
@@ -77,8 +77,8 @@ async function createRevision(
     };
     const sha1 = (await fileSha1Hash(resolved)).toLowerCase();
     await copyFileP(resolved, path.join(storePath, sha1));
-    const { id } = await DocumentRevisionDao.create(db, input, doc.createdBy.id);
-    return DocumentRevisionDao.updateSha1(db, id, sha1);
+    const { id } = await documentRevisionDao.create(db, input, doc.createdBy.id);
+    return documentRevisionDao.updateSha1(db, id, sha1);
 }
 
 async function createDocument(
@@ -93,7 +93,7 @@ async function createDocument(
         initialCheckout: true,
     };
     const usrs = await users;
-    const doc = await DocumentDao.create(db, input, usrs[creator].id);
+    const doc = await documentDao.create(db, input, usrs[creator].id);
     const rev = await createRevision(db, doc, filepath, storePath);
     doc.revisions = [rev];
     doc.lastRevision = rev;

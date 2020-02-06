@@ -1,8 +1,8 @@
 import { Id, User, UserInput } from '@engspace/core';
 import { sql } from 'slonik';
-import { idsFindMap } from '.';
 import { Db } from '..';
 import { partialAssignmentList } from '../util';
+import { DaoIdent } from './impl';
 
 export interface UserSearch {
     phrase?: string;
@@ -11,10 +11,29 @@ export interface UserSearch {
     offset?: number;
 }
 
-export namespace UserDao {
-    const rowToken = sql`id, name, email, full_name`;
+const rowToken = sql`id, name, email, full_name`;
 
-    export async function create(db: Db, user: UserInput): Promise<User> {
+async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
+    return (await db.manyFirst(sql`
+        INSERT INTO user_role(
+            user_id, role
+        ) VALUES ${sql.join(
+            roles.map(role => sql`(${id}, ${role})`),
+            sql`, `
+        )}
+        RETURNING role
+    `)) as string[];
+}
+
+async function updateRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
+    await db.query(sql`
+        DELETE FROM user_role WHERE user_id = ${id}
+    `);
+    return insertRoles(db, id, roles);
+}
+
+class UserDao extends DaoIdent<User> {
+    async create(db: Db, user: UserInput): Promise<User> {
         const row: User = await db.one(sql`
             INSERT INTO "user"(name, email, full_name)
             VALUES(${user.name}, ${user.email}, ${user.fullName})
@@ -26,16 +45,7 @@ export namespace UserDao {
         return row;
     }
 
-    export async function byId(db: Db, id: Id): Promise<User> {
-        const user: User = await db.one(sql`
-            SELECT ${rowToken}
-            FROM "user"
-            WHERE id = ${id}
-        `);
-        return user;
-    }
-
-    export async function byName(db: Db, name: string): Promise<User> {
+    async byName(db: Db, name: string): Promise<User> {
         const user: User = await db.one(sql`
             SELECT ${rowToken}
             FROM "user"
@@ -44,7 +54,7 @@ export namespace UserDao {
         return user;
     }
 
-    export async function byEmail(db: Db, email: string): Promise<User> {
+    async byEmail(db: Db, email: string): Promise<User> {
         const user: User = await db.one(sql`
             SELECT ${rowToken}
             FROM "user"
@@ -53,19 +63,7 @@ export namespace UserDao {
         return user;
     }
 
-    export async function batchByIds(db: Db, ids: readonly Id[]): Promise<User[]> {
-        const users: User[] = await db.any(sql`
-            SELECT ${rowToken}
-            FROM "user"
-            WHERE id = ANY(${sql.array(ids as Id[], sql`uuid[]`)})
-        `);
-        return idsFindMap(ids, users);
-    }
-
-    export async function search(
-        db: Db,
-        search: UserSearch
-    ): Promise<{ count: number; users: User[] }> {
+    async search(db: Db, search: UserSearch): Promise<{ count: number; users: User[] }> {
         const boolExpressions = [sql`TRUE`];
         if (search.phrase) {
             const phrase = `%${search.phrase.replace(/\s/g, '%')}%`;
@@ -104,7 +102,7 @@ export namespace UserDao {
         return { count, users };
     }
 
-    export async function rolesById(db: Db, id: Id): Promise<string[]> {
+    async rolesById(db: Db, id: Id): Promise<string[]> {
         const roles = await db.anyFirst(sql`
             SELECT role FROM user_role
             WHERE user_id = ${id}
@@ -112,7 +110,7 @@ export namespace UserDao {
         return roles as string[];
     }
 
-    export async function update(db: Db, id: Id, user: UserInput): Promise<User> {
+    async update(db: Db, id: Id, user: UserInput): Promise<User> {
         const { name, email, fullName, roles } = user;
         const row = await db.one<User>(sql`
             UPDATE "user" SET name=${name}, email=${email}, full_name=${fullName}
@@ -125,7 +123,7 @@ export namespace UserDao {
         return row;
     }
 
-    export async function patch(db: Db, id: Id, user: Partial<UserInput>): Promise<User> {
+    async patch(db: Db, id: Id, user: Partial<UserInput>): Promise<User> {
         const assignments = partialAssignmentList(user, ['name', 'email', 'fullName']);
         if (!assignments.length && !user.roles) {
             throw new Error('no valid field to patch');
@@ -138,7 +136,7 @@ export namespace UserDao {
                 RETURNING ${rowToken}
             `);
         } else {
-            row = await UserDao.byId(db, id);
+            row = await this.byId(db, id);
         }
         if (user.roles) {
             await db.query(sql`
@@ -148,30 +146,9 @@ export namespace UserDao {
         }
         return row;
     }
-
-    export async function deleteAll(db: Db): Promise<void> {
-        await db.query(sql`DELETE FROM "user"`);
-    }
-
-    export async function deleteById(db: Db, id: Id): Promise<void> {
-        await db.query(sql`DELETE FROM "user" WHERE id = ${id}`);
-    }
-}
-export async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
-    return (await db.manyFirst(sql`
-        INSERT INTO user_role(
-            user_id, role
-        ) VALUES ${sql.join(
-            roles.map(role => sql`(${id}, ${role})`),
-            sql`, `
-        )}
-        RETURNING role
-    `)) as string[];
 }
 
-export async function updateRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
-    await db.query(sql`
-        DELETE FROM user_role WHERE user_id = ${id}
-    `);
-    return insertRoles(db, id, roles);
-}
+export const userDao = new UserDao({
+    table: 'user',
+    rowToken,
+});

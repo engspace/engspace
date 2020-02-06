@@ -2,7 +2,7 @@ import { createLogins, createUsers, DemoUserSet, prepareUsers } from '@engspace/
 import chai from 'chai';
 import { sql } from 'slonik';
 import { pool } from '.';
-import { UserDao, LoginDao } from '../src';
+import { userDao, loginDao } from '../src';
 
 const { expect } = chai;
 
@@ -11,17 +11,17 @@ describe('Login', () => {
     before('Create users', async () => {
         users = await pool.connect(db => createUsers(db, prepareUsers()));
     });
-    after('Delete users', () => pool.connect(db => UserDao.deleteAll(db)));
+    after('Delete users', () => pool.connect(db => userDao.deleteAll(db)));
 
     describe('Create login', async () => {
-        after('Delete logins', () => pool.connect(db => LoginDao.deleteAll(db)));
+        after('Delete logins', () => pool.connect(db => loginDao.deleteAll(db)));
         it('should create a login with password', async () => {
-            await pool.connect(db => LoginDao.create(db, users.fatima.id, 'her_password'));
+            await pool.connect(db => loginDao.create(db, users.fatima.id, 'her_password'));
             const ok = await pool.connect(db =>
-                LoginDao.checkById(db, users.fatima.id, 'her_password')
+                loginDao.checkById(db, users.fatima.id, 'her_password')
             );
             const nok = await pool.connect(db =>
-                LoginDao.checkById(db, users.fatima.id, 'not_her_password')
+                loginDao.checkById(db, users.fatima.id, 'not_her_password')
             );
             expect(ok).to.be.true;
             expect(nok).to.be.false;
@@ -32,10 +32,10 @@ describe('Login', () => {
         before('Create all logins', () =>
             pool.connect(db => createLogins(db, Promise.resolve(users)))
         );
-        after('Delete logins', () => pool.connect(db => LoginDao.deleteAll(db)));
+        after('Delete logins', () => pool.connect(db => loginDao.deleteAll(db)));
 
         it('should return user info if log with username', async () => {
-            const res = await pool.connect(db => LoginDao.login(db, 'ambre', 'ambre'));
+            const res = await pool.connect(db => loginDao.login(db, 'ambre', 'ambre'));
             const { id, name, roles } = users.ambre;
             expect(res).to.deep.include({
                 id,
@@ -46,7 +46,7 @@ describe('Login', () => {
 
         it('should return user info if log with email', async () => {
             const res = await pool.connect(db =>
-                LoginDao.login(db, 'ambre@engspace.demo', 'ambre')
+                loginDao.login(db, 'ambre@engspace.demo', 'ambre')
             );
             const { id, name, roles } = users.ambre;
             expect(res).to.deep.include({
@@ -57,12 +57,12 @@ describe('Login', () => {
         });
 
         it('should return null if incorrect password', async () => {
-            const res = await pool.connect(db => LoginDao.login(db, 'ambre', 'pascal'));
+            const res = await pool.connect(db => loginDao.login(db, 'ambre', 'pascal'));
             expect(res).to.be.null;
         });
 
         it('should return null if incorrect username', async () => {
-            const res = await pool.connect(db => LoginDao.login(db, 'nobody', 'a_password'));
+            const res = await pool.connect(db => loginDao.login(db, 'nobody', 'a_password'));
             expect(res).to.be.null;
         });
     });
@@ -71,14 +71,14 @@ describe('Login', () => {
         before('Create all logins', () =>
             pool.connect(db => createLogins(db, Promise.resolve(users)))
         );
-        after('Delete logins', () => pool.connect(db => LoginDao.deleteAll(db)));
+        after('Delete logins', () => pool.connect(db => loginDao.deleteAll(db)));
         it('should accept correct password', async () => {
-            const ok = await pool.connect(db => LoginDao.checkById(db, users.pascal.id, 'pascal'));
+            const ok = await pool.connect(db => loginDao.checkById(db, users.pascal.id, 'pascal'));
             expect(ok).to.be.true;
         });
         it('should reject incorrect password', async () => {
             const nok = await pool.connect(db =>
-                LoginDao.checkById(db, users.alphonse.id, 'pascal')
+                loginDao.checkById(db, users.alphonse.id, 'pascal')
             );
             expect(nok).to.be.false;
         });
@@ -88,15 +88,15 @@ describe('Login', () => {
         beforeEach('Create all logins', () =>
             pool.connect(db => createLogins(db, Promise.resolve(users)))
         );
-        afterEach('Delete logins', () => pool.connect(db => LoginDao.deleteAll(db)));
+        afterEach('Delete logins', () => pool.connect(db => loginDao.deleteAll(db)));
 
         it('should patch an existing password', async () => {
-            await pool.connect(db => LoginDao.patch(db, users.tania.id, 'her_new_password'));
+            await pool.connect(db => loginDao.patch(db, users.tania.id, 'her_new_password'));
             const ok = await pool.connect(db =>
-                LoginDao.checkById(db, users.tania.id, 'her_new_password')
+                loginDao.checkById(db, users.tania.id, 'her_new_password')
             );
             const nok = await pool.connect(db =>
-                LoginDao.checkById(db, users.tania.id, 'not_her_new_password')
+                loginDao.checkById(db, users.tania.id, 'not_her_new_password')
             );
             expect(ok).to.be.true;
             expect(nok).to.be.false;
@@ -107,7 +107,7 @@ describe('Login', () => {
         beforeEach('Create all logins', () =>
             pool.connect(db => createLogins(db, Promise.resolve(users)))
         );
-        afterEach('Delete logins', () => pool.connect(db => LoginDao.deleteAll(db)));
+        afterEach('Delete logins', () => pool.connect(db => loginDao.deleteAll(db)));
 
         it('should delete a login', async () => {
             const count = async (): Promise<number> =>
@@ -117,11 +117,11 @@ describe('Login', () => {
                 });
             expect(await count()).to.equal(10);
             const ok = await pool.connect(db =>
-                LoginDao.checkById(db, users.alphonse.id, 'alphonse')
+                loginDao.checkById(db, users.alphonse.id, 'alphonse')
             );
-            await pool.connect(db => LoginDao.deleteById(db, users.alphonse.id));
+            await pool.connect(db => loginDao.deleteById(db, users.alphonse.id));
             const nok = await pool.connect(db =>
-                LoginDao.checkById(db, users.alphonse.id, 'alphonse')
+                loginDao.checkById(db, users.alphonse.id, 'alphonse')
             );
             expect(await count()).to.equal(9);
             expect(ok).to.be.true;

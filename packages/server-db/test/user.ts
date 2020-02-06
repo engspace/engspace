@@ -2,7 +2,7 @@ import { createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data';
 import chai from 'chai';
 import { sql } from 'slonik';
 import { filterFields, pool } from '.';
-import { UserDao } from '../src';
+import { userDao } from '../src';
 
 const { expect } = chai;
 
@@ -10,13 +10,13 @@ async function deleteAll(): Promise<void> {
     await pool.connect(async db => db.query(sql`DELETE FROM "user"`));
 }
 
-describe('UserDao', () => {
+describe('userDao', () => {
     describe('Create', () => {
         const users = prepareUsers();
         afterEach(deleteAll);
         it('should create user', async () => {
             await pool.connect(async db => {
-                const returned = await UserDao.create(db, users.gerard);
+                const returned = await userDao.create(db, users.gerard);
                 expect(returned).to.deep.include(users.gerard);
             });
         });
@@ -30,24 +30,24 @@ describe('UserDao', () => {
         after(deleteAll);
         it('should get user by id', async () => {
             const expected = filterFields(users.tania, 'roles');
-            const tania = await pool.connect(async db => await UserDao.byId(db, users.tania.id));
+            const tania = await pool.connect(async db => await userDao.byId(db, users.tania.id));
             expect(tania).to.deep.include(expected);
         });
         it('should get user by username', async () => {
             const expected = filterFields(users.tania, 'roles');
-            const tania = await pool.connect(async db => await UserDao.byName(db, 'tania'));
+            const tania = await pool.connect(async db => await userDao.byName(db, 'tania'));
             expect(tania).to.deep.include(expected);
         });
         it('should get user by email', async () => {
             const expected = filterFields(users.tania, 'roles');
             const tania = await pool.connect(
-                async db => await UserDao.byEmail(db, 'tania@engspace.demo')
+                async db => await userDao.byEmail(db, 'tania@engspace.demo')
             );
             expect(tania).to.deep.include(expected);
         });
         it('should get the roles by id', async () => {
             const expected = ['manager'];
-            const roles = await pool.connect(db => UserDao.rolesById(db, users.ambre.id));
+            const roles = await pool.connect(db => userDao.rolesById(db, users.ambre.id));
             expect(roles).to.eql(expected);
         });
         it('should batch get users', async () => {
@@ -58,7 +58,7 @@ describe('UserDao', () => {
                 filterFields(users.fatima, 'roles'),
             ];
             const batch = await pool.connect(db =>
-                UserDao.batchByIds(db, [
+                userDao.batchByIds(db, [
                     users.ambre.id,
                     users.alphonse.id,
                     users.sylvie.id,
@@ -86,7 +86,7 @@ describe('UserDao', () => {
             };
             const result = await pool.connect(
                 async db =>
-                    await UserDao.search(db, {
+                    await userDao.search(db, {
                         phrase: 'ph',
                     })
             );
@@ -99,7 +99,7 @@ describe('UserDao', () => {
             };
             const result = await pool.connect(
                 async db =>
-                    await UserDao.search(db, {
+                    await userDao.search(db, {
                         phrase: 'ph',
                         offset: 1,
                         limit: 1,
@@ -114,7 +114,7 @@ describe('UserDao', () => {
             };
             const result = await pool.connect(
                 async db =>
-                    await UserDao.search(db, {
+                    await userDao.search(db, {
                         phrase: 'pH',
                         offset: 1,
                         limit: 1,
@@ -135,7 +135,7 @@ describe('UserDao', () => {
                 fullName: 'New Name',
             };
             const returned = await pool.connect(async db =>
-                UserDao.patch(db, users.alphonse.id, patch)
+                userDao.patch(db, users.alphonse.id, patch)
             );
             expect(returned).to.include(patch);
             // role is not returned because not patched
@@ -152,7 +152,7 @@ describe('UserDao', () => {
                 roles: ['admin', 'manager'],
             };
             const returned = await pool.connect(async db =>
-                UserDao.patch(db, users.tania.id, patch)
+                userDao.patch(db, users.tania.id, patch)
             );
             expect(returned).to.deep.include(patch);
             expect(returned).to.deep.include({

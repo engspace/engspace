@@ -1,5 +1,5 @@
 import { ProjectMember } from '@engspace/core';
-import { MemberDao } from '@engspace/server-db';
+import { memberDao } from '@engspace/server-db';
 import { DemoProjectSet } from './project';
 import { DemoUserSet } from './user';
 
@@ -60,7 +60,7 @@ export async function createMembers(
     const [projs, usrs] = await Promise.all([projects, users]);
     return Promise.all(
         membersInput.map(m =>
-            MemberDao.create(db, {
+            memberDao.create(db, {
                 projectId: projs[m.project].id,
                 userId: usrs[m.user].id,
                 roles: m.roles,

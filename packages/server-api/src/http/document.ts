@@ -1,5 +1,5 @@
 import { Id } from '@engspace/core';
-import { UserDao } from '@engspace/server-db';
+import { userDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import crypto from 'crypto';
 import mime from 'mime';
@@ -86,7 +86,7 @@ export function setupPreAuthDocRoutes(router: Router, config: EsServerConfig): v
             ctx.throw(HttpStatus.BAD_REQUEST);
         }
         const fd = await pool.connect(async db => {
-            const roles = await UserDao.rolesById(db, userId);
+            const roles = await userDao.rolesById(db, userId);
             const auth = {
                 userId,
                 userPerms: rolePolicies.user.permissions(roles),

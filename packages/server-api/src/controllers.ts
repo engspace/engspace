@@ -21,17 +21,17 @@ import {
 } from '@engspace/core';
 import {
     Db,
-    DocumentDao,
-    DocumentRevisionDao,
-    MemberDao,
-    PartBaseDao,
-    PartDao,
-    PartFamilyDao,
-    PartRevisionDao,
-    ProjectDao,
-    SpecificationDao,
-    SpecRevisionDao,
-    UserDao,
+    documentDao,
+    documentRevisionDao,
+    memberDao,
+    partBaseDao,
+    partDao,
+    partFamilyDao,
+    partRevisionDao,
+    projectDao,
+    specificationDao,
+    specRevisionDao,
+    userDao,
 } from '@engspace/server-db';
 import { ForbiddenError, UserInputError } from 'apollo-server-koa';
 import crypto from 'crypto';
@@ -59,7 +59,7 @@ function assertUserPerm(ctx: ApiContext, perm: string, message?: string): void {
 
 async function hasProjectPerm(ctx: ApiContext, projectId: Id, perm: string): Promise<boolean> {
     const { rolePolicies } = ctx.config;
-    const member = await MemberDao.byProjectAndUserId(ctx.db, projectId, ctx.auth.userId, true);
+    const member = await memberDao.byProjectAndUserId(ctx.db, projectId, ctx.auth.userId, true);
     return member && rolePolicies.project.permissions(member.roles).includes(perm);
 }
 
@@ -86,27 +86,27 @@ export interface Pagination {
 export class UserControl {
     static async create(ctx: ApiContext, user: UserInput): Promise<User> {
         assertUserPerm(ctx, 'user.create');
-        return UserDao.create(ctx.db, user);
+        return userDao.create(ctx.db, user);
     }
 
     static async byIds(ctx: ApiContext, ids: readonly Id[]): Promise<User[]> {
         assertUserPerm(ctx, 'user.read');
-        return UserDao.batchByIds(ctx.db, ids);
+        return userDao.batchByIds(ctx.db, ids);
     }
 
     static async byName(ctx: ApiContext, name: string): Promise<User> {
         assertUserPerm(ctx, 'user.read');
-        return UserDao.byName(ctx.db, name);
+        return userDao.byName(ctx.db, name);
     }
 
     static async byEmail(ctx: ApiContext, email: string): Promise<User> {
         assertUserPerm(ctx, 'user.read');
-        return UserDao.byEmail(ctx.db, email);
+        return userDao.byEmail(ctx.db, email);
     }
 
     static async rolesById(ctx: ApiContext, userId: Id): Promise<string[]> {
         assertUserPerm(ctx, 'user.read');
-        return UserDao.rolesById(ctx.db, userId);
+        return userDao.rolesById(ctx.db, userId);
     }
 
     static async search(
@@ -116,7 +116,7 @@ export class UserControl {
     ): Promise<{ count: number; users: User[] }> {
         assertUserPerm(ctx, 'user.read');
         const { offset, limit } = pag;
-        return UserDao.search(ctx.db, {
+        return userDao.search(ctx.db, {
             phrase: search,
             offset,
             limit,
@@ -127,29 +127,29 @@ export class UserControl {
         if (userId !== ctx.auth.userId) {
             assertUserPerm(ctx, 'user.update');
         }
-        return UserDao.update(ctx.db, userId, user);
+        return userDao.update(ctx.db, userId, user);
     }
 }
 
 export class ProjectControl {
     static create(ctx: ApiContext, project: ProjectInput): Promise<Project> {
         assertUserPerm(ctx, 'project.create');
-        return ProjectDao.create(ctx.db, project);
+        return projectDao.create(ctx.db, project);
     }
 
     static byId(ctx: ApiContext, id: Id): Promise<Project> {
         assertUserPerm(ctx, 'project.read');
-        return ProjectDao.byId(ctx.db, id);
+        return projectDao.byId(ctx.db, id);
     }
 
     static byIds(ctx: ApiContext, ids: readonly Id[]): Promise<Project[]> {
         assertUserPerm(ctx, 'project.read');
-        return ProjectDao.batchByIds(ctx.db, ids);
+        return projectDao.batchByIds(ctx.db, ids);
     }
 
     static async byCode(ctx: ApiContext, code: string): Promise<Project> {
         assertUserPerm(ctx, 'project.read');
-        return ProjectDao.byCode(ctx.db, code);
+        return projectDao.byCode(ctx.db, code);
     }
 
     static async search(
@@ -159,7 +159,7 @@ export class ProjectControl {
     ): Promise<{ count: number; projects: Project[] }> {
         assertUserPerm(ctx, 'project.read');
         const { offset, limit } = pag;
-        return ProjectDao.search(ctx.db, {
+        return projectDao.search(ctx.db, {
             phrase: search,
             offset,
             limit,
@@ -168,7 +168,7 @@ export class ProjectControl {
 
     static async update(ctx: ApiContext, id: Id, project: ProjectInput): Promise<Project> {
         await assertUserOrProjectPerm(ctx, id, 'project.update');
-        return ProjectDao.updateById(ctx.db, id, project);
+        return projectDao.updateById(ctx.db, id, project);
     }
 }
 
@@ -178,12 +178,12 @@ export class MemberControl {
         projectMember: ProjectMemberInput
     ): Promise<ProjectMember> {
         await assertUserOrProjectPerm(ctx, projectMember.projectId, 'member.create');
-        return MemberDao.create(ctx.db, projectMember);
+        return memberDao.create(ctx.db, projectMember);
     }
 
     static async byId(ctx: ApiContext, id: Id): Promise<ProjectMember | null> {
         assertUserPerm(ctx, 'member.read');
-        return MemberDao.byId(ctx.db, id);
+        return memberDao.byId(ctx.db, id);
     }
 
     static async byProjectAndUserId(
@@ -192,46 +192,46 @@ export class MemberControl {
         userId: Id
     ): Promise<ProjectMember | null> {
         assertUserPerm(ctx, 'member.read');
-        return MemberDao.byProjectAndUserId(ctx.db, projectId, userId);
+        return memberDao.byProjectAndUserId(ctx.db, projectId, userId);
     }
 
     static async byProjectId(ctx: ApiContext, projId: Id): Promise<ProjectMember[]> {
         assertUserPerm(ctx, 'member.read');
-        return MemberDao.byProjectId(ctx.db, projId);
+        return memberDao.byProjectId(ctx.db, projId);
     }
 
     static async byUserId(ctx: ApiContext, userId: Id): Promise<ProjectMember[]> {
         assertUserPerm(ctx, 'member.read');
-        return MemberDao.byUserId(ctx.db, userId);
+        return memberDao.byUserId(ctx.db, userId);
     }
 
     static async rolesById(ctx: ApiContext, id: Id): Promise<string[]> {
         assertUserPerm(ctx, 'member.read');
-        return MemberDao.rolesById(ctx.db, id);
+        return memberDao.rolesById(ctx.db, id);
     }
 
     static async updateRolesById(ctx: ApiContext, id: Id, roles: string[]): Promise<ProjectMember> {
-        const mem = await MemberDao.byId(ctx.db, id);
+        const mem = await memberDao.byId(ctx.db, id);
         await assertUserOrProjectPerm(ctx, mem.project.id, 'member.update');
-        return MemberDao.updateRolesById(ctx.db, id, roles);
+        return memberDao.updateRolesById(ctx.db, id, roles);
     }
 
     static async deleteById(ctx: ApiContext, id: Id): Promise<void> {
-        const mem = await MemberDao.byId(ctx.db, id);
+        const mem = await memberDao.byId(ctx.db, id);
         await assertUserOrProjectPerm(ctx, mem.project.id, 'member.delete');
-        return MemberDao.deleteById(ctx.db, id);
+        await memberDao.deleteById(ctx.db, id);
     }
 }
 
 export class DocumentControl {
     static async create(ctx: ApiContext, document: DocumentInput): Promise<Document> {
         assertUserPerm(ctx, 'document.create');
-        return DocumentDao.create(ctx.db, document, ctx.auth.userId);
+        return documentDao.create(ctx.db, document, ctx.auth.userId);
     }
 
     static async byId(ctx: ApiContext, id: Id): Promise<Document | null> {
         assertUserPerm(ctx, 'document.read');
-        return DocumentDao.byId(ctx.db, id);
+        return documentDao.byId(ctx.db, id);
     }
 
     static async search(
@@ -241,12 +241,12 @@ export class DocumentControl {
         limit: number
     ): Promise<DocumentSearch> {
         assertUserPerm(ctx, 'document.read');
-        return DocumentDao.search(ctx.db, search, offset, limit);
+        return documentDao.search(ctx.db, search, offset, limit);
     }
 
     static async checkout(ctx: ApiContext, id: Id, revision: number): Promise<Document> {
         assertUserPerm(ctx, 'document.revise');
-        const doc = await DocumentDao.checkout(ctx.db, id, revision, ctx.auth.userId);
+        const doc = await documentDao.checkout(ctx.db, id, revision, ctx.auth.userId);
         if (!doc) {
             throw new UserInputError('Could not checkout the specified document revision');
         }
@@ -255,7 +255,7 @@ export class DocumentControl {
 
     static async discardCheckout(ctx: ApiContext, id: Id): Promise<Document | null> {
         assertUserPerm(ctx, 'document.revise');
-        return DocumentDao.discardCheckout(ctx.db, id, ctx.auth.userId);
+        return documentDao.discardCheckout(ctx.db, id, ctx.auth.userId);
     }
 }
 
@@ -273,12 +273,12 @@ export namespace DocumentRevisionControl {
         docRev: DocumentRevisionInput
     ): Promise<DocumentRevision> {
         assertUserPerm(ctx, 'document.revise');
-        return DocumentRevisionDao.create(ctx.db, docRev, ctx.auth.userId);
+        return documentRevisionDao.create(ctx.db, docRev, ctx.auth.userId);
     }
 
     export async function byId(ctx: ApiContext, id: Id): Promise<DocumentRevision | null> {
         assertUserPerm(ctx, 'document.read');
-        return DocumentRevisionDao.byId(ctx.db, id);
+        return documentRevisionDao.byId(ctx.db, id);
     }
 
     export async function byDocumentId(
@@ -286,7 +286,7 @@ export namespace DocumentRevisionControl {
         documentId: Id
     ): Promise<DocumentRevision[]> {
         assertUserPerm(ctx, 'document.read');
-        return DocumentRevisionDao.byDocumentId(ctx.db, documentId);
+        return documentRevisionDao.byDocumentId(ctx.db, documentId);
     }
 
     export async function byDocumentIdAndRevision(
@@ -295,7 +295,7 @@ export namespace DocumentRevisionControl {
         revision: number
     ): Promise<DocumentRevision> {
         assertUserPerm(ctx, 'document.read');
-        return DocumentRevisionDao.byDocumentIdAndRev(ctx.db, documentId, revision);
+        return documentRevisionDao.byDocumentIdAndRev(ctx.db, documentId, revision);
     }
 
     export async function lastByDocumentId(
@@ -303,7 +303,7 @@ export namespace DocumentRevisionControl {
         documentId: Id
     ): Promise<DocumentRevision | null> {
         assertUserPerm(ctx, 'document.read');
-        return DocumentRevisionDao.lastByDocumentId(ctx.db, documentId);
+        return documentRevisionDao.lastByDocumentId(ctx.db, documentId);
     }
 
     export interface FileDownload {
@@ -354,7 +354,7 @@ export namespace DocumentRevisionControl {
         if (!hasUserPerm(ctx, 'document.read')) {
             return FileError.Forbidden;
         }
-        const docRev = await DocumentRevisionDao.byDocumentIdAndRev(ctx.db, documentId, revision);
+        const docRev = await documentRevisionDao.byDocumentIdAndRev(ctx.db, documentId, revision);
         if (!docRev) return FileError.NotExist;
         return {
             docRev,
@@ -401,7 +401,7 @@ export namespace DocumentRevisionControl {
             upload.touched = Date.now();
             setTimeout(checkCleanup, openUploadMaxAge + 10, revisionId);
         }
-        await DocumentRevisionDao.updateAddProgress(ctx.db, revisionId, chunk.length);
+        await documentRevisionDao.updateAddProgress(ctx.db, revisionId, chunk.length);
     }
 
     async function sha1sum(filepath: string): Promise<string> {
@@ -448,56 +448,56 @@ export namespace DocumentRevisionControl {
         await fsp.mkdir(ctx.config.storePath, { recursive: true });
         const finalPath = path.join(ctx.config.storePath, sha1);
         await fsp.rename(tempPath, finalPath);
-        return DocumentRevisionDao.updateSha1(ctx.db, revisionId, sha1);
+        return documentRevisionDao.updateSha1(ctx.db, revisionId, sha1);
     }
 }
 
 export namespace PartFamilyControl {
     export async function byId(ctx: ApiContext, id: Id): Promise<PartFamily> {
         assertUserPerm(ctx, 'partfamily.read');
-        return PartFamilyDao.byId(ctx.db, id);
+        return partFamilyDao.byId(ctx.db, id);
     }
 }
 
 export namespace PartBaseControl {
     export async function byId(ctx: ApiContext, id: Id): Promise<PartBase> {
         assertUserPerm(ctx, 'part.read');
-        return PartBaseDao.byId(ctx.db, id);
+        return partBaseDao.byId(ctx.db, id);
     }
 }
 
 export namespace PartControl {
     export async function byId(ctx: ApiContext, id: Id): Promise<Part> {
         assertUserPerm(ctx, 'part.read');
-        return PartDao.byId(ctx.db, id);
+        return partDao.byId(ctx.db, id);
     }
 }
 
 export namespace PartRevisionControl {
     export async function byId(ctx: ApiContext, id: Id): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.read');
-        return PartRevisionDao.byId(ctx.db, id);
+        return partRevisionDao.byId(ctx.db, id);
     }
 }
 
 export namespace SpecificationControl {
     export async function byId(ctx: ApiContext, id: Id): Promise<Specification> {
         assertUserPerm(ctx, 'spec.read');
-        return SpecificationDao.byId(ctx.db, id);
+        return specificationDao.byId(ctx.db, id);
     }
     export async function byPartId(ctx: ApiContext, partId: Id): Promise<Specification[]> {
         assertUserPerm(ctx, 'spec.read');
-        return SpecificationDao.byPartId(ctx.db, partId);
+        return specificationDao.byPartId(ctx.db, partId);
     }
 }
 
 export namespace SpecRevisionControl {
     export async function byId(ctx: ApiContext, id: Id): Promise<SpecRevision> {
         assertUserPerm(ctx, 'spec.read');
-        return SpecRevisionDao.byId(ctx.db, id);
+        return specRevisionDao.byId(ctx.db, id);
     }
     export async function byPartRevId(ctx: ApiContext, partRevId: Id): Promise<SpecRevision[]> {
         assertUserPerm(ctx, 'spec.read');
-        return SpecRevisionDao.byPartRevId(ctx.db, partRevId);
+        return specRevisionDao.byPartRevId(ctx.db, partRevId);
     }
 }

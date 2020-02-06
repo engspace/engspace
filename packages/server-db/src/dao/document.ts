@@ -1,42 +1,36 @@
-import {
-    Document,
-    DocumentInput,
-    DocumentRevision,
-    DocumentRevisionInput,
-    DocumentSearch,
-    Id,
-} from '@engspace/core';
+import { Document, DocumentInput, DocumentSearch, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
+import { DaoRowMap } from './impl';
 
-export namespace DocumentDao {
-    interface Row {
-        id: Id;
-        name: string;
-        description: string;
-        createdBy: Id;
-        createdAt: number;
-        checkout: Id;
-    }
+interface Row {
+    id: Id;
+    name: string;
+    description: string;
+    createdBy: Id;
+    createdAt: number;
+    checkout: Id;
+}
 
-    function mapRow({ id, name, description, createdBy, createdAt, checkout }: Row): Document {
-        if (!id) return null;
-        return {
-            id,
-            name,
-            description,
-            createdBy: { id: createdBy },
-            createdAt: createdAt * 1000,
-            checkout: checkout ? { id: checkout } : null,
-        };
-    }
+function mapRow({ id, name, description, createdBy, createdAt, checkout }: Row): Document {
+    if (!id) return null;
+    return {
+        id,
+        name,
+        description,
+        createdBy: { id: createdBy },
+        createdAt: createdAt * 1000,
+        checkout: checkout ? { id: checkout } : null,
+    };
+}
 
-    const rowToken = sql`
+const rowToken = sql`
         id, name, description, created_by,
         EXTRACT(EPOCH FROM created_at) AS created_at, checkout
     `;
 
-    export async function create(db: Db, document: DocumentInput, userId: Id): Promise<Document> {
+class DocumentDao extends DaoRowMap<Document, Row> {
+    async create(db: Db, document: DocumentInput, userId: Id): Promise<Document> {
         const { name, description, initialCheckout } = document;
         const row: Row = await db.one(sql`
             INSERT INTO document (name, description, created_by, created_at, checkout)
@@ -46,7 +40,7 @@ export namespace DocumentDao {
         return mapRow(row);
     }
 
-    export async function byId(db: Db, id: Id): Promise<Document | null> {
+    async byId(db: Db, id: Id): Promise<Document | null> {
         const row: Row = await db.maybeOne(sql`
             SELECT ${rowToken} FROM document
             WHERE id = ${id}
@@ -54,12 +48,7 @@ export namespace DocumentDao {
         return mapRow(row);
     }
 
-    export async function search(
-        db: Db,
-        search: string,
-        offset: number,
-        limit: number
-    ): Promise<DocumentSearch> {
+    async search(db: Db, search: string, offset: number, limit: number): Promise<DocumentSearch> {
         const boolExpressions = [sql`TRUE`];
         if (search) {
             const phrase = `%${search.replace(/s/g, '%')}%`;
@@ -87,12 +76,7 @@ export namespace DocumentDao {
         return { count, documents };
     }
 
-    export async function checkout(
-        db: Db,
-        id: Id,
-        revision: number,
-        userId: Id
-    ): Promise<Document | null> {
+    async checkout(db: Db, id: Id, revision: number, userId: Id): Promise<Document | null> {
         const row: Row = await db.maybeOne(sql`
             UPDATE document SET checkout = COALESCE(checkout, ${userId})
             WHERE
@@ -106,7 +90,7 @@ export namespace DocumentDao {
         return mapRow(row);
     }
 
-    export async function discardCheckout(db: Db, id: Id, userId: Id): Promise<Document | null> {
+    async discardCheckout(db: Db, id: Id, userId: Id): Promise<Document | null> {
         const row: Row = await db.maybeOne(sql`
             UPDATE document SET checkout = (
                 SELECT checkout FROM document WHERE id = ${id} AND checkout <> ${userId}
@@ -119,156 +103,8 @@ export namespace DocumentDao {
     }
 }
 
-export namespace DocumentRevisionDao {
-    interface Row {
-        id: Id;
-        documentId: Id;
-        revision: number;
-        filename: string;
-        filesize: number;
-        createdBy: Id;
-        createdAt: number;
-        changeDescription: string;
-        uploaded: number;
-        sha1: string;
-    }
-
-    function mapRow({
-        id,
-        documentId,
-        revision,
-        filename,
-        filesize,
-        createdBy,
-        createdAt,
-        changeDescription,
-        uploaded,
-        sha1,
-    }: Row): DocumentRevision {
-        if (!id) return null;
-        return {
-            id,
-            document: { id: documentId },
-            revision,
-            filename,
-            filesize,
-            createdBy: { id: createdBy },
-            createdAt: createdAt * 1000,
-            changeDescription,
-            uploaded: uploaded ? uploaded : 0,
-            sha1: sha1 ? sha1 : null,
-        };
-    }
-
-    const rowToken = sql`
-        id, document_id, revision, filename, filesize, created_by,
-        EXTRACT(EPOCH FROM created_at) AS created_at, change_description, uploaded
-    `;
-
-    const sha1Token = sql`
-        ENCODE(sha1, 'hex') as sha1
-    `;
-
-    export async function create(
-        db: Db,
-        documentRev: DocumentRevisionInput,
-        userId: Id
-    ): Promise<DocumentRevision> {
-        const { documentId, filename, filesize, changeDescription } = documentRev;
-        const row: Row = await db.one(sql`
-            INSERT INTO document_revision (
-                document_id, revision, filename, filesize, created_by, created_at, change_description
-            ) VALUES (
-                ${documentId},
-                COALESCE(
-                    (SELECT MAX(revision) FROM document_revision WHERE document_id = ${documentId}),
-                    0
-                ) + 1,
-                ${filename},
-                ${filesize},
-                (SELECT checkout FROM document WHERE id = ${documentId} AND checkout = ${userId}),
-                NOW(),
-                ${changeDescription}
-            )
-            RETURNING ${rowToken}
-        `);
-        if (!documentRev.retainCheckout) {
-            await db.query(sql`
-                UPDATE document SET checkout = NULL
-                WHERE id = ${documentId}
-            `);
-        }
-        return mapRow(row);
-    }
-
-    export async function byId(db: Db, id: Id): Promise<DocumentRevision | null> {
-        const row: Row = await db.one(sql`
-            SELECT ${rowToken}, ${sha1Token} FROM document_revision
-            WHERE id = ${parseInt(id)}
-        `);
-        if (!row) return null;
-        return mapRow(row);
-    }
-
-    export async function byDocumentId(db: Db, documentId: Id): Promise<DocumentRevision[]> {
-        const rows: Row[] = await db.any(sql`
-            SELECT ${rowToken}, ${sha1Token} FROM document_revision
-            WHERE document_id = ${documentId}
-            ORDER BY revision
-        `);
-        return rows.map(r => mapRow(r));
-    }
-
-    export async function lastByDocumentId(
-        db: Db,
-        documentId: Id
-    ): Promise<DocumentRevision | null> {
-        const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken}, ${sha1Token} FROM document_revision
-            WHERE
-                document_id = ${documentId} AND
-                revision = (
-                    SELECT MAX(revision) FROM document_revision WHERE document_id = ${documentId}
-                )
-        `);
-        if (!row) return null;
-        return mapRow(row);
-    }
-
-    export async function byDocumentIdAndRev(
-        db: Db,
-        documentId: Id,
-        revision: number
-    ): Promise<DocumentRevision> {
-        const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken}, ${sha1Token} FROM document_revision
-            WHERE document_id = ${documentId} AND revision = ${revision}
-        `);
-        if (!row) return null;
-        return mapRow(row);
-    }
-
-    export async function updateAddProgress(
-        db: Db,
-        revisionId: Id,
-        addUploaded: number
-    ): Promise<void> {
-        await db.query(sql`
-            UPDATE document_revision SET uploaded = uploaded+${addUploaded}
-            WHERE id = ${revisionId}
-        `);
-    }
-
-    export async function updateSha1(
-        db: Db,
-        revisionId: Id,
-        sha1: string
-    ): Promise<DocumentRevision> {
-        const row: Row = await db.maybeOne(sql`
-            UPDATE document_revision SET uploaded = filesize, sha1=DECODE(${sha1}, 'hex')
-            WHERE id = ${revisionId}
-            RETURNING ${rowToken}, ${sha1Token}
-        `);
-        return mapRow(row);
-    }
-}
+export const documentDao = new DocumentDao({
+    table: 'document',
+    rowToken,
+    mapRow,
+});
