@@ -1,0 +1,13 @@
+{
+    "db": {
+        "uri": "postgresql://postgres:postgres@localhost",
+        "name": "engspace_server_api_test",
+        "options": {
+            "idleTimeout": 1000
+        },
+        "formatDb": true
+    },
+    "server": {
+        "port": 3000
+    }
+}

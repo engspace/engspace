@@ -11,6 +11,8 @@
         "lint": "eslint --ext .js,.ts .",
         "lint:fix": "eslint --fix --ext .js,.ts .",
         "build": "tsc -p tsconfig.json",
+        "test": "cross-env NODE_ENV=test mocha",
+        "test:cov": "cross-env NODE_ENV=test nyc mocha",
         "clean": "rimraf ./dist/ ../../.build-cache/server-api.tsbuildinfo"
     },
     "dependencies": {
@@ -18,7 +20,7 @@
         "@engspace/server-db": "^0.1.0",
         "@koa/router": "^8.0.5",
         "apollo-log": "^0.1.0",
-        "apollo-server-koa": "^2.9.13",
+        "apollo-server-koa": "^2.10.0",
         "config": "^3.2.4",
         "dataloader": "^2.0.0",
         "graphql": "^14.5.8",
@@ -33,17 +35,27 @@
     "devDependencies": {
         "@engspace/eslint-config": "^0.1.0",
         "@engspace/prettier-config": "^0.1.0",
+        "@types/chai": "^4.2.5",
+        "@types/chai-http": "^4.2.0",
         "@types/config": "^0.0.36",
         "@types/jsonwebtoken": "^8.3.5",
         "@types/koa": "^2.11.0",
         "@types/koa-bodyparser": "^4.3.0",
         "@types/koa-session": "^5.10.1",
         "@types/koa__router": "^8.0.2",
+        "@types/lodash.clonedeep": "^4.5.6",
+        "@types/mocha": "^5.2.7",
+        "apollo-server-testing": "^2.10.0",
+        "chai": "^4.2.0",
+        "chai-http": "^4.3.0",
         "eslint": "^6.6.0",
         "eslint-config-prettier": "^6.6.0",
         "eslint-plugin-prettier": "^3.1.1",
+        "mocha": "^6.2.2",
+        "nyc": "^14.1.1",
         "prettier": "^1.19.1",
         "rimraf": "^3.0.0",
+        "ts-node": "^8.5.2",
         "typescript": "^3.7.2"
     }
 }
