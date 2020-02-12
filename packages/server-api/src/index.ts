@@ -1,5 +1,5 @@
 import { AppRolePolicies, AuthToken } from '@engspace/core';
-import { DbPool } from '@engspace/server-db';
+import { Db, DbPool } from '@engspace/server-db';
 import cors from '@koa/cors';
 import Router from '@koa/router';
 import { ApolloLogExtension } from 'apollo-log';
@@ -8,12 +8,14 @@ import fs from 'fs';
 import HttpStatus from 'http-status-codes';
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
+import { ApiContext } from './controllers';
 import { verifyJwt } from './crypto';
-import { gqlContextFactory } from './graphql/context';
+import { GqlContext, gqlContextFactory } from './graphql/context';
+import { makeLoaders } from './graphql/loaders';
 import { setupPlaygroundEndpoint, setupPlaygroundLogin } from './graphql/playground';
 import { resolvers } from './graphql/resolvers';
 import { typeDefs } from './graphql/schema';
-import { setupPreAuthDocRoutes, setupPostAuthDocRoutes } from './http/document';
+import { setupPostAuthDocRoutes, setupPreAuthDocRoutes } from './http/document';
 import { setupFirstAdminRoutes } from './http/first_admin';
 import { setupLoginRoute } from './http/login';
 import { attachDb, authJwtSecret, setAuthToken } from './internal';
@@ -117,5 +119,25 @@ export class EsServerApi {
                 path: prefix,
             })
         );
+    }
+
+    buildTestGqlServer(db: Db, auth: AuthToken): ApolloServer {
+        return new ApolloServer({
+            typeDefs,
+            resolvers,
+            introspection: false,
+            playground: false,
+            context: (): GqlContext => {
+                const ctx: ApiContext = {
+                    db,
+                    auth,
+                    config: this.config,
+                };
+                return {
+                    loaders: makeLoaders(ctx),
+                    ...ctx,
+                };
+            },
+        });
     }
 }
