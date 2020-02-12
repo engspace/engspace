@@ -5,7 +5,6 @@ import { getAuthToken, getDb } from '../internal';
 import { GqlLoaders, makeLoaders } from './loaders';
 
 export interface GqlContext extends ApiContext {
-    koaCtx: Koa.Context;
     loaders: GqlLoaders;
 }
 
@@ -23,7 +22,6 @@ export function gqlContextFactory(config: EsServerConfig): GqlContextFactory {
             config,
             auth: getAuthToken(ctx),
             db: getDb(ctx),
-            koaCtx: ctx,
             loaders: null,
         };
         gqlCtx.loaders = makeLoaders(gqlCtx);
