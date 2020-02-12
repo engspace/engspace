@@ -1,5 +1,4 @@
 import { AppRolePolicies, AuthToken, buildDefaultAppRolePolicies } from '@engspace/core';
-import { EsServerApi } from '@engspace/server-api';
 import { createDbPool, Db, DbPool, initSchema } from '@engspace/server-db';
 import { ApolloServerTestClient, createTestClient } from 'apollo-server-testing';
 import chai from 'chai';
@@ -8,6 +7,7 @@ import config from 'config';
 import events from 'events';
 import Koa from 'koa';
 import path from 'path';
+import { EsServerApi } from '../src';
 
 events.EventEmitter.defaultMaxListeners = 100;
 

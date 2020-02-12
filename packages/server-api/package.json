@@ -15,6 +15,17 @@
         "test:cov": "cross-env NODE_ENV=test nyc mocha",
         "clean": "rimraf ./dist/ ../../.build-cache/server-api.tsbuildinfo"
     },
+    "nyc": {
+        "cache": false,
+        "extension": [
+            ".ts"
+        ],
+        "exclude": [
+            "test/**/*",
+            "**/*.d.ts",
+            "**/*.js"
+        ]
+    },
     "dependencies": {
         "@engspace/core": "^0.1.0",
         "@engspace/server-db": "^0.1.0",
