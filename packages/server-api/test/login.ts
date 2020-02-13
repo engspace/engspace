@@ -15,13 +15,13 @@ async function deleteAll(): Promise<void> {
 }
 
 describe('Login', () => {
-    const users = prepareUsers();
-    let dbUsers: DemoUserSet;
+    const usersInput = prepareUsers();
+    let users: DemoUserSet;
     let server: http.Server;
 
     before('Create users', async () => {
-        dbUsers = await pool.transaction(async db => {
-            const usrs = createUsers(db, users);
+        users = await pool.transaction(async db => {
+            const usrs = createUsers(db, usersInput);
             await createLogins(db, usrs);
             return usrs;
         });
@@ -30,9 +30,6 @@ describe('Login', () => {
         const { port } = config.get('server');
         server = api.koa.listen(port, done);
     });
-    // after('Close server', done => {
-    //     server.close(done);
-    // });
 
     after(deleteAll);
 
@@ -47,6 +44,6 @@ describe('Login', () => {
         expect(resp.body).to.be.an('object');
         expect(resp.body.token).to.be.a('string');
         const authToken = await verifyJwt(resp.body.token, authJwtSecret);
-        expect(authToken).to.deep.include(auth(dbUsers.gerard));
+        expect(authToken).to.deep.include(auth(users.gerard));
     });
 });

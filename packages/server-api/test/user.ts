@@ -1,15 +1,15 @@
-import { prepareUsers, createUsers, DemoUserSet } from '@engspace/demo-data';
+import { User, UserInput } from '@engspace/core';
+import { createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data';
+import { userDao } from '@engspace/server-db';
 import chai from 'chai';
 import gql from 'graphql-tag';
-import { sql } from 'slonik';
 import { buildGqlServer, pool } from '.';
-import { createAuth, auth } from './auth';
-import { User, UserInput } from '@engspace/core';
+import { auth, createAuth } from './auth';
 
 const { expect } = chai;
 
-async function deleteAll(): Promise<void> {
-    await pool.transaction(async db => db.query(sql`DELETE FROM "user"`));
+export async function deleteAllUsers(): Promise<void> {
+    await pool.transaction(async db => userDao.deleteAll(db));
 }
 
 export const USER_FIELDS = gql`
@@ -22,25 +22,25 @@ export const USER_FIELDS = gql`
 `;
 
 describe('GraphQL User', () => {
-    const users = prepareUsers();
+    const usersInput = prepareUsers();
 
     describe('Query', () => {
-        let dbUsers: DemoUserSet;
-        let dbUserArr: User[];
+        let users: DemoUserSet;
+        let userArr: User[];
 
         before('Create users', async () => {
-            dbUsers = await pool.transaction(async db => createUsers(db, users));
-            dbUserArr = Object.entries(dbUsers).map(kv => kv[1]);
+            users = await pool.transaction(async db => createUsers(db, usersInput));
+            userArr = Object.entries(users).map(kv => kv[1]);
         });
 
-        after(deleteAll);
+        after(deleteAllUsers);
 
-        it('should get a user', async () => {
+        it('should read a user', async () => {
             const result = await pool.connect(async db => {
-                const { query } = buildGqlServer(db, auth(dbUsers.tania));
+                const { query } = buildGqlServer(db, auth(users.tania));
                 return query({
                     query: gql`
-                        query GetUser($id: ID!) {
+                        query ReadUser($id: ID!) {
                             user(id: $id) {
                                 ...UserFields
                                 roles
@@ -48,20 +48,20 @@ describe('GraphQL User', () => {
                         }
                         ${USER_FIELDS}
                     `,
-                    variables: { id: dbUsers.alphonse.id },
+                    variables: { id: users.alphonse.id },
                 });
             });
             expect(result.errors).to.be.undefined;
-            expect(result.data).to.not.be.null;
-            expect(result.data.user).to.deep.include(users.alphonse);
+            expect(result.data).to.be.an('object');
+            expect(result.data.user).to.deep.include(usersInput.alphonse);
         });
 
-        it('should get a user by name', async () => {
+        it('should read a user by name', async () => {
             const result = await pool.connect(async db => {
-                const { query } = buildGqlServer(db, auth(dbUsers.tania));
+                const { query } = buildGqlServer(db, auth(users.tania));
                 return query({
                     query: gql`
-                        query GetUserByName($name: String!) {
+                        query ReadUserByName($name: String!) {
                             userByName(name: $name) {
                                 ...UserFields
                                 roles
@@ -73,16 +73,16 @@ describe('GraphQL User', () => {
                 });
             });
             expect(result.errors).to.be.undefined;
-            expect(result.data).to.not.be.null;
-            expect(result.data.userByName).to.deep.include(users.alphonse);
+            expect(result.data).to.be.an('object');
+            expect(result.data.userByName).to.deep.include(usersInput.alphonse);
         });
 
-        it('should get a user by email', async () => {
+        it('should read a user by email', async () => {
             const result = await pool.connect(async db => {
-                const { query } = buildGqlServer(db, auth(dbUsers.tania));
+                const { query } = buildGqlServer(db, auth(users.tania));
                 return query({
                     query: gql`
-                        query GetUserByEmail($email: String!) {
+                        query ReadUserByEmail($email: String!) {
                             userByEmail(email: $email) {
                                 ...UserFields
                                 roles
@@ -94,13 +94,13 @@ describe('GraphQL User', () => {
                 });
             });
             expect(result.errors).to.be.undefined;
-            expect(result.data).to.not.be.null;
-            expect(result.data.userByEmail).to.deep.include(users.alphonse);
+            expect(result.data).to.be.an('object');
+            expect(result.data.userByEmail).to.deep.include(usersInput.alphonse);
         });
 
         it('should search all users', async () => {
             const result = await pool.connect(async db => {
-                const { query } = buildGqlServer(db, auth(dbUsers.tania));
+                const { query } = buildGqlServer(db, auth(users.tania));
                 return query({
                     query: gql`
                         query SearchAllUsers {
@@ -117,21 +117,21 @@ describe('GraphQL User', () => {
                 });
             });
             expect(result.errors).to.be.undefined;
-            expect(result.data).to.not.be.null;
+            expect(result.data).to.be.an('object');
             expect(result.data.userSearch).to.eql({
                 count: 10,
-                users: dbUserArr,
+                users: userArr,
             });
         });
     });
 
     describe('Mutate', () => {
         describe('Create', () => {
-            afterEach(deleteAll);
+            afterEach(deleteAllUsers);
 
             it('should create user with admin', async () => {
                 const result = await pool.transaction(async db => {
-                    const auth = await createAuth(db, users.gerard); // admin
+                    const auth = await createAuth(db, usersInput.gerard); // admin
                     const { mutate } = buildGqlServer(db, auth);
                     return mutate({
                         mutation: gql`
@@ -144,18 +144,18 @@ describe('GraphQL User', () => {
                             ${USER_FIELDS}
                         `,
                         variables: {
-                            user: users.tania,
+                            user: usersInput.tania,
                         },
                     });
                 });
                 expect(result.errors).to.be.undefined;
-                expect(result.data).to.not.be.null;
-                expect(result.data.userCreate).to.deep.include(users.tania);
+                expect(result.data).to.be.an('object');
+                expect(result.data.userCreate).to.deep.include(usersInput.tania);
             });
 
             it('should reject create user without admin', async () => {
                 const result = await pool.transaction(async db => {
-                    const auth = await createAuth(db, users.tania); // user
+                    const auth = await createAuth(db, usersInput.tania); // user
                     const { mutate } = buildGqlServer(db, auth);
                     return mutate({
                         mutation: gql`
@@ -168,7 +168,7 @@ describe('GraphQL User', () => {
                             ${USER_FIELDS}
                         `,
                         variables: {
-                            user: users.alphonse,
+                            user: usersInput.alphonse,
                         },
                     });
                 });
@@ -178,13 +178,13 @@ describe('GraphQL User', () => {
         });
 
         describe('Update', () => {
-            let dbUsers: DemoUserSet;
+            let users: DemoUserSet;
 
             beforeEach('Create users', async () => {
-                dbUsers = await pool.transaction(async db => createUsers(db, users));
+                users = await pool.transaction(async db => createUsers(db, usersInput));
             });
 
-            afterEach(deleteAll);
+            afterEach(deleteAllUsers);
 
             const bob: UserInput = {
                 name: 'bob',
@@ -195,7 +195,7 @@ describe('GraphQL User', () => {
 
             it('should update user with admin role', async () => {
                 const result = await pool.transaction(async db => {
-                    const { mutate } = buildGqlServer(db, auth(dbUsers.gerard)); // admin
+                    const { mutate } = buildGqlServer(db, auth(users.gerard)); // admin
                     return mutate({
                         mutation: gql`
                             mutation UpdateUser($id: ID!, $user: UserInput!) {
@@ -207,22 +207,22 @@ describe('GraphQL User', () => {
                             ${USER_FIELDS}
                         `,
                         variables: {
-                            id: dbUsers.alphonse.id,
+                            id: users.alphonse.id,
                             user: bob,
                         },
                     });
                 });
                 expect(result.errors).to.be.undefined;
-                expect(result.data).to.not.be.null;
+                expect(result.data).to.be.an('object');
                 expect(result.data.userUpdate).to.deep.include({
                     ...bob,
-                    id: dbUsers.alphonse.id,
+                    id: users.alphonse.id,
                 });
             });
 
             it('should reject update user without admin role', async () => {
                 const result = await pool.transaction(async db => {
-                    const { mutate } = buildGqlServer(db, auth(dbUsers.tania)); // admin
+                    const { mutate } = buildGqlServer(db, auth(users.tania)); // admin
                     return mutate({
                         mutation: gql`
                             mutation UpdateUser($id: ID!, $user: UserInput!) {
@@ -234,7 +234,7 @@ describe('GraphQL User', () => {
                             ${USER_FIELDS}
                         `,
                         variables: {
-                            id: dbUsers.alphonse.id,
+                            id: users.alphonse.id,
                             user: bob,
                         },
                     });
