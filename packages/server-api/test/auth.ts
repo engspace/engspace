@@ -1,4 +1,4 @@
-import { AuthToken, User, UserInput } from '@engspace/core';
+import { AuthToken, User, UserInput, HasId } from '@engspace/core';
 import { Db, userDao } from '@engspace/server-db';
 import { rolePolicies } from '.';
 import { signJwt } from '../src/crypto';
@@ -8,6 +8,13 @@ export function auth(user: User): AuthToken {
     return {
         userId: user.id,
         userPerms: rolePolicies.user.permissions(user.roles as string[]),
+    };
+}
+
+export function permsAuth(user: HasId, userPerms: string[]): AuthToken {
+    return {
+        userId: user.id,
+        userPerms,
     };
 }
 

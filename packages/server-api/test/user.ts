@@ -4,7 +4,7 @@ import { userDao } from '@engspace/server-db';
 import chai from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
-import { auth, createAuth } from './auth';
+import { auth, createAuth, permsAuth } from './auth';
 
 const { expect } = chai;
 
@@ -21,6 +21,16 @@ export const USER_FIELDS = gql`
     }
 `;
 
+const USER_READ = gql`
+    query ReadUser($id: ID!) {
+        user(id: $id) {
+            ...UserFields
+            roles
+        }
+    }
+    ${USER_FIELDS}
+`;
+
 describe('GraphQL User', () => {
     const usersInput = prepareUsers();
 
@@ -35,25 +45,30 @@ describe('GraphQL User', () => {
 
         after(deleteAllUsers);
 
-        it('should read a user', async () => {
+        it('should read a user with "user.read"', async () => {
             const result = await pool.connect(async db => {
-                const { query } = buildGqlServer(db, auth(users.tania));
+                const { query } = buildGqlServer(db, permsAuth(users.tania, ['user.read']));
                 return query({
-                    query: gql`
-                        query ReadUser($id: ID!) {
-                            user(id: $id) {
-                                ...UserFields
-                                roles
-                            }
-                        }
-                        ${USER_FIELDS}
-                    `,
+                    query: USER_READ,
                     variables: { id: users.alphonse.id },
                 });
             });
             expect(result.errors).to.be.undefined;
             expect(result.data).to.be.an('object');
             expect(result.data.user).to.deep.include(usersInput.alphonse);
+        });
+
+        it('should not read a user without "user.read"', async () => {
+            const result = await pool.connect(async db => {
+                const { query } = buildGqlServer(db, permsAuth(users.tania, []));
+                return query({
+                    query: USER_READ,
+                    variables: { id: users.alphonse.id },
+                });
+            });
+            expect(result.errors).to.be.an('array');
+            expect(result.data).to.be.an('object');
+            expect(result.data.user).to.be.null;
         });
 
         it('should read a user by name', async () => {
@@ -172,7 +187,9 @@ describe('GraphQL User', () => {
                         },
                     });
                 });
-                expect(result.errors).to.have.length;
+                expect(result.errors)
+                    .to.be.an('array')
+                    .with.lengthOf.at.least(1);
                 expect(result.data).to.be.null;
             });
         });
@@ -239,7 +256,7 @@ describe('GraphQL User', () => {
                         },
                     });
                 });
-                expect(result.errors).to.have.length;
+                expect(result.errors).to.be.an('array');
                 expect(result.data).to.be.null;
             });
         });
