@@ -23,6 +23,7 @@ export {
     Part,
     PartBase,
     PartFamily,
+    PartFamilyInput,
     PartRevision,
     Project,
     ProjectEx,

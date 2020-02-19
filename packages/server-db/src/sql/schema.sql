@@ -85,7 +85,7 @@ CREATE TABLE part_family (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     name text NOT NULL,
     code text NOT NULL,
-    description text
+    counter integer NOT NULL DEFAULT 1
 );
 
 CREATE TABLE specification (

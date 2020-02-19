@@ -123,10 +123,13 @@ export interface SpecRevision extends FileRevision {
     status: CycleStatus;
 }
 
-export interface PartFamily {
-    id: Id;
-    name: string;
+export interface PartFamilyInput {
     code: string;
+    name: string;
+}
+
+export interface PartFamily extends PartFamilyInput {
+    id: Id;
     counter: number;
 }
 

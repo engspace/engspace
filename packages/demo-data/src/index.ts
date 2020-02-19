@@ -2,6 +2,7 @@ import { DbPool } from '@engspace/server-db';
 import { createDocuments } from './document';
 import { createLogins } from './login';
 import { createMembers } from './member';
+import { createPartFamilies, partFamiliesInput } from './part-family';
 import { createProjects, prepareProjects } from './project';
 import { createUsers, prepareUsers } from './user';
 
@@ -12,7 +13,9 @@ export {
     createLogins,
     createMembers,
     createProjects,
+    createPartFamilies,
     createUsers,
+    partFamiliesInput,
     prepareProjects,
     prepareUsers,
 };
@@ -26,6 +29,7 @@ export async function populateDemo(pool: DbPool, storePath: string): Promise<voi
                 createMembers(db, projects, users),
                 createDocuments(db, users, storePath),
                 createLogins(db, users),
+                createPartFamilies(db, partFamiliesInput),
             ]);
         });
     } catch (err) {
