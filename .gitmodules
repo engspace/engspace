@@ -1,3 +1,0 @@
-[submodule "packages/demo-data/demo_files"]
-	path = packages/demo-data/demo_files
-	url = git@github.com:engspace/demo_files
