@@ -1,5 +1,5 @@
 import { User, UserInput } from '@engspace/core';
-import { createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data';
+import { createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
 import { userDao } from '@engspace/server-db';
 import chai from 'chai';
 import gql from 'graphql-tag';

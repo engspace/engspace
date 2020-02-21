@@ -5,7 +5,7 @@ import {
     DemoUserSet,
     prepareProjects,
     prepareUsers,
-} from '@engspace/demo-data';
+} from '@engspace/demo-data-input';
 import { projectDao } from '@engspace/server-db';
 import chai from 'chai';
 import gql from 'graphql-tag';

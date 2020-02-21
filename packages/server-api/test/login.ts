@@ -1,4 +1,4 @@
-import { createLogins, createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data';
+import { createLogins, createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
 import chai from 'chai';
 import config from 'config';
 import http from 'http';

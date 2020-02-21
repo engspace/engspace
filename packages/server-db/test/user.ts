@@ -1,4 +1,4 @@
-import { createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data';
+import { createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
 import chai from 'chai';
 import { sql } from 'slonik';
 import { filterFields, pool } from '.';

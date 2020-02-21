@@ -1,4 +1,4 @@
-import { partFamiliesInput, createPartFamilies } from '@engspace/demo-data';
+import { partFamiliesInput, createPartFamilies } from '@engspace/demo-data-input';
 import chai from 'chai';
 import { pool } from '.';
 import { partFamilyDao } from '../src';

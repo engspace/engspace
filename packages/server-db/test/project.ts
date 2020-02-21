@@ -1,4 +1,4 @@
-import { createProjects, DemoProjectSet, prepareProjects } from '@engspace/demo-data';
+import { createProjects, DemoProjectSet, prepareProjects } from '@engspace/demo-data-input';
 import chai from 'chai';
 import { pool } from '.';
 import { projectDao } from '../src';

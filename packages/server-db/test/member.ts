@@ -6,7 +6,7 @@ import {
     DemoUserSet,
     prepareProjects,
     prepareUsers,
-} from '@engspace/demo-data';
+} from '@engspace/demo-data-input';
 import chai from 'chai';
 import { sql } from 'slonik';
 import { pool } from '.';

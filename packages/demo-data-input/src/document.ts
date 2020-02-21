@@ -28,7 +28,7 @@ export const documentInput: DemoDocInput[] = [
     },
 ];
 
-const demoFilePath = `${__dirname}/../demo_files`;
+const demoFilePath = `${__dirname}/../files`;
 
 const copyFileP = util.promisify(fs.copyFile);
 const mkdirP = util.promisify(fs.mkdir);

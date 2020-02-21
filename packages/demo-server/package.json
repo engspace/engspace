@@ -17,7 +17,7 @@
         "clean": "rimraf ./dist/ ../../.build-cache/demo-server.tsbuildinfo"
     },
     "dependencies": {
-        "@engspace/demo-data": "^0.1.0",
+        "@engspace/demo-data-input": "^0.1.0",
         "@engspace/server-db": "^0.1.0",
         "@engspace/server-api": "^0.1.0",
         "@koa/cors": "^3.0.0",

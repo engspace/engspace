@@ -1,5 +1,5 @@
 import { buildDefaultAppRolePolicies } from '@engspace/core';
-import { populateDemo } from '@engspace/demo-data';
+import { populateDemo } from '@engspace/demo-data-input';
 import { EsServerApi } from '@engspace/server-api';
 import { createDbPool, DbPool, initSchema } from '@engspace/server-db';
 import config from 'config';

@@ -4,7 +4,7 @@
     "compilerOptions": {
         "outDir": "./dist",
         "rootDir": "./src",
-        "tsBuildInfoFile": "../../.build-cache/demo-data.tsbuildinfo"
+        "tsBuildInfoFile": "../../.build-cache/demo-data-input.tsbuildinfo"
     },
 
     "include": [ "src" ],
