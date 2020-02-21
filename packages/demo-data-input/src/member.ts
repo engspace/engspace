@@ -1,70 +1,71 @@
-import { ProjectMember } from '@engspace/core';
-import { memberDao } from '@engspace/server-db';
-import { DemoProjectSet } from './project';
-import { DemoUserSet } from './user';
+import { ProjectMemberInput } from '@engspace/core';
+import { DemoProject, DemoProjectSet } from './project';
+import { DemoUser, DemoUserSet } from './user';
 
-export const membersInput = [
+export interface ProjectMemberDemoInput {
+    project: DemoProject;
+    user: DemoUser;
+    roles: string[];
+}
+
+export const membersInput: ProjectMemberDemoInput[] = [
     // depending on project and user
     {
-        project: 'chair',
-        user: 'tania',
+        project: DemoProject.Chair,
+        user: DemoUser.Tania,
         roles: ['leader'],
     },
     {
-        project: 'chair',
-        user: 'fatima',
+        project: DemoProject.Chair,
+        user: DemoUser.Fatima,
         roles: ['designer'],
     },
     {
-        project: 'chair',
-        user: 'philippe',
+        project: DemoProject.Chair,
+        user: DemoUser.Philippe,
         roles: ['designer'],
     },
     {
-        project: 'chair',
-        user: 'pascal',
+        project: DemoProject.Chair,
+        user: DemoUser.Pascal,
         roles: [],
     },
     {
-        project: 'desk',
-        user: 'alphonse',
+        project: DemoProject.Desk,
+        user: DemoUser.Alphonse,
         roles: ['leader', 'designer'],
     },
     {
-        project: 'desk',
-        user: 'robin',
+        project: DemoProject.Desk,
+        user: DemoUser.Robin,
         roles: ['designer'],
     },
     {
-        project: 'desk',
-        user: 'fatima',
+        project: DemoProject.Desk,
+        user: DemoUser.Fatima,
         roles: ['designer'],
     },
     {
-        project: 'desk',
-        user: 'sophie',
+        project: DemoProject.Desk,
+        user: DemoUser.Sophie,
         roles: ['designer'],
     },
     {
-        project: 'desk',
-        user: 'sylvie',
+        project: DemoProject.Desk,
+        user: DemoUser.Sylvie,
         roles: [],
     },
 ];
 
-export async function createMembers(
-    db,
+export async function prepareMembers(
+    input: ProjectMemberDemoInput[],
     projects: Promise<DemoProjectSet>,
     users: Promise<DemoUserSet>
-): Promise<ProjectMember[]> {
+): Promise<ProjectMemberInput[]> {
     const [projs, usrs] = await Promise.all([projects, users]);
-    return Promise.all(
-        membersInput.map(m =>
-            memberDao.create(db, {
-                projectId: projs[m.project].id,
-                userId: usrs[m.user].id,
-                roles: m.roles,
-            })
-        )
-    );
+    return input.map(m => ({
+        projectId: projs[m.project].id,
+        userId: usrs[m.user].id,
+        roles: m.roles,
+    }));
 }

@@ -15,8 +15,7 @@
         "clean": "rimraf ./dist/ ../../.build-cache/demo-data-input.tsbuildinfo"
     },
     "dependencies": {
-        "@engspace/core": "^0.1.0",
-        "@engspace/server-db": "^0.1.0"
+        "@engspace/core": "^0.1.0"
     },
     "devDependencies": {
         "@engspace/eslint-config": "^0.1.0",

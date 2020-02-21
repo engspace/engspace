@@ -1,11 +1,10 @@
 import { PartFamilyInput, PartFamily } from '@engspace/core';
-import { Db, partFamilyDao } from '@engspace/server-db';
 
-interface DemoPartFamilyInputSet {
+export interface DemoPartFamilyInputSet {
     [name: string]: PartFamilyInput;
 }
 
-interface DemoPartFamilySet {
+export interface DemoPartFamilySet {
     [name: string]: PartFamily;
 }
 
@@ -31,16 +30,3 @@ export const partFamiliesInput: DemoPartFamilyInputSet = {
         name: 'Sub-assembly',
     },
 };
-
-export async function createPartFamilies(
-    db: Db,
-    input: DemoPartFamilyInputSet
-): Promise<DemoPartFamilySet> {
-    const keyVals = await Promise.all(
-        Object.entries(input).map(async ([name, input]) => [
-            name,
-            await partFamilyDao.create(db, input),
-        ])
-    );
-    return Object.fromEntries(keyVals);
-}
