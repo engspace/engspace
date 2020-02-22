@@ -98,4 +98,11 @@ export class DaoRowMap<T extends HasId, R> implements Dao<T> {
         `);
         return this.mapRow(row);
     }
+
+    async deleteAll(db: Db): Promise<number> {
+        const q = await db.query(sql`
+            DELETE FROM ${sql.identifier([this.table])}
+        `);
+        return q.rowCount;
+    }
 }
