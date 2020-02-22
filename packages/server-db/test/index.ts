@@ -1,11 +1,13 @@
 import config from 'config';
 import events from 'events';
 import chai from 'chai';
+import chaiUuid from 'chai-uuid';
 import chaiShallowDeepEqual from 'chai-shallow-deep-equal';
 import _ from 'lodash';
 import { createDbPool, DbConfig, DbPool, initSchema } from '../src';
 
 chai.use(chaiShallowDeepEqual);
+chai.use(chaiUuid);
 
 events.EventEmitter.defaultMaxListeners = 100;
 
