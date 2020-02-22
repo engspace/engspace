@@ -1810,6 +1810,19 @@
   dependencies:
     chai-http "*"
 
+"@types/chai-uuid@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@types/chai-uuid/-/chai-uuid-1.0.1.tgz#ba1f5faf86d0de70bc78913fa3b48b8d29c73e6a"
+  integrity sha512-VS04V2pMhxDuiWhKk2M1WsNjadAcs2S1ntcrt7q0KuhX1NbGKaGeIMJM335VnxtooJKmL67v4l8mwDa3uGmudQ==
+  dependencies:
+    "@types/chai" "*"
+    "@types/node" "*"
+
+"@types/chai@*":
+  version "4.2.9"
+  resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.2.9.tgz#194332625ed2ae914aef00b8d5ca3b77e7924cc6"
+  integrity sha512-NeXgZj+MFL4izGqA4sapdYzkzQG+MtGra9vhQ58dnmDY++VgJaRUws+aLVV5zRJCYJl/8s9IjMmhiUw1WsKSmw==
+
 "@types/chai@4":
   version "4.2.8"
   resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.2.8.tgz#c8d645506db0d15f4aafd4dfa873f443ad87ea59"
@@ -4022,6 +4035,11 @@ chai-shallow-deep-equal@^1.4.6:
   version "1.4.6"
   resolved "https://registry.yarnpkg.com/chai-shallow-deep-equal/-/chai-shallow-deep-equal-1.4.6.tgz#4184b5a13393adae34b6cef0c69b5acc82c4d834"
   integrity sha1-QYS1oTOTra40ts7wxptazILE2DQ=
+
+chai-uuid@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/chai-uuid/-/chai-uuid-1.0.6.tgz#353a3b817dd66aa2608a0660faf68593fb918c8b"
+  integrity sha1-NTo7gX3WaqJgigZg+vaFk/uRjIs=
 
 chai@^4.2.0:
   version "4.2.0"
