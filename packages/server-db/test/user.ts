@@ -1,4 +1,9 @@
-import { DemoUserInputSet, DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
+import {
+    DemoUserInputSet,
+    DemoUserSet,
+    prepareUsers,
+    asyncKeyMap,
+} from '@engspace/demo-data-input';
 import chai from 'chai';
 import { sql } from 'slonik';
 import { filterFields, pool } from '.';
@@ -11,10 +16,7 @@ async function deleteAll(): Promise<void> {
 }
 
 export async function createUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
-    const keyVals = await Promise.all(
-        Object.entries(users).map(async ([name, input]) => [name, await userDao.create(db, input)])
-    );
-    return Object.fromEntries(keyVals);
+    return asyncKeyMap(users, async u => userDao.create(db, u));
 }
 
 describe('userDao', () => {

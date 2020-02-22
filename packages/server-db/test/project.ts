@@ -1,7 +1,12 @@
-import { DemoProjectSet, DemoProjectInputSet, prepareProjects } from '@engspace/demo-data-input';
+import {
+    asyncKeyMap,
+    DemoProjectInputSet,
+    DemoProjectSet,
+    prepareProjects,
+} from '@engspace/demo-data-input';
 import chai from 'chai';
 import { pool } from '.';
-import { projectDao, Db } from '../src';
+import { Db, projectDao } from '../src';
 
 const { expect } = chai;
 
@@ -10,13 +15,7 @@ async function deleteAll(): Promise<void> {
 }
 
 export async function createProjects(db: Db, projs: DemoProjectInputSet): Promise<DemoProjectSet> {
-    const keyVals = await Promise.all(
-        Object.entries(projs).map(async ([code, input]) => [
-            code,
-            await projectDao.create(db, input),
-        ])
-    );
-    return Object.fromEntries(keyVals);
+    return asyncKeyMap(projs, async p => projectDao.create(db, p));
 }
 
 describe('projectDao', () => {

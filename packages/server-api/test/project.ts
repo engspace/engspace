@@ -1,16 +1,17 @@
 import {
+    asyncKeyMap,
+    DemoProjectInputSet,
     DemoProjectSet,
     DemoUserSet,
     prepareProjects,
     prepareUsers,
-    DemoProjectInputSet,
 } from '@engspace/demo-data-input';
-import { projectDao, Db } from '@engspace/server-db';
+import { Db, projectDao } from '@engspace/server-db';
 import chai from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { permsAuth } from './auth';
-import { deleteAllUsers, createUsers } from './user';
+import { createUsers, deleteAllUsers } from './user';
 
 const { expect } = chai;
 
@@ -19,13 +20,7 @@ export async function deleteAllProjects(): Promise<void> {
 }
 
 export async function createProjects(db: Db, projs: DemoProjectInputSet): Promise<DemoProjectSet> {
-    const keyVals = await Promise.all(
-        Object.entries(projs).map(async ([code, input]) => [
-            code,
-            await projectDao.create(db, input),
-        ])
-    );
-    return Object.fromEntries(keyVals);
+    return asyncKeyMap(projs, async p => projectDao.create(db, p));
 }
 
 export const PROJECT_FIELDS = gql`

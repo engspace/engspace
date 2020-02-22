@@ -1,11 +1,12 @@
 import {
-    partFamiliesInput,
+    asyncKeyMap,
     DemoPartFamilyInputSet,
     DemoPartFamilySet,
+    partFamiliesInput,
 } from '@engspace/demo-data-input';
 import chai from 'chai';
 import { pool } from '.';
-import { partFamilyDao, Db } from '../src';
+import { Db, partFamilyDao } from '../src';
 
 const { expect } = chai;
 
@@ -13,13 +14,7 @@ export async function createPartFamilies(
     db: Db,
     input: DemoPartFamilyInputSet
 ): Promise<DemoPartFamilySet> {
-    const keyVals = await Promise.all(
-        Object.entries(input).map(async ([name, input]) => [
-            name,
-            await partFamilyDao.create(db, input),
-        ])
-    );
-    return Object.fromEntries(keyVals);
+    return asyncKeyMap(input, async pf => partFamilyDao.create(db, pf));
 }
 
 describe('partFamilyDao', function() {

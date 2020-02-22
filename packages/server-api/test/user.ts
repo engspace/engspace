@@ -1,5 +1,10 @@
 import { User, UserInput } from '@engspace/core';
-import { DemoUserSet, prepareUsers, DemoUserInputSet } from '@engspace/demo-data-input';
+import {
+    DemoUserSet,
+    prepareUsers,
+    DemoUserInputSet,
+    asyncKeyMap,
+} from '@engspace/demo-data-input';
 import { userDao, Db } from '@engspace/server-db';
 import chai from 'chai';
 import gql from 'graphql-tag';
@@ -13,10 +18,7 @@ export async function deleteAllUsers(): Promise<void> {
 }
 
 export async function createUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
-    const keyVals = await Promise.all(
-        Object.entries(users).map(async ([name, input]) => [name, await userDao.create(db, input)])
-    );
-    return Object.fromEntries(keyVals);
+    return asyncKeyMap(users, async u => userDao.create(db, u));
 }
 
 export const USER_FIELDS = gql`

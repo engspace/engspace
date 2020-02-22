@@ -1,37 +1,35 @@
-import { ProjectMember, DocumentInput, Document } from '@engspace/core';
+import { Document, DocumentInput, ProjectMember } from '@engspace/core';
 import {
+    asyncKeyMap,
+    DemoDocInput,
+    DemoPartFamilyInputSet,
+    DemoPartFamilySet,
     DemoProjectInputSet,
     DemoProjectSet,
     DemoUserInputSet,
     DemoUserSet,
-    membersInput,
     documentInput,
+    membersInput,
+    partFamiliesInput,
+    prepareProjects,
     prepareRevision,
-    DemoPartFamilySet,
-    DemoPartFamilyInputSet,
-    DemoDocInput,
     prepareStore,
     prepareUsers,
-    prepareProjects,
-    partFamiliesInput,
 } from '@engspace/demo-data-input';
 import {
     Db,
+    DbPool,
+    documentDao,
+    documentRevisionDao,
     loginDao,
     memberDao,
+    partFamilyDao,
     projectDao,
     userDao,
-    partFamilyDao,
-    documentDao,
-    DbPool,
-    documentRevisionDao,
 } from '@engspace/server-db';
 
 export async function createUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
-    const keyVals = await Promise.all(
-        Object.entries(users).map(async ([name, input]) => [name, await userDao.create(db, input)])
-    );
-    return Object.fromEntries(keyVals);
+    return asyncKeyMap(users, async u => userDao.create(db, u));
 }
 
 export async function createLogins(db: Db, users: Promise<DemoUserSet>): Promise<void> {
@@ -42,13 +40,7 @@ export async function createLogins(db: Db, users: Promise<DemoUserSet>): Promise
 }
 
 export async function createProjects(db: Db, projs: DemoProjectInputSet): Promise<DemoProjectSet> {
-    const keyVals = await Promise.all(
-        Object.entries(projs).map(async ([code, input]) => [
-            code,
-            await projectDao.create(db, input),
-        ])
-    );
-    return Object.fromEntries(keyVals);
+    return asyncKeyMap(projs, async p => projectDao.create(db, p));
 }
 
 export async function createMembers(
@@ -72,13 +64,7 @@ export async function createPartFamilies(
     db: Db,
     input: DemoPartFamilyInputSet
 ): Promise<DemoPartFamilySet> {
-    const keyVals = await Promise.all(
-        Object.entries(input).map(async ([name, input]) => [
-            name,
-            await partFamilyDao.create(db, input),
-        ])
-    );
-    return Object.fromEntries(keyVals);
+    return asyncKeyMap(input, async pf => partFamilyDao.create(db, pf));
 }
 
 async function createDocument(
