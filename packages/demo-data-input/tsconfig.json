@@ -9,7 +9,6 @@
 
     "include": [ "src" ],
     "references": [
-        { "path": "../core", "prepend": false },
-        { "path": "../server-db", "prepend": false }
+        { "path": "../core", "prepend": false }
     ]
 }
