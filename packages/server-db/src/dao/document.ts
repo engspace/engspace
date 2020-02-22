@@ -76,14 +76,10 @@ class DocumentDao extends DaoRowMap<Document, Row> {
         return { count, documents };
     }
 
-    async checkout(db: Db, id: Id, revision: number, userId: Id): Promise<Document | null> {
+    async checkout(db: Db, id: Id, userId: Id): Promise<Document | null> {
         const row: Row = await db.maybeOne(sql`
             UPDATE document SET checkout = COALESCE(checkout, ${userId})
-            WHERE
-                id = ${id} AND
-                (
-                    SELECT MAX(revision) FROM document_revision WHERE document_id = ${id}
-                ) = ${revision}
+            WHERE id = ${id}
             RETURNING ${rowToken}
         `);
         if (!row) return null;

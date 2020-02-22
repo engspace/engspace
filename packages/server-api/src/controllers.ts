@@ -246,7 +246,11 @@ export class DocumentControl {
 
     static async checkout(ctx: ApiContext, id: Id, revision: number): Promise<Document> {
         assertUserPerm(ctx, 'document.revise');
-        const doc = await documentDao.checkout(ctx.db, id, revision, ctx.auth.userId);
+        const lastRev = await documentRevisionDao.lastByDocumentId(ctx.db, id);
+        if (!lastRev || lastRev.revision !== revision) {
+            throw new UserInputError(`${revision} is not the last revision`);
+        }
+        const doc = await documentDao.checkout(ctx.db, id, ctx.auth.userId);
         if (!doc) {
             throw new UserInputError('Could not checkout the specified document revision');
         }
