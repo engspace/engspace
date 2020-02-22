@@ -1,6 +1,6 @@
 import { User, UserInput } from '@engspace/core';
-import { createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
-import { userDao } from '@engspace/server-db';
+import { DemoUserSet, prepareUsers, DemoUserInputSet } from '@engspace/demo-data-input';
+import { userDao, Db } from '@engspace/server-db';
 import chai from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
@@ -10,6 +10,13 @@ const { expect } = chai;
 
 export async function deleteAllUsers(): Promise<void> {
     await pool.transaction(async db => userDao.deleteAll(db));
+}
+
+export async function createUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
+    const keyVals = await Promise.all(
+        Object.entries(users).map(async ([name, input]) => [name, await userDao.create(db, input)])
+    );
+    return Object.fromEntries(keyVals);
 }
 
 export const USER_FIELDS = gql`

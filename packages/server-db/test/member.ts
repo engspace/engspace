@@ -1,15 +1,16 @@
 import {
-    createMembers,
-    createProjects,
-    createUsers,
     DemoProjectSet,
     DemoUserSet,
+    membersInput,
     prepareProjects,
     prepareUsers,
 } from '@engspace/demo-data-input';
+import { ProjectMember } from '@engspace/core';
 import chai from 'chai';
 import { sql } from 'slonik';
 import { pool } from '.';
+import { createUsers } from './user';
+import { createProjects } from './project';
 import { memberDao, projectDao, userDao } from '../src';
 
 const { expect } = chai;
@@ -19,6 +20,23 @@ async function deleteAll(): Promise<void> {
         db.query(sql`
             DELETE from project_member
         `)
+    );
+}
+
+export async function createMembers(
+    db,
+    projects: Promise<DemoProjectSet>,
+    users: Promise<DemoUserSet>
+): Promise<ProjectMember[]> {
+    const [projs, usrs] = await Promise.all([projects, users]);
+    return Promise.all(
+        membersInput.map(m =>
+            memberDao.create(db, {
+                projectId: projs[m.project].id,
+                userId: usrs[m.user].id,
+                roles: m.roles,
+            })
+        )
     );
 }
 

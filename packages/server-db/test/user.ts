@@ -1,13 +1,20 @@
-import { createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
+import { DemoUserInputSet, DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
 import chai from 'chai';
 import { sql } from 'slonik';
 import { filterFields, pool } from '.';
-import { userDao } from '../src';
+import { Db, userDao } from '../src';
 
 const { expect } = chai;
 
 async function deleteAll(): Promise<void> {
     await pool.connect(async db => db.query(sql`DELETE FROM "user"`));
+}
+
+export async function createUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
+    const keyVals = await Promise.all(
+        Object.entries(users).map(async ([name, input]) => [name, await userDao.create(db, input)])
+    );
+    return Object.fromEntries(keyVals);
 }
 
 describe('userDao', () => {

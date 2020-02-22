@@ -10,6 +10,7 @@
 
     "include": [ "src/**/*.ts", "src/**/*.json" ],
     "references": [
-        { "path": "../core", "prepend": false }
+        { "path": "../core", "prepend": false },
+        { "path": "../demo-data-input", "prepend": false }
     ]
 }

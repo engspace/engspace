@@ -1,17 +1,26 @@
-import { createLogins, createUsers, DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
+import { DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
 import chai from 'chai';
 import config from 'config';
 import http from 'http';
 import { sql } from 'slonik';
 import { api, pool } from '.';
 import { auth } from './auth';
+import { createUsers } from './user';
 import { verifyJwt } from '../src/crypto';
 import { authJwtSecret } from '../src/internal';
+import { Db, loginDao } from '@engspace/server-db';
 
 const { expect } = chai;
 
 async function deleteAll(): Promise<void> {
     await pool.transaction(async db => db.query(sql`DELETE FROM "user"`));
+}
+
+async function createLogins(db: Db, users: Promise<DemoUserSet>): Promise<void> {
+    const usrs = await users;
+    for (const name in usrs) {
+        await loginDao.create(db, usrs[name].id, name);
+    }
 }
 
 describe('Login', () => {
