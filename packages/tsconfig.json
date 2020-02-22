@@ -3,7 +3,7 @@
   "references": [
     { "path": "./client-app" },
     { "path": "./core" },
-    { "path": "./demo-data" },
+    { "path": "./demo-data-input" },
     { "path": "./demo-server" },
     { "path": "./server-app" },
     { "path": "./server-db" },

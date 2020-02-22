@@ -1,12 +1,11 @@
-import { Document, DocumentInput, DocumentRevisionInput, DocumentRevision } from '@engspace/core';
-import { DemoUserSet, DemoUser } from './user';
-import { documentDao, Db, documentRevisionDao } from '@engspace/server-db';
+import { Document, DocumentRevisionInput } from '@engspace/core';
+import { DemoUser } from './user';
 import path from 'path';
 import fs from 'fs';
 import util from 'util';
 import crypto from 'crypto';
 
-interface DemoDocInput {
+export interface DemoDocInput {
     name: string;
     description: string;
     creator: DemoUser;
@@ -61,51 +60,26 @@ function fileSha1Hash(filepath: string): Promise<string> {
     });
 }
 
-async function createRevision(
-    db: Db,
-    doc: Document,
+export async function prepareRevision(
+    doc: Promise<Document>,
     filepath: string,
     storePath: string
-): Promise<DocumentRevision> {
+): Promise<{ sha1: string; input: DocumentRevisionInput }> {
     const resolved = resolvePath(filepath);
+    const sha1 = (await fileSha1Hash(resolved)).toLowerCase();
+    await copyFileP(resolved, path.join(storePath, sha1));
+    const documentId = (await doc).id;
     const input: DocumentRevisionInput = {
-        documentId: doc.id,
+        documentId,
         filename: path.basename(resolved),
         filesize: (await statP(resolved)).size,
         changeDescription: 'Initial upload',
         retainCheckout: false,
     };
-    const sha1 = (await fileSha1Hash(resolved)).toLowerCase();
-    await copyFileP(resolved, path.join(storePath, sha1));
-    const { id } = await documentRevisionDao.create(db, input, doc.createdBy.id);
-    return documentRevisionDao.updateSha1(db, id, sha1);
+    return { sha1, input };
 }
 
-async function createDocument(
-    db: Db,
-    { name, description, creator, filepath }: DemoDocInput,
-    users: Promise<DemoUserSet>,
-    storePath: string
-): Promise<Document> {
-    const input: DocumentInput = {
-        name,
-        description,
-        initialCheckout: true,
-    };
-    const usrs = await users;
-    const doc = await documentDao.create(db, input, usrs[creator].id);
-    const rev = await createRevision(db, doc, filepath, storePath);
-    doc.revisions = [rev];
-    doc.lastRevision = rev;
-    return doc;
-}
-
-export async function createDocuments(
-    db: Db,
-    users: Promise<DemoUserSet>,
-    storePath: string
-): Promise<Document[]> {
+export async function prepareStore(storePath: string): Promise<void> {
     await rmdirP(storePath, { recursive: true });
     await mkdirP(storePath, { recursive: true });
-    return Promise.all(documentInput.map(di => createDocument(db, di, users, storePath)));
 }

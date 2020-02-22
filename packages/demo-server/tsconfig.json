@@ -9,7 +9,7 @@
 
     "include": [ "src" ],
     "references": [
-        { "path": "../demo-data", "prepend": false },
+        { "path": "../demo-data-input", "prepend": false },
         { "path": "../server-db", "prepend": false },
         { "path": "../server-api", "prepend": false }
     ]

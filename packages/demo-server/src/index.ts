@@ -1,5 +1,5 @@
 import { buildDefaultAppRolePolicies } from '@engspace/core';
-import { populateDemo } from '@engspace/demo-data';
+import { populateData } from './populate-data';
 import { EsServerApi } from '@engspace/server-api';
 import { createDbPool, DbPool, initSchema } from '@engspace/server-db';
 import config from 'config';
@@ -33,7 +33,7 @@ function buildServerApi(pool: DbPool): EsServerApi {
 createDbPool(config.get('db'))
     .then(async pool => {
         await pool.transaction(db => initSchema(db));
-        await populateDemo(pool, storePath);
+        await populateData(pool, storePath);
         return pool;
     })
     .then(async pool => {

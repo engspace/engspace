@@ -1,22 +1,26 @@
 import {
-    createProjects,
-    createUsers,
+    asyncKeyMap,
+    DemoProjectInputSet,
     DemoProjectSet,
     DemoUserSet,
     prepareProjects,
     prepareUsers,
-} from '@engspace/demo-data';
-import { projectDao } from '@engspace/server-db';
+} from '@engspace/demo-data-input';
+import { Db, projectDao } from '@engspace/server-db';
 import chai from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { permsAuth } from './auth';
-import { deleteAllUsers } from './user';
+import { createUsers, deleteAllUsers } from './user';
 
 const { expect } = chai;
 
 export async function deleteAllProjects(): Promise<void> {
     await pool.transaction(async db => projectDao.deleteAll(db));
+}
+
+export async function createProjects(db: Db, projs: DemoProjectInputSet): Promise<DemoProjectSet> {
+    return asyncKeyMap(projs, async p => projectDao.create(db, p));
 }
 
 export const PROJECT_FIELDS = gql`

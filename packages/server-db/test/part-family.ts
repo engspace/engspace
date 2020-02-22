@@ -1,9 +1,21 @@
-import { partFamiliesInput, createPartFamilies } from '@engspace/demo-data';
+import {
+    asyncKeyMap,
+    DemoPartFamilyInputSet,
+    DemoPartFamilySet,
+    partFamiliesInput,
+} from '@engspace/demo-data-input';
 import chai from 'chai';
 import { pool } from '.';
-import { partFamilyDao } from '../src';
+import { Db, partFamilyDao } from '../src';
 
 const { expect } = chai;
+
+export async function createPartFamilies(
+    db: Db,
+    input: DemoPartFamilyInputSet
+): Promise<DemoPartFamilySet> {
+    return asyncKeyMap(input, async pf => partFamilyDao.create(db, pf));
+}
 
 describe('partFamilyDao', function() {
     describe('create', function() {

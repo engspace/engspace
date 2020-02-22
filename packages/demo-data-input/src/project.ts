@@ -1,5 +1,4 @@
 import { Project, ProjectInput } from '@engspace/core';
-import { Db, projectDao } from '@engspace/server-db';
 
 export const projectInput = {
     chair: {
@@ -35,14 +34,4 @@ export function prepareProjects(): DemoProjectInputSet {
             },
         ])
     );
-}
-
-export async function createProjects(db: Db, projs: DemoProjectInputSet): Promise<DemoProjectSet> {
-    const keyVals = await Promise.all(
-        Object.entries(projs).map(async ([code, input]) => [
-            code,
-            await projectDao.create(db, input),
-        ])
-    );
-    return Object.fromEntries(keyVals);
 }
