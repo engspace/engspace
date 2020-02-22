@@ -15,14 +15,6 @@ import { memberDao, projectDao, userDao } from '../src';
 
 const { expect } = chai;
 
-async function deleteAll(): Promise<void> {
-    await pool.connect(db =>
-        db.query(sql`
-            DELETE from project_member
-        `)
-    );
-}
-
 export async function createMembers(
     db,
     projects: Promise<DemoProjectSet>,
@@ -37,6 +29,13 @@ export async function createMembers(
                 roles: m.roles,
             })
         )
+    );
+}
+async function deleteAll(): Promise<void> {
+    await pool.connect(db =>
+        db.query(sql`
+            DELETE from project_member
+        `)
     );
 }
 
@@ -144,6 +143,43 @@ describe('memberDao', () => {
                     project: { id: projects.desk.id },
                 },
             ]);
+        });
+    });
+
+    describe('Update member', () => {
+        let taniaChair;
+
+        beforeEach('create demo members', async function() {
+            taniaChair = await pool.transaction(async db => {
+                return memberDao.create(db, {
+                    projectId: projects.chair.id,
+                    userId: users.tania.id,
+                    roles: ['designer'],
+                });
+            });
+        });
+        afterEach('delete all members', deleteAll);
+
+        it('should remove all project member roles', async function() {
+            const memb = await pool.transaction(async db => {
+                return memberDao.updateRolesById(db, taniaChair.id, null);
+            });
+            expect(memb).to.deep.include({
+                project: { id: projects.chair.id },
+                user: { id: users.tania.id },
+                roles: [],
+            });
+        });
+
+        it('should change project member roles', async function() {
+            const memb = await pool.transaction(async db => {
+                return memberDao.updateRolesById(db, taniaChair.id, ['leader', 'engineer']);
+            });
+            expect(memb).to.deep.include({
+                project: { id: projects.chair.id },
+                user: { id: users.tania.id },
+                roles: ['leader', 'engineer'],
+            });
         });
     });
 
