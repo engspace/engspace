@@ -3,6 +3,7 @@ import { createDbPool, Db, DbPool, initSchema } from '@engspace/server-db';
 import { ApolloServerTestClient, createTestClient } from 'apollo-server-testing';
 import chai from 'chai';
 import chaiHttp from 'chai-http';
+import chaiUuid from 'chai-uuid';
 import config from 'config';
 import events from 'events';
 import Koa from 'koa';
@@ -12,6 +13,7 @@ import { EsServerApi } from '../src';
 events.EventEmitter.defaultMaxListeners = 100;
 
 chai.use(chaiHttp);
+chai.use(chaiUuid);
 
 export let pool: DbPool;
 export let api: EsServerApi;
