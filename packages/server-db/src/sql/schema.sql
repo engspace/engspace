@@ -73,7 +73,7 @@ CREATE TABLE document_revision (
     created_at timestamptz NOT NULL,
     change_description text,
 
-    uploaded integer,
+    uploaded integer NOT NULL DEFAULT 0,
     sha1 bytea, -- initially null, set after check on both client and server
 
     UNIQUE(document_id, revision),

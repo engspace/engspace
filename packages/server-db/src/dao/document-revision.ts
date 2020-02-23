@@ -38,7 +38,7 @@ function mapRow({
         createdBy: { id: createdBy },
         createdAt: createdAt * 1000,
         changeDescription,
-        uploaded: uploaded ? uploaded : 0,
+        uploaded,
         sha1: sha1 ? sha1 : null,
     };
 }
@@ -73,6 +73,7 @@ class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
             )
             RETURNING ${rowToken}
         `);
+        // TODO: mv to controller
         if (!documentRev.retainCheckout) {
             await db.query(sql`
                 UPDATE document SET checkout = NULL
@@ -84,8 +85,8 @@ class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
 
     async byId(db: Db, id: Id): Promise<DocumentRevision | null> {
         const row: Row = await db.one(sql`
-            SELECT ${rowToken}} FROM document_revision
-            WHERE id = ${parseInt(id)}
+            SELECT ${rowToken} FROM document_revision
+            WHERE id = ${id}
         `);
         if (!row) return null;
         return mapRow(row);
@@ -93,7 +94,7 @@ class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
 
     async byDocumentId(db: Db, documentId: Id): Promise<DocumentRevision[]> {
         const rows: Row[] = await db.any(sql`
-            SELECT ${rowToken}} FROM document_revision
+            SELECT ${rowToken} FROM document_revision
             WHERE document_id = ${documentId}
             ORDER BY revision
         `);
@@ -122,11 +123,13 @@ class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
         return mapRow(row);
     }
 
-    async updateAddProgress(db: Db, revisionId: Id, addUploaded: number): Promise<void> {
-        await db.query(sql`
-            UPDATE document_revision SET uploaded = uploaded+${addUploaded}
+    async updateAddProgress(db: Db, revisionId: Id, addUploaded: number): Promise<number> {
+        const uploaded = await db.oneFirst(sql`
+            UPDATE document_revision SET uploaded = uploaded + ${addUploaded}
             WHERE id = ${revisionId}
+            RETURNING uploaded
         `);
+        return uploaded as number;
     }
 
     async updateSha1(db: Db, revisionId: Id, sha1: string): Promise<DocumentRevision> {
