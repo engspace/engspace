@@ -67,7 +67,7 @@ class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
                 ) + 1,
                 ${filename},
                 ${filesize},
-                (SELECT checkout FROM document WHERE id = ${documentId} AND checkout = ${userId}),
+                ${userId},
                 NOW(),
                 ${changeDescription}
             )
