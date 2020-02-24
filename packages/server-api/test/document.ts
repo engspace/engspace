@@ -7,6 +7,23 @@ import { permsAuth } from './auth';
 import { createUsers } from './user';
 import { expect } from 'chai';
 
+export async function createDoc(
+    db: Db,
+    user: User,
+    input: Partial<DocumentInput> = {}
+): Promise<Document> {
+    return documentDao.create(
+        db,
+        {
+            name: 'docname',
+            description: 'doc description',
+            initialCheckout: true,
+            ...input,
+        },
+        user.id
+    );
+}
+
 const DOC_FIELDS = gql`
     fragment DocFields on Document {
         id
@@ -69,23 +86,6 @@ const DOC_DISCARD_CHECKOUT = gql`
     }
     ${DOC_FIELDS}
 `;
-
-async function createDoc(
-    db: Db,
-    user: User,
-    input: Partial<DocumentInput> = {}
-): Promise<Document> {
-    return documentDao.create(
-        db,
-        {
-            name: 'docname',
-            description: 'doc description',
-            initialCheckout: true,
-            ...input,
-        },
-        user.id
-    );
-}
 
 describe('GraphQL documents', function() {
     let users;
