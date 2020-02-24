@@ -117,6 +117,13 @@ describe('documentDao', function() {
             expect(result).to.deep.include(documents[0]);
         });
 
+        it('should read a checkout id by document id', async function() {
+            const result = await pool.connect(async db => {
+                return documentDao.checkoutIdById(db, documents[0].id);
+            });
+            expect(result).to.equal(documents[0].checkout.id);
+        });
+
         it('should read a document batch by ids', async function() {
             const result = await pool.connect(async db => {
                 return documentDao.batchByIds(db, [documents[1].id, documents[0].id]);

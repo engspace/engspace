@@ -48,6 +48,14 @@ class DocumentDao extends DaoRowMap<Document, Row> {
         return mapRow(row);
     }
 
+    async checkoutIdById(db: Db, id: Id): Promise<Id> {
+        const checkoutId = await db.maybeOneFirst(sql`
+            SELECT checkout FROM document
+            WHERE id = ${id}
+        `);
+        return checkoutId as Id;
+    }
+
     async search(db: Db, search: string, offset: number, limit: number): Promise<DocumentSearch> {
         const boolExpressions = [sql`TRUE`];
         if (search) {
