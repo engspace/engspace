@@ -61,30 +61,16 @@ export interface ProjectMember {
     roles?: string[];
 }
 
-export interface File {
-    name: string;
-    description: string;
-}
-
-export interface FileRevision {
-    revision: number;
-    filename: string;
-    filesize: number;
-    createdBy: IdOr<User>;
-    createdAt: DateTime;
-    changeDescription?: string;
-    uploaded: number;
-    sha1?: string;
-}
-
 export interface DocumentInput {
     name: string;
     description: string;
     initialCheckout: boolean;
 }
 
-export interface Document extends File {
+export interface Document {
     id: Id;
+    name: string;
+    description: string;
     createdBy: IdOr<User>;
     createdAt: DateTime;
     checkout: IdOr<User>;
@@ -100,27 +86,22 @@ export interface DocumentRevisionInput {
     retainCheckout: boolean;
 }
 
-export interface DocumentRevision extends FileRevision {
+export interface DocumentRevision {
     id: Id;
     document: IdOr<Document>;
+    revision: number;
+    filename: string;
+    filesize: number;
+    createdBy: IdOr<User>;
+    createdAt: DateTime;
+    changeDescription?: string;
+    uploaded: number;
+    sha1?: string;
 }
 
 export interface DocumentSearch {
     count: number;
     documents: Document[];
-}
-
-export interface Specification extends File {
-    id: Id;
-    lastRevision?: SpecRevision[];
-    revisions?: SpecRevision[];
-}
-
-export interface SpecRevision extends FileRevision {
-    id: Id;
-    spec: IdOr<Specification>;
-    humanRev: string;
-    status: CycleStatus;
 }
 
 export interface PartFamilyInput {
@@ -131,36 +112,4 @@ export interface PartFamilyInput {
 export interface PartFamily extends PartFamilyInput {
     id: Id;
     counter: number;
-}
-
-export interface PartBase {
-    id: Id;
-    family: IdOr<PartFamily>;
-    reference: string;
-    designation: string;
-
-    parts?: Part[];
-}
-
-export interface Part {
-    id: Id;
-    base: IdOr<PartBase>;
-    reference: string;
-    designation: string;
-    createdBy: IdOr<User>;
-    createdAt: DateTime;
-    status: CycleStatus;
-
-    specs?: Specification[];
-    revisions?: PartRevision[];
-}
-
-export interface PartRevision {
-    id: Id;
-    part: IdOr<Part>;
-    revision: number;
-    createdBy: IdOr<User>;
-    createdAt: DateTime;
-
-    specs?: SpecRevision[];
 }

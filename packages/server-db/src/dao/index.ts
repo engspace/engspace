@@ -5,13 +5,8 @@ export { documentDao } from './document';
 export { documentRevisionDao } from './document-revision';
 export { loginDao } from './login';
 export { memberDao } from './member';
-export { partDao } from './part';
-export { partBaseDao } from './part-base';
 export { partFamilyDao } from './part-family';
-export { partRevisionDao } from './part-revision';
 export { projectDao } from './project';
-export { specRevisionDao } from './spec-revision';
-export { specificationDao } from './specification';
 export { userDao } from './user';
 
 /**

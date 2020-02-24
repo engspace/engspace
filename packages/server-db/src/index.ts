@@ -14,13 +14,8 @@ export {
     documentRevisionDao,
     loginDao,
     memberDao,
-    partBaseDao,
-    partDao,
     partFamilyDao,
-    partRevisionDao,
     projectDao,
-    specificationDao,
-    specRevisionDao,
     userDao,
 } from './dao';
 export { initSchema } from './schema';

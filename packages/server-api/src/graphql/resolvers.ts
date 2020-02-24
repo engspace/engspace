@@ -5,10 +5,7 @@ import {
     DocumentRevisionInput,
     DocumentSearch,
     Id,
-    Part,
-    PartBase,
     PartFamily,
-    PartRevision,
     Project,
     ProjectInput,
     ProjectMember,
@@ -21,15 +18,11 @@ import {
     DocumentControl,
     DocumentRevisionControl,
     MemberControl,
-    PartBaseControl,
-    PartControl,
     PartFamilyControl,
-    PartRevisionControl,
     ProjectControl,
     UserControl,
 } from '../controllers';
 import { GqlContext } from './context';
-import { FileRevision } from 'core/src/schema';
 
 export const resolvers = {
     DateTime: new GraphQLScalarType({
@@ -85,20 +78,6 @@ export const resolvers = {
         },
     },
 
-    File: {
-        __resolveType(file: File, context, info): string {
-            if (typeof file['createdAt'] !== 'undefined') return 'Document';
-            else return 'Specification';
-        },
-    },
-
-    FileRevision: {
-        __resolveType(fileRev: FileRevision, context, info): string {
-            if (typeof fileRev['status'] !== 'undefined') return 'SpecRevision';
-            else return 'DocumentRevision';
-        },
-    },
-
     Document: {
         createdBy({ createdBy }: Document, args, ctx: GqlContext): Promise<User> {
             if (createdBy['name']) {
@@ -142,45 +121,6 @@ export const resolvers = {
             return DocumentControl.byId(ctx, document.id);
         },
         createdBy({ createdBy }: DocumentRevision, args, ctx: GqlContext): Promise<User> {
-            if (createdBy['name']) {
-                return Promise.resolve(createdBy as User);
-            }
-            return ctx.loaders.user.load(createdBy.id);
-        },
-    },
-
-    PartBase: {
-        family({ family }: PartBase, args, ctx: GqlContext): Promise<PartFamily> {
-            if (family['code']) {
-                return Promise.resolve(family as PartFamily);
-            }
-            return PartFamilyControl.byId(ctx, family.id);
-        },
-    },
-
-    Part: {
-        base({ base }: Part, args, ctx: GqlContext): Promise<PartBase> {
-            if (base['reference']) {
-                return Promise.resolve(base as PartBase);
-            }
-            return PartBaseControl.byId(ctx, base.id);
-        },
-        createdBy({ createdBy }: Part, args, ctx: GqlContext): Promise<User> {
-            if (createdBy['name']) {
-                return Promise.resolve(createdBy as User);
-            }
-            return ctx.loaders.user.load(createdBy.id);
-        },
-    },
-
-    PartRevision: {
-        part({ part }: PartRevision, args, ctx: GqlContext): Promise<Part> {
-            if (part['reference']) {
-                return Promise.resolve(part as Part);
-            }
-            return PartControl.byId(ctx, part.id);
-        },
-        createdBy({ createdBy }: Part, args, ctx: GqlContext): Promise<User> {
             if (createdBy['name']) {
                 return Promise.resolve(createdBy as User);
             }
@@ -250,18 +190,6 @@ export const resolvers = {
 
         partFamily(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartFamily | null> {
             return PartFamilyControl.byId(ctx, id);
-        },
-
-        partBase(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartBase | null> {
-            return PartBaseControl.byId(ctx, id);
-        },
-
-        part(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Part | null> {
-            return PartControl.byId(ctx, id);
-        },
-
-        partRevision(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartRevision | null> {
-            return PartRevisionControl.byId(ctx, id);
         },
     },
 

@@ -6,16 +6,11 @@ import {
     DocumentRevisionInput,
     DocumentSearch,
     Id,
-    Part,
-    PartBase,
     PartFamily,
-    PartRevision,
     Project,
     ProjectInput,
     ProjectMember,
     ProjectMemberInput,
-    Specification,
-    SpecRevision,
     User,
     UserInput,
 } from '@engspace/core';
@@ -24,13 +19,8 @@ import {
     documentDao,
     documentRevisionDao,
     memberDao,
-    partBaseDao,
-    partDao,
     partFamilyDao,
-    partRevisionDao,
     projectDao,
-    specificationDao,
-    specRevisionDao,
     userDao,
 } from '@engspace/server-db';
 import { ForbiddenError, UserInputError } from 'apollo-server-koa';
@@ -486,48 +476,5 @@ export namespace PartFamilyControl {
     export async function byId(ctx: ApiContext, id: Id): Promise<PartFamily> {
         assertUserPerm(ctx, 'partfamily.read');
         return partFamilyDao.byId(ctx.db, id);
-    }
-}
-
-export namespace PartBaseControl {
-    export async function byId(ctx: ApiContext, id: Id): Promise<PartBase> {
-        assertUserPerm(ctx, 'part.read');
-        return partBaseDao.byId(ctx.db, id);
-    }
-}
-
-export namespace PartControl {
-    export async function byId(ctx: ApiContext, id: Id): Promise<Part> {
-        assertUserPerm(ctx, 'part.read');
-        return partDao.byId(ctx.db, id);
-    }
-}
-
-export namespace PartRevisionControl {
-    export async function byId(ctx: ApiContext, id: Id): Promise<PartRevision> {
-        assertUserPerm(ctx, 'part.read');
-        return partRevisionDao.byId(ctx.db, id);
-    }
-}
-
-export namespace SpecificationControl {
-    export async function byId(ctx: ApiContext, id: Id): Promise<Specification> {
-        assertUserPerm(ctx, 'spec.read');
-        return specificationDao.byId(ctx.db, id);
-    }
-    export async function byPartId(ctx: ApiContext, partId: Id): Promise<Specification[]> {
-        assertUserPerm(ctx, 'spec.read');
-        return specificationDao.byPartId(ctx.db, partId);
-    }
-}
-
-export namespace SpecRevisionControl {
-    export async function byId(ctx: ApiContext, id: Id): Promise<SpecRevision> {
-        assertUserPerm(ctx, 'spec.read');
-        return specRevisionDao.byId(ctx.db, id);
-    }
-    export async function byPartRevId(ctx: ApiContext, partRevId: Id): Promise<SpecRevision[]> {
-        assertUserPerm(ctx, 'spec.read');
-        return specRevisionDao.byPartRevId(ctx.db, partRevId);
     }
 }
