@@ -1,8 +1,8 @@
-import { Id, Part } from '@engspace/core';
+import { HasId, Id, Part } from '@engspace/core';
 import { sql } from 'slonik';
-import { DaoRowMap } from './impl';
+import { DaoRowMap } from './base';
 
-interface Row {
+interface Row extends HasId {
     id: Id;
     baseId: Id;
     reference: string;

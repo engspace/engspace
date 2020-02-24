@@ -3,8 +3,16 @@ import { sql, SqlTokenType } from 'slonik';
 import { Db } from '..';
 import { Dao } from '.';
 
-export function idsFindMap<T extends HasId>(ids: readonly Id[], objs: T[]): T[] {
-    return ids.map(id => objs.find(o => o.id == id));
+function reorderWithIds<T extends HasId>(objs: T[], ids: readonly Id[]): T[] {
+    return ids.map(id => objs.find(o => o.id === id));
+}
+
+function reorderWithIdsAndMap<Row extends HasId, OutT extends HasId>(
+    rows: Row[],
+    ids: readonly Id[],
+    func: (inp: Row) => OutT
+): OutT[] {
+    return ids.map(id => func(rows.find(o => o.id === id)));
 }
 
 export interface DaoConfigIdent {
@@ -34,7 +42,7 @@ export class DaoIdent<T extends HasId> implements Dao<T> {
             SELECT ${this.rowToken} FROM ${sql.identifier([this.table])}
             WHERE id = ANY(${sql.array(ids as Id[], sql`uuid[]`)})
         `);
-        return idsFindMap(ids, rows);
+        return reorderWithIds(rows, ids);
     }
 
     async deleteById(db: Db, id: Id): Promise<T> {
@@ -54,13 +62,13 @@ export class DaoIdent<T extends HasId> implements Dao<T> {
     }
 }
 
-export interface DaoConfigRowMap<T extends HasId, R> {
+export interface DaoConfigRowMap<T extends HasId, R extends HasId> {
     table: string;
     rowToken: SqlTokenType;
     mapRow: (row: R) => T;
 }
 
-export class DaoRowMap<T extends HasId, R> implements Dao<T> {
+export class DaoRowMap<T extends HasId, R extends HasId> implements Dao<T> {
     public readonly table: string;
     public readonly mapRow: (row: R) => T;
     public readonly rowToken: SqlTokenType;
@@ -76,7 +84,7 @@ export class DaoRowMap<T extends HasId, R> implements Dao<T> {
             SELECT ${this.rowToken} FROM ${sql.identifier([this.table])}
             WHERE id = ${id}
         `);
-        return this.mapRow(row);
+        return row ? this.mapRow(row) : null;
     }
 
     async batchByIds(db: Db, ids: readonly Id[]): Promise<T[]> {
@@ -84,10 +92,7 @@ export class DaoRowMap<T extends HasId, R> implements Dao<T> {
             SELECT ${this.rowToken} FROM ${sql.identifier([this.table])}
             WHERE id = ANY(${sql.array(ids as Id[], sql`uuid[]`)})
         `);
-        return idsFindMap(
-            ids,
-            rows.map(r => this.mapRow(r))
-        );
+        return reorderWithIdsAndMap(rows, ids, this.mapRow);
     }
 
     async deleteById(db: Db, id: Id): Promise<T> {

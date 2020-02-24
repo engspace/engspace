@@ -1,9 +1,9 @@
-import { CycleStatus, Id, SpecRevision } from '@engspace/core';
+import { CycleStatus, HasId, Id, SpecRevision } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap } from './impl';
+import { DaoRowMap } from './base';
 
-interface Row {
+interface Row extends HasId {
     id: Id;
     specId: Id;
     revision: number;

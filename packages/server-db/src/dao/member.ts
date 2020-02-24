@@ -1,9 +1,9 @@
-import { Id, ProjectMember, ProjectMemberInput } from '@engspace/core';
+import { HasId, Id, ProjectMember, ProjectMemberInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap } from './impl';
+import { DaoRowMap } from './base';
 
-interface Row {
+interface Row extends HasId {
     id: Id;
     projectId: Id;
     userId: Id;

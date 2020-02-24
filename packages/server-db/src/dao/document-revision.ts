@@ -1,9 +1,9 @@
-import { DocumentRevision, DocumentRevisionInput, Id } from '@engspace/core';
+import { DocumentRevision, DocumentRevisionInput, HasId, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap } from './impl';
+import { DaoRowMap } from './base';
 
-interface Row {
+interface Row extends HasId {
     id: Id;
     documentId: Id;
     revision: number;

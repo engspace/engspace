@@ -1,7 +1,7 @@
 import { PartFamily, PartFamilyInput } from '@engspace/core';
 import { sql } from 'slonik';
-import { DaoIdent } from './impl';
 import { Db } from '..';
+import { DaoIdent } from './base';
 
 const rowToken = sql`id, name, code, counter`;
 

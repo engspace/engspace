@@ -1,5 +1,5 @@
 import { Specification, Id } from '@engspace/core';
-import { DaoIdent } from './impl';
+import { DaoIdent } from './base';
 import { sql } from 'slonik';
 import { Db } from '..';
 
