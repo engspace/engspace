@@ -294,7 +294,16 @@ export namespace DocumentRevisionControl {
         docRev: DocumentRevisionInput
     ): Promise<DocumentRevision> {
         assertUserPerm(ctx, 'document.revise');
-        return documentRevisionDao.create(ctx.db, docRev, ctx.auth.userId);
+        const { db, auth } = ctx;
+        const checkoutId = await documentDao.checkoutIdById(db, docRev.documentId);
+        if (!checkoutId) {
+            throw new UserInputError('Trying to revise a non checked-out document');
+        }
+        if (checkoutId !== auth.userId) {
+            const user = await userDao.byId(db, checkoutId);
+            throw new UserInputError(`Document checked-out by ${user.fullName}`);
+        }
+        return documentRevisionDao.create(db, docRev, auth.userId);
     }
 
     export async function byId(ctx: ApiContext, id: Id): Promise<DocumentRevision | null> {
