@@ -267,7 +267,16 @@ export class DocumentControl {
 
     static async discardCheckout(ctx: ApiContext, id: Id): Promise<Document | null> {
         assertUserPerm(ctx, 'document.revise');
-        return documentDao.discardCheckout(ctx.db, id, ctx.auth.userId);
+        const doc = await documentDao.discardCheckout(ctx.db, id, ctx.auth.userId);
+        if (!doc) return null;
+        if (doc.checkout) {
+            if (doc.checkout.id === ctx.auth.userId) {
+                throw new Error(`Could not discard checkout of "${doc.name}"`);
+            }
+            const user = await userDao.byId(ctx.db, doc.checkout.id);
+            throw new UserInputError(`Document is checked-out by ${user.fullName}`);
+        }
+        return doc;
     }
 }
 
