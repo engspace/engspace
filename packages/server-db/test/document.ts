@@ -42,6 +42,8 @@ describe('documentDao', function() {
     });
 
     describe('Create', function() {
+        const msBefore = Date.now();
+
         afterEach('delete documents', async function() {
             await pool.transaction(async db => documentDao.deleteAll(db));
         });
@@ -59,13 +61,15 @@ describe('documentDao', function() {
                 );
             });
             expect(result.id).to.be.uuid();
-            expect(result.createdAt).to.be.a('number');
             expect(result).to.deep.include({
                 name: 'docname',
                 description: 'doc description',
                 createdBy: { id: users.tania.id },
                 checkout: { id: users.tania.id },
             });
+            expect(result.createdAt)
+                .to.be.at.least(msBefore)
+                .and.at.most(Date.now());
         });
 
         it('should create a document without checkout', async function() {
@@ -81,13 +85,15 @@ describe('documentDao', function() {
                 );
             });
             expect(result.id).to.be.uuid();
-            expect(result.createdAt).to.be.a('number');
             expect(result).to.deep.include({
                 name: 'docname',
                 description: 'doc description',
                 createdBy: { id: users.tania.id },
                 checkout: null,
             });
+            expect(result.createdAt)
+                .to.be.at.least(msBefore)
+                .and.at.most(Date.now());
         });
     });
 
