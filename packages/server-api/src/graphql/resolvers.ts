@@ -306,9 +306,12 @@ export const resolvers = {
         ): Promise<ProjectMember> {
             return MemberControl.updateRolesById(ctx, id, roles);
         },
-        async projectMemberDelete(parent, { id }: { id: Id }, ctx: GqlContext): Promise<boolean> {
-            await MemberControl.deleteById(ctx, id);
-            return true;
+        async projectMemberDelete(
+            parent,
+            { id }: { id: Id },
+            ctx: GqlContext
+        ): Promise<ProjectMember> {
+            return MemberControl.deleteById(ctx, id);
         },
 
         async documentCreate(

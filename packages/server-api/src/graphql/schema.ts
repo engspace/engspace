@@ -208,7 +208,7 @@ export const typeDefs = gql`
 
         projectMemberCreate(projectMember: ProjectMemberInput!): ProjectMember!
         projectMemberUpdateRoles(id: ID!, roles: [String!]): ProjectMember!
-        projectMemberDelete(id: ID!): Boolean!
+        projectMemberDelete(id: ID!): ProjectMember!
 
         documentCreate(document: DocumentInput): Document!
         documentCheckout(id: ID!, revision: Int!): Document!

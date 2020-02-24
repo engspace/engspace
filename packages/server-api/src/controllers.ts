@@ -216,10 +216,10 @@ export class MemberControl {
         return memberDao.updateRolesById(ctx.db, id, roles);
     }
 
-    static async deleteById(ctx: ApiContext, id: Id): Promise<void> {
+    static async deleteById(ctx: ApiContext, id: Id): Promise<ProjectMember> {
         const mem = await memberDao.byId(ctx.db, id);
         await assertUserOrProjectPerm(ctx, mem.project.id, 'member.delete');
-        await memberDao.deleteById(ctx.db, id);
+        return memberDao.deleteById(ctx.db, id);
     }
 }
 
