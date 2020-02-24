@@ -220,6 +220,19 @@ describe('documentRevisionDao', function() {
             });
         });
 
+        it('should not allow progress above filesize', async function() {
+            const tooHighUpload = pool.transaction(async db => {
+                const doc = await createDoc(db, users.tania);
+                const rev0 = await createRev(db, doc, users.tania, {
+                    filesize: 25000,
+                    retainCheckout: true,
+                });
+                return documentRevisionDao.updateAddProgress(db, rev0.id, 25001);
+            });
+            // implemented with PostgreSQL CHECK
+            await expect(tooHighUpload).to.be.rejectedWith('check');
+        });
+
         it('should update sha1', async function() {
             const rev = await pool.transaction(async db => {
                 const doc = await createDoc(db, users.tania);

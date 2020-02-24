@@ -76,6 +76,8 @@ CREATE TABLE document_revision (
     uploaded integer NOT NULL DEFAULT 0,
     sha1 bytea, -- initially null, set after check on both client and server
 
+    CHECK(filesize > 0),
+    CHECK(uploaded >= 0 AND uploaded <= filesize),
     UNIQUE(document_id, revision),
     FOREIGN KEY(document_id) REFERENCES document(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id)
