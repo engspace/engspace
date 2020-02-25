@@ -123,6 +123,14 @@ class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
         return mapRow(row);
     }
 
+    async idByDocumentIdAndRev(db: Db, documentId: Id, revision: number): Promise<string> {
+        const id = await db.maybeOneFirst(sql`
+            SELECT id FROM document_revision
+            WHERE document_id = ${documentId} AND revision = ${revision}
+        `);
+        return id as string;
+    }
+
     async updateAddProgress(db: Db, revisionId: Id, addUploaded: number): Promise<number> {
         const uploaded = await db.oneFirst(sql`
             UPDATE document_revision SET uploaded = uploaded + ${addUploaded}
