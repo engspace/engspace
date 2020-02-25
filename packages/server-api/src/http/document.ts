@@ -1,38 +1,25 @@
 import { Id } from '@engspace/core';
-import { userDao } from '@engspace/server-db';
+import { documentRevisionDao, userDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import crypto from 'crypto';
-import mime from 'mime';
 import fs from 'fs';
 import HttpStatus from 'http-status-codes';
+import mime from 'mime';
+import validator from 'validator';
 import { EsServerConfig } from '..';
 import { DocumentRevisionControl } from '../controllers';
-import { getAuthToken } from '../internal';
 import { signJwt, verifyJwt } from '../crypto';
+import { getAuthToken } from '../internal';
 
 const docJwtSecret = crypto.randomBytes(32).toString('base64');
 
 interface DownloadToken {
-    documentId: Id;
-    revision: number;
+    documentRevisionId: Id;
     userId: Id;
 }
 
 export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): void {
     const { pool } = config;
-
-    router.get('/document/download_token', async ctx => {
-        const { documentId, revision } = ctx.request.query;
-        const auth = getAuthToken(ctx);
-        const downloadToken = await signJwt(
-            { documentId, revision, userId: auth.userId },
-            docJwtSecret,
-            {
-                expiresIn: '5s',
-            }
-        );
-        ctx.response.body = { downloadToken };
-    });
     router.post('/document/upload', async ctx => {
         const { rev_id: revId } = ctx.request.query;
         const {
@@ -67,6 +54,31 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
         );
         ctx.status = HttpStatus.OK;
     });
+
+    router.get('/document/download_token', async ctx => {
+        const { documentId, revision } = ctx.request.query;
+        const auth = getAuthToken(ctx);
+        if (!auth.userPerms.includes('document.read')) {
+            ctx.throw(HttpStatus.FORBIDDEN, 'missing permission: "document.read"');
+        }
+        if (!validator.isUUID(documentId) || !validator.isInt(revision)) {
+            ctx.throw(HttpStatus.BAD_REQUEST, 'wrong document or revision');
+        }
+        const documentRevisionId = await pool.connect(async db => {
+            return documentRevisionDao.idByDocumentIdAndRev(db, documentId, parseInt(revision));
+        });
+        if (!documentRevisionId) {
+            ctx.throw(HttpStatus.NOT_FOUND, 'wrong document or revision number');
+        }
+        const downloadToken = await signJwt(
+            { documentRevisionId, userId: auth.userId },
+            docJwtSecret,
+            {
+                expiresIn: '5s',
+            }
+        );
+        ctx.response.body = { downloadToken };
+    });
 }
 
 export function setupPreAuthDocRoutes(router: Router, config: EsServerConfig): void {
@@ -81,8 +93,8 @@ export function setupPreAuthDocRoutes(router: Router, config: EsServerConfig): v
             ctx.throw(HttpStatus.BAD_REQUEST, err.message);
         }
 
-        const { documentId, revision, userId } = downloadToken;
-        if (!documentId || !revision || !userId) {
+        const { documentRevisionId, userId } = downloadToken;
+        if (!documentRevisionId || !userId) {
             ctx.throw(HttpStatus.BAD_REQUEST);
         }
         const fd = await pool.connect(async db => {
@@ -97,8 +109,7 @@ export function setupPreAuthDocRoutes(router: Router, config: EsServerConfig): v
                     auth,
                     config,
                 },
-                documentId,
-                revision
+                documentRevisionId
             );
             if (DocumentRevisionControl.isFileError(res)) {
                 if (res === DocumentRevisionControl.FileError.NotExist) {

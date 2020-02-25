@@ -368,13 +368,12 @@ export namespace DocumentRevisionControl {
 
     export async function download(
         ctx: ApiContext,
-        documentId: Id,
-        revision: number
+        documentRevisionId: Id
     ): Promise<FileDownload | FileError> {
         if (!hasUserPerm(ctx, 'document.read')) {
             return FileError.Forbidden;
         }
-        const docRev = await documentRevisionDao.byDocumentIdAndRev(ctx.db, documentId, revision);
+        const docRev = await documentRevisionDao.byId(ctx.db, documentRevisionId);
         if (!docRev) return FileError.NotExist;
         return {
             docRev,
