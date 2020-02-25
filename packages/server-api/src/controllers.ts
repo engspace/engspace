@@ -24,12 +24,12 @@ import {
     userDao,
 } from '@engspace/server-db';
 import { ForbiddenError, UserInputError } from 'apollo-server-koa';
-import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import stream from 'stream';
 import util from 'util';
 import { EsServerConfig } from '.';
+import { fileSha1sum } from './util';
 
 export interface ApiContext {
     db: Db;
@@ -424,22 +424,6 @@ export namespace DocumentRevisionControl {
         await documentRevisionDao.updateAddProgress(ctx.db, revisionId, chunk.length);
     }
 
-    async function sha1sum(filepath: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const rs = fs.createReadStream(filepath);
-            const hasher = crypto.createHash('sha1');
-            rs.on('data', function(data) {
-                hasher.update(data);
-            });
-            rs.on('end', function() {
-                return resolve(hasher.digest('hex'));
-            });
-            rs.on('error', function(err) {
-                reject(err);
-            });
-        });
-    }
-
     export async function finalizeUpload(
         ctx: ApiContext,
         revisionId: Id,
@@ -459,7 +443,7 @@ export namespace DocumentRevisionControl {
             fsp.close(upload.fd);
             delete openUploads[revisionId];
         }
-        const hash = await sha1sum(tempPath);
+        const hash = await fileSha1sum(tempPath);
         if (hash.toLowerCase() !== sha1) {
             throw new Error(
                 `Server hash (${hash.toLowerCase()}) do not match client hash (${sha1})`
