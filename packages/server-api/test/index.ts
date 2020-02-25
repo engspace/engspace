@@ -6,6 +6,7 @@ import chaiHttp from 'chai-http';
 import chaiUuid from 'chai-uuid';
 import config from 'config';
 import events from 'events';
+import fs from 'fs';
 import Koa from 'koa';
 import path from 'path';
 import { EsServerApi } from '../src';
@@ -19,15 +20,22 @@ export let pool: DbPool;
 export let api: EsServerApi;
 export let rolePolicies: AppRolePolicies;
 
-const storePath = path.normalize(path.join(__dirname, '../file_store'));
+export const storePath = path.normalize(path.join(__dirname, '../file_store'));
 
 export function buildGqlServer(db: Db, auth: AuthToken): ApolloServerTestClient {
     return createTestClient(api.buildTestGqlServer(db, auth));
 }
 
-before('Start-up DB and Server', async () => {
+before('Start-up DB and Server', async function() {
     pool = await createDbPool(config.get('db'));
     const schemaPromise = pool.transaction(db => initSchema(db));
+
+    await fs.promises.rmdir(storePath, {
+        recursive: true,
+    });
+    await fs.promises.mkdir(storePath, {
+        recursive: true,
+    });
 
     rolePolicies = buildDefaultAppRolePolicies();
 

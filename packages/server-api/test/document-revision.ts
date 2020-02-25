@@ -17,12 +17,12 @@ export async function createDocRev(
     return documentRevisionDao.create(
         db,
         {
-            documentId: doc.id,
             filename: 'file.ext',
             filesize: 1664,
             changeDescription: 'update file',
             retainCheckout: true,
             ...input,
+            documentId: doc.id,
         },
         user.id
     );
