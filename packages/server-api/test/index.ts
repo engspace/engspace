@@ -2,6 +2,7 @@ import { AppRolePolicies, AuthToken, buildDefaultAppRolePolicies } from '@engspa
 import { createDbPool, Db, DbPool, initSchema } from '@engspace/server-db';
 import { ApolloServerTestClient, createTestClient } from 'apollo-server-testing';
 import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import chaiHttp from 'chai-http';
 import chaiUuid from 'chai-uuid';
 import config from 'config';
@@ -13,6 +14,7 @@ import { EsServerApi } from '../src';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
+chai.use(chaiAsPromised);
 chai.use(chaiHttp);
 chai.use(chaiUuid);
 
@@ -29,14 +31,6 @@ export function buildGqlServer(db: Db, auth: AuthToken): ApolloServerTestClient 
 before('Start-up DB and Server', async function() {
     pool = await createDbPool(config.get('db'));
     const schemaPromise = pool.transaction(db => initSchema(db));
-
-    await fs.promises.rmdir(storePath, {
-        recursive: true,
-    });
-    await fs.promises.mkdir(storePath, {
-        recursive: true,
-    });
-
     rolePolicies = buildDefaultAppRolePolicies();
 
     api = new EsServerApi(new Koa(), {
@@ -50,4 +44,16 @@ before('Start-up DB and Server', async function() {
     api.setupGqlEndpoint('/api/graphql');
 
     await schemaPromise;
+});
+
+before('Create test store', async function() {
+    await fs.promises.mkdir(storePath, {
+        recursive: true,
+    });
+});
+
+after('Delete test store', async function() {
+    await fs.promises.rmdir(storePath, {
+        recursive: true,
+    });
 });
