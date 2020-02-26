@@ -83,15 +83,6 @@ class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
         return mapRow(row);
     }
 
-    async byId(db: Db, id: Id): Promise<DocumentRevision | null> {
-        const row: Row = await db.one(sql`
-            SELECT ${rowToken} FROM document_revision
-            WHERE id = ${id}
-        `);
-        if (!row) return null;
-        return mapRow(row);
-    }
-
     async byDocumentId(db: Db, documentId: Id): Promise<DocumentRevision[]> {
         const rows: Row[] = await db.any(sql`
             SELECT ${rowToken} FROM document_revision
