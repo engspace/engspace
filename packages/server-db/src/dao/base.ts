@@ -37,6 +37,14 @@ export class DaoIdent<T extends HasId> implements Dao<T> {
         return row;
     }
 
+    async checkId(db: Db, id: Id): Promise<boolean> {
+        const res = await db.maybeOneFirst(sql`
+            SELECT id FROM ${sql.identifier([this.table])}
+            WHERE id=${id}
+        `);
+        return !!res;
+    }
+
     async batchByIds(db: Db, ids: readonly Id[]): Promise<T[]> {
         const rows: T[] = await db.any(sql`
             SELECT ${this.rowToken} FROM ${sql.identifier([this.table])}
@@ -87,6 +95,14 @@ export class DaoRowMap<T extends HasId, R extends HasId> implements Dao<T> {
         return row ? this.mapRow(row) : null;
     }
 
+    async checkId(db: Db, id: Id): Promise<boolean> {
+        const res = await db.maybeOneFirst(sql`
+            SELECT id FROM ${sql.identifier([this.table])}
+            WHERE id=${id}
+        `);
+        return !!res;
+    }
+
     async batchByIds(db: Db, ids: readonly Id[]): Promise<T[]> {
         const rows: R[] = await db.any(sql`
             SELECT ${this.rowToken} FROM ${sql.identifier([this.table])}
@@ -101,7 +117,7 @@ export class DaoRowMap<T extends HasId, R extends HasId> implements Dao<T> {
             WHERE id = ${id}
             RETURNING ${this.rowToken}
         `);
-        return this.mapRow(row);
+        return row ? this.mapRow(row) : null;
     }
 
     async deleteAll(db: Db): Promise<number> {
