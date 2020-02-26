@@ -270,12 +270,8 @@ export class DocumentControl {
     }
 }
 
-namespace fsp {
+namespace streamp {
     export const pipeline = util.promisify(stream.pipeline);
-    export const mkdir = util.promisify(fs.mkdir);
-    export const open = util.promisify(fs.open);
-    export const close = util.promisify(fs.close);
-    export const rename = util.promisify(fs.rename);
 }
 
 export namespace DocumentRevisionControl {
@@ -348,7 +344,7 @@ export namespace DocumentRevisionControl {
     }
 
     interface OpenUpload {
-        fd: number;
+        fh: fs.promises.FileHandle;
         path: string;
         touched: number;
     }
@@ -362,7 +358,7 @@ export namespace DocumentRevisionControl {
         if (Date.now() - upload.touched >= openUploadMaxAge) {
             delete openUploads[revId];
             console.log('closing file');
-            fsp.close(upload.fd);
+            upload.fh.close();
         }
     }
 
@@ -389,7 +385,7 @@ export namespace DocumentRevisionControl {
         assertUserPerm(ctx, 'document.revise');
 
         const tempDir = path.join(ctx.config.storePath, 'upload');
-        await fsp.mkdir(tempDir, { recursive: true });
+        await fs.promises.mkdir(tempDir, { recursive: true });
         const openFlags = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL;
         const tempPath = path.join(tempDir, revisionId);
 
@@ -399,24 +395,24 @@ export namespace DocumentRevisionControl {
                 flags: (openFlags as unknown) as string,
                 encoding: 'binary',
             });
-            await fsp.pipeline(chunk.data, ws);
+            await streamp.pipeline(chunk.data, ws);
         } else {
             if (!openUploads[revisionId]) {
-                const fd = await fsp.open(tempPath, openFlags);
+                const fh = await fs.promises.open(tempPath, openFlags);
                 openUploads[revisionId] = {
-                    fd,
+                    fh,
                     path: tempPath,
                     touched: 0,
                 };
             }
             const upload = openUploads[revisionId];
             const ws = fs.createWriteStream('', {
-                fd: upload.fd,
+                fd: upload.fh.fd,
                 start: chunk.offset,
                 encoding: 'binary',
                 autoClose: false,
             });
-            await fsp.pipeline(chunk.data, ws);
+            await streamp.pipeline(chunk.data, ws);
             upload.touched = Date.now();
             setTimeout(checkCleanup, openUploadMaxAge + 10, revisionId);
         }
@@ -439,7 +435,7 @@ export namespace DocumentRevisionControl {
             if (upload.path !== tempPath) {
                 throw new Error('Not matching temporary upload path');
             }
-            fsp.close(upload.fd);
+            await upload.fh.close();
             delete openUploads[revisionId];
         }
         const hash = await fileSha1sum(tempPath);
@@ -451,9 +447,9 @@ export namespace DocumentRevisionControl {
                     `\nRevision is aborted.`
             );
         }
-        await fsp.mkdir(ctx.config.storePath, { recursive: true });
+        await fs.promises.mkdir(ctx.config.storePath, { recursive: true });
         const finalPath = path.join(ctx.config.storePath, sha1);
-        await fsp.rename(tempPath, finalPath);
+        await fs.promises.rename(tempPath, finalPath);
         return documentRevisionDao.updateSha1(ctx.db, revisionId, sha1);
     }
 }
