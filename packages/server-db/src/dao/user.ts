@@ -46,7 +46,7 @@ class UserDao extends DaoIdent<User> {
     }
 
     async byName(db: Db, name: string): Promise<User> {
-        const user: User = await db.one(sql`
+        const user: User = await db.maybeOne(sql`
             SELECT ${rowToken}
             FROM "user"
             WHERE name = ${name}
@@ -55,7 +55,7 @@ class UserDao extends DaoIdent<User> {
     }
 
     async byEmail(db: Db, email: string): Promise<User> {
-        const user: User = await db.one(sql`
+        const user: User = await db.maybeOne(sql`
             SELECT ${rowToken}
             FROM "user"
             WHERE email = ${email}
@@ -112,7 +112,7 @@ class UserDao extends DaoIdent<User> {
 
     async update(db: Db, id: Id, user: UserInput): Promise<User> {
         const { name, email, fullName, roles } = user;
-        const row = await db.one<User>(sql`
+        const row = await db.maybeOne<User>(sql`
             UPDATE "user" SET name=${name}, email=${email}, full_name=${fullName}
             WHERE id=${id}
             RETURNING ${rowToken}
@@ -130,7 +130,7 @@ class UserDao extends DaoIdent<User> {
         }
         let row: User;
         if (assignments.length) {
-            row = await db.one(sql`
+            row = await db.maybeOne(sql`
                 UPDATE "user" SET ${sql.join(assignments, sql`, `)}
                 WHERE id = ${id}
                 RETURNING ${rowToken}

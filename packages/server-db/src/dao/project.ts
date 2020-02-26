@@ -27,7 +27,7 @@ class ProjectDao extends DaoIdent<Project> {
     }
 
     async byCode(db: Db, code: string): Promise<Project> {
-        return db.one(sql`
+        return db.maybeOne(sql`
             SELECT ${rowToken} FROM project
             WHERE code = ${code}
         `);
@@ -80,7 +80,7 @@ class ProjectDao extends DaoIdent<Project> {
 
     async patch(db: Db, id: Id, project: Partial<Project>): Promise<Project> {
         const assignments = partialAssignmentList(project, ['name', 'code', 'description']);
-        return db.one(sql`
+        return db.maybeOne(sql`
             UPDATE project SET ${sql.join(assignments, sql`, `)}
             WHERE id = ${id}
             RETURNING ${rowToken}
@@ -89,7 +89,7 @@ class ProjectDao extends DaoIdent<Project> {
 
     async updateById(db: Db, id: Id, project: ProjectInput): Promise<Project> {
         const { code, name, description } = project;
-        return db.one(sql`
+        return db.maybeOne(sql`
             UPDATE project SET code=${code}, name=${name}, description=${description}
             WHERE id=${id}
             RETURNING ${rowToken}
