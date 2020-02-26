@@ -444,8 +444,11 @@ export namespace DocumentRevisionControl {
         }
         const hash = await fileSha1sum(tempPath);
         if (hash.toLowerCase() !== sha1) {
+            await fs.promises.unlink(tempPath);
+            await documentRevisionDao.deleteById(ctx.db, revisionId);
             throw new Error(
-                `Server hash (${hash.toLowerCase()}) do not match client hash (${sha1})`
+                `Server hash (${hash.toLowerCase()}) do not match client hash (${sha1}).` +
+                    `\nRevision is aborted.`
             );
         }
         await fsp.mkdir(ctx.config.storePath, { recursive: true });
