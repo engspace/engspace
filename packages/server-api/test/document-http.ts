@@ -5,12 +5,13 @@ import { expect, request } from 'chai';
 import config from 'config';
 import fs from 'fs';
 import path from 'path';
-import { api, pool, storePath } from '.';
+import { api, pool, storePath, buildGqlServer } from '.';
 import { bufferSha1sum } from '../src/util';
 import { bearerToken, permsAuth } from './auth';
 import { createDoc } from './document';
 import { createDocRev } from './document-revision';
 import { createUsers } from './user';
+import gql from 'graphql-tag';
 
 async function createDocRevWithContent(
     db: Db,
@@ -40,6 +41,14 @@ function binaryParser(res, cb): void {
         cb(null, Buffer.from(res.data.join(), 'binary'));
     });
 }
+
+const DOCREV_CHECK = gql`
+    mutation DocRevCheck($id: ID!, $sha1: String!) {
+        documentRevisionCheck(id: $id, sha1: $sha1) {
+            sha1
+        }
+    }
+`;
 
 describe('HTTP Document', function() {
     let users;
@@ -205,6 +214,221 @@ describe('HTTP Document', function() {
             expect(resp).to.have.status(403);
             expect(resp).to.be.text;
             expect(resp.text).to.contain('document.read');
+        });
+    });
+
+    describe('Upload', function() {
+        const fileContent = Buffer.from('abcd'.repeat(100), 'binary');
+        const sha1 = bufferSha1sum(fileContent);
+        let document;
+        before('create doc', async function() {
+            await pool.transaction(async db => {
+                document = await createDoc(db, users.tania, {
+                    name: 'abcd',
+                    description: 'doc ABCD',
+                    initialCheckout: true,
+                });
+            });
+        });
+        after('delete doc', async function() {
+            await pool.transaction(async db => {
+                await documentDao.deleteAll(db);
+            });
+        });
+        afterEach('delete revisions', async function() {
+            await pool.transaction(async db => {
+                await documentRevisionDao.deleteAll(db);
+            });
+        });
+
+        it('should perform full upload process', async function() {
+            const auth = permsAuth(users.philippe, ['document.revise']);
+            const rev = await pool.transaction(async db => {
+                return createDocRev(db, document, users.philippe, {
+                    filename: 'abcd.ext',
+                    filesize: fileContent.length,
+                    retainCheckout: false,
+                });
+            });
+            const token = await bearerToken(auth);
+            const resp = await request(server)
+                .post('/api/document/upload')
+                .set({
+                    authorization: `Bearer ${token}`,
+                    'content-length': fileContent.length,
+                    'x-upload-offset': 0,
+                    'x-upload-length': fileContent.length,
+                })
+                .query({
+                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    rev_id: rev.id,
+                })
+                .send(fileContent);
+            expect(resp).to.have.status(200);
+            expect(fs.existsSync(path.join(storePath, 'upload', rev.id)), 'temp upload file exists')
+                .to.be.true;
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(db, auth);
+                return mutate({
+                    mutation: DOCREV_CHECK,
+                    variables: {
+                        id: rev.id,
+                        sha1,
+                    },
+                });
+            });
+            expect(errors).to.be.undefined;
+            expect(data.documentRevisionCheck).to.deep.include({
+                sha1,
+            });
+            expect(fs.existsSync(path.join(storePath, 'upload', rev.id)), 'temp upload file exists')
+                .to.be.false;
+            expect(fs.existsSync(path.join(storePath, sha1)), 'final upload file exists').to.be
+                .true;
+            await fs.promises.unlink(path.join(storePath, sha1));
+        });
+
+        it('should error if sha1 is false', async function() {
+            const auth = permsAuth(users.philippe, ['document.revise']);
+            const rev = await pool.transaction(async db => {
+                return createDocRev(db, document, users.philippe, {
+                    filename: 'abcd.ext',
+                    filesize: fileContent.length,
+                    retainCheckout: false,
+                });
+            });
+            const token = await bearerToken(auth);
+            const resp = await request(server)
+                .post('/api/document/upload')
+                .set({
+                    authorization: `Bearer ${token}`,
+                    'content-length': fileContent.length,
+                    'x-upload-offset': 0,
+                    'x-upload-length': fileContent.length,
+                })
+                .query({
+                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    rev_id: rev.id,
+                })
+                .send(fileContent);
+            expect(resp).to.have.status(200);
+            expect(fs.existsSync(path.join(storePath, 'upload', rev.id)), 'temp upload file exists')
+                .to.be.true;
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(db, auth);
+                return mutate({
+                    mutation: DOCREV_CHECK,
+                    variables: {
+                        id: rev.id,
+                        sha1: 'wrongsha1',
+                    },
+                });
+            });
+            expect(errors).to.be.an('array').not.empty;
+            expect(errors[0].message).to.contain('wrongsha1');
+            expect(data).to.be.null;
+            expect(fs.existsSync(path.join(storePath, 'upload', rev.id)), 'temp upload file exists')
+                .to.be.false;
+            expect(fs.existsSync(path.join(storePath, sha1)), 'final upload file exists').to.be
+                .false;
+            const r = await pool.connect(async db => {
+                return documentRevisionDao.byId(db, rev.id);
+            });
+            expect(r, 'revision has been cleaned-up').to.be.null;
+        });
+
+        it('should return 404 if revision does not exist', async function() {
+            const auth = permsAuth(users.philippe, ['document.revise']);
+            const token = await bearerToken(auth);
+            const resp = await request(server)
+                .post('/api/document/upload')
+                .set({
+                    authorization: `Bearer ${token}`,
+                    'content-length': fileContent.length,
+                    'x-upload-offset': 0,
+                    'x-upload-length': fileContent.length,
+                })
+                .query({
+                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    rev_id: users.philippe.id,
+                })
+                .send(fileContent);
+            expect(resp).to.have.status(404);
+        });
+
+        it('should return 403 without "document.revise"', async function() {
+            const rev = await pool.transaction(async db => {
+                return createDocRev(db, document, users.philippe, {
+                    filename: 'abcd.ext',
+                    filesize: fileContent.length,
+                    retainCheckout: false,
+                });
+            });
+            const auth = permsAuth(users.philippe, []);
+            const token = await bearerToken(auth);
+            const resp = await request(server)
+                .post('/api/document/upload')
+                .set({
+                    authorization: `Bearer ${token}`,
+                    'content-length': fileContent.length,
+                    'x-upload-offset': 0,
+                    'x-upload-length': fileContent.length,
+                })
+                .query({
+                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    rev_id: rev.id,
+                })
+                .send(fileContent);
+            expect(resp).to.have.status(403);
+        });
+
+        it('should return 401 without authorization', async function() {
+            const rev = await pool.transaction(async db => {
+                return createDocRev(db, document, users.philippe, {
+                    filename: 'abcd.ext',
+                    filesize: fileContent.length,
+                    retainCheckout: false,
+                });
+            });
+            const resp = await request(server)
+                .post('/api/document/upload')
+                .set({
+                    'content-length': fileContent.length,
+                    'x-upload-offset': 0,
+                    'x-upload-length': fileContent.length,
+                })
+                .query({
+                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    rev_id: rev.id,
+                })
+                .send(fileContent);
+            expect(resp).to.have.status(401);
+        });
+
+        it('should return 400 if ill-formed query', async function() {
+            const rev = await pool.transaction(async db => {
+                return createDocRev(db, document, users.philippe, {
+                    filename: 'abcd.ext',
+                    filesize: fileContent.length,
+                    retainCheckout: false,
+                });
+            });
+            const auth = permsAuth(users.philippe, ['document.revise']);
+            const token = await bearerToken(auth);
+            const resp = await request(server)
+                .post('/api/document/upload')
+                .set({
+                    authorization: `Bearer ${token}`,
+                    'content-length': fileContent.length,
+                    'x-upload-offset': 0,
+                    'x-upload-length': fileContent.length,
+                })
+                .query({
+                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    revisionId: rev.id,
+                })
+                .send(fileContent);
+            expect(resp).to.have.status(400);
         });
     });
 });
