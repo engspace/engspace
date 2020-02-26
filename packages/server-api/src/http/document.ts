@@ -27,6 +27,13 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
             'x-upload-offset': offset,
             'x-upload-length': totalLength,
         } = ctx.request.headers;
+        const auth = getAuthToken(ctx);
+        if (!auth || !auth.userPerms.includes('document.revise')) {
+            ctx.throw(HttpStatus.FORBIDDEN, 'Missing permission: "document.revise"');
+        }
+        if (!revId) {
+            ctx.throw(HttpStatus.BAD_REQUEST, 'Missing "rev_id" query');
+        }
         if (length === undefined) {
             ctx.throw(HttpStatus.BAD_REQUEST, 'Missing "Content-Length" header');
         }
@@ -36,8 +43,13 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
         if (totalLength === undefined) {
             ctx.throw(HttpStatus.BAD_REQUEST, 'Missing "X-Upload-Length" header');
         }
-        await pool.connect(async db =>
-            DocumentRevisionControl.uploadChunk(
+        await pool.connect(async db => {
+            ctx.assert(
+                await documentRevisionDao.checkId(db, revId),
+                HttpStatus.NOT_FOUND,
+                'Revision not found'
+            );
+            return DocumentRevisionControl.uploadChunk(
                 {
                     db,
                     auth: getAuthToken(ctx),
@@ -50,8 +62,8 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
                     totalLength: parseInt(totalLength, 10),
                     data: ctx.req,
                 }
-            )
-        );
+            );
+        });
         ctx.status = HttpStatus.OK;
     });
 
