@@ -276,10 +276,10 @@ export const resolvers = {
 
         async documentRevisionCheck(
             parent,
-            { docRevId, sha1 }: { docRevId: Id; sha1: string },
+            { id, sha1 }: { id: Id; sha1: string },
             ctx: GqlContext
         ): Promise<DocumentRevision> {
-            return DocumentRevisionControl.finalizeUpload(ctx, docRevId, sha1);
+            return DocumentRevisionControl.finalizeUpload(ctx, id, sha1);
         },
     },
 };

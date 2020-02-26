@@ -142,6 +142,6 @@ export const typeDefs = gql`
         documentCheckout(id: ID!, revision: Int!): Document!
         documentDiscardCheckout(id: ID!): Document!
         documentRevise(documentRevision: DocumentRevisionInput): DocumentRevision!
-        documentRevisionCheck(docRevId: ID!, sha1: String!): DocumentRevision!
+        documentRevisionCheck(id: ID!, sha1: String!): DocumentRevision!
     }
 `;
