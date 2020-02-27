@@ -15,6 +15,7 @@
         "test": "lerna run test",
         "test:cov": "lerna run test:cov --stream ",
         "cov:merge": "node ./merge_nyc_reports.js && nyc report",
+        "coveralls": "nyc report --reporter=text-lcov | coveralls",
         "build": "lerna run build",
         "client:build": "lerna run build --scope @engspace/client-app --include-dependencies --stream",
         "demo:build": "lerna run build --scope @engspace/demo-server --include-dependencies --stream",
@@ -24,7 +25,10 @@
         "clean": "lerna run clean --parallel"
     },
     "nyc": {
-        "extension": [".js", ".ts"],
+        "extension": [
+            ".js",
+            ".ts"
+        ],
         "reporter": [
             "text"
         ]
@@ -37,8 +41,9 @@
         "vuex": "^3.0.1"
     },
     "devDependencies": {
+        "coveralls": "^3.0.9",
         "lerna": "^3.18.4",
-        "prettier": "^1.19.1",
-        "nyc": "^14.1.1"
+        "nyc": "^14.1.1",
+        "prettier": "^1.19.1"
     }
 }
