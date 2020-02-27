@@ -7,13 +7,11 @@ import {
     prepareUsers,
 } from '@engspace/demo-data-input';
 import { Db, projectDao } from '@engspace/server-db';
-import chai from 'chai';
+import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { permsAuth } from './auth';
 import { createUsers, deleteAllUsers } from './user';
-
-const { expect } = chai;
 
 export async function deleteAllProjects(): Promise<void> {
     await pool.transaction(async db => projectDao.deleteAll(db));

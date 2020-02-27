@@ -1,7 +1,5 @@
-import chai from 'chai';
+import { expect } from 'chai';
 import { buildDefaultAppRolePolicies } from '../src';
-
-const { expect } = chai;
 
 const policies = buildDefaultAppRolePolicies();
 

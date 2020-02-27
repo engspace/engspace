@@ -6,12 +6,10 @@ import {
     asyncKeyMap,
 } from '@engspace/demo-data-input';
 import { userDao, Db } from '@engspace/server-db';
-import chai from 'chai';
+import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { auth, createAuth, permsAuth } from './auth';
-
-const { expect } = chai;
 
 export async function deleteAllUsers(): Promise<void> {
     await pool.transaction(async db => userDao.deleteAll(db));

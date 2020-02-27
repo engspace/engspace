@@ -1,9 +1,7 @@
-import chai from 'chai';
+import { expect } from 'chai';
 import config from 'config';
 import { sql } from 'slonik';
 import { createDbPool, DbConfig, initSchema } from '../src';
-
-const { expect } = chai;
 
 describe('Pool creation', async () => {
     const dbConf: DbConfig = config.get('db');

@@ -1,9 +1,7 @@
 import { createLocalVue, mount } from '@vue/test-utils';
-import chai from 'chai';
+import { expect } from 'chai';
 import Vuetify from 'vuetify';
 import UserRead from '../src/components/UserRead';
-
-const { expect } = chai;
 
 const localVue = createLocalVue();
 localVue.use(Vuetify);

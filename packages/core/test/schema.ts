@@ -1,7 +1,5 @@
-import chai from 'chai';
+import { expect } from 'chai';
 import { CProject, CUser } from '../src';
-
-const { expect } = chai;
 
 describe('User', () => {
     it('should allow default value', () => {

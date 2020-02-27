@@ -1,11 +1,9 @@
 import { DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
-import chai from 'chai';
+import { expect } from 'chai';
 import { sql } from 'slonik';
 import { pool } from '.';
 import { createUsers } from './user';
 import { userDao, loginDao, Db } from '../src';
-
-const { expect } = chai;
 
 async function createLogins(db: Db, users: Promise<DemoUserSet>): Promise<void> {
     const usrs = await users;

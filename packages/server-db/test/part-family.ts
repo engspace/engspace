@@ -4,11 +4,9 @@ import {
     DemoPartFamilySet,
     partFamiliesInput,
 } from '@engspace/demo-data-input';
-import chai from 'chai';
+import { expect } from 'chai';
 import { pool } from '.';
 import { Db, partFamilyDao } from '../src';
-
-const { expect } = chai;
 
 export async function createPartFamilies(
     db: Db,

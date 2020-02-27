@@ -4,12 +4,10 @@ import {
     prepareUsers,
     asyncKeyMap,
 } from '@engspace/demo-data-input';
-import chai from 'chai';
+import { expect } from 'chai';
 import { sql } from 'slonik';
 import { filterFields, pool } from '.';
 import { Db, userDao } from '../src';
-
-const { expect } = chai;
 
 async function deleteAll(): Promise<void> {
     await pool.connect(async db => db.query(sql`DELETE FROM "user"`));

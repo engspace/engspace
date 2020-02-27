@@ -1,5 +1,5 @@
 import { DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
-import chai from 'chai';
+import { expect, request } from 'chai';
 import config from 'config';
 import http from 'http';
 import { sql } from 'slonik';
@@ -9,8 +9,6 @@ import { createUsers } from './user';
 import { verifyJwt } from '../src/crypto';
 import { authJwtSecret } from '../src/internal';
 import { Db, loginDao } from '@engspace/server-db';
-
-const { expect } = chai;
 
 async function deleteAll(): Promise<void> {
     await pool.transaction(async db => db.query(sql`DELETE FROM "user"`));
@@ -43,8 +41,7 @@ describe('Login', () => {
     after(deleteAll);
 
     it('should return bearer token', async () => {
-        const resp = await chai
-            .request(server)
+        const resp = await request(server)
             .post('/api/login')
             .send({
                 nameOrEmail: 'gerard',

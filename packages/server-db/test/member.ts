@@ -6,14 +6,12 @@ import {
     prepareUsers,
 } from '@engspace/demo-data-input';
 import { ProjectMember } from '@engspace/core';
-import chai from 'chai';
+import { expect } from 'chai';
 import { sql } from 'slonik';
 import { pool } from '.';
 import { createUsers } from './user';
 import { createProjects } from './project';
 import { memberDao, projectDao, userDao } from '../src';
-
-const { expect } = chai;
 
 export async function createMembers(
     db,

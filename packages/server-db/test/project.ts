@@ -4,11 +4,9 @@ import {
     DemoProjectSet,
     prepareProjects,
 } from '@engspace/demo-data-input';
-import chai from 'chai';
+import { expect } from 'chai';
 import { pool } from '.';
 import { Db, projectDao } from '../src';
-
-const { expect } = chai;
 
 async function deleteAll(): Promise<void> {
     await pool.connect(db => projectDao.deleteAll(db));

@@ -1,11 +1,9 @@
 import { Document, DocumentInput } from '@engspace/core';
 import { DemoDocInput, DemoUserSet, documentInput, prepareUsers } from '@engspace/demo-data-input';
-import chai from 'chai';
+import { expect } from 'chai';
 import { pool } from '.';
 import { Db, documentDao, userDao } from '../src';
 import { createUsers } from './user';
-
-const { expect } = chai;
 
 async function createDocument(
     db: Db,
