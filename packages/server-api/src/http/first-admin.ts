@@ -23,7 +23,7 @@ export function setupFirstAdminRoutes(router: Router, config: EsServerConfig): v
             const adminSearch = await userDao.search(db, {
                 role: 'admin',
             });
-            ctx.assert(adminSearch.count >= 1, HttpStatus.FORBIDDEN);
+            ctx.assert(adminSearch.count === 0, HttpStatus.FORBIDDEN);
             const { name, email, fullName, password } = ctx.request.body;
             ctx.assert(
                 typeof name === 'string' && name.length > 0,

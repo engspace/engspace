@@ -16,7 +16,7 @@ import { setupPlaygroundEndpoint, setupPlaygroundLogin } from './graphql/playgro
 import { resolvers } from './graphql/resolvers';
 import { typeDefs } from './graphql/schema';
 import { setupPostAuthDocRoutes, setupPreAuthDocRoutes } from './http/document';
-import { setupFirstAdminRoutes } from './http/first_admin';
+import { setupFirstAdminRoutes } from './http/first-admin';
 import { setupLoginRoute } from './http/login';
 import { attachDb, authJwtSecret, setAuthToken } from './internal';
 

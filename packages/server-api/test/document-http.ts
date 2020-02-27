@@ -50,24 +50,26 @@ const DOCREV_CHECK = gql`
     }
 `;
 
-describe('HTTP Document', function() {
+describe('HTTP /api/document', function() {
     let users;
-    let server;
 
     before('Create users', async () => {
         return pool.transaction(async db => {
             users = await createUsers(db, prepareUsers());
         });
     });
-    before('Start server', done => {
-        const { port } = config.get('server');
-        server = api.koa.listen(port, done);
-    });
 
     after('Delete users and document', async function() {
         await pool.transaction(async db => {
             await userDao.deleteAll(db);
         });
+    });
+
+    let server;
+
+    before('Start server', done => {
+        const { port } = config.get('server');
+        server = api.koa.listen(port, done);
     });
 
     describe('Download', function() {
