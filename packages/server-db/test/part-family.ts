@@ -19,12 +19,18 @@ export async function createPartFamilies(
 
 describe('partFamilyDao', function() {
     describe('create', function() {
+        afterEach('delete families', async function() {
+            await pool.transaction(async db => {
+                return partFamilyDao.deleteAll(db);
+            });
+        });
+
         it('should create a part family', async function() {
             const result = await pool.transaction(async db => {
                 return partFamilyDao.create(db, partFamiliesInput.rawMaterial);
             });
             expect(result).to.deep.include(partFamiliesInput.rawMaterial);
-            expect(result.id).to.be.a('string');
+            expect(result.id).to.be.uuid();
         });
     });
     describe('read', function() {
@@ -33,6 +39,12 @@ describe('partFamilyDao', function() {
         before('create families', async function() {
             families = await pool.connect(async db => {
                 return createPartFamilies(db, partFamiliesInput);
+            });
+        });
+
+        after('delete families', async function() {
+            await pool.transaction(async db => {
+                return partFamilyDao.deleteAll(db);
             });
         });
 
