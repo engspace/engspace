@@ -12,7 +12,6 @@ cache:
   yarn: true
   directories:
     - "node_modules"
-    - ".build-cache"
 script:
   - yarn demo:build
   - yarn test:cov
