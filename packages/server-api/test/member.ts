@@ -102,7 +102,7 @@ const MEMBER_UPDATE = gql`
     ${MEMBER_FIELDS}
 `;
 
-const MEMBER_DELETE = gql`
+export const MEMBER_DELETE = gql`
     mutation DeleteMember($id: ID!) {
         projectMemberDelete(id: $id) {
             ...MemberFields

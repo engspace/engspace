@@ -30,7 +30,7 @@ export const PROJECT_FIELDS = gql`
     }
 `;
 
-const PROJECT_READ = gql`
+export const PROJECT_READ = gql`
     query ReadProject($id: ID!) {
         project(id: $id) {
             ...ProjectFields
@@ -60,7 +60,7 @@ const PROJECT_SEARCH = gql`
     ${PROJECT_FIELDS}
 `;
 
-const PROJECT_CREATE = gql`
+export const PROJECT_CREATE = gql`
     mutation CreateProject($project: ProjectInput!) {
         projectCreate(project: $project) {
             ...ProjectFields
@@ -69,7 +69,7 @@ const PROJECT_CREATE = gql`
     ${PROJECT_FIELDS}
 `;
 
-const PROJECT_UPDATE = gql`
+export const PROJECT_UPDATE = gql`
     mutation UpdateProject($id: ID!, $project: ProjectInput!) {
         projectUpdate(id: $id, project: $project) {
             ...ProjectFields
