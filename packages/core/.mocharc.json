@@ -1,0 +1,8 @@
+
+{
+  "diff": true,
+  "inlineDiff": true,
+  "require": "ts-node/register",
+  "spec": ["test/**/*.ts"],
+  "watch-files": ["src/**/*.ts", "test/**/*.ts"]
+}
