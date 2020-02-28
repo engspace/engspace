@@ -100,6 +100,11 @@ export const typeDefs = gql`
         sha1: String
     }
 
+    input PartFamilyInput {
+        name: String!
+        code: String!
+    }
+
     type PartFamily {
         id: ID!
         name: String!
@@ -138,10 +143,13 @@ export const typeDefs = gql`
         projectMemberUpdateRoles(id: ID!, roles: [String!]): ProjectMember!
         projectMemberDelete(id: ID!): ProjectMember!
 
-        documentCreate(document: DocumentInput): Document!
+        documentCreate(document: DocumentInput!): Document!
         documentCheckout(id: ID!, revision: Int!): Document!
         documentDiscardCheckout(id: ID!): Document!
         documentRevise(documentRevision: DocumentRevisionInput): DocumentRevision!
         documentRevisionCheck(id: ID!, sha1: String!): DocumentRevision!
+
+        partFamilyCreate(partFamily: PartFamilyInput!): PartFamily!
+        partFamilyUpdate(id: ID!, partFamily: PartFamilyInput!): PartFamily!
     }
 `;

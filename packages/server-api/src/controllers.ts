@@ -13,6 +13,7 @@ import {
     ProjectMemberInput,
     User,
     UserInput,
+    PartFamilyInput,
 } from '@engspace/core';
 import {
     Db,
@@ -429,18 +430,16 @@ export namespace DocumentRevisionControl {
 
         const tempDir = path.join(ctx.config.storePath, 'upload');
         const tempPath = path.join(tempDir, revisionId);
-        let closeP;
         if (openUploads[revisionId]) {
             const upload = openUploads[revisionId];
             if (upload.path !== tempPath) {
                 throw new Error('Not matching temporary upload path');
             }
-            closeP = upload.fh.close();
+            await upload.fh.close();
             delete openUploads[revisionId];
         }
         const hash = await fileSha1sum(tempPath);
         if (hash.toLowerCase() !== sha1) {
-            await closeP;
             await fs.promises.unlink(tempPath);
             await documentRevisionDao.deleteById(ctx.db, revisionId);
             throw new Error(
@@ -450,15 +449,31 @@ export namespace DocumentRevisionControl {
         }
         await fs.promises.mkdir(ctx.config.storePath, { recursive: true });
         const finalPath = path.join(ctx.config.storePath, sha1);
-        await closeP;
         await fs.promises.rename(tempPath, finalPath);
         return documentRevisionDao.updateSha1(ctx.db, revisionId, sha1);
     }
 }
 
 export namespace PartFamilyControl {
+    export async function create(
+        ctx: ApiContext,
+        partFamily: PartFamilyInput
+    ): Promise<PartFamily> {
+        assertUserPerm(ctx, 'partfamily.create');
+        return partFamilyDao.create(ctx.db, partFamily);
+    }
+
     export async function byId(ctx: ApiContext, id: Id): Promise<PartFamily> {
         assertUserPerm(ctx, 'partfamily.read');
         return partFamilyDao.byId(ctx.db, id);
+    }
+
+    export async function update(
+        ctx: ApiContext,
+        id: Id,
+        partFamily: PartFamilyInput
+    ): Promise<PartFamily> {
+        assertUserPerm(ctx, 'partfamily.update');
+        return partFamilyDao.updateById(ctx.db, id, partFamily);
     }
 }

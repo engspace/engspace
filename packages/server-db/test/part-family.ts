@@ -53,4 +53,25 @@ describe('partFamilyDao', function() {
             expect(result).to.deep.include(families.topAssy);
         });
     });
+    describe('update', function() {
+        it('should update a part family', async function() {
+            const fam = await pool.transaction(async db => {
+                return partFamilyDao.create(db, {
+                    name: 'fam',
+                    code: 'a',
+                });
+            });
+            const result = await pool.connect(async db => {
+                return partFamilyDao.updateById(db, fam.id, {
+                    name: 'new fam',
+                    code: 'b',
+                });
+            });
+            expect(result).to.deep.include({
+                id: fam.id,
+                name: 'new fam',
+                code: 'b',
+            });
+        });
+    });
 });

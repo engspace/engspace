@@ -12,6 +12,7 @@ import {
     ProjectMemberInput,
     User,
     UserInput,
+    PartFamilyInput,
 } from '@engspace/core';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
 import {
@@ -280,6 +281,22 @@ export const resolvers = {
             ctx: GqlContext
         ): Promise<DocumentRevision> {
             return DocumentRevisionControl.finalizeUpload(ctx, id, sha1);
+        },
+
+        async partFamilyCreate(
+            parent,
+            { partFamily }: { partFamily: PartFamilyInput },
+            ctx: GqlContext
+        ): Promise<PartFamily> {
+            return PartFamilyControl.create(ctx, partFamily);
+        },
+
+        async partFamilyUpdate(
+            parent,
+            { id, partFamily }: { id: Id; partFamily: PartFamilyInput },
+            ctx: GqlContext
+        ): Promise<PartFamily> {
+            return PartFamilyControl.update(ctx, id, partFamily);
         },
     },
 };
