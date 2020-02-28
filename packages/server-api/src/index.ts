@@ -74,7 +74,6 @@ export class EsServerApi {
                     const authToken = await verifyJwt<AuthToken>(token, authJwtSecret);
                     setAuthToken(ctx, authToken);
                 } catch (err) {
-                    console.error(err);
                     ctx.throw(HttpStatus.FORBIDDEN);
                 }
                 return next();

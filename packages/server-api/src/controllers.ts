@@ -357,7 +357,6 @@ export namespace DocumentRevisionControl {
         if (!upload) return;
         if (Date.now() - upload.touched >= openUploadMaxAge) {
             delete openUploads[revId];
-            console.log('closing file');
             upload.fh.close();
         }
     }
@@ -430,16 +429,18 @@ export namespace DocumentRevisionControl {
 
         const tempDir = path.join(ctx.config.storePath, 'upload');
         const tempPath = path.join(tempDir, revisionId);
+        let closeP;
         if (openUploads[revisionId]) {
             const upload = openUploads[revisionId];
             if (upload.path !== tempPath) {
                 throw new Error('Not matching temporary upload path');
             }
-            await upload.fh.close();
+            closeP = upload.fh.close();
             delete openUploads[revisionId];
         }
         const hash = await fileSha1sum(tempPath);
         if (hash.toLowerCase() !== sha1) {
+            await closeP;
             await fs.promises.unlink(tempPath);
             await documentRevisionDao.deleteById(ctx.db, revisionId);
             throw new Error(
@@ -449,6 +450,7 @@ export namespace DocumentRevisionControl {
         }
         await fs.promises.mkdir(ctx.config.storePath, { recursive: true });
         const finalPath = path.join(ctx.config.storePath, sha1);
+        await closeP;
         await fs.promises.rename(tempPath, finalPath);
         return documentRevisionDao.updateSha1(ctx.db, revisionId, sha1);
     }
