@@ -59,7 +59,7 @@ describe('HTTP /api/document', function() {
         });
     });
 
-    after('Delete users and document', async function() {
+    after('Delete users', async function() {
         await pool.transaction(async db => {
             await userDao.deleteAll(db);
         });
