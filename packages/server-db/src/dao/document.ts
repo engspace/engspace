@@ -40,14 +40,6 @@ class DocumentDao extends DaoRowMap<Document, Row> {
         return mapRow(row);
     }
 
-    async byId(db: Db, id: Id): Promise<Document | null> {
-        const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken} FROM document
-            WHERE id = ${id}
-        `);
-        return mapRow(row);
-    }
-
     async checkoutIdById(db: Db, id: Id): Promise<Id> {
         const checkoutId = await db.maybeOneFirst(sql`
             SELECT checkout FROM document

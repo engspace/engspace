@@ -16,6 +16,8 @@ export { userDao } from './user';
  */
 export interface Dao<T extends HasId> {
     byId(db: Db, id: Id): Promise<T>;
+    checkId(db: Db, id: Id): Promise<boolean>;
     batchByIds(db: Db, ids: readonly Id[]): Promise<T[]>;
     deleteById(db: Db, id: Id): Promise<T>;
+    deleteAll(db: Db): Promise<number>;
 }
