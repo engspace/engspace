@@ -98,19 +98,23 @@ export class EsServerApi {
         this.setupPostAuthHttpRoutes(prefix);
     }
 
-    setupGqlEndpoint(prefix: string): void {
+    setupGqlEndpoint(prefix: string, enableLogging = true): void {
         this.koa.use(attachDb(this.config.pool, prefix));
-        const extensions = [(): ApolloLogExtension => new ApolloLogExtension()];
+        const extensions = enableLogging
+            ? [(): ApolloLogExtension => new ApolloLogExtension()]
+            : [];
         const graphQL = new ApolloServer({
             typeDefs,
             resolvers,
             introspection: false,
             playground: false,
             extensions,
-            formatError(err): Error {
-                console.log(err);
-                return err;
-            },
+            formatError: enableLogging
+                ? (err): Error => {
+                      console.log(err);
+                      return err;
+                  }
+                : undefined,
             context: gqlContextFactory(this.config),
         });
         this.koa.use(
