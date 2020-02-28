@@ -41,7 +41,7 @@ before('Start-up DB and Server', async function() {
     });
 
     api.setupAuthAndHttpRoutes('/api');
-    api.setupGqlEndpoint('/api/graphql');
+    api.setupGqlEndpoint('/api/graphql', false);
 
     await schemaPromise;
 });
