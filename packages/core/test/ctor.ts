@@ -37,35 +37,6 @@ describe('Constructors', function() {
                 roles: ['role1', 'role2'],
             });
         });
-        // it('should validate value', () => {
-        //     const user = new User({ name: 'username' });
-        //     expect(User.validate(user)).to.be.empty;
-        // });
-        // it('should type guard correct value', () => {
-        //     const user = {
-        //         name: 'username',
-        //         email: 'username@test.com',
-        //         fullName: 'User Name',
-        //         roles: [],
-        //     };
-        //     let res = false;
-        //     if (User.check(user)) {
-        //         res = true;
-        //     }
-        //     expect(res).to.be.true;
-        // });
-        // it('should type guard incorrect value', () => {
-        //     const user = {
-        //         name: 'username',
-        //         fullName: 'User Name',
-        //         roles: [],
-        //     };
-        //     let res = false;
-        //     if (User.check(user)) {
-        //         res = true;
-        //     }
-        //     expect(res).to.be.false;
-        // });
     });
 
     describe('Project', () => {
