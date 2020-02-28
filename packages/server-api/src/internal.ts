@@ -24,7 +24,7 @@ export function attachDb(pool: DbPool, path: string) {
         } else if (ctx.method === 'POST') {
             return pool.transaction(attachAndCallNext);
         } else {
-            throw new Error(`unsupported HTTP method for graphql: ${ctx.method}`);
+            ctx.throw(405, `unsupported HTTP method for graphql: ${ctx.method}`);
         }
     };
 }
