@@ -3,6 +3,7 @@ import { userDao } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
+import { signJwt, verifyJwt } from '../src/crypto';
 import { auth } from './auth';
 import { createUsers } from './user';
 
@@ -19,6 +20,42 @@ describe('Miscellaneous', function() {
             await userDao.deleteAll(db);
         });
     });
+
+    describe('Crypto', function() {
+        it('should verify a valid token', async function() {
+            const tokStr = await signJwt(
+                {
+                    a: 'a',
+                    b: 'b',
+                },
+                'secret',
+                {}
+            );
+            const obj = await verifyJwt(tokStr, 'secret');
+            expect(obj).to.deep.include({
+                a: 'a',
+                b: 'b',
+            });
+        });
+        it('should fail to verify with wrong secret', async function() {
+            const tokStr = await signJwt(
+                {
+                    a: 'a',
+                    b: 'b',
+                },
+                'secret',
+                {}
+            );
+            const fail = verifyJwt(tokStr, 'wrong secret');
+            await expect(fail).to.be.rejectedWith('invalid signature');
+        });
+
+        it('should fail to sign with secret empty', async function() {
+            const fail = signJwt({ a: 'a', b: 'b' }, '', {});
+            await expect(fail).to.be.rejectedWith('secret');
+        });
+    });
+
     describe('GraphQL DateTime', function() {
         const iso = '2020-01-01T12:00:00.000Z';
         const ms = 1577880000000;
