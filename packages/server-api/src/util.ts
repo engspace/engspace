@@ -11,6 +11,7 @@ export async function fileSha1sum(filepath: string): Promise<string> {
         rs.on('end', function() {
             return resolve(hasher.digest('hex'));
         });
+        /* istanbul ignore next */
         rs.on('error', function(err) {
             reject(err);
         });
