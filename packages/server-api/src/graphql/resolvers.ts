@@ -61,18 +61,10 @@ export const resolvers = {
 
     ProjectMember: {
         project({ project }: ProjectMember, args, ctx: GqlContext): Promise<Project> {
-            if (project['code']) {
-                return Promise.resolve(project as Project);
-            } else {
-                return ProjectControl.byId(ctx, project.id);
-            }
+            return ProjectControl.byId(ctx, project.id);
         },
         user({ user }: ProjectMember, args, ctx: GqlContext): Promise<User> {
-            if (user['name']) {
-                return Promise.resolve(user as User);
-            } else {
-                return ctx.loaders.user.load(user.id);
-            }
+            return ctx.loaders.user.load(user.id);
         },
         roles({ id }: ProjectMember, args, ctx: GqlContext): Promise<string[]> {
             return MemberControl.rolesById(ctx, id);
@@ -81,50 +73,28 @@ export const resolvers = {
 
     Document: {
         createdBy({ createdBy }: Document, args, ctx: GqlContext): Promise<User> {
-            if (createdBy['name']) {
-                return Promise.resolve(createdBy as User);
-            }
             return ctx.loaders.user.load(createdBy.id);
         },
 
         checkout({ checkout }: Document, args, ctx: GqlContext): Promise<User | null> {
             if (!checkout) return null;
-            if (checkout['name']) {
-                return Promise.resolve(checkout as User);
-            }
             return ctx.loaders.user.load(checkout.id);
         },
 
-        revisions({ id, revisions }: Document, args, ctx: GqlContext): Promise<DocumentRevision[]> {
-            if (revisions) {
-                return Promise.resolve(revisions);
-            }
+        revisions({ id }: Document, args, ctx: GqlContext): Promise<DocumentRevision[]> {
             return DocumentRevisionControl.byDocumentId(ctx, id);
         },
 
-        lastRevision(
-            { id, lastRevision }: Document,
-            args,
-            ctx: GqlContext
-        ): Promise<DocumentRevision | null> {
-            if (lastRevision) {
-                return Promise.resolve(lastRevision);
-            }
+        lastRevision({ id }: Document, args, ctx: GqlContext): Promise<DocumentRevision | null> {
             return DocumentRevisionControl.lastByDocumentId(ctx, id);
         },
     },
 
     DocumentRevision: {
         document({ document }: DocumentRevision, args, ctx: GqlContext): Promise<Document> {
-            if (document['name']) {
-                return Promise.resolve(document as Document);
-            }
             return DocumentControl.byId(ctx, document.id);
         },
         createdBy({ createdBy }: DocumentRevision, args, ctx: GqlContext): Promise<User> {
-            if (createdBy['name']) {
-                return Promise.resolve(createdBy as User);
-            }
             return ctx.loaders.user.load(createdBy.id);
         },
     },
