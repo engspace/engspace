@@ -256,6 +256,63 @@ describe('GraphQL Document Revision', function() {
                 revision: 4,
             });
         });
+
+        it('should read recursively', async function() {
+            const { errors, data } = await pool.connect(async db => {
+                const { query } = buildGqlServer(
+                    db,
+                    permsAuth(users.sylvie, ['document.read', 'user.read'])
+                );
+                return query({
+                    query: gql`
+                        query RecursiveDocRead($docId: ID!) {
+                            document(id: $docId) {
+                                revisions {
+                                    id
+                                    document {
+                                        id
+                                        lastRevision {
+                                            id
+                                        }
+                                    }
+                                }
+                                lastRevision {
+                                    id
+                                    document {
+                                        id
+                                        revisions {
+                                            id
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    `,
+                    variables: { docId: document.id },
+                });
+            });
+            expect(errors).to.be.undefined;
+            expect(data.document).to.deep.include({
+                revisions: revisions.map(r => ({
+                    id: r.id,
+                    document: {
+                        id: document.id,
+                        lastRevision: {
+                            id: revisions[3].id,
+                        },
+                    },
+                })),
+                lastRevision: {
+                    id: revisions[3].id,
+                    document: {
+                        id: document.id,
+                        revisions: revisions.map(r => ({
+                            id: r.id,
+                        })),
+                    },
+                },
+            });
+        });
     });
 
     describe('Mutation', function() {
