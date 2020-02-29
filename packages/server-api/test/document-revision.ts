@@ -267,10 +267,13 @@ describe('GraphQL Document Revision', function() {
                     query: gql`
                         query RecursiveDocRead($docId: ID!) {
                             document(id: $docId) {
+                                id
+                                name
                                 revisions {
                                     id
                                     document {
                                         id
+                                        name
                                         lastRevision {
                                             id
                                         }
@@ -280,6 +283,7 @@ describe('GraphQL Document Revision', function() {
                                     id
                                     document {
                                         id
+                                        name
                                         revisions {
                                             id
                                         }
@@ -293,10 +297,13 @@ describe('GraphQL Document Revision', function() {
             });
             expect(errors).to.be.undefined;
             expect(data.document).to.deep.include({
+                id: document.id,
+                name: 'a',
                 revisions: revisions.map(r => ({
                     id: r.id,
                     document: {
                         id: document.id,
+                        name: 'a',
                         lastRevision: {
                             id: revisions[3].id,
                         },
@@ -306,6 +313,7 @@ describe('GraphQL Document Revision', function() {
                     id: revisions[3].id,
                     document: {
                         id: document.id,
+                        name: 'a',
                         revisions: revisions.map(r => ({
                             id: r.id,
                         })),
