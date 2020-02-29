@@ -36,6 +36,7 @@ export async function createDbPool(dbConfig: DbConfig): Promise<DbPool> {
         maximumPoolSize: 1,
     });
     await pool0.connect(async db => {
+        /* istanbul ignore else */
         if (dbConfig.formatDb) {
             console.log(`deleting database "${dbConfig.name}"`);
             await db.query(sql`${raw(`DROP DATABASE IF EXISTS ${dbConfig.name}`)}`);
@@ -44,6 +45,7 @@ export async function createDbPool(dbConfig: DbConfig): Promise<DbPool> {
             SELECT COUNT(datname) FROM pg_database
             WHERE datname = ${dbConfig.name}
         `);
+        /* istanbul ignore else */
         if (!hasDb) {
             console.log(`creating database "${dbConfig.name}"`);
             await db.query(sql`${raw(`CREATE DATABASE ${dbConfig.name}`)}`);

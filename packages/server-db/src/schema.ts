@@ -49,6 +49,7 @@ export async function initSchema(db: DatabaseTransactionConnectionType): Promise
             WHERE
                 table_schema = current_schema() AND
                 table_name = 'metadata'`);
+    /* istanbul ignore else */
     if (!hasMetadataTable) {
         await createSchema(db);
         // } else {
