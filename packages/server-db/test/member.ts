@@ -84,6 +84,14 @@ describe('memberDao', () => {
 
         it('should get a member project and user id', async () => {
             const taniaChair = await pool.connect(db =>
+                memberDao.byProjectAndUserId(db, projects.chair.id, users.tania.id)
+            );
+            expect(taniaChair).to.not.be.null;
+            expect(taniaChair.roles).to.be.undefined;
+        });
+
+        it('should get a member project and user id and roles', async () => {
+            const taniaChair = await pool.connect(db =>
                 memberDao.byProjectAndUserId(db, projects.chair.id, users.tania.id, true)
             );
             expect(taniaChair).to.not.be.null;

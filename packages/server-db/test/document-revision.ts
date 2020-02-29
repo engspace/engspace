@@ -155,6 +155,13 @@ describe('documentRevisionDao', function() {
             });
             expect(rev2).to.eql(revision2);
         });
+
+        it('should read id by revision number and document id', async function() {
+            const id = await pool.connect(async db => {
+                return documentRevisionDao.idByDocumentIdAndRev(db, document.id, 2);
+            });
+            expect(id).to.eql(revision2.id);
+        });
     });
 
     describe('Update', function() {

@@ -21,8 +21,8 @@ async function executeSqlFile(db: Db, filename: string): Promise<void> {
         try {
             await db.query(sql`${raw(c)}`);
         } catch (err) {
-            const msg = `Error executing SQL: ${err.message}:\n${c}\n`;
-            throw new Error(msg);
+            /* istanbul ignore next */
+            throw new Error(`Error executing SQL: ${err.message}:\n${c}\n`);
         }
     }
 }

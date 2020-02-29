@@ -19,12 +19,41 @@ export async function createUsers(db: Db, users: DemoUserInputSet): Promise<Demo
 
 describe('userDao', () => {
     describe('Create', () => {
-        const users = prepareUsers();
         afterEach(deleteAll);
+
         it('should create user', async () => {
-            await pool.connect(async db => {
-                const returned = await userDao.create(db, users.gerard);
-                expect(returned).to.deep.include(users.gerard);
+            const userA = await pool.transaction(async db => {
+                return userDao.create(db, {
+                    name: 'user.a',
+                    email: 'user.a@domain.net',
+                    fullName: 'User A',
+                });
+            });
+            expect(userA).to.deep.include({
+                name: 'user.a',
+                email: 'user.a@domain.net',
+                fullName: 'User A',
+            });
+            const roles = await pool.connect(async db => {
+                return userDao.rolesById(db, userA.id);
+            });
+            expect(roles).to.be.an('array').empty;
+        });
+
+        it('should create user with roles', async () => {
+            const userA = await pool.transaction(async db => {
+                return userDao.create(db, {
+                    name: 'user.a',
+                    email: 'user.a@domain.net',
+                    fullName: 'User A',
+                    roles: ['role1', 'role2'],
+                });
+            });
+            expect(userA).to.deep.include({
+                name: 'user.a',
+                email: 'user.a@domain.net',
+                fullName: 'User A',
+                roles: ['role1', 'role2'],
             });
         });
     });
@@ -82,6 +111,7 @@ describe('userDao', () => {
             users = await pool.transaction(async db => await createUsers(db, prepareUsers()));
         });
         after(deleteAll);
+
         it('should find users partial name', async () => {
             const expected = {
                 count: 3,
@@ -99,6 +129,7 @@ describe('userDao', () => {
             );
             expect(result).to.deep.include(expected);
         });
+
         it('should find with limit and offset', async () => {
             const expected = {
                 count: 3,
@@ -114,58 +145,144 @@ describe('userDao', () => {
             );
             expect(result).to.deep.include(expected);
         });
+
         it('should find with case insensitivity', async () => {
             const expected = {
                 count: 3,
                 users: [filterFields(users.sophie, 'roles')],
             };
-            const result = await pool.connect(
-                async db =>
-                    await userDao.search(db, {
-                        phrase: 'pH',
-                        offset: 1,
-                        limit: 1,
-                    })
-            );
+            const result = await pool.connect(async db => {
+                return userDao.search(db, {
+                    phrase: 'pH',
+                    offset: 1,
+                    limit: 1,
+                });
+            });
             expect(result).to.deep.include(expected);
+        });
+
+        it('should find user by role', async () => {
+            const result = await pool.connect(async db => {
+                return userDao.search(db, {
+                    role: 'manager',
+                });
+            });
+            expect(result.count).to.equal(1);
+            expect(result.users)
+                .to.be.an('array')
+                .with.lengthOf(1);
+            expect(result.users[0]).to.deep.include({
+                id: users.ambre.id,
+            });
+        });
+    });
+
+    describe('Update', function() {
+        let userA;
+        beforeEach('create users', async () => {
+            userA = await pool.transaction(async db =>
+                userDao.create(db, {
+                    name: 'user.a',
+                    email: 'user.a@domain.net',
+                    fullName: 'User A',
+                    roles: ['role1', 'role2'],
+                })
+            );
+        });
+        afterEach(deleteAll);
+
+        it('should update user', async function() {
+            const userB = await pool.transaction(async db => {
+                return userDao.update(db, userA.id, {
+                    name: 'user.b',
+                    email: 'user.b@domain.net',
+                    fullName: 'User B',
+                });
+            });
+            expect(userB).to.eql({
+                id: userA.id,
+                name: 'user.b',
+                email: 'user.b@domain.net',
+                fullName: 'User B',
+            });
+            const roles = await pool.connect(async db => {
+                return userDao.rolesById(db, userA.id);
+            });
+            expect(roles).to.have.members(['role1', 'role2']);
+        });
+
+        it('should update user and roles', async function() {
+            const userB = await pool.transaction(async db => {
+                return userDao.update(db, userA.id, {
+                    name: 'user.b',
+                    email: 'user.b@domain.net',
+                    fullName: 'User B',
+                    roles: ['role2', 'role3'],
+                });
+            });
+            expect(userB).to.eql({
+                id: userA.id,
+                name: 'user.b',
+                email: 'user.b@domain.net',
+                fullName: 'User B',
+                roles: ['role2', 'role3'],
+            });
         });
     });
 
     describe('Patch', () => {
-        let users: DemoUserSet;
+        let userA;
         beforeEach('create users', async () => {
-            users = await pool.transaction(async db => await createUsers(db, prepareUsers()));
+            userA = await pool.transaction(async db =>
+                userDao.create(db, {
+                    name: 'user.a',
+                    email: 'user.a@domain.net',
+                    fullName: 'User A',
+                    roles: ['role1', 'role2'],
+                })
+            );
         });
         afterEach(deleteAll);
+
         it('should patch user full name', async () => {
             const patch = {
                 fullName: 'New Name',
             };
-            const returned = await pool.connect(async db =>
-                userDao.patch(db, users.alphonse.id, patch)
-            );
-            expect(returned).to.include(patch);
-            // role is not returned because not patched
-            const { id, name, email } = users.alphonse;
-            expect(returned).to.deep.include({
-                id,
-                name,
-                email,
-                ...patch,
+            const returned = await pool.connect(async db => {
+                return userDao.patch(db, userA.id, patch);
             });
+            expect(returned).to.deep.include({
+                name: 'user.a',
+                fullName: 'New Name',
+                email: 'user.a@domain.net',
+            });
+            const roles = await pool.connect(async db => {
+                return userDao.rolesById(db, userA.id);
+            });
+            expect(roles).to.have.members(['role1', 'role2']);
         });
+
         it('should patch user roles', async () => {
             const patch = {
-                roles: ['admin', 'manager'],
+                roles: ['role2', 'role3'],
             };
-            const returned = await pool.connect(async db =>
-                userDao.patch(db, users.tania.id, patch)
-            );
-            expect(returned).to.deep.include(patch);
-            expect(returned).to.deep.include({
-                ...users.tania,
-                ...patch,
+            const returned = await pool.connect(async db => {
+                return userDao.patch(db, userA.id, patch);
             });
+            expect(returned).to.deep.include({
+                name: 'user.a',
+                fullName: 'User A',
+                email: 'user.a@domain.net',
+            });
+            expect(returned.roles).to.have.members(['role2', 'role3']);
+        });
+
+        it('should throw with empty patch', async () => {
+            const patch = {};
+            const returned = pool.transaction(async db => {
+                return userDao.patch(db, userA.id, patch);
+            });
+            await expect(returned).to.be.rejectedWith('no valid field to patch');
         });
     });
 });

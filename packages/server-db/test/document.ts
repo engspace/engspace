@@ -138,6 +138,28 @@ describe('documentDao', function() {
                 documents: [documents[0]],
             });
         });
+
+        it('should paginate document search', async function() {
+            const { res1, res2 } = await pool.connect(async db => {
+                const res1 = await documentDao.search(db, '', 0, 1);
+                const res2 = await documentDao.search(db, '', 1, 1);
+                return { res1, res2 };
+            });
+            expect([res1.count, res2.count]).to.eql([2, 2]);
+            expect(res1.documents)
+                .to.be.an('array')
+                .with.lengthOf(1);
+            expect(res2.documents)
+                .to.be.an('array')
+                .with.lengthOf(1);
+            expect(res1.documents[0].id).to.satisfy(
+                id => id === documents[0].id || id === documents[1].id
+            );
+            expect(res2.documents[0].id).to.satisfy(
+                id => id === documents[0].id || id === documents[1].id
+            );
+            expect(res1.documents[0].id).to.not.eql(res2.documents[0].id);
+        });
     });
 
     describe('Checkout', function() {

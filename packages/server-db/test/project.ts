@@ -6,7 +6,7 @@ import {
 } from '@engspace/demo-data-input';
 import { expect } from 'chai';
 import { pool } from '.';
-import { Db, projectDao } from '../src';
+import { Db, projectDao, memberDao, userDao } from '../src';
 
 async function deleteAll(): Promise<void> {
     await pool.connect(db => projectDao.deleteAll(db));
@@ -65,15 +65,98 @@ describe('projectDao', () => {
         });
         after('delete projects', deleteAll);
 
-        it('should find project by partial code', async () =>
-            pool.connect(async db => {
-                const expected = {
-                    count: 1,
-                    projects: [projects.chair],
-                };
-                const result = await projectDao.search(db, { phrase: 'ch' });
-                expect(result).to.eql(expected);
-            }));
+        it('should find project by partial code', async function() {
+            const result = await pool.connect(async db => {
+                return projectDao.search(db, { phrase: 'ch' });
+            });
+            const expected = {
+                count: 1,
+                projects: [projects.chair],
+            };
+            expect(result).to.eql(expected);
+        });
+
+        it('should find project with member name', async function() {
+            const result = await pool.connect(async db => {
+                const user = await userDao.create(db, {
+                    name: 'user.a',
+                    email: 'user.a@domain.net',
+                    fullName: 'User A',
+                });
+                await memberDao.create(db, {
+                    projectId: projects.chair.id,
+                    userId: user.id,
+                    roles: ['leader'],
+                });
+                return projectDao.search(db, { member: 'user.a' });
+            });
+
+            const expected = {
+                count: 1,
+                projects: [projects.chair],
+            };
+            expect(result).to.eql(expected);
+
+            await pool.transaction(async db => {
+                await memberDao.deleteAll(db);
+                return userDao.deleteAll(db);
+            });
+        });
+
+        it('should paginate search', async function() {
+            const { res1, res2 } = await pool.connect(async db => {
+                const res1 = await projectDao.search(db, { offset: 0, limit: 1 });
+                const res2 = await projectDao.search(db, { offset: 1, limit: 1 });
+                return { res1, res2 };
+            });
+            expect(res1.count).to.eql(2);
+            expect(res2.count).to.eql(2);
+            expect(res1.projects)
+                .to.be.an('array')
+                .with.lengthOf(1);
+            expect(res2.projects)
+                .to.be.an('array')
+                .with.lengthOf(1);
+            expect(res1.projects[0].id).to.satisfy(
+                id => id === projects.chair.id || id === projects.desk.id
+            );
+            expect(res2.projects[0].id).to.satisfy(
+                id => id === projects.chair.id || id === projects.desk.id
+            );
+            expect(res1.projects[0].id).to.not.eql(res2.projects[0].id);
+        });
+    });
+
+    describe('Update', function() {
+        const projAInput = {
+            name: 'project a',
+            code: 'proja',
+            description: 'project a description',
+        };
+        const projBInput = {
+            name: 'project b',
+            code: 'projb',
+            description: 'project b description',
+        };
+        let projA;
+        beforeEach('Create Project A', async function() {
+            projA = await pool.transaction(async db => {
+                return projectDao.create(db, projAInput);
+            });
+        });
+        afterEach('Delete project', async function() {
+            return pool.transaction(async db => projectDao.deleteAll(db));
+        });
+
+        it('should update project', async function() {
+            const projB = await pool.transaction(async db => {
+                return projectDao.updateById(db, projA.id, projBInput);
+            });
+            expect(projB).to.deep.include({
+                id: projA.id,
+                ...projBInput,
+            });
+        });
     });
 
     describe('Patch', async () => {
