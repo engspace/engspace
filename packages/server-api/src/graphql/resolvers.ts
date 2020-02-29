@@ -1,4 +1,5 @@
 import {
+    DateTime,
     Document,
     DocumentInput,
     DocumentRevision,
@@ -6,14 +7,15 @@ import {
     DocumentSearch,
     Id,
     PartFamily,
+    PartFamilyInput,
     Project,
     ProjectInput,
     ProjectMember,
     ProjectMemberInput,
     User,
     UserInput,
-    PartFamilyInput,
 } from '@engspace/core';
+import { UserInputError } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
 import {
     DocumentControl,
@@ -38,8 +40,15 @@ export const resolvers = {
         parseLiteral(ast: ValueNode): number | null {
             if (ast.kind === Kind.INT) {
                 return parseInt(ast.value);
+            } else if (ast.kind === Kind.STRING) {
+                const date = new Date(ast.value);
+                const ms = date.getTime();
+                if (isNaN(ms)) {
+                    throw new UserInputError(`Cannot read DateTime from ${ast.kind}: ${ast.value}`);
+                }
+                return ms;
             }
-            return null;
+            throw new UserInputError(`Cannot read DateTime from ${ast.kind}`);
         },
     }),
 
@@ -161,6 +170,11 @@ export const resolvers = {
 
         partFamily(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartFamily | null> {
             return PartFamilyControl.byId(ctx, id);
+        },
+
+        testDateTimeToIso8601(parent, { dt }: { dt: DateTime }): Promise<string> {
+            const date = new Date(dt);
+            return Promise.resolve(date.toISOString());
         },
     },
 

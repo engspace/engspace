@@ -130,6 +130,8 @@ export const typeDefs = gql`
         documentRevision(id: ID!): DocumentRevision
 
         partFamily(id: ID!): PartFamily
+
+        testDateTimeToIso8601(dt: DateTime!): String!
     }
 
     type Mutation {
