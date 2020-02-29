@@ -42,9 +42,9 @@ function hasUserPerm(ctx: ApiContext, perm: string): boolean {
     return ctx.auth.userPerms.includes(perm);
 }
 
-function assertUserPerm(ctx: ApiContext, perm: string, message?: string): void {
+function assertUserPerm(ctx: ApiContext, perm: string): void {
     if (!hasUserPerm(ctx, perm)) {
-        throw new ForbiddenError(message ? message : `Missing permission: '${perm}'`);
+        throw new ForbiddenError(`Missing permission: '${perm}'`);
     }
 }
 
@@ -57,15 +57,14 @@ async function hasProjectPerm(ctx: ApiContext, projectId: Id, perm: string): Pro
 async function assertUserOrProjectPerm(
     ctx: ApiContext,
     projectId: Id,
-    perm: string,
-    message?: string
+    perm: string
 ): Promise<void> {
     if (hasUserPerm(ctx, perm)) {
         return;
     }
     const has = await hasProjectPerm(ctx, projectId, perm);
     if (!has) {
-        throw new ForbiddenError(message ? message : `Missing permission: '${perm}'`);
+        throw new ForbiddenError(`Missing permission: '${perm}'`);
     }
 }
 
@@ -131,11 +130,6 @@ export class ProjectControl {
     static byId(ctx: ApiContext, id: Id): Promise<Project> {
         assertUserPerm(ctx, 'project.read');
         return projectDao.byId(ctx.db, id);
-    }
-
-    static byIds(ctx: ApiContext, ids: readonly Id[]): Promise<Project[]> {
-        assertUserPerm(ctx, 'project.read');
-        return projectDao.batchByIds(ctx.db, ids);
     }
 
     static async byCode(ctx: ApiContext, code: string): Promise<Project> {
@@ -304,15 +298,6 @@ export namespace DocumentRevisionControl {
     ): Promise<DocumentRevision[]> {
         assertUserPerm(ctx, 'document.read');
         return documentRevisionDao.byDocumentId(ctx.db, documentId);
-    }
-
-    export async function byDocumentIdAndRevision(
-        ctx: ApiContext,
-        documentId: Id,
-        revision: number
-    ): Promise<DocumentRevision> {
-        assertUserPerm(ctx, 'document.read');
-        return documentRevisionDao.byDocumentIdAndRev(ctx.db, documentId, revision);
     }
 
     export async function lastByDocumentId(
