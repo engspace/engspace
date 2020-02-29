@@ -89,13 +89,13 @@ const DOC_DISCARD_CHECKOUT = gql`
 
 describe('GraphQL documents', function() {
     let users;
-    before('Create users and projects', async function() {
+    before('Create users', async function() {
         return pool.transaction(async db => {
             users = await createUsers(db, prepareUsers());
         });
     });
 
-    after('Delete users and projects', async function() {
+    after('Delete users', async function() {
         return pool.transaction(async db => {
             await userDao.deleteAll(db);
         });
