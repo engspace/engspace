@@ -35,6 +35,7 @@ export class EsServerApi {
                 enableTypes: ['json', 'text', 'form'],
             })
         );
+        /* istanbul ignore else */
         if (config.cors) {
             koa.use(
                 cors({
@@ -52,6 +53,7 @@ export class EsServerApi {
         }
     }
 
+    /* istanbul ignore next */
     setupPlayground(): void {
         setupPlaygroundLogin('/graphql-playground', this.koa, this.config);
         setupPlaygroundEndpoint('/graphql-playground', this.koa, this.config);
@@ -98,23 +100,27 @@ export class EsServerApi {
         this.setupPostAuthHttpRoutes(prefix);
     }
 
-    setupGqlEndpoint(prefix: string, enableLogging = true): void {
+    // TODO proper logging extension
+    setupGqlEndpoint(prefix: string, /* istanbul ignore next */ enableLogging = true): void {
         this.koa.use(attachDb(this.config.pool, prefix));
+        /* istanbul ignore next */
         const extensions = enableLogging
             ? [(): ApolloLogExtension => new ApolloLogExtension()]
             : [];
+        /* istanbul ignore next */
+        const formatError = enableLogging
+            ? (err: Error): Error => {
+                  console.log(err);
+                  return err;
+              }
+            : undefined;
         const graphQL = new ApolloServer({
             typeDefs,
             resolvers,
             introspection: false,
             playground: false,
             extensions,
-            formatError: enableLogging
-                ? (err): Error => {
-                      console.log(err);
-                      return err;
-                  }
-                : undefined,
+            formatError,
             context: gqlContextFactory(this.config),
         });
         this.koa.use(

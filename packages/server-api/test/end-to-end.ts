@@ -14,6 +14,7 @@ import {
     PROJECT_UPDATE,
 } from './project';
 import { createUsers } from './user';
+import { signJwt } from '../src/crypto';
 
 describe('End to end GraphQL', function() {
     let users;
@@ -51,6 +52,14 @@ describe('End to end GraphQL', function() {
         it('should return 401 if unmatched resource without auth', async function() {
             const resp = await request(server).get('/not_a_resource');
             expect(resp).to.have.status(401);
+        });
+
+        it('confirms token', async function() {
+            const token = await bearerToken(permsAuth(users.philippe, []));
+            const resp = await request(server)
+                .get('/api/check_token')
+                .set('Authorization', `Bearer ${token}`);
+            expect(resp).to.have.status(200);
         });
 
         it('GraphQL may not use PATCH and get 405', async function() {
@@ -152,7 +161,7 @@ describe('End to end GraphQL', function() {
 
         after(deleteAllProjects);
 
-        it('should GET project values', async function() {
+        it('read project values with GET', async function() {
             const token = await bearerToken(permsAuth(users.philippe, ['project.read']));
             const resp = await request(server)
                 .get('/api/graphql')
@@ -173,7 +182,28 @@ describe('End to end GraphQL', function() {
             });
         });
 
-        it('should return 400 in case of wrong query', async function() {
+        it('also works without "Bearer" keyword"', async function() {
+            const token = await bearerToken(permsAuth(users.philippe, ['project.read']));
+            const resp = await request(server)
+                .get('/api/graphql')
+                .set('Authorization', `${token}`)
+                .query({
+                    query: print(PROJECT_READ),
+                    variables: JSON.stringify({
+                        id: projects.chair.id,
+                    }),
+                });
+            expect(resp).to.have.status(200);
+            expect(resp).to.have.property('body');
+            const { errors, data } = resp.body;
+            expect(errors).to.be.undefined;
+            expect(data).to.be.an('object');
+            expect(data.project).to.deep.include({
+                ...projects.chair,
+            });
+        });
+
+        it('returns 400 in case of wrong query', async function() {
             const token = await bearerToken(permsAuth(users.philippe, ['project.read']));
             const resp = await request(server)
                 .get('/api/graphql')
@@ -184,7 +214,7 @@ describe('End to end GraphQL', function() {
             expect(resp).to.have.status(400);
         });
 
-        it('should return 200 and error if missing permission', async function() {
+        it('returns 200 and error if missing permission', async function() {
             const token = await bearerToken(permsAuth(users.philippe, []));
             const resp = await request(server)
                 .get('/api/graphql')
@@ -204,7 +234,7 @@ describe('End to end GraphQL', function() {
             expect(data.project).to.be.null;
         });
 
-        it('should return 401 if no auth', async function() {
+        it('returns 401 if no auth', async function() {
             const resp = await request(server)
                 .get('/api/graphql')
                 .query({
@@ -214,6 +244,21 @@ describe('End to end GraphQL', function() {
                     }),
                 });
             expect(resp).to.have.status(401);
+        });
+
+        it('returns 403 if false token', async function() {
+            const auth = permsAuth(users.philippe, ['project.read']);
+            const token = signJwt(auth, 'false secret', { expiresIn: '12H' });
+            const resp = await request(server)
+                .get('/api/graphql')
+                .set('Authorization', `Bearer ${token}`)
+                .query({
+                    query: print(PROJECT_READ),
+                    variables: JSON.stringify({
+                        id: projects.chair.id,
+                    }),
+                });
+            expect(resp).to.have.status(403);
         });
     });
 
