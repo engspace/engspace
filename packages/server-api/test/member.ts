@@ -147,7 +147,7 @@ describe('GraphQL members', function() {
             });
         });
 
-        it('should read a single member with "member.read"', async function() {
+        it('should read a single member', async function() {
             const { errors, data } = await pool.connect(async db => {
                 const { query } = buildGqlServer(
                     db,
@@ -180,7 +180,7 @@ describe('GraphQL members', function() {
             expect(data.projectMember).to.be.null;
         });
 
-        it('should read by user and project with "member.read"', async function() {
+        it('should read by user and project', async function() {
             const { errors, data } = await pool.connect(async db => {
                 const { query } = buildGqlServer(
                     db,
@@ -219,7 +219,7 @@ describe('GraphQL members', function() {
             expect(data.projectMemberByProjectAndUserId).to.be.null;
         });
 
-        it('should read project members with "member.read"', async function() {
+        it('should read project members', async function() {
             const { errors, data } = await pool.connect(async db => {
                 const { query } = buildGqlServer(
                     db,
@@ -260,7 +260,7 @@ describe('GraphQL members', function() {
             expect(data.project).to.be.null;
         });
 
-        it('should read user membership with "member.read"', async function() {
+        it('should read user membership', async function() {
             const { errors, data } = await pool.connect(async db => {
                 const { query } = buildGqlServer(
                     db,
@@ -310,7 +310,7 @@ describe('GraphQL members', function() {
         });
 
         describe('Create', function() {
-            it('should create a member with "member.create"', async function() {
+            it('should create a member', async function() {
                 const { errors, data } = await pool.transaction(async db => {
                     const { mutate } = buildGqlServer(
                         db,
@@ -345,6 +345,45 @@ describe('GraphQL members', function() {
                     'designer',
                 ]);
             });
+            it('should create a member using project perms', async function() {
+                // give to Alphonse leader role on Desk project
+                await pool.transaction(async db => {
+                    return memberDao.create(db, {
+                        projectId: projects.desk.id,
+                        userId: users.alphonse.id,
+                        roles: ['leader'],
+                    });
+                });
+                const { errors, data } = await pool.transaction(async db => {
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.alphonse, ['member.read', 'project.read', 'user.read'])
+                    );
+                    return mutate({
+                        mutation: MEMBER_CREATE,
+                        variables: {
+                            member: {
+                                projectId: projects.desk.id,
+                                userId: users.philippe.id,
+                                roles: ['user', 'designer', 'some other role'],
+                            },
+                        },
+                    });
+                });
+                expect(errors).to.be.undefined;
+                expect(data).to.be.an('object');
+                expect(data.projectMemberCreate.id).to.be.uuid();
+                expect(data.projectMemberCreate).to.deep.include({
+                    project: { id: projects.desk.id },
+                    user: { id: users.philippe.id },
+                });
+                expect(data.projectMemberCreate.roles).to.have.members([
+                    'user',
+                    'some other role',
+                    'designer',
+                ]);
+            });
+
             it('should not create a member without "member.create"', async function() {
                 const { errors, data } = await pool.transaction(async db => {
                     const { mutate } = buildGqlServer(
