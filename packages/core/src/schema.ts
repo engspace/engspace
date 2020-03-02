@@ -113,3 +113,24 @@ export interface PartFamily extends PartFamilyInput {
     id: Id;
     counter: number;
 }
+
+export interface PartBaseInput {
+    familyId: Id;
+    designation: string;
+}
+
+export interface PartBaseUpdateInput {
+    designation: string;
+}
+
+export interface PartBase {
+    id: Id;
+    family: IdOr<PartFamily>;
+    baseRef: string;
+    designation: string;
+
+    createdBy: IdOr<User>;
+    createdAt: DateTime;
+    updatedBy?: IdOr<User>;
+    updatedAt?: DateTime;
+}

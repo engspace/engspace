@@ -14,6 +14,7 @@ export {
     documentRevisionDao,
     loginDao,
     memberDao,
+    partBaseDao,
     partFamilyDao,
     projectDao,
     userDao,

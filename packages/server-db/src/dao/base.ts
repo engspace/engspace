@@ -1,7 +1,15 @@
-import { HasId, Id } from '@engspace/core';
+import { HasId, Id, DateTime } from '@engspace/core';
 import { sql, SqlTokenType } from 'slonik';
 import { Db } from '..';
 import { Dao } from '.';
+
+export function foreignKey(id: Id | null): HasId | null {
+    return id ? { id } : null;
+}
+
+export function timestamp(ts: number | null): DateTime | null {
+    return ts ? ts * 1000 : null;
+}
 
 function reorderWithIds<T extends HasId>(objs: T[], ids: readonly Id[]): T[] {
     return ids.map(id => objs.find(o => o.id === id));

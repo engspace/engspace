@@ -43,6 +43,7 @@ describe('Pool creation', async () => {
             'document',
             'document_revision',
             'part_family',
+            'part_base',
         ]);
     });
 });

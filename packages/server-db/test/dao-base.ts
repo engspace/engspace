@@ -4,10 +4,10 @@ import { projectDao, documentDao, userDao } from '../src';
 import { createUsers } from './user';
 import { prepareUsers } from '@engspace/demo-data-input';
 
-describe('Dao Base', function() {
-    // fake v4 uuid
-    const wrongUuid = '01234567-89ab-4000-8fff-cdef01234567';
+// fake v4 uuid
+export const wrongUuid = '01234567-89ab-4000-8fff-cdef01234567';
 
+describe('Dao Base', function() {
     describe('DaoIdent (with projectDao)', function() {
         afterEach('Delete projects', async function() {
             return pool.transaction(async db => projectDao.deleteAll(db));
