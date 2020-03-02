@@ -8,8 +8,8 @@ const rowToken = sql`id, name, code, counter`;
 class PartFamilyDao extends DaoIdent<PartFamily> {
     async create(db: Db, pf: PartFamilyInput): Promise<PartFamily> {
         return db.one(sql`
-            INSERT INTO part_family(code, name, counter)
-            VALUES(${pf.code}, ${pf.name}, 1)
+            INSERT INTO part_family(code, name)
+            VALUES(${pf.code}, ${pf.name})
             RETURNING ${rowToken}
         `);
     }
@@ -18,7 +18,15 @@ class PartFamilyDao extends DaoIdent<PartFamily> {
         const { name, code } = partFamily;
         return db.maybeOne(sql`
             UPDATE part_family SET name=${name}, code=${code}
-            WHERE id=${id}
+            WHERE id = ${id}
+            RETURNING ${rowToken}
+        `);
+    }
+
+    async bumpCounterById(db: Db, id: Id): Promise<PartFamily> {
+        return db.maybeOne(sql`
+            UPDATE part_family SET counter = counter+1
+            WHERE id = ${id}
             RETURNING ${rowToken}
         `);
     }

@@ -1,19 +1,6 @@
-import {
-    asyncKeyMap,
-    DemoPartFamilyInputSet,
-    DemoPartFamilySet,
-    partFamiliesInput,
-} from '@engspace/demo-data-input';
 import { expect } from 'chai';
 import { pool } from '.';
-import { Db, partFamilyDao } from '../src';
-
-export async function createPartFamilies(
-    db: Db,
-    input: DemoPartFamilyInputSet
-): Promise<DemoPartFamilySet> {
-    return asyncKeyMap(input, async pf => partFamilyDao.create(db, pf));
-}
+import { partFamilyDao } from '../src';
 
 describe('partFamilyDao', function() {
     describe('create', function() {
@@ -24,54 +11,109 @@ describe('partFamilyDao', function() {
         });
 
         it('should create a part family', async function() {
-            const result = await pool.transaction(async db => {
-                return partFamilyDao.create(db, partFamiliesInput.rawMaterial);
+            const famA = await pool.transaction(async db => {
+                return partFamilyDao.create(db, {
+                    name: 'fam a',
+                    code: 'a',
+                });
             });
-            expect(result).to.deep.include(partFamiliesInput.rawMaterial);
-            expect(result.id).to.be.uuid();
+            expect(famA).to.deep.include({
+                name: 'fam a',
+                code: 'a',
+                counter: 0,
+            });
+            expect(famA.id).to.be.uuid();
         });
     });
     describe('read', function() {
-        let families;
-
-        before('create families', async function() {
-            families = await pool.connect(async db => {
-                return createPartFamilies(db, partFamiliesInput);
+        let famA;
+        before('Create part family', async function() {
+            famA = await pool.transaction(async db => {
+                return partFamilyDao.create(db, {
+                    name: 'fam a',
+                    code: 'a',
+                });
             });
         });
-
-        after('delete families', async function() {
-            await pool.transaction(async db => {
-                return partFamilyDao.deleteAll(db);
-            });
+        after('Delete part families', async function() {
+            return pool.transaction(async db => partFamilyDao.deleteAll(db));
         });
 
         it('should read a part family', async function() {
             const result = await pool.connect(async db => {
-                return partFamilyDao.byId(db, families.topAssy.id);
+                return partFamilyDao.byId(db, famA.id);
             });
-            expect(result).to.deep.include(families.topAssy);
+            expect(result).to.deep.include({
+                name: 'fam a',
+                code: 'a',
+                counter: 0,
+            });
+            expect(result.id).to.be.uuid();
         });
     });
     describe('update', function() {
-        it('should update a part family', async function() {
-            const fam = await pool.transaction(async db => {
+        let famA;
+        beforeEach('Create part family', async function() {
+            famA = await pool.transaction(async db => {
                 return partFamilyDao.create(db, {
-                    name: 'fam',
+                    name: 'fam a',
                     code: 'a',
                 });
             });
-            const result = await pool.connect(async db => {
-                return partFamilyDao.updateById(db, fam.id, {
-                    name: 'new fam',
+        });
+        afterEach('Delete part families', async function() {
+            return pool.transaction(async db => partFamilyDao.deleteAll(db));
+        });
+
+        it('should update a part family', async function() {
+            const famB = await pool.connect(async db => {
+                return partFamilyDao.updateById(db, famA.id, {
+                    name: 'fam b',
                     code: 'b',
                 });
             });
-            expect(result).to.deep.include({
-                id: fam.id,
-                name: 'new fam',
+            expect(famB).to.deep.include({
+                id: famA.id,
+                name: 'fam b',
                 code: 'b',
             });
+        });
+
+        it('bumps a part family counter', async function() {
+            const fam = await pool.connect(async db => {
+                return partFamilyDao.bumpCounterById(db, famA.id);
+            });
+            expect(fam).to.deep.include({
+                id: famA.id,
+                name: 'fam a',
+                code: 'a',
+                counter: 1,
+            });
+        });
+
+        it('bumps a part family counter several times in parallel', async function() {
+            const fams = await pool.connect(async db => {
+                return Promise.all([
+                    partFamilyDao.bumpCounterById(db, famA.id),
+                    partFamilyDao.bumpCounterById(db, famA.id),
+                    partFamilyDao.bumpCounterById(db, famA.id),
+                    partFamilyDao.bumpCounterById(db, famA.id),
+                    partFamilyDao.bumpCounterById(db, famA.id),
+
+                    partFamilyDao.bumpCounterById(db, famA.id),
+                    partFamilyDao.bumpCounterById(db, famA.id),
+                    partFamilyDao.bumpCounterById(db, famA.id),
+                    partFamilyDao.bumpCounterById(db, famA.id),
+                    partFamilyDao.bumpCounterById(db, famA.id),
+                ]);
+            });
+            const expected = [...Array(10).keys()].map(i => ({
+                id: famA.id,
+                name: 'fam a',
+                code: 'a',
+                counter: i + 1,
+            }));
+            expect(fams).to.have.deep.members(expected);
         });
     });
 });
