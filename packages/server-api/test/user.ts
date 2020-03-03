@@ -217,7 +217,7 @@ describe('GraphQL User', () => {
                 roles: ['Manager'],
             };
 
-            it('should update user with admin role', async () => {
+            it('should update user', async () => {
                 const result = await pool.transaction(async db => {
                     const { mutate } = buildGqlServer(db, auth(users.gerard)); // admin
                     return mutate({
@@ -241,6 +241,33 @@ describe('GraphQL User', () => {
                 expect(result.data.userUpdate).to.deep.include({
                     ...bob,
                     id: users.alphonse.id,
+                });
+            });
+
+            it('should self-update user', async () => {
+                const result = await pool.transaction(async db => {
+                    const { mutate } = buildGqlServer(db, permsAuth(users.tania, [])); // no perm
+                    return mutate({
+                        mutation: gql`
+                            mutation UpdateUser($id: ID!, $user: UserInput!) {
+                                userUpdate(id: $id, user: $user) {
+                                    ...UserFields
+                                    roles
+                                }
+                            }
+                            ${USER_FIELDS}
+                        `,
+                        variables: {
+                            id: users.tania.id,
+                            user: bob,
+                        },
+                    });
+                });
+                expect(result.errors).to.be.undefined;
+                expect(result.data).to.be.an('object');
+                expect(result.data.userUpdate).to.deep.include({
+                    ...bob,
+                    id: users.tania.id,
                 });
             });
 
