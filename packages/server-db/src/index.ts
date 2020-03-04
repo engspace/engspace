@@ -20,6 +20,17 @@ export {
     userDao,
 } from './dao';
 export { initSchema } from './schema';
+export {
+    createDemoDocuments,
+    createDemoLogins,
+    createDemoMembers,
+    createDemoPartFamilies,
+    createDemoProjects,
+    createDemoUsers,
+    transacDemoPartFamilies,
+    transacDemoProjects,
+    transacDemoUsers,
+} from './populate-demo';
 
 export interface DbConfig {
     uri: string;
