@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-
 import { identJsToSql } from '../src/util';
 
 describe('Util', () => {

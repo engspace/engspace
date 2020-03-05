@@ -1,41 +1,13 @@
 import {
     DemoProjectSet,
     DemoUserSet,
-    membersInput,
     prepareProjects,
     prepareUsers,
 } from '@engspace/demo-data-input';
-import { ProjectMember } from '@engspace/core';
 import { expect } from 'chai';
-import { sql } from 'slonik';
 import { pool } from '.';
-import { createUsers } from './user';
-import { createProjects } from './project';
-import { memberDao, projectDao, userDao } from '../src';
-
-export async function createMembers(
-    db,
-    projects: Promise<DemoProjectSet>,
-    users: Promise<DemoUserSet>
-): Promise<ProjectMember[]> {
-    const [projs, usrs] = await Promise.all([projects, users]);
-    return Promise.all(
-        membersInput.map(m =>
-            memberDao.create(db, {
-                projectId: projs[m.project].id,
-                userId: usrs[m.user].id,
-                roles: m.roles,
-            })
-        )
-    );
-}
-async function deleteAll(): Promise<void> {
-    await pool.connect(db =>
-        db.query(sql`
-            DELETE from project_member
-        `)
-    );
-}
+import { createDemoMembers, createDemoProjects, createDemoUsers, memberDao } from '../src';
+import { cleanTable, cleanTables } from './helpers';
 
 describe('memberDao', () => {
     let users: DemoUserSet;
@@ -43,19 +15,17 @@ describe('memberDao', () => {
 
     before('Create users and projects', async () => {
         [users, projects] = await pool.connect(async db =>
-            Promise.all([createUsers(db, prepareUsers()), createProjects(db, prepareProjects())])
+            Promise.all([
+                createDemoUsers(db, prepareUsers()),
+                createDemoProjects(db, prepareProjects()),
+            ])
         );
     });
 
-    after('Delete users and projects', async () => {
-        await pool.connect(async db => {
-            await projectDao.deleteAll(db);
-            await userDao.deleteAll(db);
-        });
-    });
+    after('Delete users and projects', cleanTables(['project', 'user']));
 
     describe('Create', () => {
-        afterEach('delete all members', deleteAll);
+        afterEach('delete all members', cleanTable('project_member'));
         it('should create a project member', async () => {
             const created = await pool.connect(db =>
                 memberDao.create(db, {
@@ -77,10 +47,10 @@ describe('memberDao', () => {
     describe('Get members', () => {
         before('create demo members', async () => {
             await pool.transaction(db =>
-                createMembers(db, Promise.resolve(projects), Promise.resolve(users))
+                createDemoMembers(db, Promise.resolve(projects), Promise.resolve(users))
             );
         });
-        after('delete all members', deleteAll);
+        after('delete all members', cleanTable('project_member'));
 
         it('should get a member project and user id', async () => {
             const taniaChair = await pool.connect(db =>
@@ -164,7 +134,7 @@ describe('memberDao', () => {
                 });
             });
         });
-        afterEach('delete all members', deleteAll);
+        afterEach('delete all members', cleanTable('project_member'));
 
         it('should remove all project member roles', async function() {
             const memb = await pool.transaction(async db => {
@@ -191,11 +161,11 @@ describe('memberDao', () => {
 
     describe('Delete', () => {
         beforeEach('create demo members', async () => {
-            await pool.connect(db =>
-                createMembers(db, Promise.resolve(projects), Promise.resolve(users))
+            await pool.transaction(db =>
+                createDemoMembers(db, Promise.resolve(projects), Promise.resolve(users))
             );
         });
-        afterEach('delete all members', deleteAll);
+        afterEach('delete all members', cleanTable('project_member'));
 
         it('should delete a specific member', async () => {
             await pool.connect(db =>

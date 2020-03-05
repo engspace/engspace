@@ -1,9 +1,9 @@
-import { DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
+import { DemoUserSet } from '@engspace/demo-data-input';
 import { expect } from 'chai';
 import { sql } from 'slonik';
 import { pool } from '.';
-import { createUsers } from './user';
-import { userDao, loginDao, Db } from '../src';
+import { Db, loginDao, userDao } from '../src';
+import { transacDemoUsers } from './helpers';
 
 async function createLogins(db: Db, users: Promise<DemoUserSet>): Promise<void> {
     const usrs = await users;
@@ -14,8 +14,8 @@ async function createLogins(db: Db, users: Promise<DemoUserSet>): Promise<void> 
 
 describe('Login', () => {
     let users: DemoUserSet;
-    before('Create users', async () => {
-        users = await pool.connect(db => createUsers(db, prepareUsers()));
+    before('Create users', async function() {
+        users = await transacDemoUsers();
     });
     after('Delete users', () => pool.connect(db => userDao.deleteAll(db)));
 

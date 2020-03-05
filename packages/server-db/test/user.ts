@@ -1,25 +1,13 @@
-import {
-    DemoUserInputSet,
-    DemoUserSet,
-    prepareUsers,
-    asyncKeyMap,
-} from '@engspace/demo-data-input';
+import { DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
 import { expect } from 'chai';
-import { sql } from 'slonik';
 import { filterFields, pool } from '.';
-import { Db, userDao } from '../src';
-
-async function deleteAll(): Promise<void> {
-    await pool.connect(async db => db.query(sql`DELETE FROM "user"`));
-}
-
-export async function createUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
-    return asyncKeyMap(users, async u => userDao.create(db, u));
-}
+import { createDemoUsers } from '../dist';
+import { userDao } from '../src';
+import { cleanTable, transacDemoUsers } from './helpers';
 
 describe('userDao', () => {
     describe('Create', () => {
-        afterEach(deleteAll);
+        afterEach(cleanTable('user'));
 
         it('should create user', async () => {
             const userA = await pool.transaction(async db => {
@@ -61,9 +49,9 @@ describe('userDao', () => {
     describe('Get', () => {
         let users: DemoUserSet;
         before('create users', async () => {
-            users = await pool.transaction(async db => await createUsers(db, prepareUsers()));
+            users = await pool.transaction(async db => await createDemoUsers(db, prepareUsers()));
         });
-        after(deleteAll);
+        after(cleanTable('user'));
         it('should get user by id', async () => {
             const expected = filterFields(users.tania, 'roles');
             const tania = await pool.connect(async db => await userDao.byId(db, users.tania.id));
@@ -107,10 +95,10 @@ describe('userDao', () => {
 
     describe('Search', () => {
         let users: DemoUserSet;
-        before('create users', async () => {
-            users = await pool.transaction(async db => await createUsers(db, prepareUsers()));
+        before('create users', async function() {
+            users = await transacDemoUsers();
         });
-        after(deleteAll);
+        after(cleanTable('user'));
 
         it('should find users partial name', async () => {
             const expected = {
@@ -189,7 +177,7 @@ describe('userDao', () => {
                 })
             );
         });
-        afterEach(deleteAll);
+        afterEach(cleanTable('user'));
 
         it('should update user', async function() {
             const userB = await pool.transaction(async db => {
@@ -242,7 +230,7 @@ describe('userDao', () => {
                 })
             );
         });
-        afterEach(deleteAll);
+        afterEach(cleanTable('user'));
 
         it('should patch user full name', async () => {
             const patch = {

@@ -27,9 +27,6 @@ export {
     createDemoPartFamilies,
     createDemoProjects,
     createDemoUsers,
-    transacDemoPartFamilies,
-    transacDemoProjects,
-    transacDemoUsers,
 } from './populate-demo';
 
 export interface DbConfig {

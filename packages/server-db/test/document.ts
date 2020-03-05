@@ -1,9 +1,9 @@
 import { Document, DocumentInput } from '@engspace/core';
-import { DemoDocInput, DemoUserSet, documentInput, prepareUsers } from '@engspace/demo-data-input';
+import { DemoDocInput, DemoUserSet, documentInput } from '@engspace/demo-data-input';
 import { expect } from 'chai';
 import { pool } from '.';
-import { Db, documentDao, userDao } from '../src';
-import { createUsers } from './user';
+import { Db, documentDao } from '../src';
+import { cleanTable, transacDemoUsers } from './helpers';
 
 async function createDocument(
     db: Db,
@@ -32,12 +32,10 @@ describe('documentDao', function() {
     let users;
 
     before('create users', async function() {
-        users = await pool.transaction(async db => createUsers(db, prepareUsers()));
+        users = await transacDemoUsers();
     });
 
-    after('delete users', async function() {
-        await pool.transaction(async db => userDao.deleteAll(db));
-    });
+    after('delete users', cleanTable('user'));
 
     describe('Create', function() {
         const msBefore = Date.now();

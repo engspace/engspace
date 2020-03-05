@@ -1,25 +1,17 @@
-import { pool } from '.';
-import {
-    createDemoFamilies,
-    createDemoUsers,
-    deleteAllFamilies,
-    deleteAllUsers,
-} from './demo-helpers';
-import { partBaseDao } from '../src';
 import { expect } from 'chai';
+import { pool } from '.';
+import { partBaseDao } from '../src';
 import { wrongUuid } from './dao-base';
+import { cleanTables, transacDemoPartFamilies, transacDemoUsers } from './helpers';
 
 describe('partBaseDao', function() {
     let users;
     let families;
     before(async function() {
-        users = await createDemoUsers();
-        families = await createDemoFamilies();
+        users = await transacDemoUsers();
+        families = await transacDemoPartFamilies();
     });
-    after(async function() {
-        await deleteAllFamilies();
-        await deleteAllUsers();
-    });
+    after(cleanTables(['part_family', 'user']));
 
     describe('Create', function() {
         const msBef = Date.now();

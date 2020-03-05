@@ -16,15 +16,11 @@ import {
     DemoUserSet,
     documentInput,
     membersInput,
-    partFamiliesInput,
-    prepareProjects,
     prepareRevision,
     prepareStore,
-    prepareUsers,
 } from '@engspace/demo-data-input';
 import {
     Db,
-    DbPool,
     documentDao,
     documentRevisionDao,
     loginDao,
@@ -36,10 +32,6 @@ import {
 
 export async function createDemoUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
     return asyncKeyMap(users, async u => userDao.create(db, u));
-}
-
-export async function transacDemoUsers(pool: DbPool): Promise<DemoUserSet> {
-    return pool.transaction(async db => createDemoUsers(db, prepareUsers()));
 }
 
 export async function createDemoLogins(db: Db, users: Promise<DemoUserSet>): Promise<void> {
@@ -54,10 +46,6 @@ export async function createDemoProjects(
     projs: DemoProjectInputSet
 ): Promise<DemoProjectSet> {
     return asyncKeyMap(projs, async p => projectDao.create(db, p));
-}
-
-export async function transacDemoProjects(pool: DbPool): Promise<DemoProjectSet> {
-    return pool.transaction(async db => createDemoProjects(db, prepareProjects()));
 }
 
 export async function createDemoMembers(
@@ -82,10 +70,6 @@ export async function createDemoPartFamilies(
     input: DemoPartFamilyInputSet
 ): Promise<DemoPartFamilySet> {
     return asyncKeyMap(input, async pf => partFamilyDao.create(db, pf));
-}
-
-export async function transacDemoPartFamilies(pool: DbPool): Promise<DemoPartFamilySet> {
-    return pool.transaction(async db => createDemoPartFamilies(db, partFamiliesInput));
 }
 
 async function createDocument(

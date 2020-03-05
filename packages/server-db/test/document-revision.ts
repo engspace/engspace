@@ -1,15 +1,14 @@
-import { prepareUsers } from '@engspace/demo-data-input';
+import {
+    Document,
+    DocumentInput,
+    DocumentRevision,
+    DocumentRevisionInput,
+    User,
+} from '@engspace/core';
 import { expect } from 'chai';
 import { pool } from '.';
-import { documentRevisionDao, userDao, documentDao, Db } from '../src';
-import { createUsers } from './user';
-import {
-    DocumentRevision,
-    Document,
-    User,
-    DocumentRevisionInput,
-    DocumentInput,
-} from '@engspace/core';
+import { Db, documentDao, documentRevisionDao, userDao } from '../src';
+import { transacDemoUsers } from './helpers';
 
 async function createDoc(
     db: Db,
@@ -52,9 +51,7 @@ describe('documentRevisionDao', function() {
     let users;
 
     before('create users', async function() {
-        users = await pool.transaction(async db => {
-            return createUsers(db, prepareUsers());
-        });
+        users = await transacDemoUsers();
     });
 
     after('delete users', async function() {

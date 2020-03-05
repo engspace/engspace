@@ -1,17 +1,14 @@
 import { expect } from 'chai';
 import { pool } from '.';
-import { projectDao, documentDao, userDao } from '../src';
-import { createUsers } from './user';
-import { prepareUsers } from '@engspace/demo-data-input';
+import { documentDao, projectDao } from '../src';
+import { cleanTable, transacDemoUsers } from './helpers';
 
 // fake v4 uuid
 export const wrongUuid = '01234567-89ab-4000-8fff-cdef01234567';
 
 describe('Dao Base', function() {
     describe('DaoIdent (with projectDao)', function() {
-        afterEach('Delete projects', async function() {
-            return pool.transaction(async db => projectDao.deleteAll(db));
-        });
+        afterEach('Delete projects', cleanTable('project'));
 
         it('should get a row by id', async function() {
             const { id } = await pool.transaction(async db => {
@@ -151,15 +148,11 @@ describe('Dao Base', function() {
     describe('DaoRowMap (with documentDao)', function() {
         let users;
         before('create users', async function() {
-            users = await pool.transaction(async db => createUsers(db, prepareUsers()));
+            users = await transacDemoUsers();
         });
-        after('delete users', async function() {
-            await pool.transaction(async db => userDao.deleteAll(db));
-        });
+        after('delete users', cleanTable('user'));
 
-        afterEach('Delete documents', async function() {
-            return pool.transaction(async db => documentDao.deleteAll(db));
-        });
+        afterEach('delete documents', cleanTable('document'));
 
         it('should get a row by id', async function() {
             const { id } = await pool.transaction(async db => {
