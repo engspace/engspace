@@ -1,8 +1,8 @@
+import { expect } from 'chai';
 import fs from 'fs';
 import path from 'path';
 import { storePath } from '.';
-import { expect } from 'chai';
-import { bufferSha1sum, fileSha1sum, CharIterator } from '../src/util';
+import { bufferSha1sum, CharIterator, fileSha1sum } from '../src/util';
 
 describe('Util', function() {
     describe('sha1 utility', function() {

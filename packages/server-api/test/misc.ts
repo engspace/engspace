@@ -1,25 +1,17 @@
-import { prepareUsers } from '@engspace/demo-data-input';
-import { userDao } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { signJwt, verifyJwt } from '../src/crypto';
 import { auth } from './auth';
-import { createUsers } from './user';
+import { cleanTable, transacDemoUsers } from './helpers';
 
 describe('Miscellaneous', function() {
     let users;
     before('Create users', async function() {
-        return pool.transaction(async db => {
-            users = await createUsers(db, prepareUsers());
-        });
+        users = await transacDemoUsers();
     });
 
-    after('Delete users', async function() {
-        return pool.transaction(async db => {
-            await userDao.deleteAll(db);
-        });
-    });
+    after('Delete users', cleanTable('user'));
 
     describe('Crypto', function() {
         it('should verify a valid token', async function() {

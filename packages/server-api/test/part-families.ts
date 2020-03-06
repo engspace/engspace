@@ -1,22 +1,9 @@
-import {
-    asyncKeyMap,
-    DemoPartFamilyInputSet,
-    DemoPartFamilySet,
-    prepareUsers,
-} from '@engspace/demo-data-input';
-import { Db, partFamilyDao, userDao } from '@engspace/server-db';
+import { createDemoPartFamilies, partFamilyDao } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { permsAuth } from './auth';
-import { createUsers } from './user';
-
-export async function createPartFamilies(
-    db: Db,
-    input: DemoPartFamilyInputSet
-): Promise<DemoPartFamilySet> {
-    return asyncKeyMap(input, async pf => partFamilyDao.create(db, pf));
-}
+import { cleanTable, transacDemoUsers } from './helpers';
 
 const PARTFAM_FIELDS = gql`
     fragment PartFamFields on PartFamily {
@@ -55,22 +42,16 @@ const PARTFAM_UPDATE = gql`
 
 describe('GraphQL PartFamilies', function() {
     let users;
-    before('Create users and projects', async function() {
-        return pool.transaction(async db => {
-            users = await createUsers(db, prepareUsers());
-        });
+    before('Create users', async function() {
+        users = await transacDemoUsers();
     });
+    after('Delete users', cleanTable('user'));
 
-    after('Delete users and projects', async function() {
-        return pool.transaction(async db => {
-            await userDao.deleteAll(db);
-        });
-    });
     describe('Query', function() {
         let families;
         before('Create part families', async function() {
             families = await pool.transaction(async db => {
-                return createPartFamilies(db, {
+                return createDemoPartFamilies(db, {
                     fam1: {
                         name: 'family 1',
                         code: '1',

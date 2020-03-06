@@ -1,17 +1,14 @@
 import { Document, DocumentRevision, DocumentRevisionInput, User } from '@engspace/core';
-import { prepareUsers } from '@engspace/demo-data-input';
-import { Db, documentDao, documentRevisionDao, userDao } from '@engspace/server-db';
+import { Db, documentDao, documentRevisionDao } from '@engspace/server-db';
 import { expect, request } from 'chai';
 import config from 'config';
 import fs from 'fs';
+import gql from 'graphql-tag';
 import path from 'path';
-import { api, pool, storePath, buildGqlServer } from '.';
+import { api, buildGqlServer, pool, storePath } from '.';
 import { bufferSha1sum } from '../src/util';
 import { bearerToken, permsAuth } from './auth';
-import { createDoc } from './document';
-import { createDocRev } from './document-revision';
-import { createUsers } from './user';
-import gql from 'graphql-tag';
+import { cleanTable, createDoc, createDocRev, transacDemoUsers } from './helpers';
 
 async function createDocRevWithContent(
     db: Db,
@@ -54,16 +51,10 @@ describe('HTTP /api/document', function() {
     let users;
 
     before('Create users', async () => {
-        return pool.transaction(async db => {
-            users = await createUsers(db, prepareUsers());
-        });
+        users = await transacDemoUsers();
     });
 
-    after('Delete users', async function() {
-        await pool.transaction(async db => {
-            await userDao.deleteAll(db);
-        });
-    });
+    after('Delete users', cleanTable('user'));
 
     let server;
 

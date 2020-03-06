@@ -1,25 +1,9 @@
-import {
-    asyncKeyMap,
-    DemoProjectInputSet,
-    DemoProjectSet,
-    DemoUserSet,
-    prepareProjects,
-    prepareUsers,
-} from '@engspace/demo-data-input';
-import { Db, projectDao } from '@engspace/server-db';
+import { DemoProjectSet, DemoUserSet, prepareProjects } from '@engspace/demo-data-input';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { permsAuth } from './auth';
-import { createUsers, deleteAllUsers } from './user';
-
-export async function deleteAllProjects(): Promise<void> {
-    await pool.transaction(async db => projectDao.deleteAll(db));
-}
-
-export async function createProjects(db: Db, projs: DemoProjectInputSet): Promise<DemoProjectSet> {
-    return asyncKeyMap(projs, async p => projectDao.create(db, p));
-}
+import { cleanTable, transacDemoProjects, transacDemoUsers } from './helpers';
 
 export const PROJECT_FIELDS = gql`
     fragment ProjectFields on Project {
@@ -83,19 +67,19 @@ describe('GraphQL Project', () => {
     let users: DemoUserSet;
 
     before('Create users', async () => {
-        users = await pool.transaction(db => createUsers(db, prepareUsers()));
+        users = await transacDemoUsers();
     });
 
-    after(deleteAllUsers);
+    after(cleanTable('user'));
 
     describe('Query', function() {
         let projects: DemoProjectSet;
 
         before('Create projects', async () => {
-            projects = await pool.transaction(db => createProjects(db, projectsInput));
+            projects = await transacDemoProjects();
         });
 
-        after(deleteAllProjects);
+        after(cleanTable('project'));
 
         it('should read project with "project.read"', async () => {
             const result = await pool.connect(async db => {
@@ -200,7 +184,7 @@ describe('GraphQL Project', () => {
 
     describe('Mutation', () => {
         describe('Create', () => {
-            afterEach(deleteAllProjects);
+            afterEach(cleanTable('project'));
 
             it('should create project with "project.create"', async function() {
                 const { errors, data } = await pool.transaction(async db => {
@@ -241,10 +225,10 @@ describe('GraphQL Project', () => {
             let projects: DemoProjectSet;
 
             before('Create projects', async () => {
-                projects = await pool.transaction(db => createProjects(db, projectsInput));
+                projects = await transacDemoProjects();
             });
 
-            after(deleteAllProjects);
+            after(cleanTable('project'));
 
             const mars = {
                 code: 'mars',

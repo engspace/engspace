@@ -1,35 +1,16 @@
-import { ProjectMember } from '@engspace/core';
+import { prepareProjects, prepareUsers } from '@engspace/demo-data-input';
 import {
-    DemoProjectSet,
-    DemoUserSet,
-    membersInput,
-    prepareProjects,
-    prepareUsers,
-} from '@engspace/demo-data-input';
-import { memberDao, projectDao, userDao } from '@engspace/server-db';
+    createDemoMembers,
+    createDemoProjects,
+    createDemoUsers,
+    memberDao,
+    projectDao,
+    userDao,
+} from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { permsAuth } from './auth';
-import { createProjects } from './project';
-import { createUsers } from './user';
-
-async function createMembers(
-    db,
-    projects: Promise<DemoProjectSet>,
-    users: Promise<DemoUserSet>
-): Promise<ProjectMember[]> {
-    const [projs, usrs] = await Promise.all([projects, users]);
-    return Promise.all(
-        membersInput.map(m =>
-            memberDao.create(db, {
-                projectId: projs[m.project].id,
-                userId: usrs[m.user].id,
-                roles: m.roles,
-            })
-        )
-    );
-}
 
 const MEMBER_FIELDS = gql`
     fragment MemberFields on ProjectMember {
@@ -116,8 +97,8 @@ describe('GraphQL members', function() {
     let projects;
     before('Create users and projects', async function() {
         return pool.transaction(async db => {
-            users = await createUsers(db, prepareUsers());
-            projects = await createProjects(db, prepareProjects());
+            users = await createDemoUsers(db, prepareUsers());
+            projects = await createDemoProjects(db, prepareProjects());
         });
     });
 
@@ -133,7 +114,7 @@ describe('GraphQL members', function() {
 
         before('Create members', async function() {
             return pool.transaction(async db => {
-                members = await createMembers(
+                members = await createDemoMembers(
                     db,
                     Promise.resolve(projects),
                     Promise.resolve(users)

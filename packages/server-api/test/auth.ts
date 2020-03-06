@@ -1,4 +1,4 @@
-import { AuthToken, User, UserInput, HasId } from '@engspace/core';
+import { AuthToken, HasId, User, UserInput } from '@engspace/core';
 import { Db, userDao } from '@engspace/server-db';
 import { rolePolicies } from '.';
 import { signJwt } from '../src/crypto';

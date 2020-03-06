@@ -1,28 +1,9 @@
-import { Document, DocumentInput, User } from '@engspace/core';
-import { prepareUsers } from '@engspace/demo-data-input';
-import { Db, documentDao, userDao } from '@engspace/server-db';
+import { documentDao } from '@engspace/server-db';
+import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { permsAuth } from './auth';
-import { createUsers } from './user';
-import { expect } from 'chai';
-
-export async function createDoc(
-    db: Db,
-    user: User,
-    input: Partial<DocumentInput> = {}
-): Promise<Document> {
-    return documentDao.create(
-        db,
-        {
-            name: 'docname',
-            description: 'doc description',
-            initialCheckout: true,
-            ...input,
-        },
-        user.id
-    );
-}
+import { cleanTable, createDoc, transacDemoUsers } from './helpers';
 
 const DOC_FIELDS = gql`
     fragment DocFields on Document {
@@ -90,16 +71,10 @@ const DOC_DISCARD_CHECKOUT = gql`
 describe('GraphQL documents', function() {
     let users;
     before('Create users', async function() {
-        return pool.transaction(async db => {
-            users = await createUsers(db, prepareUsers());
-        });
+        users = await transacDemoUsers();
     });
 
-    after('Delete users', async function() {
-        return pool.transaction(async db => {
-            await userDao.deleteAll(db);
-        });
-    });
+    after('Delete users', cleanTable('user'));
 
     describe('Query', function() {
         let documents;
@@ -125,9 +100,7 @@ describe('GraphQL documents', function() {
                 ]);
             });
         });
-        after('Delete documents', async function() {
-            await pool.transaction(async db => documentDao.deleteAll(db));
-        });
+        after('Delete documents', cleanTable('document'));
 
         it('should read a document with "document.read"', async function() {
             const { errors, data } = await pool.connect(async db => {

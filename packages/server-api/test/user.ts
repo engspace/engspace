@@ -1,23 +1,10 @@
 import { User, UserInput } from '@engspace/core';
-import {
-    DemoUserSet,
-    prepareUsers,
-    DemoUserInputSet,
-    asyncKeyMap,
-} from '@engspace/demo-data-input';
-import { userDao, Db } from '@engspace/server-db';
+import { DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { auth, createAuth, permsAuth } from './auth';
-
-export async function deleteAllUsers(): Promise<void> {
-    await pool.transaction(async db => userDao.deleteAll(db));
-}
-
-export async function createUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
-    return asyncKeyMap(users, async u => userDao.create(db, u));
-}
+import { cleanTable, transacDemoUsers } from './helpers';
 
 export const USER_FIELDS = gql`
     fragment UserFields on User {
@@ -46,11 +33,11 @@ describe('GraphQL User', () => {
         let userArr: User[];
 
         before('Create users', async () => {
-            users = await pool.transaction(async db => createUsers(db, usersInput));
+            users = await transacDemoUsers();
             userArr = Object.entries(users).map(kv => kv[1]);
         });
 
-        after(deleteAllUsers);
+        after(cleanTable('user'));
 
         it('should read a user with "user.read"', async () => {
             const result = await pool.connect(async db => {
@@ -149,7 +136,7 @@ describe('GraphQL User', () => {
 
     describe('Mutate', () => {
         describe('Create', () => {
-            afterEach(deleteAllUsers);
+            afterEach(cleanTable('user'));
 
             it('should create user with admin', async () => {
                 const result = await pool.transaction(async db => {
@@ -205,10 +192,10 @@ describe('GraphQL User', () => {
             let users: DemoUserSet;
 
             beforeEach('Create users', async () => {
-                users = await pool.transaction(async db => createUsers(db, usersInput));
+                users = await transacDemoUsers();
             });
 
-            afterEach(deleteAllUsers);
+            afterEach(cleanTable('user'));
 
             const bob: UserInput = {
                 name: 'bob',

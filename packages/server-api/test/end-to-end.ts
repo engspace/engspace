@@ -1,35 +1,22 @@
-import { prepareProjects, prepareUsers } from '@engspace/demo-data-input';
-import { memberDao, projectDao, userDao } from '@engspace/server-db';
+import { memberDao, projectDao } from '@engspace/server-db';
 import { expect, request } from 'chai';
 import config from 'config';
 import { print } from 'graphql/language/printer';
 import { api, pool } from '.';
-import { bearerToken, permsAuth } from './auth';
-import { MEMBER_DELETE } from './member';
-import {
-    createProjects,
-    deleteAllProjects,
-    PROJECT_CREATE,
-    PROJECT_READ,
-    PROJECT_UPDATE,
-} from './project';
-import { createUsers } from './user';
 import { signJwt } from '../src/crypto';
+import { bearerToken, permsAuth } from './auth';
+import { cleanTable, transacDemoProjects, transacDemoUsers } from './helpers';
+import { MEMBER_DELETE } from './member';
+import { PROJECT_CREATE, PROJECT_READ, PROJECT_UPDATE } from './project';
 
 describe('End to end GraphQL', function() {
     let users;
 
-    before('Create users', async () => {
-        return pool.transaction(async db => {
-            users = await createUsers(db, prepareUsers());
-        });
+    before('Create users', async function() {
+        users = await transacDemoUsers();
     });
 
-    after('Delete users', async function() {
-        await pool.transaction(async db => {
-            await userDao.deleteAll(db);
-        });
-    });
+    after('Delete users', cleanTable('user'));
 
     let server;
 
@@ -39,7 +26,7 @@ describe('End to end GraphQL', function() {
     });
 
     describe('General', function() {
-        afterEach(deleteAllProjects);
+        afterEach(cleanTable('project'));
 
         it('should return 404 if unmatched resource', async function() {
             const token = await bearerToken(permsAuth(users.philippe, ['project.read']));
@@ -155,11 +142,11 @@ describe('End to end GraphQL', function() {
     describe('Query / GET', function() {
         let projects;
 
-        before('Create projects', async () => {
-            projects = await pool.transaction(db => createProjects(db, prepareProjects()));
+        before('Create projects', async function() {
+            projects = await transacDemoProjects();
         });
 
-        after(deleteAllProjects);
+        after(cleanTable('project'));
 
         it('read project values with GET', async function() {
             const token = await bearerToken(permsAuth(users.philippe, ['project.read']));

@@ -1,25 +1,13 @@
 import { DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
+import { createDemoLogins, createDemoUsers } from '@engspace/server-db';
 import { expect, request } from 'chai';
 import config from 'config';
 import http from 'http';
-import { sql } from 'slonik';
 import { api, pool } from '.';
-import { auth } from './auth';
-import { createUsers } from './user';
 import { verifyJwt } from '../src/crypto';
 import { authJwtSecret } from '../src/internal';
-import { Db, loginDao } from '@engspace/server-db';
-
-async function deleteAll(): Promise<void> {
-    await pool.transaction(async db => db.query(sql`DELETE FROM "user"`));
-}
-
-async function createLogins(db: Db, users: Promise<DemoUserSet>): Promise<void> {
-    const usrs = await users;
-    for (const name in usrs) {
-        await loginDao.create(db, usrs[name].id, name);
-    }
-}
+import { auth } from './auth';
+import { cleanTable } from './helpers';
 
 describe('Login', () => {
     const usersInput = prepareUsers();
@@ -28,8 +16,8 @@ describe('Login', () => {
 
     before('Create users', async () => {
         users = await pool.transaction(async db => {
-            const usrs = createUsers(db, usersInput);
-            await createLogins(db, usrs);
+            const usrs = createDemoUsers(db, usersInput);
+            await createDemoLogins(db, usrs);
             return usrs;
         });
     });
@@ -38,7 +26,7 @@ describe('Login', () => {
         server = api.koa.listen(port, done);
     });
 
-    after(deleteAll);
+    after(cleanTable('user'));
 
     it('should return bearer token', async () => {
         const resp = await request(server)

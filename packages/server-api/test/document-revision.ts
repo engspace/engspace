@@ -1,32 +1,10 @@
-import { Document, DocumentRevision, DocumentRevisionInput, User } from '@engspace/core';
 import { prepareUsers } from '@engspace/demo-data-input';
-import { Db, documentDao, documentRevisionDao, userDao } from '@engspace/server-db';
+import { createDemoUsers, documentRevisionDao } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { permsAuth } from './auth';
-import { createDoc } from './document';
-import { createUsers } from './user';
-
-export async function createDocRev(
-    db: Db,
-    doc: Document,
-    user: User,
-    input: Partial<DocumentRevisionInput> = {}
-): Promise<DocumentRevision> {
-    return documentRevisionDao.create(
-        db,
-        {
-            filename: 'file.ext',
-            filesize: 1664,
-            changeDescription: 'update file',
-            retainCheckout: true,
-            ...input,
-            documentId: doc.id,
-        },
-        user.id
-    );
-}
+import { cleanTables, createDoc, createDocRev } from './helpers';
 
 const DOCREV_FIELDS = gql`
     fragment DocRevFields on DocumentRevision {
@@ -98,7 +76,7 @@ describe('GraphQL Document Revision', function() {
 
     before('Create users and document', async function() {
         await pool.transaction(async db => {
-            users = await createUsers(db, prepareUsers());
+            users = await createDemoUsers(db, prepareUsers());
             document = await createDoc(db, users.tania, {
                 name: 'a',
                 description: 'doc A',
@@ -106,12 +84,7 @@ describe('GraphQL Document Revision', function() {
             });
         });
     });
-    after('Delete users and document', async function() {
-        await pool.transaction(async db => {
-            await documentDao.deleteAll(db);
-            await userDao.deleteAll(db);
-        });
-    });
+    after('Delete users and document', cleanTables(['document', 'user']));
 
     describe('Query', function() {
         let revisions;

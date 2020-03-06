@@ -1,7 +1,7 @@
+import { userDao } from '@engspace/server-db';
 import { expect, request } from 'chai';
 import config from 'config';
 import { api, pool } from '.';
-import { userDao } from '@engspace/server-db';
 
 describe('HTTP /api/first_admin', function() {
     let server;
