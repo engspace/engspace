@@ -25,6 +25,8 @@ export interface EsServerConfig {
     storePath: string;
     pool: DbPool;
     cors: boolean;
+    // this is for playground only
+    sessionKeys?: string[];
 }
 
 export class EsServerApi {

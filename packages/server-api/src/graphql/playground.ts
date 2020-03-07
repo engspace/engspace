@@ -2,7 +2,6 @@ import { AuthToken } from '@engspace/core';
 import { loginDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import { ApolloServer } from 'apollo-server-koa';
-import config from 'config';
 import fs from 'fs';
 import mime from 'mime';
 import HttpStatus from 'http-status-codes';
@@ -17,7 +16,7 @@ import { resolvers } from './resolvers';
 import { typeDefs } from './schema';
 
 export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServerConfig): void {
-    app.keys = config.get<string[]>('sessionSigningKeys');
+    app.keys = esConfig.sessionKeys;
     app.use(session(app));
 
     const { rolePolicies, pool } = esConfig;
