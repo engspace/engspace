@@ -1,13 +1,14 @@
 import { DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
 import { createDemoLogins, createDemoUsers } from '@engspace/server-db';
 import { expect, request } from 'chai';
-import config from 'config';
 import http from 'http';
-import { api, pool } from '.';
+import { api, pool, config } from '.';
 import { verifyJwt } from '../src/crypto';
 import { authJwtSecret } from '../src/internal';
 import { auth } from './auth';
 import { cleanTable } from './helpers';
+
+const { serverPort } = config;
 
 describe('Login', () => {
     const usersInput = prepareUsers();
@@ -22,8 +23,7 @@ describe('Login', () => {
         });
     });
     before('Start server', done => {
-        const { port } = config.get('server');
-        server = api.koa.listen(port, done);
+        server = api.koa.listen(serverPort, done);
     });
 
     after(cleanTable('user'));

@@ -1,16 +1,72 @@
 import { buildDefaultAppRolePolicies } from '@engspace/core';
 import { populateData } from './populate-data';
 import { EsServerApi } from '@engspace/server-api';
-import { createDbPool, DbPool, initSchema } from '@engspace/server-db';
-import config from 'config';
+import {
+    createDbPool,
+    DbPool,
+    initSchema,
+    DbPoolConfig,
+    prepareDb,
+    DbConnConfig,
+    ServerConnConfig,
+    connectionString,
+    DbPreparationConfig,
+} from '@engspace/server-db';
 import events from 'events';
 import Koa from 'koa';
 import logger from 'koa-logger';
-import path from 'path';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
-const storePath = path.normalize(path.join(__dirname, '../file_store'));
+const config = {
+    dbHost: process.env.DB_HOST,
+    dbPort: process.env.DB_PORT,
+    dbUser: process.env.DB_USER,
+    dbPass: process.env.DB_PASS,
+    dbName: process.env.DB_NAME,
+    serverPort: process.env.SERVER_PORT,
+    storePath: process.env.STORE_PATH,
+};
+
+const serverConnConfig: ServerConnConfig = {
+    host: config.dbUser,
+    port: config.dbPort,
+    user: config.dbUser,
+    pass: config.dbPass,
+};
+
+const dbConnConfig: DbConnConfig = {
+    ...serverConnConfig,
+    name: config.dbName,
+};
+
+const dbPreparationConfig: DbPreparationConfig = {
+    serverConnString: connectionString(serverConnConfig),
+    name: dbConnConfig.name,
+    formatDb: true,
+};
+
+const dbPoolConfig: DbPoolConfig = {
+    dbConnString: connectionString(dbConnConfig),
+    slonikOptions: {
+        captureStackTrace: true,
+    },
+};
+
+const pool: DbPool = createDbPool(dbPoolConfig);
+prepareDb(dbPreparationConfig)
+    .then(async () => {
+        await pool.transaction(db => initSchema(db));
+        await populateData(pool, config.storePath);
+        const api = buildServerApi(pool);
+        api.koa.listen(config.serverPort, () => {
+            console.log(`Demo API listening to port ${config.serverPort}`);
+        });
+    })
+    .catch(err => {
+        console.error('error during the demo app');
+        console.error(err);
+    });
 
 function buildServerApi(pool: DbPool): EsServerApi {
     const rolePolicies = buildDefaultAppRolePolicies();
@@ -18,7 +74,7 @@ function buildServerApi(pool: DbPool): EsServerApi {
     const api = new EsServerApi(new Koa(), {
         pool,
         rolePolicies,
-        storePath,
+        storePath: config.storePath,
         cors: true,
     });
     api.koa.use(logger());
@@ -29,21 +85,3 @@ function buildServerApi(pool: DbPool): EsServerApi {
 
     return api;
 }
-
-createDbPool(config.get('db'))
-    .then(async pool => {
-        await pool.transaction(db => initSchema(db));
-        await populateData(pool, storePath);
-        return pool;
-    })
-    .then(async pool => {
-        const api = buildServerApi(pool);
-        const { port } = config.get('server');
-        api.koa.listen(port, () => {
-            console.log(`Demo API listening to port ${port}`);
-        });
-    })
-    .catch(err => {
-        console.error('error during the demo app');
-        console.error(err);
-    });

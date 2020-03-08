@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 import fs from 'fs';
 import path from 'path';
-import { storePath } from '.';
+import { config } from '.';
 import { bufferSha1sum, CharIterator, fileSha1sum } from '../src/util';
 
 describe('Util', function() {
     describe('sha1 utility', function() {
         // using store path as temporary location
-        const filepath = path.join(storePath, 'abcd.file');
+        const filepath = path.join(config.storePath, 'abcd.file');
         const content = 'abcd';
         const sha1 = '81fe8bfe87576c3ecb22426f8e57847382917acf';
         before('create file', async function() {

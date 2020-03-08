@@ -1,14 +1,15 @@
 import { Document, DocumentRevision, DocumentRevisionInput, User } from '@engspace/core';
 import { Db, documentDao, documentRevisionDao } from '@engspace/server-db';
 import { expect, request } from 'chai';
-import config from 'config';
 import fs from 'fs';
 import gql from 'graphql-tag';
 import path from 'path';
-import { api, buildGqlServer, pool, storePath } from '.';
+import { api, buildGqlServer, pool, config } from '.';
 import { bufferSha1sum } from '../src/util';
 import { bearerToken, permsAuth } from './auth';
 import { cleanTable, createDoc, createDocRev, transacDemoUsers } from './helpers';
+
+const { storePath, serverPort } = config;
 
 async function createDocRevWithContent(
     db: Db,
@@ -59,8 +60,7 @@ describe('HTTP /api/document', function() {
     let server;
 
     before('Start server', done => {
-        const { port } = config.get('server');
-        server = api.koa.listen(port, done);
+        server = api.koa.listen(serverPort, done);
     });
 
     describe('Download', function() {

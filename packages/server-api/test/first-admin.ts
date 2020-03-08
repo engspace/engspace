@@ -1,14 +1,14 @@
 import { userDao } from '@engspace/server-db';
 import { expect, request } from 'chai';
-import config from 'config';
-import { api, pool } from '.';
+import { api, pool, config } from '.';
+
+const { serverPort } = config;
 
 describe('HTTP /api/first_admin', function() {
     let server;
 
     before('Start server', done => {
-        const { port } = config.get('server');
-        server = api.koa.listen(port, done);
+        server = api.koa.listen(serverPort, done);
     });
 
     afterEach('Delete users', async function() {

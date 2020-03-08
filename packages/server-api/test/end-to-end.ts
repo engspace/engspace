@@ -1,13 +1,14 @@
 import { memberDao, projectDao } from '@engspace/server-db';
 import { expect, request } from 'chai';
-import config from 'config';
 import { print } from 'graphql/language/printer';
-import { api, pool } from '.';
+import { api, pool, config } from '.';
 import { signJwt } from '../src/crypto';
 import { bearerToken, permsAuth } from './auth';
 import { cleanTable, transacDemoProjects, transacDemoUsers } from './helpers';
 import { MEMBER_DELETE } from './member';
 import { PROJECT_CREATE, PROJECT_READ, PROJECT_UPDATE } from './project';
+
+const { serverPort } = config;
 
 describe('End to end GraphQL', function() {
     let users;
@@ -21,8 +22,7 @@ describe('End to end GraphQL', function() {
     let server;
 
     before('Start server', done => {
-        const { port } = config.get('server');
-        server = api.koa.listen(port, done);
+        server = api.koa.listen(serverPort, done);
     });
 
     describe('General', function() {

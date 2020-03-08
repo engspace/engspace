@@ -25,11 +25,12 @@ export interface EsServerConfig {
     storePath: string;
     pool: DbPool;
     cors: boolean;
+    // this is for playground only
+    sessionKeys? string[];
 }
 
 export class EsServerApi {
     constructor(public koa: Koa, public config: EsServerConfig) {
-        fs.mkdir(config.storePath, { recursive: true }, err => {});
         koa.use(
             bodyParser({
                 enableTypes: ['json', 'text', 'form'],
