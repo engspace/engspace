@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { sql } from 'slonik';
-import { config, serverConnConfig } from '.';
-import { createDbPool, initSchema, prepareDb, connectionString } from '../src';
+import { serverConnConfig } from '.';
+import { connectionString, createDbPool, initSchema, prepareDb } from '../src';
 
 describe('Pool creation', async () => {
     const dbName = 'engspace_server_db_test2';
