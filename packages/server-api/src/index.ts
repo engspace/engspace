@@ -4,7 +4,6 @@ import cors from '@koa/cors';
 import Router from '@koa/router';
 import { ApolloLogExtension } from 'apollo-log';
 import { ApolloServer } from 'apollo-server-koa';
-import fs from 'fs';
 import HttpStatus from 'http-status-codes';
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
@@ -20,6 +19,8 @@ import { setupFirstAdminRoutes } from './http/first-admin';
 import { setupLoginRoute } from './http/login';
 import { attachDb, authJwtSecret, setAuthToken } from './internal';
 import { AppRefNaming } from './ref-naming';
+
+export { AppRefNaming, PartBaseRefNaming } from './ref-naming';
 
 export interface EsServerConfig {
     rolePolicies: AppRolePolicies;

@@ -1,5 +1,5 @@
 import { buildDefaultAppRolePolicies } from '@engspace/core';
-import { EsServerApi } from '@engspace/server-api';
+import { EsServerApi, PartBaseRefNaming } from '@engspace/server-api';
 import {
     connectionString,
     createDbPool,
@@ -29,7 +29,7 @@ const config = {
 };
 
 const serverConnConfig: ServerConnConfig = {
-    host: config.dbUser,
+    host: config.dbHost,
     port: config.dbPort,
     user: config.dbUser,
     pass: config.dbPass,
@@ -76,6 +76,9 @@ function buildServerApi(pool: DbPool): EsServerApi {
         rolePolicies,
         storePath: config.storePath,
         cors: true,
+        refNaming: {
+            partBase: new PartBaseRefNaming('${fam_code}${fam_count:5}'),
+        },
     });
     api.koa.use(logger());
 
