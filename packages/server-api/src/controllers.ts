@@ -16,6 +16,7 @@ import {
     PartFamilyInput,
     PartBase,
     PartBaseInput,
+    PartBaseUpdateInput,
 } from '@engspace/core';
 import {
     Db,
@@ -238,14 +239,25 @@ export namespace PartFamilyControl {
 export namespace PartBaseControl {
     export async function create(ctx: ApiContext, partBase: PartBaseInput): Promise<PartBase> {
         assertUserPerm(ctx, 'part.create');
-        const fam = await partFamilyDao.bumpCounterById(ctx.db, partBase.familyId);
-        const baseRef = ctx.config.refNaming.partBase.getBaseRef(fam);
+        const baseRef = await ctx.db.transaction(async db => {
+            const fam = await partFamilyDao.bumpCounterById(db, partBase.familyId);
+            return ctx.config.refNaming.partBase.getBaseRef(fam);
+        });
         return partBaseDao.create(ctx.db, partBase, baseRef, ctx.auth.userId);
     }
 
     export async function byId(ctx: ApiContext, id: Id): Promise<PartBase> {
         assertUserPerm(ctx, 'part.read');
         return partBaseDao.byId(ctx.db, id);
+    }
+
+    export async function update(
+        ctx: ApiContext,
+        id: Id,
+        partBase: PartBaseUpdateInput
+    ): Promise<PartBase> {
+        assertUserPerm(ctx, 'part.update');
+        return partBaseDao.updateById(ctx.db, id, partBase, ctx.auth.userId);
     }
 }
 

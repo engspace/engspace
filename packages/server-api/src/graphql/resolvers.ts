@@ -271,6 +271,14 @@ export const resolvers = {
             return PartBaseControl.create(ctx, partBase);
         },
 
+        async partBaseUpdate(
+            parent,
+            { id, partBase }: { id: Id; partBase: PartBaseInput },
+            ctx: GqlContext
+        ): Promise<PartBase> {
+            return PartBaseControl.update(ctx, id, partBase);
+        },
+
         async documentCreate(
             parent,
             { document }: { document: DocumentInput },
