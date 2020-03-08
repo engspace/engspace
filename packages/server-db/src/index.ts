@@ -1,8 +1,8 @@
 import {
     ClientConfigurationType,
-    CommonQueryMethodsType,
     createPool,
     DatabasePoolType,
+    DatabaseTransactionConnectionType,
     sql,
     SqlSqlTokenType,
 } from 'slonik';
@@ -19,7 +19,6 @@ export {
     projectDao,
     userDao,
 } from './dao';
-export { initSchema } from './schema';
 export {
     createDemoDocuments,
     createDemoLogins,
@@ -28,8 +27,9 @@ export {
     createDemoProjects,
     createDemoUsers,
 } from './populate-demo';
+export { initSchema } from './schema';
 
-export type Db = CommonQueryMethodsType;
+export type Db = DatabaseTransactionConnectionType;
 export type DbPool = DatabasePoolType;
 export type SqlLiteral<T = any> = SqlSqlTokenType<T>;
 
