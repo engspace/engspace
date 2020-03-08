@@ -14,15 +14,12 @@ export function attachDb(pool: DbPool, path: string) {
         if (ctx.path !== path) {
             return next();
         }
-        const attachAndCallNext = async (db: Db): Promise<void> => {
-            (ctx.state as any)[DB_SYMBOL] = db;
-            await next();
-            delete (ctx.state as any)[DB_SYMBOL];
-        };
-        if (ctx.method === 'GET') {
-            return pool.connect(attachAndCallNext);
-        } else if (ctx.method === 'POST') {
-            return pool.transaction(attachAndCallNext);
+        if (ctx.method === 'GET' || ctx.method === 'POST') {
+            return pool.connect(async db => {
+                (ctx.state as any)[DB_SYMBOL] = db;
+                await next();
+                delete (ctx.state as any)[DB_SYMBOL];
+            });
         } else {
             ctx.throw(405, `unsupported HTTP method for graphql: ${ctx.method}`);
         }
