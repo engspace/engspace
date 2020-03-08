@@ -14,6 +14,8 @@ import {
     ProjectMemberInput,
     User,
     UserInput,
+    PartBase,
+    PartBaseInput,
 } from '@engspace/core';
 import { UserInputError } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
@@ -24,8 +26,10 @@ import {
     PartFamilyControl,
     ProjectControl,
     UserControl,
+    PartBaseControl,
 } from '../controllers';
 import { GqlContext } from './context';
+import { PartBaseRefNaming } from '../ref-naming';
 
 export const resolvers = {
     DateTime: new GraphQLScalarType({
@@ -77,6 +81,18 @@ export const resolvers = {
         },
         roles({ id }: ProjectMember, args, ctx: GqlContext): Promise<string[]> {
             return MemberControl.rolesById(ctx, id);
+        },
+    },
+
+    PartBase: {
+        family({ family }: PartBase, args, ctx: GqlContext): Promise<PartFamily> {
+            return PartFamilyControl.byId(ctx, family.id);
+        },
+        createdBy({ createdBy }: PartBase, args, ctx: GqlContext): Promise<User> {
+            return ctx.loaders.user.load(createdBy.id);
+        },
+        updatedBy({ updatedBy }: PartBase, args, ctx: GqlContext): Promise<User> {
+            return updatedBy ? ctx.loaders.user.load(updatedBy.id) : null;
         },
     },
 
@@ -150,6 +166,14 @@ export const resolvers = {
             return MemberControl.byProjectAndUserId(ctx, projectId, userId);
         },
 
+        partFamily(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartFamily | null> {
+            return PartFamilyControl.byId(ctx, id);
+        },
+
+        partBase(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartBase | null> {
+            return PartBaseControl.byId(ctx, id);
+        },
+
         document(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Document | null> {
             return DocumentControl.byId(ctx, id);
         },
@@ -166,10 +190,6 @@ export const resolvers = {
             ctx: GqlContext
         ): Promise<DocumentRevision | null> {
             return DocumentRevisionControl.byId(ctx, id);
-        },
-
-        partFamily(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartFamily | null> {
-            return PartFamilyControl.byId(ctx, id);
         },
 
         testDateTimeToIso8601(parent, { dt }: { dt: DateTime }): Promise<string> {
@@ -227,6 +247,30 @@ export const resolvers = {
             return MemberControl.deleteById(ctx, id);
         },
 
+        async partFamilyCreate(
+            parent,
+            { partFamily }: { partFamily: PartFamilyInput },
+            ctx: GqlContext
+        ): Promise<PartFamily> {
+            return PartFamilyControl.create(ctx, partFamily);
+        },
+
+        async partFamilyUpdate(
+            parent,
+            { id, partFamily }: { id: Id; partFamily: PartFamilyInput },
+            ctx: GqlContext
+        ): Promise<PartFamily> {
+            return PartFamilyControl.update(ctx, id, partFamily);
+        },
+
+        async partBaseCreate(
+            parent,
+            { partBase }: { partBase: PartBaseInput },
+            ctx: GqlContext
+        ): Promise<PartBase> {
+            return PartBaseControl.create(ctx, partBase);
+        },
+
         async documentCreate(
             parent,
             { document }: { document: DocumentInput },
@@ -265,22 +309,6 @@ export const resolvers = {
             ctx: GqlContext
         ): Promise<DocumentRevision> {
             return DocumentRevisionControl.finalizeUpload(ctx, id, sha1);
-        },
-
-        async partFamilyCreate(
-            parent,
-            { partFamily }: { partFamily: PartFamilyInput },
-            ctx: GqlContext
-        ): Promise<PartFamily> {
-            return PartFamilyControl.create(ctx, partFamily);
-        },
-
-        async partFamilyUpdate(
-            parent,
-            { id, partFamily }: { id: Id; partFamily: PartFamilyInput },
-            ctx: GqlContext
-        ): Promise<PartFamily> {
-            return PartFamilyControl.update(ctx, id, partFamily);
         },
     },
 };

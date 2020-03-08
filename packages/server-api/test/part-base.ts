@@ -150,6 +150,18 @@ describe('GraphQL PartBase', function() {
                     },
                 });
             });
+            console.log(errors);
+            expect(errors).to.be.undefined;
+            expect(data.partBaseCreate).to.deep.include({
+                family: { id: family.id },
+                baseRef: 'P001',
+                designation: 'Part',
+                createdBy: { id: user.id },
+                updatedBy: { id: user.id },
+            });
+            expect(data.partBaseCreate.id).to.be.uuid();
+            expect(data.partBaseCreate.createdAt).to.be.a('number');
+            expect(data.partBaseCreate.updatedAt).to.be.a('number');
         });
     });
 });

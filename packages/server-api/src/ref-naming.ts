@@ -116,6 +116,10 @@ abstract class RefNaming {
     }
 }
 
+export interface AppRefNaming {
+    partBase: PartBaseRefNaming;
+}
+
 export class PartBaseRefNaming extends RefNaming {
     constructor(public readonly input: string) {
         super(input, ['fam_code', 'fam_count']);

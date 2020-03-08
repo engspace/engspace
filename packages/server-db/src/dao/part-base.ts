@@ -26,7 +26,7 @@ function mapRow({
 }: Row): PartBase {
     return {
         id,
-        family: { id: familyId },
+        family: foreignKey(familyId),
         baseRef,
         designation,
         createdBy: foreignKey(createdBy),
@@ -51,10 +51,10 @@ class PartBaseDao extends DaoRowMap<PartBase, Row> {
     ): Promise<PartBase> {
         const row: Row = await db.one(sql`
             INSERT INTO part_base (
-                family_id, base_ref, designation, created_by, created_at
+                family_id, base_ref, designation, created_by, created_at, updated_by, updated_at
             )
             VALUES (
-                ${familyId}, ${baseRef}, ${designation}, ${userId}, NOW()
+                ${familyId}, ${baseRef}, ${designation}, ${userId}, NOW(), ${userId}, NOW()
             )
             RETURNING ${rowToken}
         `);

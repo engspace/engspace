@@ -112,6 +112,26 @@ export const typeDefs = gql`
         counter: Int!
     }
 
+    input PartBaseInput {
+        familyId: ID!
+        designation: ID!
+    }
+
+    input PartBaseUpdateInput {
+        designation: ID!
+    }
+
+    type PartBase {
+        id: ID!
+        family: PartFamily!
+        baseRef: String!
+        designation: String!
+        createdBy: User!
+        createdAt: DateTime!
+        updatedBy: User!
+        updatedAt: DateTime!
+    }
+
     type Query {
         user(id: ID!): User
         userByName(name: String!): User
@@ -130,6 +150,8 @@ export const typeDefs = gql`
         documentRevision(id: ID!): DocumentRevision
 
         partFamily(id: ID!): PartFamily
+
+        partBase(id: ID!): PartBase!
 
         testDateTimeToIso8601(dt: DateTime!): String!
     }
@@ -153,5 +175,8 @@ export const typeDefs = gql`
 
         partFamilyCreate(partFamily: PartFamilyInput!): PartFamily!
         partFamilyUpdate(id: ID!, partFamily: PartFamilyInput!): PartFamily!
+
+        partBaseCreate(partBase: PartBaseInput!): PartBase!
+        partBaseUpdate(id: ID!, partBase: PartBaseUpdateInput!): PartBase!
     }
 `;

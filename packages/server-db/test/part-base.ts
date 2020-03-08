@@ -18,7 +18,7 @@ describe('partBaseDao', function() {
         afterEach('delete part bases', async function() {
             await pool.transaction(async db => partBaseDao.deleteAll(db));
         });
-        it('creates part base', async function() {
+        it('should create part base', async function() {
             const pb = await pool.transaction(async db => {
                 return partBaseDao.create(
                     db,
@@ -35,11 +35,13 @@ describe('partBaseDao', function() {
                 designation: 'water',
                 baseRef: 'RM0001',
                 createdBy: { id: users.tania.id },
-                updatedBy: null,
-                updatedAt: null,
+                updatedBy: { id: users.tania.id },
             });
             expect(pb.id).to.be.uuid();
             expect(pb.createdAt)
+                .to.be.gt(msBef)
+                .and.lt(Date.now());
+            expect(pb.updatedAt)
                 .to.be.gt(msBef)
                 .and.lt(Date.now());
         });

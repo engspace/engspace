@@ -14,6 +14,8 @@ import {
     User,
     UserInput,
     PartFamilyInput,
+    PartBase,
+    PartBaseInput,
 } from '@engspace/core';
 import {
     Db,
@@ -23,6 +25,7 @@ import {
     partFamilyDao,
     projectDao,
     userDao,
+    partBaseDao,
 } from '@engspace/server-db';
 import { ForbiddenError, UserInputError } from 'apollo-server-koa';
 import fs from 'fs';
@@ -205,6 +208,44 @@ export class MemberControl {
         const mem = await memberDao.byId(ctx.db, id);
         await assertUserOrProjectPerm(ctx, mem.project.id, 'member.delete');
         return memberDao.deleteById(ctx.db, id);
+    }
+}
+
+export namespace PartFamilyControl {
+    export async function create(
+        ctx: ApiContext,
+        partFamily: PartFamilyInput
+    ): Promise<PartFamily> {
+        assertUserPerm(ctx, 'partfamily.create');
+        return partFamilyDao.create(ctx.db, partFamily);
+    }
+
+    export async function byId(ctx: ApiContext, id: Id): Promise<PartFamily> {
+        assertUserPerm(ctx, 'partfamily.read');
+        return partFamilyDao.byId(ctx.db, id);
+    }
+
+    export async function update(
+        ctx: ApiContext,
+        id: Id,
+        partFamily: PartFamilyInput
+    ): Promise<PartFamily> {
+        assertUserPerm(ctx, 'partfamily.update');
+        return partFamilyDao.updateById(ctx.db, id, partFamily);
+    }
+}
+
+export namespace PartBaseControl {
+    export async function create(ctx: ApiContext, partBase: PartBaseInput): Promise<PartBase> {
+        assertUserPerm(ctx, 'part.create');
+        const fam = await partFamilyDao.bumpCounterById(ctx.db, partBase.familyId);
+        const baseRef = ctx.config.refNaming.partBase.getBaseRef(fam);
+        return partBaseDao.create(ctx.db, partBase, baseRef, ctx.auth.userId);
+    }
+
+    export async function byId(ctx: ApiContext, id: Id): Promise<PartBase> {
+        assertUserPerm(ctx, 'part.read');
+        return partBaseDao.byId(ctx.db, id);
     }
 }
 
@@ -436,29 +477,5 @@ export namespace DocumentRevisionControl {
         const finalPath = path.join(ctx.config.storePath, sha1);
         await fs.promises.rename(tempPath, finalPath);
         return documentRevisionDao.updateSha1(ctx.db, revisionId, sha1);
-    }
-}
-
-export namespace PartFamilyControl {
-    export async function create(
-        ctx: ApiContext,
-        partFamily: PartFamilyInput
-    ): Promise<PartFamily> {
-        assertUserPerm(ctx, 'partfamily.create');
-        return partFamilyDao.create(ctx.db, partFamily);
-    }
-
-    export async function byId(ctx: ApiContext, id: Id): Promise<PartFamily> {
-        assertUserPerm(ctx, 'partfamily.read');
-        return partFamilyDao.byId(ctx.db, id);
-    }
-
-    export async function update(
-        ctx: ApiContext,
-        id: Id,
-        partFamily: PartFamilyInput
-    ): Promise<PartFamily> {
-        assertUserPerm(ctx, 'partfamily.update');
-        return partFamilyDao.updateById(ctx.db, id, partFamily);
     }
 }

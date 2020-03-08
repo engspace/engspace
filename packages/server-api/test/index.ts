@@ -21,6 +21,7 @@ import fs from 'fs';
 import Koa from 'koa';
 import path from 'path';
 import { EsServerApi } from '../src';
+import { PartBaseRefNaming } from '../src/ref-naming';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -71,6 +72,9 @@ export const api = new EsServerApi(new Koa(), {
     rolePolicies,
     storePath: config.storePath,
     cors: true,
+    refNaming: {
+        partBase: new PartBaseRefNaming('${fam_code}${fam_count:3}'),
+    },
 });
 
 api.setupAuthAndHttpRoutes('/api');

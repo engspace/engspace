@@ -19,12 +19,14 @@ import { setupPostAuthDocRoutes, setupPreAuthDocRoutes } from './http/document';
 import { setupFirstAdminRoutes } from './http/first-admin';
 import { setupLoginRoute } from './http/login';
 import { attachDb, authJwtSecret, setAuthToken } from './internal';
+import { AppRefNaming } from './ref-naming';
 
 export interface EsServerConfig {
     rolePolicies: AppRolePolicies;
     storePath: string;
     pool: DbPool;
     cors: boolean;
+    refNaming: AppRefNaming;
     // this is for playground only
     sessionKeys?: string[];
 }
