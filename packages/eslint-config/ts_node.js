@@ -8,7 +8,7 @@ module.exports = {
         tsconfigRootDir: '../..',
         ecmaVersion: 2018,
         sourceType: 'module',
-        extraFileExtensions: ['json']
+        extraFileExtensions: ['.json']
     },
     plugins: [
         '@typescript-eslint',
