@@ -11,9 +11,7 @@
     "scripts": {
         "lint": "eslint --ext .js,.ts .",
         "lint:fix": "eslint --fix --ext .js,.ts .",
-        "copy:sql": "copyfiles -u 1 \"src/sql/*\" dist",
-        "build:ts": "tsc -b .",
-        "build": "npm-run-all copy:sql build:ts",
+        "build": "tsc -b .",
         "test": "cross-env NODE_ENV=test mocha",
         "test:cov": "cross-env NODE_ENV=test nyc mocha",
         "clean": "rimraf ./dist/ ../../.build-cache/server-db.tsbuildinfo"
@@ -51,7 +49,6 @@
         "chai-as-promised": "^7.1.1",
         "chai-shallow-deep-equal": "^1.4.6",
         "chai-uuid": "^1.0.6",
-        "copyfiles": "^2.1.1",
         "cross-env": "^6.0.3",
         "del": "^5.1.0",
         "eslint": "^6.6.0",
@@ -59,7 +56,6 @@
         "eslint-plugin-prettier": "^3.1.1",
         "lodash.clonedeep": "^4.5.0",
         "mocha": "^6.2.2",
-        "npm-run-all": "^4.1.5",
         "nyc": "^14.1.1",
         "prettier": "^1.19.1",
         "rimraf": "^3.0.0",

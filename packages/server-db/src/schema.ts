@@ -2,16 +2,13 @@ import fs from 'fs';
 import path from 'path';
 import { DatabaseTransactionConnectionType, sql } from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
-import util from 'util';
 import { Db } from '.';
 
-// import metadata from './sql/metadata.json';
-
-const readFileAsync = util.promisify(fs.readFile);
+// import metadata from '../sql/metadata.json';
 
 async function executeSqlFile(db: Db, filename: string): Promise<void> {
-    const sqlPath = path.join(__dirname, 'sql', filename);
-    const sqlContent = await readFileAsync(sqlPath);
+    const sqlPath = path.join(__dirname, '../sql', filename);
+    const sqlContent = await fs.promises.readFile(sqlPath);
     const commands = sqlContent
         .toString()
         .split(';')
