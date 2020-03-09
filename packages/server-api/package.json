@@ -58,6 +58,8 @@
         "@types/lodash.clonedeep": "^4.5.6",
         "@types/mocha": "^5.2.7",
         "@types/validator": "^12.0.1",
+        "@typescript-eslint/eslint-plugin": "^2.23.0",
+        "@typescript-eslint/parser": "^2.23.0",
         "apollo-server-testing": "^2.10.0",
         "chai": "^4.2.0",
         "chai-as-promised": "^7.1.1",
@@ -65,15 +67,15 @@
         "chai-uuid": "^1.0.6",
         "cross-env": "^6.0.3",
         "deep-eql": "^4.0.0",
-        "eslint": "^6.6.0",
-        "eslint-config-prettier": "^6.6.0",
-        "eslint-plugin-prettier": "^3.1.1",
+        "eslint": "^6.8.0",
+        "eslint-config-prettier": "^6.10.0",
+        "eslint-plugin-prettier": "^3.1.2",
         "graphql-tag": "^2.10.3",
         "mocha": "^6.2.2",
         "nyc": "^14.1.1",
         "prettier": "^1.19.1",
         "rimraf": "^3.0.0",
-        "ts-node": "^8.5.2",
-        "typescript": "^3.7.2"
+        "ts-node": "^8.6.2",
+        "typescript": "^3.8.3"
     }
 }
