@@ -3,11 +3,11 @@ import { expect } from 'chai';
 import { filterFields, pool } from '.';
 import { createDemoUsers } from '../dist';
 import { userDao } from '../src';
-import { cleanTable, transacDemoUsers } from './helpers';
+import { cleanTable, transacDemoUsers } from '../src/test-helpers';
 
 describe('userDao', () => {
     describe('Create', () => {
-        afterEach(cleanTable('user'));
+        afterEach(cleanTable(pool, 'user'));
 
         it('should create user', async () => {
             const userA = await pool.transaction(async db => {
@@ -51,7 +51,7 @@ describe('userDao', () => {
         before('create users', async () => {
             users = await pool.transaction(async db => await createDemoUsers(db, prepareUsers()));
         });
-        after(cleanTable('user'));
+        after(cleanTable(pool, 'user'));
         it('should get user by id', async () => {
             const expected = filterFields(users.tania, 'roles');
             const tania = await pool.connect(async db => await userDao.byId(db, users.tania.id));
@@ -96,9 +96,9 @@ describe('userDao', () => {
     describe('Search', () => {
         let users: DemoUserSet;
         before('create users', async function() {
-            users = await transacDemoUsers();
+            users = await transacDemoUsers(pool);
         });
-        after(cleanTable('user'));
+        after(cleanTable(pool, 'user'));
 
         it('should find users partial name', async () => {
             const expected = {
@@ -177,7 +177,7 @@ describe('userDao', () => {
                 })
             );
         });
-        afterEach(cleanTable('user'));
+        afterEach(cleanTable(pool, 'user'));
 
         it('should update user', async function() {
             const userB = await pool.transaction(async db => {
@@ -230,7 +230,7 @@ describe('userDao', () => {
                 })
             );
         });
-        afterEach(cleanTable('user'));
+        afterEach(cleanTable(pool, 'user'));
 
         it('should patch user full name', async () => {
             const patch = {

@@ -8,7 +8,7 @@ import {
 import { expect } from 'chai';
 import { pool } from '.';
 import { Db, documentDao, documentRevisionDao, userDao } from '../src';
-import { transacDemoUsers } from './helpers';
+import { transacDemoUsers } from '../src/test-helpers';
 
 async function createDoc(
     db: Db,
@@ -51,7 +51,7 @@ describe('documentRevisionDao', function() {
     let users;
 
     before('create users', async function() {
-        users = await transacDemoUsers();
+        users = await transacDemoUsers(pool);
     });
 
     after('delete users', async function() {

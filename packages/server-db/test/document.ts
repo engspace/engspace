@@ -3,7 +3,7 @@ import { DemoDocInput, DemoUserSet, documentInput } from '@engspace/demo-data-in
 import { expect } from 'chai';
 import { pool } from '.';
 import { Db, documentDao } from '../src';
-import { cleanTable, transacDemoUsers } from './helpers';
+import { cleanTable, transacDemoUsers } from '../src/test-helpers';
 
 async function createDocument(
     db: Db,
@@ -32,10 +32,10 @@ describe('documentDao', function() {
     let users;
 
     before('create users', async function() {
-        users = await transacDemoUsers();
+        users = await transacDemoUsers(pool);
     });
 
-    after('delete users', cleanTable('user'));
+    after('delete users', cleanTable(pool, 'user'));
 
     describe('Create', function() {
         const msBefore = Date.now();

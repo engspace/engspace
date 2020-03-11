@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { sql } from 'slonik';
 import { pool } from '.';
 import { Db, loginDao, userDao } from '../src';
-import { transacDemoUsers } from './helpers';
+import { transacDemoUsers } from '../src/test-helpers';
 
 async function createLogins(db: Db, users: Promise<DemoUserSet>): Promise<void> {
     const usrs = await users;
@@ -15,7 +15,7 @@ async function createLogins(db: Db, users: Promise<DemoUserSet>): Promise<void> 
 describe('Login', () => {
     let users: DemoUserSet;
     before('Create users', async function() {
-        users = await transacDemoUsers();
+        users = await transacDemoUsers(pool);
     });
     after('Delete users', () => pool.connect(db => userDao.deleteAll(db)));
 

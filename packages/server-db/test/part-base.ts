@@ -2,16 +2,16 @@ import { expect } from 'chai';
 import { pool } from '.';
 import { partBaseDao } from '../src';
 import { wrongUuid } from './dao-base';
-import { cleanTables, transacDemoPartFamilies, transacDemoUsers } from './helpers';
+import { cleanTables, transacDemoPartFamilies, transacDemoUsers } from '../src/test-helpers';
 
 describe('partBaseDao', function() {
     let users;
     let families;
     before(async function() {
-        users = await transacDemoUsers();
-        families = await transacDemoPartFamilies();
+        users = await transacDemoUsers(pool);
+        families = await transacDemoPartFamilies(pool);
     });
-    after(cleanTables(['part_family', 'user']));
+    after(cleanTables(pool, ['part_family', 'user']));
 
     describe('Create', function() {
         const msBef = Date.now();

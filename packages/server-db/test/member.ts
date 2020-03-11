@@ -7,7 +7,7 @@ import {
 import { expect } from 'chai';
 import { pool } from '.';
 import { createDemoMembers, createDemoProjects, createDemoUsers, memberDao } from '../src';
-import { cleanTable, cleanTables } from './helpers';
+import { cleanTable, cleanTables } from '../src/test-helpers';
 
 describe('memberDao', () => {
     let users: DemoUserSet;
@@ -22,10 +22,10 @@ describe('memberDao', () => {
         );
     });
 
-    after('Delete users and projects', cleanTables(['project', 'user']));
+    after('Delete users and projects', cleanTables(pool, ['project', 'user']));
 
     describe('Create', () => {
-        afterEach('delete all members', cleanTable('project_member'));
+        afterEach('delete all members', cleanTable(pool, 'project_member'));
         it('should create a project member', async () => {
             const created = await pool.connect(db =>
                 memberDao.create(db, {
@@ -50,7 +50,7 @@ describe('memberDao', () => {
                 createDemoMembers(db, Promise.resolve(projects), Promise.resolve(users))
             );
         });
-        after('delete all members', cleanTable('project_member'));
+        after('delete all members', cleanTable(pool, 'project_member'));
 
         it('should get a member project and user id', async () => {
             const taniaChair = await pool.connect(db =>
@@ -134,7 +134,7 @@ describe('memberDao', () => {
                 });
             });
         });
-        afterEach('delete all members', cleanTable('project_member'));
+        afterEach('delete all members', cleanTable(pool, 'project_member'));
 
         it('should remove all project member roles', async function() {
             const memb = await pool.transaction(async db => {
@@ -165,7 +165,7 @@ describe('memberDao', () => {
                 createDemoMembers(db, Promise.resolve(projects), Promise.resolve(users))
             );
         });
-        afterEach('delete all members', cleanTable('project_member'));
+        afterEach('delete all members', cleanTable(pool, 'project_member'));
 
         it('should delete a specific member', async () => {
             await pool.connect(db =>

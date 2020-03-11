@@ -1,14 +1,14 @@
 import { expect } from 'chai';
 import { pool } from '.';
 import { documentDao, projectDao } from '../src';
-import { cleanTable, transacDemoUsers } from './helpers';
+import { cleanTable, transacDemoUsers } from '../src/test-helpers';
 
 // fake v4 uuid
 export const wrongUuid = '01234567-89ab-4000-8fff-cdef01234567';
 
 describe('Dao Base', function() {
     describe('DaoIdent (with projectDao)', function() {
-        afterEach('Delete projects', cleanTable('project'));
+        afterEach('Delete projects', cleanTable(pool, 'project'));
 
         it('should get a row by id', async function() {
             const { id } = await pool.transaction(async db => {
@@ -148,11 +148,11 @@ describe('Dao Base', function() {
     describe('DaoRowMap (with documentDao)', function() {
         let users;
         before('create users', async function() {
-            users = await transacDemoUsers();
+            users = await transacDemoUsers(pool);
         });
-        after('delete users', cleanTable('user'));
+        after('delete users', cleanTable(pool, 'user'));
 
-        afterEach('delete documents', cleanTable('document'));
+        afterEach('delete documents', cleanTable(pool, 'document'));
 
         it('should get a row by id', async function() {
             const { id } = await pool.transaction(async db => {
