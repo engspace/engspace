@@ -13,6 +13,7 @@ cache:
   directories:
     - "node_modules"
 script:
+  - yarn lint
   - yarn demo:build
   - yarn test:cov
 after_success:
