@@ -6,8 +6,6 @@ services:
   - postgresql
 before_install:
   - psql -c "ALTER USER postgres PASSWORD 'postgres';" -U postgres
-install:
-  - yarn install
 cache:
   yarn: true
   directories:
