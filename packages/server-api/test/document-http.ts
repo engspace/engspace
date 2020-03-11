@@ -51,7 +51,7 @@ const DOCREV_CHECK = gql`
 describe('HTTP /api/document', function() {
     let users;
 
-    before('Create users', async () => {
+    before('Create users', async function() {
         users = await transacDemoUsers();
     });
 
@@ -59,7 +59,7 @@ describe('HTTP /api/document', function() {
 
     let server;
 
-    before('Start server', done => {
+    before('Start server', function(done) {
         server = api.koa.listen(serverPort, done);
     });
 

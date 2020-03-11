@@ -234,7 +234,6 @@ describe('GraphQL PartBase', function() {
                     UPDATE part_family SET counter=999
                 `);
             });
-            // the "no side effect" relies on transaction, and should be double tested in end-to-end
             const { errors, data } = await pool.transaction(async db => {
                 const { mutate } = buildGqlServer(
                     db,

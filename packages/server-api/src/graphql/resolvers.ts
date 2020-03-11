@@ -29,7 +29,6 @@ import {
     PartBaseControl,
 } from '../controllers';
 import { GqlContext } from './context';
-import { PartBaseRefNaming } from '../ref-naming';
 
 export const resolvers = {
     DateTime: new GraphQLScalarType({
