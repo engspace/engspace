@@ -15,6 +15,7 @@ export {
     loginDao,
     memberDao,
     partDao,
+    PartDaoInput,
     partBaseDao,
     partFamilyDao,
     projectDao,

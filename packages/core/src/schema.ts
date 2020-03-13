@@ -61,6 +61,54 @@ export interface ProjectMember {
     roles?: string[];
 }
 
+export interface PartFamily extends PartFamilyInput {
+    id: Id;
+    counter: number;
+}
+
+export interface PartBaseInput {
+    familyId: Id;
+    designation: string;
+}
+
+export interface PartBaseUpdateInput {
+    designation: string;
+}
+
+export interface PartBase {
+    id: Id;
+    family: IdOr<PartFamily>;
+    baseRef: string;
+    designation: string;
+
+    createdBy: IdOr<User>;
+    createdAt: DateTime;
+    updatedBy: IdOr<User>;
+    updatedAt: DateTime;
+}
+
+export interface PartInput {
+    baseId: Id;
+    designation: string;
+    version: string;
+}
+
+export interface PartUpdateInput {
+    designation: string;
+}
+
+export interface Part {
+    id: Id;
+    base: IdOr<PartBase>;
+    ref: string;
+    designation: string;
+
+    createdBy: IdOr<User>;
+    createdAt: DateTime;
+    updatedBy: IdOr<User>;
+    updatedAt: DateTime;
+}
+
 export interface DocumentInput {
     name: string;
     description: string;
@@ -107,30 +155,4 @@ export interface DocumentSearch {
 export interface PartFamilyInput {
     code: string;
     name: string;
-}
-
-export interface PartFamily extends PartFamilyInput {
-    id: Id;
-    counter: number;
-}
-
-export interface PartBaseInput {
-    familyId: Id;
-    designation: string;
-}
-
-export interface PartBaseUpdateInput {
-    designation: string;
-}
-
-export interface PartBase {
-    id: Id;
-    family: IdOr<PartFamily>;
-    baseRef: string;
-    designation: string;
-
-    createdBy: IdOr<User>;
-    createdAt: DateTime;
-    updatedBy?: IdOr<User>;
-    updatedAt?: DateTime;
 }

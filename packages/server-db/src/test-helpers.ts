@@ -9,6 +9,9 @@ import {
     ProjectInput,
     User,
     UserInput,
+    PartBaseInput,
+    PartBase,
+    Part,
 } from '@engspace/core';
 import {
     DemoPartFamilySet,
@@ -20,7 +23,16 @@ import {
 } from '@engspace/demo-data-input';
 import { sql } from 'slonik';
 import { Db, DbPool } from '.';
-import { documentDao, documentRevisionDao, partFamilyDao, projectDao, userDao } from './dao';
+import {
+    documentDao,
+    documentRevisionDao,
+    partFamilyDao,
+    projectDao,
+    userDao,
+    partBaseDao,
+    PartDaoInput,
+    partDao,
+} from './dao';
 import { createDemoPartFamilies, createDemoProjects, createDemoUsers } from './populate-demo';
 
 export function cleanTable(pool: DbPool, tableName: string) {
@@ -87,6 +99,41 @@ export function resetFamilyCounters(pool: DbPool) {
             await db.query(sql`UPDATE part_family SET counter=0`);
         });
     };
+}
+
+export function createPartBase(
+    db: Db,
+    family: PartFamily,
+    user: User,
+    baseRef: string,
+    input: Partial<PartBaseInput> = {}
+): Promise<PartBase> {
+    return partBaseDao.create(
+        db,
+        {
+            designation: 'Part Designation',
+            ...input,
+            familyId: family.id,
+        },
+        baseRef,
+        user.id
+    );
+}
+
+export function createPart(
+    db: Db,
+    base: PartBase,
+    user: User,
+    ref: string,
+    input: Partial<PartDaoInput> = {}
+): Promise<Part> {
+    return partDao.create(db, {
+        designation: 'Part',
+        ...input,
+        ref,
+        baseId: base.id,
+        userId: user.id,
+    });
 }
 
 // Documents

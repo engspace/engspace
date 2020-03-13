@@ -51,6 +51,45 @@ CREATE TABLE project_member_role (
             ON DELETE CASCADE
 );
 
+CREATE TABLE part_family (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    name text NOT NULL,
+    code text NOT NULL,
+    counter integer NOT NULL DEFAULT 0
+);
+
+CREATE TABLE part_base (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    family_id uuid NOT NULL,
+    base_ref text NOT NULL,
+    designation text NOT NULL,
+    created_by uuid NOT NULL,
+    created_at timestamptz NOT NULL,
+    updated_by uuid NOT NULL,
+    updated_at timestamptz NOT NULL,
+
+    UNIQUE(base_ref),
+    FOREIGN KEY(family_id) REFERENCES part_family(id),
+    FOREIGN KEY(created_by) REFERENCES "user"(id),
+    FOREIGN KEY(updated_by) REFERENCES "user"(id)
+);
+
+CREATE TABLE part (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    base_id uuid NOT NULL,
+    ref text NOT NULL,
+    designation text NOT NULL,
+    created_by uuid NOT NULL,
+    created_at timestamptz NOT NULL,
+    updated_by uuid NOT NULL,
+    updated_at timestamptz NOT NULL,
+
+    UNIQUE(ref),
+    FOREIGN KEY(base_id) REFERENCES part_base(id),
+    FOREIGN KEY(created_by) REFERENCES "user"(id),
+    FOREIGN KEY(updated_by) REFERENCES "user"(id)
+);
+
 CREATE TABLE document (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     name text NOT NULL,
@@ -81,27 +120,4 @@ CREATE TABLE document_revision (
     UNIQUE(document_id, revision),
     FOREIGN KEY(document_id) REFERENCES document(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id)
-);
-
-CREATE TABLE part_family (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
-    name text NOT NULL,
-    code text NOT NULL,
-    counter integer NOT NULL DEFAULT 0
-);
-
-CREATE TABLE part_base (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
-    family_id uuid NOT NULL,
-    base_ref text NOT NULL,
-    designation text NOT NULL,
-    created_by uuid NOT NULL,
-    created_at timestamptz NOT NULL,
-    updated_by uuid,
-    updated_at timestamptz,
-
-    UNIQUE(base_ref),
-    FOREIGN KEY(family_id) REFERENCES part_family(id),
-    FOREIGN KEY(created_by) REFERENCES "user"(id),
-    FOREIGN KEY(updated_by) REFERENCES "user"(id)
 );
