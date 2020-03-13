@@ -1,16 +1,16 @@
-import { expect } from 'chai';
-import { sql } from 'slonik';
-import gql from 'graphql-tag';
-import { pool, buildGqlServer } from '.';
-import { permsAuth } from './auth';
-import {
-    cleanTables,
-    createSingleFamily,
-    createSingleUser,
-    cleanTable,
-    resetFamilyCounters,
-} from './helpers';
 import { partBaseDao, partFamilyDao } from '@engspace/server-db';
+import {
+    cleanTable,
+    cleanTables,
+    createPartFamily,
+    createUser,
+    resetFamilyCounters,
+} from '@engspace/server-db/dist/test-helpers';
+import { expect } from 'chai';
+import gql from 'graphql-tag';
+import { sql } from 'slonik';
+import { buildGqlServer, pool } from '.';
+import { permsAuth } from './auth';
 
 const PARTBASE_FIELDS = gql`
     fragment PartBaseFields on PartBase {
@@ -63,10 +63,10 @@ describe('GraphQL PartBase', function() {
     let family;
     before(async function() {
         [user, family] = await pool.transaction(async db => {
-            return Promise.all([createSingleUser(db), createSingleFamily(db)]);
+            return Promise.all([createUser(db), createPartFamily(db)]);
         });
     });
-    after(cleanTables(['part_family', 'user']));
+    after(cleanTables(pool, ['part_family', 'user']));
 
     describe('Query', function() {
         let parts;
@@ -88,7 +88,7 @@ describe('GraphQL PartBase', function() {
             });
             aft = Date.now();
         });
-        after('delete parts', cleanTable('part_base'));
+        after('delete parts', cleanTable(pool, 'part_base'));
 
         it('should query a part', async function() {
             const { errors, data } = await pool.connect(async db => {
@@ -141,8 +141,8 @@ describe('GraphQL PartBase', function() {
     });
 
     describe('Mutation', function() {
-        afterEach(cleanTable('part_base'));
-        afterEach(resetFamilyCounters());
+        afterEach(cleanTable(pool, 'part_base'));
+        afterEach(resetFamilyCounters(pool));
 
         it('should create a PartBase', async function() {
             const { errors, data } = await pool.transaction(async db => {

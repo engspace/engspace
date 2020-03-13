@@ -1,13 +1,18 @@
 import { Document, DocumentRevision, DocumentRevisionInput, User } from '@engspace/core';
 import { Db, documentDao, documentRevisionDao } from '@engspace/server-db';
+import {
+    cleanTable,
+    createDoc,
+    createDocRev,
+    transacDemoUsers,
+} from '@engspace/server-db/dist/test-helpers';
 import { expect, request } from 'chai';
 import fs from 'fs';
 import gql from 'graphql-tag';
 import path from 'path';
-import { api, buildGqlServer, pool, config } from '.';
+import { api, buildGqlServer, config, pool } from '.';
 import { bufferSha1sum } from '../src/util';
 import { bearerToken, permsAuth } from './auth';
-import { cleanTable, createDoc, createDocRev, transacDemoUsers } from './helpers';
 
 const { storePath, serverPort } = config;
 
@@ -52,10 +57,10 @@ describe('HTTP /api/document', function() {
     let users;
 
     before('Create users', async function() {
-        users = await transacDemoUsers();
+        users = await transacDemoUsers(pool);
     });
 
-    after('Delete users', cleanTable('user'));
+    after('Delete users', cleanTable(pool, 'user'));
 
     let server;
 

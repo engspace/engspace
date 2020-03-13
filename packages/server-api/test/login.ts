@@ -1,12 +1,12 @@
 import { DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
 import { createDemoLogins, createDemoUsers } from '@engspace/server-db/dist/populate-demo';
+import { cleanTable } from '@engspace/server-db/dist/test-helpers';
 import { expect, request } from 'chai';
 import http from 'http';
-import { api, pool, config } from '.';
+import { api, config, pool } from '.';
 import { verifyJwt } from '../src/crypto';
 import { authJwtSecret } from '../src/internal';
 import { auth } from './auth';
-import { cleanTable } from './helpers';
 
 const { serverPort } = config;
 
@@ -26,7 +26,7 @@ describe('Login', () => {
         server = api.koa.listen(serverPort, done);
     });
 
-    after(cleanTable('user'));
+    after(cleanTable(pool, 'user'));
 
     it('should return bearer token', async () => {
         const resp = await request(server)

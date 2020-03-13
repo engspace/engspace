@@ -1,17 +1,17 @@
+import { cleanTable, transacDemoUsers } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { signJwt, verifyJwt } from '../src/crypto';
 import { auth } from './auth';
-import { cleanTable, transacDemoUsers } from './helpers';
 
 describe('Miscellaneous', function() {
     let users;
     before('Create users', async function() {
-        users = await transacDemoUsers();
+        users = await transacDemoUsers(pool);
     });
 
-    after('Delete users', cleanTable('user'));
+    after('Delete users', cleanTable(pool, 'user'));
 
     describe('Crypto', function() {
         it('should verify a valid token', async function() {

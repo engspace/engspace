@@ -1,10 +1,10 @@
 import { partFamilyDao } from '@engspace/server-db';
 import { createDemoPartFamilies } from '@engspace/server-db/dist/populate-demo';
+import { cleanTable, transacDemoUsers } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { permsAuth } from './auth';
-import { cleanTable, transacDemoUsers } from './helpers';
 
 const PARTFAM_FIELDS = gql`
     fragment PartFamFields on PartFamily {
@@ -44,9 +44,9 @@ const PARTFAM_UPDATE = gql`
 describe('GraphQL PartFamilies', function() {
     let users;
     before('Create users', async function() {
-        users = await transacDemoUsers();
+        users = await transacDemoUsers(pool);
     });
-    after('Delete users', cleanTable('user'));
+    after('Delete users', cleanTable(pool, 'user'));
 
     describe('Query', function() {
         let families;

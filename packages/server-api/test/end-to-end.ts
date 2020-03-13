@@ -1,10 +1,14 @@
 import { memberDao, projectDao } from '@engspace/server-db';
+import {
+    cleanTable,
+    transacDemoProjects,
+    transacDemoUsers,
+} from '@engspace/server-db/dist/test-helpers';
 import { expect, request } from 'chai';
 import { print } from 'graphql/language/printer';
-import { api, pool, config } from '.';
+import { api, config, pool } from '.';
 import { signJwt } from '../src/crypto';
 import { bearerToken, permsAuth } from './auth';
-import { cleanTable, transacDemoProjects, transacDemoUsers } from './helpers';
 import { MEMBER_DELETE } from './member';
 import { PROJECT_CREATE, PROJECT_READ, PROJECT_UPDATE } from './project';
 
@@ -14,10 +18,10 @@ describe('End to end GraphQL', function() {
     let users;
 
     before('Create users', async function() {
-        users = await transacDemoUsers();
+        users = await transacDemoUsers(pool);
     });
 
-    after('Delete users', cleanTable('user'));
+    after('Delete users', cleanTable(pool, 'user'));
 
     let server;
 
@@ -26,7 +30,7 @@ describe('End to end GraphQL', function() {
     });
 
     describe('General', function() {
-        afterEach(cleanTable('project'));
+        afterEach(cleanTable(pool, 'project'));
 
         it('should return 404 if unmatched resource', async function() {
             const token = await bearerToken(permsAuth(users.philippe, ['project.read']));
@@ -143,10 +147,10 @@ describe('End to end GraphQL', function() {
         let projects;
 
         before('Create projects', async function() {
-            projects = await transacDemoProjects();
+            projects = await transacDemoProjects(pool);
         });
 
-        after(cleanTable('project'));
+        after(cleanTable(pool, 'project'));
 
         it('read project values with GET', async function() {
             const token = await bearerToken(permsAuth(users.philippe, ['project.read']));

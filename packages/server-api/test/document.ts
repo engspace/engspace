@@ -1,9 +1,9 @@
 import { documentDao } from '@engspace/server-db';
+import { cleanTable, createDoc, transacDemoUsers } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { permsAuth } from './auth';
-import { cleanTable, createDoc, transacDemoUsers } from './helpers';
 
 const DOC_FIELDS = gql`
     fragment DocFields on Document {
@@ -71,10 +71,10 @@ const DOC_DISCARD_CHECKOUT = gql`
 describe('GraphQL documents', function() {
     let users;
     before('Create users', async function() {
-        users = await transacDemoUsers();
+        users = await transacDemoUsers(pool);
     });
 
-    after('Delete users', cleanTable('user'));
+    after('Delete users', cleanTable(pool, 'user'));
 
     describe('Query', function() {
         let documents;
@@ -100,7 +100,7 @@ describe('GraphQL documents', function() {
                 ]);
             });
         });
-        after('Delete documents', cleanTable('document'));
+        after('Delete documents', cleanTable(pool, 'document'));
 
         it('should read a document with "document.read"', async function() {
             const { errors, data } = await pool.connect(async db => {

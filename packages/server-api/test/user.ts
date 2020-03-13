@@ -1,10 +1,10 @@
 import { User, UserInput } from '@engspace/core';
 import { DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
+import { cleanTable, transacDemoUsers } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { auth, createAuth, permsAuth } from './auth';
-import { cleanTable, transacDemoUsers } from './helpers';
 
 export const USER_FIELDS = gql`
     fragment UserFields on User {
@@ -33,11 +33,11 @@ describe('GraphQL User', () => {
         let userArr: User[];
 
         before('Create users', async () => {
-            users = await transacDemoUsers();
+            users = await transacDemoUsers(pool);
             userArr = Object.entries(users).map(kv => kv[1]);
         });
 
-        after(cleanTable('user'));
+        after(cleanTable(pool, 'user'));
 
         it('should read a user with "user.read"', async () => {
             const result = await pool.connect(async db => {
@@ -136,7 +136,7 @@ describe('GraphQL User', () => {
 
     describe('Mutate', () => {
         describe('Create', () => {
-            afterEach(cleanTable('user'));
+            afterEach(cleanTable(pool, 'user'));
 
             it('should create user with admin', async () => {
                 const result = await pool.transaction(async db => {
@@ -192,10 +192,10 @@ describe('GraphQL User', () => {
             let users: DemoUserSet;
 
             beforeEach('Create users', async () => {
-                users = await transacDemoUsers();
+                users = await transacDemoUsers(pool);
             });
 
-            afterEach(cleanTable('user'));
+            afterEach(cleanTable(pool, 'user'));
 
             const bob: UserInput = {
                 name: 'bob',

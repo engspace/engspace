@@ -1,9 +1,13 @@
 import { DemoProjectSet, DemoUserSet, prepareProjects } from '@engspace/demo-data-input';
+import {
+    cleanTable,
+    transacDemoProjects,
+    transacDemoUsers,
+} from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { permsAuth } from './auth';
-import { cleanTable, transacDemoProjects, transacDemoUsers } from './helpers';
 
 export const PROJECT_FIELDS = gql`
     fragment ProjectFields on Project {
@@ -67,19 +71,19 @@ describe('GraphQL Project', () => {
     let users: DemoUserSet;
 
     before('Create users', async () => {
-        users = await transacDemoUsers();
+        users = await transacDemoUsers(pool);
     });
 
-    after(cleanTable('user'));
+    after(cleanTable(pool, 'user'));
 
     describe('Query', function() {
         let projects: DemoProjectSet;
 
         before('Create projects', async () => {
-            projects = await transacDemoProjects();
+            projects = await transacDemoProjects(pool);
         });
 
-        after(cleanTable('project'));
+        after(cleanTable(pool, 'project'));
 
         it('should read project with "project.read"', async () => {
             const result = await pool.connect(async db => {
@@ -184,7 +188,7 @@ describe('GraphQL Project', () => {
 
     describe('Mutation', () => {
         describe('Create', () => {
-            afterEach(cleanTable('project'));
+            afterEach(cleanTable(pool, 'project'));
 
             it('should create project with "project.create"', async function() {
                 const { errors, data } = await pool.transaction(async db => {
@@ -225,10 +229,10 @@ describe('GraphQL Project', () => {
             let projects: DemoProjectSet;
 
             before('Create projects', async () => {
-                projects = await transacDemoProjects();
+                projects = await transacDemoProjects(pool);
             });
 
-            after(cleanTable('project'));
+            after(cleanTable(pool, 'project'));
 
             const mars = {
                 code: 'mars',

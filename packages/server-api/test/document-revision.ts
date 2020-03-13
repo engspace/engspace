@@ -1,11 +1,11 @@
 import { prepareUsers } from '@engspace/demo-data-input';
 import { documentRevisionDao } from '@engspace/server-db';
 import { createDemoUsers } from '@engspace/server-db/dist/populate-demo';
+import { cleanTables, createDoc, createDocRev } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { permsAuth } from './auth';
-import { cleanTables, createDoc, createDocRev } from './helpers';
 
 const DOCREV_FIELDS = gql`
     fragment DocRevFields on DocumentRevision {
@@ -85,7 +85,7 @@ describe('GraphQL Document Revision', function() {
             });
         });
     });
-    after('Delete users and document', cleanTables(['document', 'user']));
+    after('Delete users and document', cleanTables(pool, ['document', 'user']));
 
     describe('Query', function() {
         let revisions;

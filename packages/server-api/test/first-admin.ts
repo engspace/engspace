@@ -1,6 +1,6 @@
 import { userDao } from '@engspace/server-db';
 import { expect, request } from 'chai';
-import { api, pool, config } from '.';
+import { api, config, pool } from '.';
 
 const { serverPort } = config;
 
