@@ -1,5 +1,5 @@
 import { DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
-import { createDemoLogins, createDemoUsers } from '@engspace/server-db';
+import { createDemoLogins, createDemoUsers } from '@engspace/server-db/dist/populate-demo';
 import { expect, request } from 'chai';
 import http from 'http';
 import { api, pool, config } from '.';

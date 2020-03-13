@@ -1,3 +1,5 @@
+import { partFamiliesInput, prepareProjects, prepareUsers } from '@engspace/demo-data-input';
+import { DbPool } from '@engspace/server-db';
 import {
     createDemoDocuments,
     createDemoLogins,
@@ -5,9 +7,7 @@ import {
     createDemoPartFamilies,
     createDemoProjects,
     createDemoUsers,
-    DbPool,
-} from '@engspace/server-db';
-import { prepareUsers, prepareProjects, partFamiliesInput } from '@engspace/demo-data-input';
+} from '@engspace/server-db/dist/populate-demo';
 
 export async function populateData(pool: DbPool, storePath: string): Promise<void> {
     try {

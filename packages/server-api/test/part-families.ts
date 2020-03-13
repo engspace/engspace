@@ -1,4 +1,5 @@
-import { createDemoPartFamilies, partFamilyDao } from '@engspace/server-db';
+import { partFamilyDao } from '@engspace/server-db';
+import { createDemoPartFamilies } from '@engspace/server-db/dist/populate-demo';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';

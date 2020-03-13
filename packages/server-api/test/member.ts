@@ -1,12 +1,10 @@
 import { prepareProjects, prepareUsers } from '@engspace/demo-data-input';
+import { memberDao, projectDao, userDao } from '@engspace/server-db';
 import {
     createDemoMembers,
     createDemoProjects,
     createDemoUsers,
-    memberDao,
-    projectDao,
-    userDao,
-} from '@engspace/server-db';
+} from '@engspace/server-db/dist/populate-demo';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';

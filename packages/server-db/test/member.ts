@@ -6,7 +6,8 @@ import {
 } from '@engspace/demo-data-input';
 import { expect } from 'chai';
 import { pool } from '.';
-import { createDemoMembers, createDemoProjects, createDemoUsers, memberDao } from '../src';
+import { memberDao } from '../src';
+import { createDemoMembers, createDemoProjects, createDemoUsers } from '../src/populate-demo';
 import { cleanTable, cleanTables } from '../src/test-helpers';
 
 describe('memberDao', () => {

@@ -1,5 +1,6 @@
 import { prepareUsers } from '@engspace/demo-data-input';
-import { createDemoUsers, documentRevisionDao } from '@engspace/server-db';
+import { documentRevisionDao } from '@engspace/server-db';
+import { createDemoUsers } from '@engspace/server-db/dist/populate-demo';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';

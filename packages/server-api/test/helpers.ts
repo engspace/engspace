@@ -14,16 +14,12 @@ import {
     prepareProjects,
     prepareUsers,
 } from '@engspace/demo-data-input';
+import { Db, documentDao, documentRevisionDao, userDao, partFamilyDao } from '@engspace/server-db';
 import {
     createDemoPartFamilies,
     createDemoProjects,
     createDemoUsers,
-    Db,
-    documentDao,
-    documentRevisionDao,
-    userDao,
-    partFamilyDao,
-} from '@engspace/server-db';
+} from '@engspace/server-db/dist/populate-demo';
 import { sql } from 'slonik';
 import { pool } from '.';
 

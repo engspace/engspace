@@ -14,19 +14,12 @@ export {
     documentRevisionDao,
     loginDao,
     memberDao,
+    partDao,
     partBaseDao,
     partFamilyDao,
     projectDao,
     userDao,
 } from './dao';
-export {
-    createDemoDocuments,
-    createDemoLogins,
-    createDemoMembers,
-    createDemoPartFamilies,
-    createDemoProjects,
-    createDemoUsers,
-} from './populate-demo';
 export { initSchema } from './schema';
 
 export type Db = DatabaseTransactionConnectionType;

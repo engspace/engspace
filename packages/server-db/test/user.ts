@@ -1,8 +1,8 @@
 import { DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
 import { expect } from 'chai';
 import { filterFields, pool } from '.';
-import { createDemoUsers } from '../dist';
 import { userDao } from '../src';
+import { createDemoUsers } from '../src/populate-demo';
 import { cleanTable, transacDemoUsers } from '../src/test-helpers';
 
 describe('userDao', () => {
