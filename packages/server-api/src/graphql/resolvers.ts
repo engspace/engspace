@@ -16,6 +16,8 @@ import {
     UserInput,
     PartBase,
     PartBaseInput,
+    Part,
+    PartInput,
 } from '@engspace/core';
 import { UserInputError } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
@@ -27,6 +29,7 @@ import {
     ProjectControl,
     UserControl,
     PartBaseControl,
+    PartControl,
 } from '../controllers';
 import { GqlContext } from './context';
 
@@ -91,7 +94,19 @@ export const resolvers = {
             return ctx.loaders.user.load(createdBy.id);
         },
         updatedBy({ updatedBy }: PartBase, args, ctx: GqlContext): Promise<User> {
-            return updatedBy ? ctx.loaders.user.load(updatedBy.id) : null;
+            return ctx.loaders.user.load(updatedBy.id);
+        },
+    },
+
+    Part: {
+        base({ base }: Part, args, ctx: GqlContext): Promise<PartBase> {
+            return PartBaseControl.byId(ctx, base.id);
+        },
+        createdBy({ createdBy }: Part, args, ctx: GqlContext): Promise<User> {
+            return ctx.loaders.user.load(createdBy.id);
+        },
+        updatedBy({ updatedBy }: Part, args, ctx: GqlContext): Promise<User> {
+            return ctx.loaders.user.load(updatedBy.id);
         },
     },
 
@@ -171,6 +186,10 @@ export const resolvers = {
 
         partBase(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartBase | null> {
             return PartBaseControl.byId(ctx, id);
+        },
+
+        part(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Part | null> {
+            return PartControl.byId(ctx, id);
         },
 
         document(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Document | null> {
@@ -276,6 +295,18 @@ export const resolvers = {
             ctx: GqlContext
         ): Promise<PartBase> {
             return PartBaseControl.update(ctx, id, partBase);
+        },
+
+        async partCreate(parent, { input }: { input: PartInput }, ctx: GqlContext): Promise<Part> {
+            return PartControl.create(ctx, input);
+        },
+
+        async partUpdate(
+            parent,
+            { id, input }: { id: Id; input: PartInput },
+            ctx: GqlContext
+        ): Promise<Part> {
+            return PartControl.update(ctx, id, input);
         },
 
         async documentCreate(

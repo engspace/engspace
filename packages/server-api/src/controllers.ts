@@ -6,27 +6,31 @@ import {
     DocumentRevisionInput,
     DocumentSearch,
     Id,
+    Part,
+    PartBase,
+    PartBaseInput,
+    PartBaseUpdateInput,
     PartFamily,
+    PartFamilyInput,
+    PartInput,
+    PartUpdateInput,
     Project,
     ProjectInput,
     ProjectMember,
     ProjectMemberInput,
     User,
     UserInput,
-    PartFamilyInput,
-    PartBase,
-    PartBaseInput,
-    PartBaseUpdateInput,
 } from '@engspace/core';
 import {
     Db,
     documentDao,
     documentRevisionDao,
     memberDao,
+    partBaseDao,
     partFamilyDao,
     projectDao,
     userDao,
-    partBaseDao,
+    partDao,
 } from '@engspace/server-db';
 import { ForbiddenError, UserInputError } from 'apollo-server-koa';
 import fs from 'fs';
@@ -258,6 +262,32 @@ export namespace PartBaseControl {
     ): Promise<PartBase> {
         assertUserPerm(ctx, 'part.update');
         return partBaseDao.updateById(ctx.db, id, partBase, ctx.auth.userId);
+    }
+}
+
+export namespace PartControl {
+    export async function create(ctx: ApiContext, input: PartInput): Promise<Part> {
+        assertUserPerm(ctx, 'part.create');
+        const base = await partBaseDao.byId(ctx.db, input.baseId);
+        if (!base) {
+            throw new UserInputError(`unexisting PartRef: "${input.baseId}"`);
+        }
+        return partDao.create(ctx.db, {
+            baseId: input.baseId,
+            designation: input.designation ?? base.designation,
+            ref: ctx.config.refNaming.part.getRef(base, input.version),
+            userId: ctx.auth.userId,
+        });
+    }
+
+    export async function byId(ctx: ApiContext, id: Id): Promise<Part> {
+        assertUserPerm(ctx, 'part.read');
+        return partDao.byId(ctx.db, id);
+    }
+
+    export async function update(ctx: ApiContext, id: Id, input: PartUpdateInput): Promise<Part> {
+        assertUserPerm(ctx, 'part.update');
+        return partDao.updateById(ctx.db, id, input, ctx.auth.userId);
     }
 }
 

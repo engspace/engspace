@@ -136,7 +136,7 @@ describe('GraphQL PartBase', function() {
             });
             expect(errors).to.be.an('array').not.empty;
             expect(errors[0].message).to.contain('part.read');
-            expect(data).to.be.null;
+            expect(data.partBase).to.be.null;
         });
     });
 

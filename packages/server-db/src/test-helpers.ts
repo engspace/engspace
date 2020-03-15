@@ -65,9 +65,12 @@ export function transacDemoPartFamilies(pool: DbPool): Promise<DemoPartFamilySet
 }
 
 export function createUser(db: Db, input: Partial<UserInput> = {}): Promise<User> {
+    const name = 'user.name';
+    const email = `${input.name ?? name}@engspace.net`;
+
     return userDao.create(db, {
-        name: 'user.name',
-        email: 'user.name@email.net',
+        name,
+        email,
         fullName: 'User Name',
         ...input,
     });
