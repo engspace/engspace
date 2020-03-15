@@ -15,6 +15,7 @@ import events from 'events';
 import Koa from 'koa';
 import logger from 'koa-logger';
 import { populateData } from './populate-data';
+import { PartRefNaming } from 'server-api/src/ref-naming';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -77,7 +78,8 @@ function buildServerApi(pool: DbPool): EsServerApi {
         storePath: config.storePath,
         cors: true,
         refNaming: {
-            partBase: new PartBaseRefNaming('${fam_code}${fam_count:5}'),
+            partBase: new PartBaseRefNaming('${fam_code}${fam_count:4}'),
+            part: new PartRefNaming('${part_base_ref}${part_version:AA}'),
         },
     });
     api.koa.use(logger());
