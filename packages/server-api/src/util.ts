@@ -88,3 +88,7 @@ export class CharIterator {
         return this.input.slice(start, this._pos);
     }
 }
+
+export function replaceAt(input: string, index: number, repl: string): string {
+    return input.substring(0, index) + repl + input.substring(index + repl.length);
+}

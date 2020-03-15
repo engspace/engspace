@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { PartBaseRefNaming } from '../src/ref-naming';
+import { PartBaseRefNaming, PartRefNaming } from '../src/ref-naming';
 
 describe('Ref naming', function() {
     describe('PartBase', function() {
@@ -66,6 +66,111 @@ describe('Ref naming', function() {
                 });
             }
             expect(bad).to.throw('"this_family" has reached the maximum number of references.');
+        });
+    });
+    describe('Part', function() {
+        it('parses input string with vars', function() {
+            const rn = new PartRefNaming('${part_base_ref}${part_version:AA}');
+            expect(
+                rn.getRef(
+                    {
+                        id: '',
+                        family: null,
+                        baseRef: 'P001',
+                        designation: 'balbla',
+                        createdBy: null,
+                        updatedBy: null,
+                        createdAt: null,
+                        updatedAt: null,
+                    },
+                    'AB'
+                )
+            ).to.contain('P001AB');
+        });
+        it('parses input string with vars and literal', function() {
+            const rn = new PartRefNaming('${part_base_ref}.${part_version:AA}');
+            expect(
+                rn.getRef(
+                    {
+                        id: '',
+                        family: null,
+                        baseRef: 'P001',
+                        designation: 'balbla',
+                        createdBy: null,
+                        updatedBy: null,
+                        createdAt: 0,
+                        updatedAt: 0,
+                    },
+                    'AB'
+                )
+            ).to.contain('P001.AB');
+        });
+        it('should get next version with vars', function() {
+            const rn = new PartRefNaming('${part_base_ref}${part_version:AA}');
+            expect(
+                rn.getNext(
+                    {
+                        id: '',
+                        family: null,
+                        baseRef: 'P001',
+                        designation: 'balbla',
+                        createdBy: null,
+                        updatedBy: null,
+                        createdAt: 0,
+                        updatedAt: 0,
+                    },
+                    'AB'
+                )
+            ).to.contain('P001AC');
+        });
+        it('should get next version with vars and literals', function() {
+            const rn = new PartRefNaming('${part_base_ref}.${part_version:AA}');
+            expect(
+                rn.getNext(
+                    {
+                        id: '',
+                        family: null,
+                        baseRef: 'P001',
+                        designation: 'balbla',
+                        createdBy: null,
+                        updatedBy: null,
+                        createdAt: 0,
+                        updatedAt: 0,
+                    },
+                    'AB'
+                )
+            ).to.contain('P001.AC');
+        });
+        it('should throw if version without format', function() {
+            function bad(): PartRefNaming {
+                return new PartRefNaming('${part_base_ref}${part_version}');
+            }
+            expect(bad).to.throw();
+        });
+        it('should throw if missing var', function() {
+            function bad(): PartRefNaming {
+                return new PartRefNaming('${part_version:AA}');
+            }
+            expect(bad).to.throw();
+        });
+        it('should throw if getting ref with not matching format', function() {
+            const rn = new PartRefNaming('${part_base_ref}.${part_version:AA}');
+            function bad(): string {
+                return rn.getRef(
+                    {
+                        id: '',
+                        family: null,
+                        baseRef: 'P001',
+                        designation: 'balbla',
+                        createdBy: null,
+                        updatedBy: null,
+                        createdAt: 0,
+                        updatedAt: 0,
+                    },
+                    '04'
+                );
+            }
+            expect(bad).to.throw();
         });
     });
 });

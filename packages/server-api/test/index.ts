@@ -21,7 +21,7 @@ import fs from 'fs';
 import Koa from 'koa';
 import path from 'path';
 import { EsServerApi } from '../src';
-import { PartBaseRefNaming } from '../src/ref-naming';
+import { PartBaseRefNaming, PartRefNaming } from '../src/ref-naming';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -74,6 +74,7 @@ export const api = new EsServerApi(new Koa(), {
     cors: true,
     refNaming: {
         partBase: new PartBaseRefNaming('${fam_code}${fam_count:3}'),
+        part: new PartRefNaming('${part_base_ref}.${part_version:01}'),
     },
 });
 

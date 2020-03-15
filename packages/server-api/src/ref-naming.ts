@@ -1,5 +1,6 @@
 import { CharIterator } from './util';
-import { PartFamily } from '@engspace/core';
+import { PartFamily, PartBase } from '@engspace/core';
+import { VersionFormat } from './version-format';
 
 enum Tok {
     Lit,
@@ -30,7 +31,7 @@ interface PartBaseRefToken {
 interface PartVersionToken {
     tok: Tok.Var;
     ident: 'part_version';
-    format: string;
+    format: VersionFormat;
 }
 
 type VarToken = FamCodeToken | FamCountToken | PartBaseRefToken | PartVersionToken;
@@ -75,16 +76,16 @@ function parseVar(inp: CharIterator, allowedVars: string[]): VarToken {
                 width,
             };
         }
-        // case 'part_version': {
-        //     if (!arg) {
-        //         throw new Error(`${ident} takes a format string argument`);
-        //     }
-        //     return {
-        //         tok: Tok.Var,
-        //         ident,
-        //         format: arg,
-        //     };
-        // }
+        case 'part_version': {
+            if (!arg) {
+                throw new Error(`${ident} takes a format string argument`);
+            }
+            return {
+                tok: Tok.Var,
+                ident,
+                format: new VersionFormat(arg),
+            };
+        }
     }
     /* istanbul ignore next */
     throw new Error(`unknown identifier: ${ident}`);
@@ -118,6 +119,7 @@ abstract class RefNaming {
 
 export interface AppRefNaming {
     partBase: PartBaseRefNaming;
+    part: PartRefNaming;
 }
 
 export class PartBaseRefNaming extends RefNaming {
@@ -142,6 +144,78 @@ export class PartBaseRefNaming extends RefNaming {
                             );
                         }
                         parts.push(fam.counter.toString().padStart(tok.width, '0'));
+                        break;
+                    }
+                }
+            }
+            if (tok.tok === Tok.Lit) {
+                parts.push(tok.value);
+            }
+        }
+        return parts.join('');
+    }
+}
+
+export class PartRefNaming extends RefNaming {
+    constructor(public readonly input: string) {
+        super(input, ['part_base_ref', 'part_version']);
+        let baseRef = 0;
+        let version = 0;
+        for (const tok of this.tokens) {
+            if (tok.tok === Tok.Var) {
+                switch (tok.ident) {
+                    case 'part_base_ref':
+                        baseRef++;
+                        break;
+                    case 'part_version':
+                        version++;
+                        break;
+                }
+            }
+        }
+        if (baseRef !== 1 || version !== 1) {
+            throw new Error(
+                'Part ref naming spec should contain one ${part_base_ref} and one ${part_version:format}'
+            );
+        }
+    }
+
+    getRef(base: PartBase, version: string): string {
+        const parts = [];
+        for (const tok of this.tokens) {
+            if (tok.tok === Tok.Var) {
+                switch (tok.ident) {
+                    case 'part_base_ref':
+                        parts.push(base.baseRef);
+                        break;
+                    case 'part_version': {
+                        if (!tok.format.matches(version)) {
+                            throw new Error(
+                                `version "${version}" does not match specified version format: "${tok.format.input}"`
+                            );
+                        }
+                        parts.push(version);
+                        break;
+                    }
+                }
+            }
+            if (tok.tok === Tok.Lit) {
+                parts.push(tok.value);
+            }
+        }
+        return parts.join('');
+    }
+
+    getNext(base: PartBase, currentVersion: string): string {
+        const parts = [];
+        for (const tok of this.tokens) {
+            if (tok.tok === Tok.Var) {
+                switch (tok.ident) {
+                    case 'part_base_ref':
+                        parts.push(base.baseRef);
+                        break;
+                    case 'part_version': {
+                        parts.push(tok.format.getNext(currentVersion));
                         break;
                     }
                 }
