@@ -35,9 +35,30 @@ describe('Login', () => {
                 nameOrEmail: 'gerard',
                 password: 'gerard',
             });
+        expect(resp).to.have.status(200);
         expect(resp.body).to.be.an('object');
         expect(resp.body.token).to.be.a('string');
         const authToken = await verifyJwt(resp.body.token, authJwtSecret);
         expect(authToken).to.deep.include(auth(users.gerard));
+    });
+
+    it('should reject invalid password', async () => {
+        const resp = await request(server)
+            .post('/api/login')
+            .send({
+                nameOrEmail: 'gerard',
+                password: 'gerardo',
+            });
+        expect(resp).to.have.status(403);
+    });
+
+    it('should reject invalid username', async () => {
+        const resp = await request(server)
+            .post('/api/login')
+            .send({
+                nameOrEmail: 'gerardo',
+                password: 'gerard',
+            });
+        expect(resp).to.have.status(403);
     });
 });

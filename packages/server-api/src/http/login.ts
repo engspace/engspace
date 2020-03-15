@@ -40,7 +40,7 @@ export function setupLoginRoute(router: Router, config: EsServerConfig): void {
             );
             ctx.body = { token };
         } else {
-            ctx.throw(HttpStatus.UNAUTHORIZED);
+            ctx.throw(HttpStatus.FORBIDDEN);
         }
     });
 }
