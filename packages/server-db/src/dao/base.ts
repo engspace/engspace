@@ -1,4 +1,4 @@
-import { HasId, Id, DateTime } from '@engspace/core';
+import { HasId, Id, DateTime, Tracked } from '@engspace/core';
 import { sql, SqlTokenType } from 'slonik';
 import { Db } from '..';
 import { Dao } from '.';
@@ -10,6 +10,27 @@ export function foreignKey(id: Id | null): HasId | null {
 export function timestamp(ts: number | null): DateTime | null {
     return ts ? ts * 1000 : null;
 }
+
+export interface TrackedRow {
+    createdBy: Id;
+    createdAt: number;
+    updatedBy: Id;
+    updatedAt: number;
+}
+
+export function mapTrackedRow({ createdBy, createdAt, updatedBy, updatedAt }: TrackedRow): Tracked {
+    return {
+        createdBy: foreignKey(createdBy),
+        createdAt: timestamp(createdAt),
+        updatedBy: foreignKey(updatedBy),
+        updatedAt: timestamp(updatedAt),
+    };
+}
+
+export const trackedSqlToken = sql`
+        created_by, EXTRACT(EPOCH FROM created_at) AS created_at,
+        updated_by, EXTRACT(EPOCH FROM updated_at) AS updated_at
+`;
 
 function reorderWithIds<T extends HasId>(objs: T[], ids: readonly Id[]): T[] {
     return ids.map(id => objs.find(o => o.id === id));

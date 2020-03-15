@@ -1,45 +1,28 @@
-import { DaoRowMap, foreignKey, timestamp } from './base';
+import { DaoRowMap, foreignKey, TrackedRow, mapTrackedRow, trackedSqlToken } from './base';
 import { PartBase, HasId, Id, PartBaseInput, PartBaseUpdateInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
 
-interface Row extends HasId {
+interface Row extends HasId, TrackedRow {
     id: Id;
     familyId: Id;
     baseRef: string;
     designation: string;
-    createdBy: Id;
-    createdAt: number;
-    updatedBy?: Id;
-    updatedAt?: number;
 }
 
-function mapRow({
-    id,
-    familyId,
-    baseRef,
-    designation,
-    createdBy,
-    createdAt,
-    updatedBy,
-    updatedAt,
-}: Row): PartBase {
+function mapRow(row: Row): PartBase {
+    const { id, familyId, baseRef, designation } = row;
     return {
         id,
         family: foreignKey(familyId),
         baseRef,
         designation,
-        createdBy: foreignKey(createdBy),
-        createdAt: timestamp(createdAt),
-        updatedBy: foreignKey(updatedBy),
-        updatedAt: timestamp(updatedAt),
+        ...mapTrackedRow(row),
     };
 }
 
 const rowToken = sql`
-        id, family_id, base_ref, designation,
-        created_by, EXTRACT(EPOCH FROM created_at) AS created_at,
-        updated_by, EXTRACT(EPOCH FROM updated_at) AS updated_at
+        id, family_id, base_ref, designation, ${trackedSqlToken}
     `;
 
 class PartBaseDao extends DaoRowMap<PartBase, Row> {

@@ -34,6 +34,13 @@ export interface UserEx extends User {
     membership?: ProjectMember[];
 }
 
+export interface Tracked {
+    createdBy: IdOr<User>;
+    createdAt: DateTime;
+    updatedBy: IdOr<User>;
+    updatedAt: DateTime;
+}
+
 export interface ProjectInput {
     code: string;
     name: string;
@@ -75,16 +82,11 @@ export interface PartBaseUpdateInput {
     designation: string;
 }
 
-export interface PartBase {
+export interface PartBase extends Tracked {
     id: Id;
     family: IdOr<PartFamily>;
     baseRef: string;
     designation: string;
-
-    createdBy: IdOr<User>;
-    createdAt: DateTime;
-    updatedBy: IdOr<User>;
-    updatedAt: DateTime;
 }
 
 export interface PartInput {
@@ -97,16 +99,11 @@ export interface PartUpdateInput {
     designation: string;
 }
 
-export interface Part {
+export interface Part extends Tracked {
     id: Id;
     base: IdOr<PartBase>;
     ref: string;
     designation: string;
-
-    createdBy: IdOr<User>;
-    createdAt: DateTime;
-    updatedBy: IdOr<User>;
-    updatedAt: DateTime;
 }
 
 export interface DocumentInput {
