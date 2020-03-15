@@ -22,6 +22,8 @@
             ".ts"
         ],
         "exclude": [
+            "src/test-helpers.ts",
+            "src/populate-demo.ts",
             "test/**/*",
             "**/*.d.ts",
             "**/*.js"
