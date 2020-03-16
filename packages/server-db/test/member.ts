@@ -1,24 +1,43 @@
-import {
-    DemoProjectSet,
-    DemoUserSet,
-    prepareProjects,
-    prepareUsers,
-} from '@engspace/demo-data-input';
+import { Project, User } from '@engspace/core';
 import { expect } from 'chai';
 import { pool } from '.';
 import { memberDao } from '../src';
-import { createDemoMembers, createDemoProjects, createDemoUsers } from '../src/populate-demo';
-import { cleanTable, cleanTables } from '../src/test-helpers';
+import {
+    cleanTable,
+    cleanTables,
+    createMember,
+    createProjects,
+    createUsers,
+    Dict,
+    transacMember,
+} from '../src/test-helpers';
 
 describe('memberDao', () => {
-    let users: DemoUserSet;
-    let projects: DemoProjectSet;
+    let users: Dict<User>;
+    let projects: Dict<Project>;
 
     before('Create users and projects', async () => {
         [users, projects] = await pool.connect(async db =>
             Promise.all([
-                createDemoUsers(db, prepareUsers()),
-                createDemoProjects(db, prepareProjects()),
+                createUsers(db, {
+                    a: {
+                        name: 'user.a',
+                    },
+                    b: {
+                        name: 'user.b',
+                    },
+                    c: {
+                        name: 'user.c',
+                    },
+                }),
+                createProjects(db, {
+                    a: {
+                        code: 'proja',
+                    },
+                    b: {
+                        code: 'projb',
+                    },
+                }),
             ])
         );
     });
@@ -28,171 +47,171 @@ describe('memberDao', () => {
     describe('Create', () => {
         afterEach('delete all members', cleanTable(pool, 'project_member'));
         it('should create a project member', async () => {
-            const created = await pool.connect(db =>
+            const mem = await pool.transaction(db =>
                 memberDao.create(db, {
-                    projectId: projects.chair.id,
-                    userId: users.tania.id,
-                    roles: ['leader'],
+                    projectId: projects.a.id,
+                    userId: users.b.id,
+                    roles: ['role1'],
                 })
             );
-            const expected = {
-                project: { id: projects.chair.id },
-                user: { id: users.tania.id },
-                roles: ['leader'],
-            };
-            expect(created.id).to.be.a('string');
-            expect(created).to.deep.include(expected);
+            expect(mem.id).to.be.uuid();
+            expect(mem).to.deep.include({
+                project: { id: projects.a.id },
+                user: { id: users.b.id },
+                roles: ['role1'],
+            });
         });
     });
 
     describe('Get members', () => {
-        before('create demo members', async () => {
-            await pool.transaction(db =>
-                createDemoMembers(db, Promise.resolve(projects), Promise.resolve(users))
-            );
+        let members;
+        before('create members', async () => {
+            members = await pool.transaction(async db => {
+                return {
+                    aa: await createMember(db, projects.a, users.a, ['role1']),
+                    bb: await createMember(db, projects.b, users.b, ['role2']),
+                    ab: await createMember(db, projects.a, users.b, ['role3', 'role4']),
+                    bc: await createMember(db, projects.b, users.c, ['role5', 'role6']),
+                };
+            });
         });
         after('delete all members', cleanTable(pool, 'project_member'));
 
         it('should get a member project and user id', async () => {
-            const taniaChair = await pool.connect(db =>
-                memberDao.byProjectAndUserId(db, projects.chair.id, users.tania.id)
+            const aa = await pool.connect(db =>
+                memberDao.byProjectAndUserId(db, projects.a.id, users.a.id)
             );
-            expect(taniaChair).to.not.be.null;
-            expect(taniaChair.roles).to.be.undefined;
+            expect(aa).to.not.be.null;
+            expect(aa.id).to.be.uuid();
+            expect(aa.roles).to.be.undefined;
         });
 
         it('should get a member project and user id and roles', async () => {
-            const taniaChair = await pool.connect(db =>
-                memberDao.byProjectAndUserId(db, projects.chair.id, users.tania.id, true)
+            const aa = await pool.connect(db =>
+                memberDao.byProjectAndUserId(db, projects.a.id, users.a.id, true)
             );
-            expect(taniaChair).to.not.be.null;
-            expect(taniaChair.roles).to.have.members(['leader']);
+            expect(aa).to.not.be.null;
+            expect(aa.id).to.be.uuid();
+            expect(aa.roles).to.have.members(['role1']);
         });
 
         it('should get null if user not in project', async () => {
-            const taniaDesk = await pool.connect(db =>
-                memberDao.byProjectAndUserId(db, projects.desk.id, users.tania.id)
+            const ac = await pool.connect(db =>
+                memberDao.byProjectAndUserId(db, projects.a.id, users.c.id)
             );
-            expect(taniaDesk).to.be.null;
+            expect(ac).to.be.null;
         });
 
         it('should get more than one role if applicable', async () => {
-            const alphonseDesk = await pool.connect(db =>
-                memberDao.byProjectAndUserId(db, projects.desk.id, users.alphonse.id, true)
+            const ab = await pool.connect(db =>
+                memberDao.byProjectAndUserId(db, projects.a.id, users.b.id, true)
             );
-            expect(alphonseDesk).to.not.be.null;
-            expect(alphonseDesk.roles).to.have.members(['leader', 'designer']);
+            expect(ab).to.not.be.null;
+            expect(ab.id).to.be.uuid();
+            expect(ab.roles).to.have.members(['role3', 'role4']);
         });
 
         it('should get members on a project', async () => {
-            const chairMembers = await pool.connect(db =>
-                memberDao.byProjectId(db, projects.chair.id)
-            );
-            expect(chairMembers).to.shallowDeepEqual([
+            const b = await pool.connect(db => memberDao.byProjectId(db, projects.b.id));
+            expect(b).to.include.deep.members([
                 {
-                    user: { id: users.tania.id },
-                    project: { id: projects.chair.id },
+                    id: members.bb.id,
+                    project: { id: projects.b.id },
+                    user: { id: users.b.id },
                 },
                 {
-                    user: { id: users.fatima.id },
-                    project: { id: projects.chair.id },
-                },
-                {
-                    user: { id: users.philippe.id },
-                    project: { id: projects.chair.id },
-                },
-                {
-                    user: { id: users.pascal.id },
-                    project: { id: projects.chair.id },
+                    id: members.bc.id,
+                    project: { id: projects.b.id },
+                    user: { id: users.c.id },
                 },
             ]);
         });
         it('should get all projects from a user', async () => {
-            const fatimaMembers = await pool.connect(db => memberDao.byUserId(db, users.fatima.id));
-            expect(fatimaMembers).to.have.lengthOf(2);
-            expect(fatimaMembers).to.shallowDeepEqual([
+            const b = await pool.connect(db => memberDao.byUserId(db, users.b.id));
+            expect(b).to.have.deep.members([
                 {
-                    user: { id: users.fatima.id },
-                    project: { id: projects.chair.id },
+                    id: members.bb.id,
+                    project: { id: projects.b.id },
+                    user: { id: users.b.id },
                 },
                 {
-                    user: { id: users.fatima.id },
-                    project: { id: projects.desk.id },
+                    id: members.ab.id,
+                    project: { id: projects.a.id },
+                    user: { id: users.b.id },
                 },
             ]);
         });
     });
 
     describe('Update member', () => {
-        let taniaChair;
+        let aa;
 
         beforeEach('create demo members', async function() {
-            taniaChair = await pool.transaction(async db => {
-                return memberDao.create(db, {
-                    projectId: projects.chair.id,
-                    userId: users.tania.id,
-                    roles: ['designer'],
-                });
-            });
+            aa = await transacMember(pool, projects.a, users.a, ['role1']);
         });
         afterEach('delete all members', cleanTable(pool, 'project_member'));
 
         it('should remove all project member roles', async function() {
             const memb = await pool.transaction(async db => {
-                return memberDao.updateRolesById(db, taniaChair.id, null);
+                return memberDao.updateRolesById(db, aa.id, null);
             });
             expect(memb).to.deep.include({
-                project: { id: projects.chair.id },
-                user: { id: users.tania.id },
+                project: { id: projects.a.id },
+                user: { id: users.a.id },
                 roles: [],
             });
         });
 
         it('should change project member roles', async function() {
             const memb = await pool.transaction(async db => {
-                return memberDao.updateRolesById(db, taniaChair.id, ['leader', 'engineer']);
+                return memberDao.updateRolesById(db, aa.id, ['role2', 'role3']);
             });
             expect(memb).to.deep.include({
-                project: { id: projects.chair.id },
-                user: { id: users.tania.id },
-                roles: ['leader', 'engineer'],
+                project: { id: projects.a.id },
+                user: { id: users.a.id },
+                roles: ['role2', 'role3'],
             });
         });
     });
 
     describe('Delete', () => {
-        beforeEach('create demo members', async () => {
-            await pool.transaction(db =>
-                createDemoMembers(db, Promise.resolve(projects), Promise.resolve(users))
-            );
+        let members;
+        beforeEach('create members', async () => {
+            members = await pool.transaction(async db => {
+                return {
+                    aa: await createMember(db, projects.a, users.a, ['role1']),
+                    bb: await createMember(db, projects.b, users.b, ['role2']),
+                    ab: await createMember(db, projects.a, users.b, ['role3', 'role4']),
+                    bc: await createMember(db, projects.b, users.c, ['role5', 'role6']),
+                };
+            });
         });
         afterEach('delete all members', cleanTable(pool, 'project_member'));
 
         it('should delete a specific member', async () => {
             await pool.connect(db =>
-                memberDao.deleteByProjectAndUserId(db, projects.desk.id, users.fatima.id)
+                memberDao.deleteByProjectAndUserId(db, projects.b.id, users.b.id)
             );
-            const fatimaMembers = await pool.connect(db => memberDao.byUserId(db, users.fatima.id));
-            expect(fatimaMembers).to.shallowDeepEqual([
+            const userB = await pool.connect(db => memberDao.byUserId(db, users.b.id));
+            expect(userB).to.have.deep.members([
                 {
-                    user: { id: users.fatima.id },
-                    project: { id: projects.chair.id },
+                    id: members.ab.id,
+                    project: { id: projects.a.id },
+                    user: { id: users.b.id },
                 },
             ]);
         });
 
         it('should delete members from a project', async () => {
-            await pool.connect(db => memberDao.deleteByProjId(db, projects.chair.id));
-            const chairMembers = await pool.connect(db =>
-                memberDao.byProjectId(db, projects.chair.id)
-            );
-            expect(chairMembers).to.deep.include.members([]);
+            await pool.connect(db => memberDao.deleteByProjId(db, projects.a.id));
+            const projA = await pool.connect(db => memberDao.byProjectId(db, projects.a.id));
+            expect(projA).to.deep.include.members([]);
         });
 
         it('should delete a projects from a user', async () => {
-            await pool.connect(db => memberDao.deleteByUserId(db, users.fatima.id));
-            const fatimaMembers = await pool.connect(db => memberDao.byUserId(db, users.fatima.id));
-            expect(fatimaMembers).to.deep.include.members([]);
+            await pool.connect(db => memberDao.deleteByUserId(db, users.b.id));
+            const userB = await pool.connect(db => memberDao.byUserId(db, users.b.id));
+            expect(userB).to.deep.include.members([]);
         });
     });
 });

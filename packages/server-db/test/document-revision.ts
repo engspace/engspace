@@ -1,57 +1,12 @@
-import {
-    Document,
-    DocumentInput,
-    DocumentRevision,
-    DocumentRevisionInput,
-    User,
-} from '@engspace/core';
 import { expect } from 'chai';
 import { pool } from '.';
-import { Db, documentDao, documentRevisionDao, userDao } from '../src';
-import { transacDemoUsers } from '../src/test-helpers';
-
-async function createDoc(
-    db: Db,
-    user: User,
-    input: Partial<DocumentInput> = {}
-): Promise<Document> {
-    return documentDao.create(
-        db,
-        {
-            name: 'docname',
-            description: 'doc description',
-            initialCheckout: true,
-            ...input,
-        },
-        user.id
-    );
-}
-
-async function createRev(
-    db: Db,
-    doc: Document,
-    user: User,
-    input: Partial<DocumentRevisionInput> = {}
-): Promise<DocumentRevision> {
-    return documentRevisionDao.create(
-        db,
-        {
-            documentId: doc.id,
-            filename: 'file.ext',
-            filesize: 1664,
-            changeDescription: 'update file',
-            retainCheckout: true,
-            ...input,
-        },
-        user.id
-    );
-}
+import { documentDao, documentRevisionDao, userDao } from '../src';
+import { createDoc, createDocRev, transacUsersAB } from '../src/test-helpers';
 
 describe('documentRevisionDao', function() {
     let users;
-
     before('create users', async function() {
-        users = await transacDemoUsers(pool);
+        users = await transacUsersAB(pool);
     });
 
     after('delete users', async function() {
@@ -62,19 +17,29 @@ describe('documentRevisionDao', function() {
 
     describe('Create', function() {
         it('should create first revision and release checkout', async function() {
-            const { doc, rev } = await pool.transaction(async db => {
-                const doc = await createDoc(db, users.tania, { initialCheckout: true });
-                const rev = await createRev(db, doc, users.tania, { retainCheckout: false });
-                return { doc: await documentDao.byId(db, doc.id), rev };
+            const { doc, rev1 } = await pool.transaction(async db => {
+                const doc = await createDoc(db, users.a, { initialCheckout: true });
+                const rev1 = await documentRevisionDao.create(
+                    db,
+                    {
+                        documentId: doc.id,
+                        filename: 'file.ext',
+                        filesize: 1664,
+                        changeDescription: 'update file',
+                        retainCheckout: false,
+                    },
+                    users.a.id
+                );
+                return { doc: await documentDao.byId(db, doc.id), rev1 };
             });
-            expect(rev.id).to.be.uuid();
-            expect(rev.createdAt).to.be.a('number');
-            expect(rev).to.deep.include({
+            expect(rev1.id).to.be.uuid();
+            expect(rev1.createdAt).to.be.a('number');
+            expect(rev1).to.deep.include({
                 document: { id: doc.id },
                 revision: 1,
                 filename: 'file.ext',
                 filesize: 1664,
-                createdBy: { id: users.tania.id },
+                createdBy: { id: users.a.id },
                 changeDescription: 'update file',
                 uploaded: 0,
                 sha1: null,
@@ -86,8 +51,18 @@ describe('documentRevisionDao', function() {
 
         it('should retain checkout', async function() {
             const { doc, rev1 } = await pool.transaction(async db => {
-                const doc = await createDoc(db, users.tania);
-                const rev1 = await createRev(db, doc, users.tania, { retainCheckout: true });
+                const doc = await createDoc(db, users.a);
+                const rev1 = await documentRevisionDao.create(
+                    db,
+                    {
+                        documentId: doc.id,
+                        filename: 'file.ext',
+                        filesize: 1664,
+                        changeDescription: 'update file',
+                        retainCheckout: true,
+                    },
+                    users.a.id
+                );
                 return { doc: await documentDao.byId(db, doc.id), rev1 };
             });
             expect(rev1.id).to.be.uuid();
@@ -97,7 +72,7 @@ describe('documentRevisionDao', function() {
                 revision: 1,
             });
             expect(doc).to.deep.include({
-                checkout: { id: users.tania.id },
+                checkout: { id: users.a.id },
             });
         });
     });
@@ -109,14 +84,14 @@ describe('documentRevisionDao', function() {
 
         before('create doc and revisions', async function() {
             await pool.transaction(async db => {
-                document = await createDoc(db, users.tania, { initialCheckout: true });
-                revision1 = await createRev(db, document, users.tania, {
+                document = await createDoc(db, users.a, { initialCheckout: true });
+                revision1 = await createDocRev(db, document, users.a, {
                     filesize: 1665,
                     filename: 'file.ext',
                     changeDescription: 'creation',
                     retainCheckout: true,
                 });
-                revision2 = await createRev(db, document, users.tania, {
+                revision2 = await createDocRev(db, document, users.a, {
                     filesize: 16710,
                     filename: 'filev2.ext',
                     changeDescription: 'update',
@@ -171,9 +146,9 @@ describe('documentRevisionDao', function() {
 
         it('should revise document', async function() {
             const { doc, rev1, rev2 } = await pool.transaction(async db => {
-                const doc = await createDoc(db, users.tania);
-                const rev1 = await createRev(db, doc, users.tania, { retainCheckout: true });
-                const rev2 = await createRev(db, doc, users.tania, {
+                const doc = await createDoc(db, users.a);
+                const rev1 = await createDocRev(db, doc, users.a, { retainCheckout: true });
+                const rev2 = await createDocRev(db, doc, users.a, {
                     filesize: 23020,
                     filename: 'file_v2.ext',
                     changeDescription: 'update v2',
@@ -189,7 +164,7 @@ describe('documentRevisionDao', function() {
                 revision: 2,
                 filesize: 23020,
                 filename: 'file_v2.ext',
-                createdBy: { id: users.tania.id },
+                createdBy: { id: users.a.id },
                 changeDescription: 'update v2',
             });
             expect(doc).to.deep.include({
@@ -199,8 +174,8 @@ describe('documentRevisionDao', function() {
 
         it('should update progress', async function() {
             const { rev0, upld10k, rev10k, upld25k, rev25k } = await pool.transaction(async db => {
-                const doc = await createDoc(db, users.tania);
-                const rev0 = await createRev(db, doc, users.tania, {
+                const doc = await createDoc(db, users.a);
+                const rev0 = await createDocRev(db, doc, users.a, {
                     filesize: 25000,
                     retainCheckout: true,
                 });
@@ -226,8 +201,8 @@ describe('documentRevisionDao', function() {
 
         it('should not allow progress above filesize', async function() {
             const tooHighUpload = pool.transaction(async db => {
-                const doc = await createDoc(db, users.tania);
-                const rev0 = await createRev(db, doc, users.tania, {
+                const doc = await createDoc(db, users.a);
+                const rev0 = await createDocRev(db, doc, users.a, {
                     filesize: 25000,
                     retainCheckout: true,
                 });
@@ -239,8 +214,8 @@ describe('documentRevisionDao', function() {
 
         it('should update sha1', async function() {
             const rev = await pool.transaction(async db => {
-                const doc = await createDoc(db, users.tania);
-                const rev0 = await createRev(db, doc, users.tania, {
+                const doc = await createDoc(db, users.a);
+                const rev0 = await createDocRev(db, doc, users.a, {
                     filesize: 25000,
                     retainCheckout: true,
                 });

@@ -1,15 +1,20 @@
 import { expect } from 'chai';
 import { pool } from '.';
 import { partBaseDao } from '../src';
+import { cleanTables, createPartFamilies, createUsersAB } from '../src/test-helpers';
 import { wrongUuid } from './dao-base';
-import { cleanTables, transacDemoPartFamilies, transacDemoUsers } from '../src/test-helpers';
 
 describe('partBaseDao', function() {
     let users;
     let families;
     before(async function() {
-        users = await transacDemoUsers(pool);
-        families = await transacDemoPartFamilies(pool);
+        return pool.transaction(async db => {
+            users = await createUsersAB(db);
+            families = await createPartFamilies(db, {
+                rm: { code: 'RM', name: 'Raw material' },
+                tf: { code: 'TF', name: 'Transformed' },
+            });
+        });
     });
     after(cleanTables(pool, ['part_family', 'user']));
 
@@ -23,19 +28,19 @@ describe('partBaseDao', function() {
                 return partBaseDao.create(
                     db,
                     {
-                        familyId: families.rawMaterial.id,
+                        familyId: families.rm.id,
                         designation: 'water',
                     },
                     'RM0001',
-                    users.tania.id
+                    users.a.id
                 );
             });
             expect(pb).to.deep.include({
-                family: { id: families.rawMaterial.id },
+                family: { id: families.rm.id },
                 designation: 'water',
                 baseRef: 'RM0001',
-                createdBy: { id: users.tania.id },
-                updatedBy: { id: users.tania.id },
+                createdBy: { id: users.a.id },
+                updatedBy: { id: users.a.id },
             });
             expect(pb.id).to.be.uuid();
             expect(pb.createdAt)
@@ -57,11 +62,11 @@ describe('partBaseDao', function() {
                 return partBaseDao.create(
                     db,
                     {
-                        familyId: families.rawMaterial.id,
+                        familyId: families.rm.id,
                         designation: 'water',
                     },
                     'RM0001',
-                    users.tania.id
+                    users.a.id
                 );
             });
             aftCreate = Date.now();
@@ -81,18 +86,18 @@ describe('partBaseDao', function() {
                     {
                         designation: 'nitrogen',
                     },
-                    users.philippe.id
+                    users.b.id
                 );
             });
             const aft = Date.now();
 
             expect(pb).to.deep.include({
                 id: partBase.id,
-                family: { id: families.rawMaterial.id },
+                family: { id: families.rm.id },
                 designation: 'nitrogen',
                 baseRef: 'RM0001',
-                createdBy: { id: users.tania.id },
-                updatedBy: { id: users.philippe.id },
+                createdBy: { id: users.a.id },
+                updatedBy: { id: users.b.id },
             });
             expect(pb.createdAt)
                 .to.be.gte(befCreate)
@@ -110,7 +115,7 @@ describe('partBaseDao', function() {
                     {
                         designation: 'nitrogen',
                     },
-                    users.philippe.id
+                    users.b.id
                 );
             });
 

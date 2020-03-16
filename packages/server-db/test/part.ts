@@ -4,10 +4,10 @@ import { partDao } from '../src';
 import {
     cleanTable,
     cleanTables,
+    createPart,
     createPartBase,
     createPartFamily,
     createUser,
-    createPart,
 } from '../src/test-helpers';
 
 describe('partDao', function() {

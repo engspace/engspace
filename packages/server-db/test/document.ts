@@ -1,38 +1,13 @@
-import { Document, DocumentInput } from '@engspace/core';
-import { DemoDocInput, DemoUserSet, documentInput } from '@engspace/demo-data-input';
+import { Document } from '@engspace/core';
 import { expect } from 'chai';
 import { pool } from '.';
-import { Db, documentDao } from '../src';
-import { cleanTable, transacDemoUsers } from '../src/test-helpers';
-
-async function createDocument(
-    db: Db,
-    { name, description, creator }: DemoDocInput,
-    users: Promise<DemoUserSet>,
-    initialCheckout: boolean
-): Promise<Document> {
-    const docInput: DocumentInput = {
-        name,
-        description,
-        initialCheckout,
-    };
-    const usrs = await users;
-    return documentDao.create(db, docInput, usrs[creator].id);
-}
-
-export async function createDocuments(
-    db: Db,
-    users: Promise<DemoUserSet>,
-    initialCheckout = true
-): Promise<Document[]> {
-    return Promise.all(documentInput.map(di => createDocument(db, di, users, initialCheckout)));
-}
+import { documentDao } from '../src';
+import { cleanTable, createDoc, Dict, transacUsersAB } from '../src/test-helpers';
 
 describe('documentDao', function() {
     let users;
-
     before('create users', async function() {
-        users = await transacDemoUsers(pool);
+        users = await transacUsersAB(pool);
     });
 
     after('delete users', cleanTable(pool, 'user'));
@@ -53,15 +28,15 @@ describe('documentDao', function() {
                         description: 'doc description',
                         initialCheckout: true,
                     },
-                    users.tania.id
+                    users.a.id
                 );
             });
             expect(result.id).to.be.uuid();
             expect(result).to.deep.include({
                 name: 'docname',
                 description: 'doc description',
-                createdBy: { id: users.tania.id },
-                checkout: { id: users.tania.id },
+                createdBy: { id: users.a.id },
+                checkout: { id: users.a.id },
             });
             expect(result.createdAt)
                 .to.be.at.least(msBefore)
@@ -77,14 +52,14 @@ describe('documentDao', function() {
                         description: 'doc description',
                         initialCheckout: false,
                     },
-                    users.tania.id
+                    users.a.id
                 );
             });
             expect(result.id).to.be.uuid();
             expect(result).to.deep.include({
                 name: 'docname',
                 description: 'doc description',
-                createdBy: { id: users.tania.id },
+                createdBy: { id: users.a.id },
                 checkout: null,
             });
             expect(result.createdAt)
@@ -94,11 +69,18 @@ describe('documentDao', function() {
     });
 
     describe('Read', function() {
-        let documents;
+        let docs: Dict<Document>;
 
         before('create documents', async function() {
-            documents = await pool.transaction(async db => {
-                return createDocuments(db, Promise.resolve(users));
+            docs = await pool.transaction(async db => {
+                return {
+                    a: await createDoc(db, users.a, {
+                        name: 'a',
+                    }),
+                    b: await createDoc(db, users.a, {
+                        name: 'b',
+                    }),
+                };
             });
         });
 
@@ -108,32 +90,32 @@ describe('documentDao', function() {
 
         it('should read a document by id', async function() {
             const result = await pool.connect(async db => {
-                return documentDao.byId(db, documents[0].id);
+                return documentDao.byId(db, docs.a.id);
             });
-            expect(result).to.deep.include(documents[0]);
+            expect(result).to.deep.include(docs.a);
         });
 
         it('should read a checkout id by document id', async function() {
             const result = await pool.connect(async db => {
-                return documentDao.checkoutIdById(db, documents[0].id);
+                return documentDao.checkoutIdById(db, docs.a.id);
             });
-            expect(result).to.equal(documents[0].checkout.id);
+            expect(result).to.equal(docs.a.checkout.id);
         });
 
         it('should read a document batch by ids', async function() {
             const result = await pool.connect(async db => {
-                return documentDao.batchByIds(db, [documents[1].id, documents[0].id]);
+                return documentDao.batchByIds(db, [docs.b.id, docs.a.id]);
             });
-            expect(result).to.eql([documents[1], documents[0]]);
+            expect(result).to.eql([docs.b, docs.a]);
         });
 
         it('should search for documents', async function() {
             const result = await pool.connect(async db => {
-                return documentDao.search(db, 'conduct', 0, 5);
+                return documentDao.search(db, 'b', 0, 5);
             });
             expect(result).to.eql({
                 count: 1,
-                documents: [documents[0]],
+                documents: [docs.b],
             });
         });
 
@@ -150,12 +132,8 @@ describe('documentDao', function() {
             expect(res2.documents)
                 .to.be.an('array')
                 .with.lengthOf(1);
-            expect(res1.documents[0].id).to.satisfy(
-                id => id === documents[0].id || id === documents[1].id
-            );
-            expect(res2.documents[0].id).to.satisfy(
-                id => id === documents[0].id || id === documents[1].id
-            );
+            expect(res1.documents[0].id).to.satisfy(id => id === docs.a.id || id === docs.b.id);
+            expect(res2.documents[0].id).to.satisfy(id => id === docs.a.id || id === docs.b.id);
             expect(res1.documents[0].id).to.not.eql(res2.documents[0].id);
         });
     });
@@ -174,13 +152,13 @@ describe('documentDao', function() {
                         description: 'doc description',
                         initialCheckout: false,
                     },
-                    users.tania.id
+                    users.a.id
                 );
 
-                return documentDao.checkout(db, doc.id, users.alphonse.id);
+                return documentDao.checkout(db, doc.id, users.b.id);
             });
             expect(doc).to.deep.include({
-                checkout: { id: users.alphonse.id },
+                checkout: { id: users.b.id },
             });
         });
 
@@ -193,13 +171,13 @@ describe('documentDao', function() {
                         description: 'doc description',
                         initialCheckout: true,
                     },
-                    users.tania.id
+                    users.a.id
                 );
 
-                return documentDao.checkout(db, doc.id, users.alphonse.id);
+                return documentDao.checkout(db, doc.id, users.b.id);
             });
             expect(doc).to.deep.include({
-                checkout: { id: users.tania.id },
+                checkout: { id: users.a.id },
             });
         });
 
@@ -212,10 +190,10 @@ describe('documentDao', function() {
                         description: 'doc description',
                         initialCheckout: true,
                     },
-                    users.tania.id
+                    users.a.id
                 );
 
-                return documentDao.discardCheckout(db, doc.id, users.tania.id);
+                return documentDao.discardCheckout(db, doc.id, users.a.id);
             });
             expect(doc).to.deep.include({
                 checkout: null,
@@ -231,13 +209,13 @@ describe('documentDao', function() {
                         description: 'doc description',
                         initialCheckout: true,
                     },
-                    users.tania.id
+                    users.a.id
                 );
 
-                return documentDao.discardCheckout(db, doc.id, users.alphonse.id);
+                return documentDao.discardCheckout(db, doc.id, users.b.id);
             });
             expect(doc).to.deep.include({
-                checkout: { id: users.tania.id },
+                checkout: { id: users.a.id },
             });
         });
     });

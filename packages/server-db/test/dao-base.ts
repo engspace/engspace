@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { pool } from '.';
 import { documentDao, projectDao } from '../src';
-import { cleanTable, transacDemoUsers } from '../src/test-helpers';
+import { cleanTable, transacUsersAB } from '../src/test-helpers';
 
 // fake v4 uuid
 export const wrongUuid = '01234567-89ab-4000-8fff-cdef01234567';
@@ -148,7 +148,7 @@ describe('Dao Base', function() {
     describe('DaoRowMap (with documentDao)', function() {
         let users;
         before('create users', async function() {
-            users = await transacDemoUsers(pool);
+            users = await transacUsersAB(pool);
         });
         after('delete users', cleanTable(pool, 'user'));
 
@@ -163,7 +163,7 @@ describe('Dao Base', function() {
                         description: 'b',
                         initialCheckout: false,
                     },
-                    users.ambre.id
+                    users.a.id
                 );
             });
             const doc = await pool.connect(async db => {
@@ -173,7 +173,7 @@ describe('Dao Base', function() {
                 id,
                 name: 'a',
                 description: 'b',
-                createdBy: { id: users.ambre.id },
+                createdBy: { id: users.a.id },
                 checkout: null,
             });
         });
@@ -194,7 +194,7 @@ describe('Dao Base', function() {
                         description: 'b',
                         initialCheckout: false,
                     },
-                    users.ambre.id
+                    users.a.id
                 );
             });
             const has = await pool.connect(async db => {
@@ -219,7 +219,7 @@ describe('Dao Base', function() {
                         description: 'b',
                         initialCheckout: false,
                     },
-                    users.ambre.id
+                    users.a.id
                 );
                 const doc2 = await documentDao.create(
                     db,
@@ -228,7 +228,7 @@ describe('Dao Base', function() {
                         description: 'd',
                         initialCheckout: true,
                     },
-                    users.tania.id
+                    users.b.id
                 );
                 return { id1: doc1.id, id2: doc2.id };
             });
@@ -242,14 +242,14 @@ describe('Dao Base', function() {
                 id: id2,
                 name: 'c',
                 description: 'd',
-                createdBy: { id: users.tania.id },
-                checkout: { id: users.tania.id },
+                createdBy: { id: users.b.id },
+                checkout: { id: users.b.id },
             });
             expect(docs[1]).to.deep.include({
                 id: id1,
                 name: 'a',
                 description: 'b',
-                createdBy: { id: users.ambre.id },
+                createdBy: { id: users.a.id },
                 checkout: null,
             });
         });
@@ -263,7 +263,7 @@ describe('Dao Base', function() {
                         description: 'b',
                         initialCheckout: false,
                     },
-                    users.ambre.id
+                    users.a.id
                 );
             });
             const deleted = await pool.transaction(async db => {
@@ -273,7 +273,7 @@ describe('Dao Base', function() {
                 id,
                 name: 'a',
                 description: 'b',
-                createdBy: { id: users.ambre.id },
+                createdBy: { id: users.a.id },
                 checkout: null,
             });
             const has = await pool.connect(async db => {
@@ -298,7 +298,7 @@ describe('Dao Base', function() {
                         description: 'b',
                         initialCheckout: false,
                     },
-                    users.ambre.id
+                    users.a.id
                 );
                 const doc2 = await documentDao.create(
                     db,
@@ -307,7 +307,7 @@ describe('Dao Base', function() {
                         description: 'd',
                         initialCheckout: true,
                     },
-                    users.tania.id
+                    users.b.id
                 );
                 return { id1: doc1.id, id2: doc2.id };
             });

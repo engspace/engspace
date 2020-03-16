@@ -1,55 +1,65 @@
-import { DemoProjectSet, prepareProjects } from '@engspace/demo-data-input';
 import { expect } from 'chai';
 import { pool } from '.';
 import { memberDao, projectDao, userDao } from '../src';
-import { cleanTable, transacDemoProjects } from '../src/test-helpers';
+import { cleanTable, createUser, transacProjects } from '../src/test-helpers';
 
 describe('projectDao', () => {
     describe('create', () => {
-        const projects = prepareProjects();
-
         afterEach('clean up', cleanTable(pool, 'project'));
 
-        it('should create project', async () =>
-            pool.connect(async db => {
-                const returned = await projectDao.create(db, projects.chair);
-                expect(returned).to.deep.include(projects.chair);
-                const created = await projectDao.byCode(db, 'chair');
-                expect(created.id).to.equal(returned.id);
-                expect(created).to.deep.include(projects.chair);
-            }));
+        it('should create project', async function() {
+            const proj = await pool.transaction(async db => {
+                return projectDao.create(db, {
+                    code: 'a',
+                    name: 'A',
+                    description: 'a desc',
+                });
+            });
+            expect(proj).to.deep.include({
+                code: 'a',
+                name: 'A',
+                description: 'a desc',
+            });
+            expect(proj.id).to.be.uuid();
+        });
     });
 
     describe('Get', () => {
-        let projects: DemoProjectSet;
+        let projects;
         before('create projects', async () => {
-            projects = await transacDemoProjects(pool);
+            projects = await transacProjects(pool, {
+                a: { code: 'a' },
+                b: { code: 'b' },
+            });
         });
         after('delete projects', cleanTable(pool, 'project'));
 
         it('should find project by id', async () =>
             pool.connect(async db => {
-                const project = await projectDao.byId(db, projects.desk.id);
-                expect(project).to.deep.include(projects.desk);
+                const project = await projectDao.byId(db, projects.a.id);
+                expect(project).to.deep.include(projects.a);
             }));
 
         it('should find project by code', async () =>
             pool.connect(async db => {
-                const project = await projectDao.byCode(db, 'desk');
-                expect(project).to.deep.include(projects.desk);
+                const project = await projectDao.byCode(db, 'a');
+                expect(project).to.deep.include(projects.a);
             }));
         it('should get by ordered batch', async () => {
             const projs = await pool.connect(db =>
-                projectDao.batchByIds(db, [projects.desk.id, projects.chair.id])
+                projectDao.batchByIds(db, [projects.b.id, projects.a.id])
             );
-            expect(projs).to.eql([projects.desk, projects.chair]);
+            expect(projs).to.eql([projects.b, projects.a]);
         });
     });
 
     describe('Search', () => {
-        let projects: DemoProjectSet;
+        let projects;
         before('create projects', async () => {
-            projects = await transacDemoProjects(pool);
+            projects = await transacProjects(pool, {
+                chair: { code: 'chair' },
+                desk: { code: 'desk' },
+            });
         });
         after('delete projects', cleanTable(pool, 'project'));
 
@@ -65,12 +75,8 @@ describe('projectDao', () => {
         });
 
         it('should find project with member name', async function() {
-            const result = await pool.connect(async db => {
-                const user = await userDao.create(db, {
-                    name: 'user.a',
-                    email: 'user.a@domain.net',
-                    fullName: 'User A',
-                });
+            const result = await pool.transaction(async db => {
+                const user = await createUser(db, { name: 'user.a' });
                 await memberDao.create(db, {
                     projectId: projects.chair.id,
                     userId: user.id,
@@ -148,9 +154,12 @@ describe('projectDao', () => {
     });
 
     describe('Patch', async () => {
-        let projects: DemoProjectSet;
+        let projects;
         beforeEach('create projects', async () => {
-            projects = await transacDemoProjects(pool);
+            projects = await transacProjects(pool, {
+                chair: { code: 'chair' },
+                desk: { code: 'desk' },
+            });
         });
         afterEach('delete projects', cleanTable(pool, 'project'));
 
@@ -186,9 +195,12 @@ describe('projectDao', () => {
     });
 
     describe('Delete', () => {
-        let projects: DemoProjectSet;
+        let projects;
         beforeEach('create projects', async () => {
-            projects = await transacDemoProjects(pool);
+            projects = await transacProjects(pool, {
+                chair: { code: 'chair' },
+                desk: { code: 'desk' },
+            });
         });
         afterEach('delete projects', cleanTable(pool, 'project'));
 
