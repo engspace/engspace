@@ -92,3 +92,23 @@ export class CharIterator {
 export function replaceAt(input: string, index: number, repl: string): string {
     return input.substring(0, index) + repl + input.substring(index + repl.length);
 }
+
+export function arraysHaveSameMembers<T>(arr1: readonly T[], arr2: readonly T[]): boolean {
+    if (arr1.length !== arr2.length) return false;
+    const a1 = arr1.concat().sort();
+    const a2 = arr2.concat().sort();
+    for (let i = 0; i < a1.length; ++i) {
+        if (a1[i] !== a2[i]) return false;
+    }
+    return true;
+}
+
+export function arraysHaveSameMembersMut<T>(arr1: T[], arr2: T[]): boolean {
+    if (arr1.length !== arr2.length) return false;
+    arr1.sort();
+    arr2.sort();
+    for (let i = 0; i < arr1.length; ++i) {
+        if (arr1[i] !== arr2[i]) return false;
+    }
+    return true;
+}

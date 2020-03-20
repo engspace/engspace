@@ -2,7 +2,13 @@ import { expect } from 'chai';
 import fs from 'fs';
 import path from 'path';
 import { config } from '.';
-import { bufferSha1sum, CharIterator, fileSha1sum } from '../src/util';
+import {
+    bufferSha1sum,
+    CharIterator,
+    fileSha1sum,
+    arraysHaveSameMembers,
+    arraysHaveSameMembersMut,
+} from '../src/util';
 
 describe('Util', function() {
     describe('sha1 utility', function() {
@@ -135,6 +141,30 @@ describe('Util', function() {
             inp.back();
             expect(inp.peek).to.equal('a');
             expect(bad).to.throw();
+        });
+    });
+
+    describe('array comparison', function() {
+        it('should compare arrays without mutation', function() {
+            const a1 = ['b', 'a', 'd'];
+            const a2 = ['b', 'd', 'a'];
+            expect(arraysHaveSameMembers(a1, a2)).to.be.true;
+            expect(a1).to.eql(['b', 'a', 'd']);
+            expect(a2).to.eql(['b', 'd', 'a']);
+        });
+
+        it('should compare arrays with mutation', function() {
+            const a1 = ['b', 'a', 'd'];
+            const a2 = ['b', 'd', 'a'];
+            expect(arraysHaveSameMembersMut(a1, a2)).to.be.true;
+            expect(a1).to.eql(['a', 'b', 'd']);
+            expect(a2).to.eql(['a', 'b', 'd']);
+        });
+        it('should return false if arrays have not same members', function() {
+            expect(arraysHaveSameMembers([1, 4, 2, 5], [1, 3, 2, 5])).to.be.false;
+            expect(arraysHaveSameMembers([1, 4, 2, 5, 6], [1, 4, 2, 5])).to.be.false;
+            expect(arraysHaveSameMembersMut([1, 4, 2, 5], [1, 3, 2, 5])).to.be.false;
+            expect(arraysHaveSameMembersMut([1, 4, 2, 5, 6], [1, 4, 2, 5])).to.be.false;
         });
     });
 });
