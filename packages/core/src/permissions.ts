@@ -1,8 +1,22 @@
+import defaultRolePolicies from './defaultRolePolicies.json';
+
 export class UnknownRoleError extends Error {
     constructor(public role: string) {
         super(`Unknown Role: ${role}`);
         Object.setPrototypeOf(this, UnknownRoleError.prototype);
     }
+}
+
+export interface AppRolePolicies {
+    user: RolePolicy;
+    project: RolePolicy;
+}
+
+export function buildDefaultAppRolePolicies(): AppRolePolicies {
+    return {
+        user: buildRolePolicy(defaultRolePolicies.user),
+        project: buildRolePolicy(defaultRolePolicies.project),
+    };
 }
 
 export interface RolePolicy {

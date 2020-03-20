@@ -1,5 +1,4 @@
-import { HasId, Id, PartBaseUpdateInput } from '@engspace/core';
-import { Part } from 'core/src/schema';
+import { HasId, Id, PartBaseUpdateInput, Part } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
 import { DaoRowMap, foreignKey, mapTrackedRow, TrackedRow, trackedSqlToken } from './base';
