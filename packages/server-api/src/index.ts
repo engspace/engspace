@@ -20,7 +20,7 @@ import { setupLoginRoute } from './http/login';
 import { attachDb, authJwtSecret, setAuthToken } from './internal';
 import { AppRefNaming } from './ref-naming';
 
-export { AppRefNaming, PartBaseRefNaming } from './ref-naming';
+export { AppRefNaming, PartBaseRefNaming, PartRefNaming } from './ref-naming';
 
 export interface EsServerConfig {
     rolePolicies: AppRolePolicies;

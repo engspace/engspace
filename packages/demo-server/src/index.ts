@@ -1,5 +1,5 @@
 import { buildDefaultAppRolePolicies } from '@engspace/core';
-import { EsServerApi, PartBaseRefNaming } from '@engspace/server-api';
+import { EsServerApi, PartBaseRefNaming, PartRefNaming } from '@engspace/server-api';
 import {
     connectionString,
     createDbPool,
@@ -15,7 +15,6 @@ import events from 'events';
 import Koa from 'koa';
 import logger from 'koa-logger';
 import { populateData } from './populate-data';
-import { PartRefNaming } from 'server-api/src/ref-naming';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
