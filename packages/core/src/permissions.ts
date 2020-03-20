@@ -45,6 +45,7 @@ class CRolePolicy implements RolePolicy {
     }
 
     public permissions(roles: string[]): string[] {
+        if (!roles || !roles.length) return [];
         const key = roles.join('-');
         const optimistic = this.perms[key];
         if (optimistic) return optimistic;
