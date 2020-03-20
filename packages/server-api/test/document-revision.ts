@@ -1,7 +1,10 @@
-import { prepareUsers } from '@engspace/demo-data-input';
 import { documentRevisionDao } from '@engspace/server-db';
-import { createDemoUsers } from '@engspace/server-db/dist/populate-demo';
-import { cleanTables, createDoc, createDocRev } from '@engspace/server-db/dist/test-helpers';
+import {
+    cleanTables,
+    createDoc,
+    createDocRev,
+    createUsersAB,
+} from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
@@ -77,8 +80,8 @@ describe('GraphQL Document Revision', function() {
 
     before('Create users and document', async function() {
         await pool.transaction(async db => {
-            users = await createDemoUsers(db, prepareUsers());
-            document = await createDoc(db, users.tania, {
+            users = await createUsersAB(db);
+            document = await createDoc(db, users.a, {
                 name: 'a',
                 description: 'doc A',
                 initialCheckout: true,
@@ -92,22 +95,22 @@ describe('GraphQL Document Revision', function() {
 
         before('Create revisions', async function() {
             revisions = await pool.transaction(async db => {
-                const rev1 = await createDocRev(db, document, users.tania, {
+                const rev1 = await createDocRev(db, document, users.a, {
                     filesize: 1000,
                     filename: 'file_v1.ext',
                     changeDescription: 'creation',
                 });
-                const rev2 = await createDocRev(db, document, users.tania, {
+                const rev2 = await createDocRev(db, document, users.a, {
                     filesize: 2000,
                     filename: 'file_v2.ext',
                     changeDescription: 'update 1',
                 });
-                const rev3 = await createDocRev(db, document, users.tania, {
+                const rev3 = await createDocRev(db, document, users.a, {
                     filesize: 3000,
                     filename: 'file_v3.ext',
                     changeDescription: 'update 2',
                 });
-                const rev4 = await createDocRev(db, document, users.tania, {
+                const rev4 = await createDocRev(db, document, users.a, {
                     filesize: 4000,
                     filename: 'file_v4.ext',
                     changeDescription: 'update 3',
@@ -133,7 +136,7 @@ describe('GraphQL Document Revision', function() {
             const { errors, data } = await pool.transaction(async db => {
                 const { query } = buildGqlServer(
                     db,
-                    permsAuth(users.sylvie, ['document.read', 'user.read'])
+                    permsAuth(users.a, ['document.read', 'user.read'])
                 );
                 return query({
                     query: DOCREV_READ,
@@ -148,7 +151,7 @@ describe('GraphQL Document Revision', function() {
                 revision: 3,
                 filename: 'file_v3.ext',
                 filesize: 3000,
-                createdBy: { id: users.tania.id },
+                createdBy: { id: users.a.id },
                 createdAt: revisions[2].createdAt,
                 changeDescription: 'update 2',
                 uploaded: 3000,
@@ -158,7 +161,7 @@ describe('GraphQL Document Revision', function() {
 
         it('should not read document revision without "document.read"', async function() {
             const { errors, data } = await pool.transaction(async db => {
-                const { query } = buildGqlServer(db, permsAuth(users.sylvie, ['user.read']));
+                const { query } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
                 return query({
                     query: DOCREV_READ,
                     variables: { id: revisions[2].id },
@@ -172,7 +175,7 @@ describe('GraphQL Document Revision', function() {
             const { errors, data } = await pool.transaction(async db => {
                 const { query } = buildGqlServer(
                     db,
-                    permsAuth(users.sylvie, ['document.read', 'user.read'])
+                    permsAuth(users.a, ['document.read', 'user.read'])
                 );
                 return query({
                     query: DOC_READ_LAST_REV,
@@ -188,7 +191,7 @@ describe('GraphQL Document Revision', function() {
                     revision: 4,
                     filename: 'file_v4.ext',
                     filesize: 4000,
-                    createdBy: { id: users.tania.id },
+                    createdBy: { id: users.a.id },
                     createdAt: revisions[3].createdAt,
                     changeDescription: 'update 3',
                     uploaded: 3500,
@@ -201,7 +204,7 @@ describe('GraphQL Document Revision', function() {
             const { errors, data } = await pool.transaction(async db => {
                 const { query } = buildGqlServer(
                     db,
-                    permsAuth(users.sylvie, ['document.read', 'user.read'])
+                    permsAuth(users.a, ['document.read', 'user.read'])
                 );
                 return query({
                     query: DOC_READ_ALL_REVS,
@@ -235,7 +238,7 @@ describe('GraphQL Document Revision', function() {
             const { errors, data } = await pool.connect(async db => {
                 const { query } = buildGqlServer(
                     db,
-                    permsAuth(users.sylvie, ['document.read', 'user.read'])
+                    permsAuth(users.a, ['document.read', 'user.read'])
                 );
                 return query({
                     query: gql`
@@ -307,7 +310,7 @@ describe('GraphQL Document Revision', function() {
                 const { errors, data } = await pool.transaction(async db => {
                     const { mutate } = buildGqlServer(
                         db,
-                        permsAuth(users.tania, ['document.revise', 'document.read', 'user.read'])
+                        permsAuth(users.a, ['document.revise', 'document.read', 'user.read'])
                     );
                     return mutate({
                         mutation: DOC_REVISE,
@@ -333,7 +336,7 @@ describe('GraphQL Document Revision', function() {
                     filesize: 1000,
                     changeDescription: 'update',
                     createdBy: {
-                        id: users.tania.id,
+                        id: users.a.id,
                     },
                     uploaded: 0,
                     sha1: null,
@@ -344,7 +347,7 @@ describe('GraphQL Document Revision', function() {
                 const { errors, data } = await pool.transaction(async db => {
                     const { mutate } = buildGqlServer(
                         db,
-                        permsAuth(users.tania, ['document.read', 'user.read'])
+                        permsAuth(users.a, ['document.read', 'user.read'])
                     );
                     return mutate({
                         mutation: DOC_REVISE,
@@ -365,14 +368,14 @@ describe('GraphQL Document Revision', function() {
 
             it('should not revise a document checked-out by someone else', async function() {
                 const { errors, data } = await pool.transaction(async db => {
-                    const doc = await createDoc(db, users.tania, {
+                    const doc = await createDoc(db, users.a, {
                         name: 'b',
                         description: 'doc B',
                         initialCheckout: true,
                     });
                     const { mutate } = buildGqlServer(
                         db,
-                        permsAuth(users.ambre, ['document.revise', 'document.read', 'user.read'])
+                        permsAuth(users.b, ['document.revise', 'document.read', 'user.read'])
                     );
                     return mutate({
                         mutation: DOC_REVISE,
@@ -388,7 +391,7 @@ describe('GraphQL Document Revision', function() {
                     });
                 });
                 expect(errors).to.be.an('array').not.empty;
-                expect(errors[0].message).to.contain(users.tania.fullName);
+                expect(errors[0].message).to.contain(users.a.fullName);
                 expect(data).to.be.null;
             });
         });

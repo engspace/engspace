@@ -1,14 +1,14 @@
-import { cleanTable, transacDemoUsers } from '@engspace/server-db/dist/test-helpers';
+import { cleanTable, transacUsersAB } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { signJwt, verifyJwt } from '../src/crypto';
-import { auth } from './auth';
+import { permsAuth } from './auth';
 
 describe('Miscellaneous', function() {
     let users;
     before('Create users', async function() {
-        users = await transacDemoUsers(pool);
+        users = await transacUsersAB(pool);
     });
 
     after('Delete users', cleanTable(pool, 'user'));
@@ -54,7 +54,7 @@ describe('Miscellaneous', function() {
 
         it('reads graphql DateTime from Value', async function() {
             const { errors, data } = await pool.connect(async db => {
-                const { query } = buildGqlServer(db, auth(users.sophie));
+                const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: gql`
                         query TestDateTimeVal($val: DateTime!) {
@@ -74,7 +74,7 @@ describe('Miscellaneous', function() {
 
         it('reads graphql DateTime from Int Literal', async function() {
             const { errors, data } = await pool.connect(async db => {
-                const { query } = buildGqlServer(db, auth(users.sophie));
+                const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: gql`
                         query TestDateTimeLit {
@@ -91,7 +91,7 @@ describe('Miscellaneous', function() {
 
         it('reads graphql DateTime from String Literal', async function() {
             const { errors, data } = await pool.connect(async db => {
-                const { query } = buildGqlServer(db, auth(users.sophie));
+                const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: gql`
                         query TestDateTimeLit {
@@ -108,7 +108,7 @@ describe('Miscellaneous', function() {
 
         it('errors if cannot parse datetime string', async function() {
             const { errors, data } = await pool.connect(async db => {
-                const { query } = buildGqlServer(db, auth(users.sophie));
+                const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: gql`
                         query TestDateTimeLit {
@@ -124,7 +124,7 @@ describe('Miscellaneous', function() {
 
         it('errors if supplying invalid type', async function() {
             const { errors, data } = await pool.connect(async db => {
-                const { query } = buildGqlServer(db, auth(users.sophie));
+                const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: gql`
                         query TestDateTimeLit {

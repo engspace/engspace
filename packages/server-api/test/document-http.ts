@@ -1,10 +1,10 @@
 import { Document, DocumentRevision, DocumentRevisionInput, User } from '@engspace/core';
-import { Db, documentDao, documentRevisionDao } from '@engspace/server-db';
+import { Db, documentDao, documentRevisionDao, userDao } from '@engspace/server-db';
 import {
     cleanTable,
     createDoc,
     createDocRev,
-    transacDemoUsers,
+    createUsersAB,
 } from '@engspace/server-db/dist/test-helpers';
 import { expect, request } from 'chai';
 import fs from 'fs';
@@ -57,7 +57,11 @@ describe('HTTP /api/document', function() {
     let users;
 
     before('Create users', async function() {
-        users = await transacDemoUsers(pool);
+        return pool.transaction(async db => {
+            users = await createUsersAB(db);
+            users.a.roles = await userDao.insertRoles(db, users.a.id, ['user']);
+            users.b.roles = await userDao.insertRoles(db, users.b.id, ['user']);
+        });
     });
 
     after('Delete users', cleanTable(pool, 'user'));
@@ -74,7 +78,7 @@ describe('HTTP /api/document', function() {
         let revision;
         before('create doc, revision and file', async function() {
             await pool.transaction(async db => {
-                document = await createDoc(db, users.tania, {
+                document = await createDoc(db, users.a, {
                     name: 'abcd',
                     description: 'doc ABCD',
                     initialCheckout: true,
@@ -82,7 +86,7 @@ describe('HTTP /api/document', function() {
                 revision = await createDocRevWithContent(
                     db,
                     document,
-                    users.tania,
+                    users.a,
                     {
                         filename: 'abcd.ext',
                         changeDescription: 'create',
@@ -101,7 +105,7 @@ describe('HTTP /api/document', function() {
         });
 
         it('should get a token and download a document revision with "document.read"', async function() {
-            const token = await bearerToken(permsAuth(users.philippe, ['document.read']));
+            const token = await bearerToken(permsAuth(users.a, ['document.read']));
             const resp = await request(server)
                 .get('/api/document/download_token')
                 .set('Authorization', `Bearer ${token}`)
@@ -129,7 +133,7 @@ describe('HTTP /api/document', function() {
         });
 
         it('should not get a download token without "document.read"', async function() {
-            const token = await bearerToken(permsAuth(users.philippe, []));
+            const token = await bearerToken(permsAuth(users.a, []));
             const resp = await request(server)
                 .get('/api/document/download_token')
                 .set('Authorization', `Bearer ${token}`)
@@ -153,7 +157,7 @@ describe('HTTP /api/document', function() {
         });
 
         it('should get 400 with ill-formed document id', async function() {
-            const token = await bearerToken(permsAuth(users.philippe, ['document.read']));
+            const token = await bearerToken(permsAuth(users.a, ['document.read']));
             const resp = await request(server)
                 .get('/api/document/download_token')
                 .set('Authorization', `Bearer ${token}`)
@@ -165,7 +169,7 @@ describe('HTTP /api/document', function() {
         });
 
         it('should get 400 with ill-formed revision', async function() {
-            const token = await bearerToken(permsAuth(users.philippe, ['document.read']));
+            const token = await bearerToken(permsAuth(users.a, ['document.read']));
             const resp = await request(server)
                 .get('/api/document/download_token')
                 .set('Authorization', `Bearer ${token}`)
@@ -177,19 +181,19 @@ describe('HTTP /api/document', function() {
         });
 
         it('should get 404 with wrong document', async function() {
-            const token = await bearerToken(permsAuth(users.philippe, ['document.read']));
+            const token = await bearerToken(permsAuth(users.a, ['document.read']));
             const resp = await request(server)
                 .get('/api/document/download_token')
                 .set('Authorization', `Bearer ${token}`)
                 .query({
-                    documentId: users.philippe.id,
+                    documentId: users.a.id,
                     revision: 1,
                 });
             expect(resp).to.have.status(404);
         });
 
         it('should get 404 with wrong revision', async function() {
-            const token = await bearerToken(permsAuth(users.philippe, ['document.read']));
+            const token = await bearerToken(permsAuth(users.a, ['document.read']));
             const resp = await request(server)
                 .get('/api/document/download_token')
                 .set('Authorization', `Bearer ${token}`)
@@ -201,7 +205,7 @@ describe('HTTP /api/document', function() {
         });
 
         it('should not get 404 with wrong document and wrong perms', async function() {
-            const token = await bearerToken(permsAuth(users.philippe, []));
+            const token = await bearerToken(permsAuth(users.a, []));
             const resp = await request(server)
                 .get('/api/document/download_token')
                 .set('Authorization', `Bearer ${token}`)
@@ -221,7 +225,7 @@ describe('HTTP /api/document', function() {
         let document;
         before('create doc', async function() {
             await pool.transaction(async db => {
-                document = await createDoc(db, users.tania, {
+                document = await createDoc(db, users.a, {
                     name: 'abcd',
                     description: 'doc ABCD',
                     initialCheckout: true,
@@ -240,9 +244,9 @@ describe('HTTP /api/document', function() {
         });
 
         it('should perform full upload process', async function() {
-            const auth = permsAuth(users.philippe, ['document.revise']);
+            const auth = permsAuth(users.a, ['document.revise']);
             const rev = await pool.transaction(async db => {
-                return createDocRev(db, document, users.philippe, {
+                return createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
                     retainCheckout: false,
@@ -287,9 +291,9 @@ describe('HTTP /api/document', function() {
         });
 
         it('should error if sha1 is false', async function() {
-            const auth = permsAuth(users.philippe, ['document.revise']);
+            const auth = permsAuth(users.a, ['document.revise']);
             const rev = await pool.transaction(async db => {
-                return createDocRev(db, document, users.philippe, {
+                return createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
                     retainCheckout: false,
@@ -336,7 +340,7 @@ describe('HTTP /api/document', function() {
         });
 
         it('should return 404 if revision does not exist', async function() {
-            const auth = permsAuth(users.philippe, ['document.revise']);
+            const auth = permsAuth(users.a, ['document.revise']);
             const token = await bearerToken(auth);
             const resp = await request(server)
                 .post('/api/document/upload')
@@ -348,7 +352,7 @@ describe('HTTP /api/document', function() {
                 })
                 .query({
                     // eslint-disable-next-line @typescript-eslint/camelcase
-                    rev_id: users.philippe.id,
+                    rev_id: users.a.id,
                 })
                 .send(fileContent);
             expect(resp).to.have.status(404);
@@ -356,13 +360,13 @@ describe('HTTP /api/document', function() {
 
         it('should return 403 without "document.revise"', async function() {
             const rev = await pool.transaction(async db => {
-                return createDocRev(db, document, users.philippe, {
+                return createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
                     retainCheckout: false,
                 });
             });
-            const auth = permsAuth(users.philippe, []);
+            const auth = permsAuth(users.a, []);
             const token = await bearerToken(auth);
             const resp = await request(server)
                 .post('/api/document/upload')
@@ -382,7 +386,7 @@ describe('HTTP /api/document', function() {
 
         it('should return 401 without authorization', async function() {
             const rev = await pool.transaction(async db => {
-                return createDocRev(db, document, users.philippe, {
+                return createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
                     retainCheckout: false,
@@ -405,13 +409,13 @@ describe('HTTP /api/document', function() {
 
         it('should return 400 if ill-formed query', async function() {
             const rev = await pool.transaction(async db => {
-                return createDocRev(db, document, users.philippe, {
+                return createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
                     retainCheckout: false,
                 });
             });
-            const auth = permsAuth(users.philippe, ['document.revise']);
+            const auth = permsAuth(users.a, ['document.revise']);
             const token = await bearerToken(auth);
             const resp = await request(server)
                 .post('/api/document/upload')
@@ -422,7 +426,6 @@ describe('HTTP /api/document', function() {
                     'x-upload-length': fileContent.length,
                 })
                 .query({
-                    // eslint-disable-next-line @typescript-eslint/camelcase
                     revisionId: rev.id,
                 })
                 .send(fileContent);

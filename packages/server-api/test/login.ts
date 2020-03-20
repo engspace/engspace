@@ -1,6 +1,5 @@
-import { DemoUserSet, prepareUsers } from '@engspace/demo-data-input';
-import { createDemoLogins, createDemoUsers } from '@engspace/server-db/dist/populate-demo';
-import { cleanTable } from '@engspace/server-db/dist/test-helpers';
+import { loginDao } from '@engspace/server-db';
+import { cleanTable, createUser } from '@engspace/server-db/dist/test-helpers';
 import { expect, request } from 'chai';
 import http from 'http';
 import { api, config, pool } from '.';
@@ -11,15 +10,13 @@ import { auth } from './auth';
 const { serverPort } = config;
 
 describe('Login', () => {
-    const usersInput = prepareUsers();
-    let users: DemoUserSet;
+    let userA;
     let server: http.Server;
 
     before('Create users', async () => {
-        users = await pool.transaction(async db => {
-            const usrs = createDemoUsers(db, usersInput);
-            await createDemoLogins(db, usrs);
-            return usrs;
+        return pool.transaction(async db => {
+            userA = await createUser(db, { name: 'a', roles: ['user'] });
+            await loginDao.create(db, userA.id, 'a');
         });
     });
     before('Start server', done => {
@@ -32,22 +29,22 @@ describe('Login', () => {
         const resp = await request(server)
             .post('/api/login')
             .send({
-                nameOrEmail: 'gerard',
-                password: 'gerard',
+                nameOrEmail: 'a',
+                password: 'a',
             });
         expect(resp).to.have.status(200);
         expect(resp.body).to.be.an('object');
         expect(resp.body.token).to.be.a('string');
         const authToken = await verifyJwt(resp.body.token, authJwtSecret);
-        expect(authToken).to.deep.include(auth(users.gerard));
+        expect(authToken).to.deep.include(auth(userA));
     });
 
     it('should reject invalid password', async () => {
         const resp = await request(server)
             .post('/api/login')
             .send({
-                nameOrEmail: 'gerard',
-                password: 'gerardo',
+                nameOrEmail: 'a',
+                password: 'b',
             });
         expect(resp).to.have.status(403);
     });
@@ -56,8 +53,8 @@ describe('Login', () => {
         const resp = await request(server)
             .post('/api/login')
             .send({
-                nameOrEmail: 'gerardo',
-                password: 'gerard',
+                nameOrEmail: 'c',
+                password: 'a',
             });
         expect(resp).to.have.status(403);
     });

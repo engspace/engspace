@@ -1,6 +1,9 @@
 import { partFamilyDao } from '@engspace/server-db';
-import { createDemoPartFamilies } from '@engspace/server-db/dist/populate-demo';
-import { cleanTable, transacDemoUsers } from '@engspace/server-db/dist/test-helpers';
+import {
+    cleanTable,
+    createPartFamilies,
+    transacUsersAB,
+} from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
@@ -41,10 +44,10 @@ const PARTFAM_UPDATE = gql`
     ${PARTFAM_FIELDS}
 `;
 
-describe('GraphQL PartFamilies', function() {
+describe('GraphQL PartFamily', function() {
     let users;
     before('Create users', async function() {
-        users = await transacDemoUsers(pool);
+        users = await transacUsersAB(pool);
     });
     after('Delete users', cleanTable(pool, 'user'));
 
@@ -52,7 +55,7 @@ describe('GraphQL PartFamilies', function() {
         let families;
         before('Create part families', async function() {
             families = await pool.transaction(async db => {
-                return createDemoPartFamilies(db, {
+                return createPartFamilies(db, {
                     fam1: {
                         name: 'family 1',
                         code: '1',
@@ -74,7 +77,7 @@ describe('GraphQL PartFamilies', function() {
 
         it('should read part families', async function() {
             const { errors, data } = await pool.connect(async db => {
-                const { query } = buildGqlServer(db, permsAuth(users.sophie, ['partfamily.read']));
+                const { query } = buildGqlServer(db, permsAuth(users.a, ['partfamily.read']));
                 return query({
                     query: PARTFAM_READ,
                     variables: {
@@ -92,7 +95,7 @@ describe('GraphQL PartFamilies', function() {
 
         it('should not read part families without "partfamily.read"', async function() {
             const { errors, data } = await pool.connect(async db => {
-                const { query } = buildGqlServer(db, permsAuth(users.sophie, []));
+                const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: PARTFAM_READ,
                     variables: {
@@ -115,7 +118,7 @@ describe('GraphQL PartFamilies', function() {
             const { errors, data } = await pool.connect(async db => {
                 const { mutate } = buildGqlServer(
                     db,
-                    permsAuth(users.sophie, ['partfamily.create', 'partfamily.read'])
+                    permsAuth(users.a, ['partfamily.create', 'partfamily.read'])
                 );
                 return mutate({
                     mutation: PARTFAM_CREATE,
@@ -137,7 +140,7 @@ describe('GraphQL PartFamilies', function() {
 
         it('should not create part family without "partfamily.create"', async function() {
             const { errors, data } = await pool.connect(async db => {
-                const { mutate } = buildGqlServer(db, permsAuth(users.sophie, ['partfamily.read']));
+                const { mutate } = buildGqlServer(db, permsAuth(users.a, ['partfamily.read']));
                 return mutate({
                     mutation: PARTFAM_CREATE,
                     variables: {
@@ -163,7 +166,7 @@ describe('GraphQL PartFamilies', function() {
             const { errors, data } = await pool.connect(async db => {
                 const { mutate } = buildGqlServer(
                     db,
-                    permsAuth(users.sophie, ['partfamily.update', 'partfamily.read'])
+                    permsAuth(users.a, ['partfamily.update', 'partfamily.read'])
                 );
                 return mutate({
                     mutation: PARTFAM_UPDATE,
@@ -192,7 +195,7 @@ describe('GraphQL PartFamilies', function() {
                 });
             });
             const { errors, data } = await pool.connect(async db => {
-                const { mutate } = buildGqlServer(db, permsAuth(users.sophie, ['partfamily.read']));
+                const { mutate } = buildGqlServer(db, permsAuth(users.a, ['partfamily.read']));
                 return mutate({
                     mutation: PARTFAM_UPDATE,
                     variables: {

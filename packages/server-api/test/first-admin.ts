@@ -26,12 +26,12 @@ describe('HTTP /api/first_admin', function() {
         });
         it('should return true if admin exist', async function() {
             await pool.transaction(async db => {
-                return userDao.create(db, {
+                const user = await userDao.create(db, {
                     email: 'a@a.net',
                     name: 'a',
                     fullName: 'A',
-                    roles: ['admin'],
                 });
+                await userDao.insertRoles(db, user.id, ['admin']);
             });
             const resp = await request(server).get('/api/first_admin');
             expect(resp).to.have.status(200);
@@ -64,12 +64,12 @@ describe('HTTP /api/first_admin', function() {
         });
         it('should not create first admin if admin exists', async function() {
             await pool.transaction(async db => {
-                return userDao.create(db, {
+                const user = await userDao.create(db, {
                     email: 'a@a.net',
                     name: 'a',
                     fullName: 'A',
-                    roles: ['admin'],
                 });
+                await userDao.insertRoles(db, user.id, ['admin']);
             });
             const resp = await request(server)
                 .post('/api/first_admin')

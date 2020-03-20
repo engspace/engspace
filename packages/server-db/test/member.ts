@@ -146,7 +146,7 @@ describe('memberDao', () => {
     describe('Update member', () => {
         let aa;
 
-        beforeEach('create demo members', async function() {
+        beforeEach('create members', async function() {
             aa = await transacMember(pool, projects.a, users.a, ['role1']);
         });
         afterEach('delete all members', cleanTable(pool, 'project_member'));

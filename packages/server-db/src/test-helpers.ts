@@ -3,39 +3,30 @@ import {
     DocumentInput,
     DocumentRevision,
     DocumentRevisionInput,
+    Part,
+    PartBase,
+    PartBaseInput,
     PartFamily,
     PartFamilyInput,
     Project,
     ProjectInput,
+    ProjectMember,
     User,
     UserInput,
-    PartBaseInput,
-    PartBase,
-    Part,
-    ProjectMember,
 } from '@engspace/core';
-import {
-    DemoPartFamilySet,
-    DemoProjectSet,
-    DemoUserSet,
-    partFamiliesInput,
-    prepareProjects,
-    prepareUsers,
-} from '@engspace/demo-data-input';
 import { sql } from 'slonik';
 import { Db, DbPool } from '.';
 import {
     documentDao,
     documentRevisionDao,
+    memberDao,
+    partBaseDao,
+    partDao,
+    PartDaoInput,
     partFamilyDao,
     projectDao,
     userDao,
-    partBaseDao,
-    PartDaoInput,
-    partDao,
-    memberDao,
 } from './dao';
-import { createDemoPartFamilies, createDemoProjects, createDemoUsers } from './populate-demo';
 
 export interface Dict<T> {
     [prop: string]: T;
@@ -72,17 +63,6 @@ export function cleanTables(pool: DbPool, tableNames: string[]) {
             }
         });
     };
-}
-export function transacDemoUsers(pool: DbPool): Promise<DemoUserSet> {
-    return pool.transaction(async db => createDemoUsers(db, prepareUsers()));
-}
-
-export function transacDemoProjects(pool: DbPool): Promise<DemoProjectSet> {
-    return pool.transaction(async db => createDemoProjects(db, prepareProjects()));
-}
-
-export function transacDemoPartFamilies(pool: DbPool): Promise<DemoPartFamilySet> {
-    return pool.transaction(async db => createDemoPartFamilies(db, partFamiliesInput));
 }
 
 export async function createUser(db: Db, input: Partial<UserInput> = {}): Promise<User> {
@@ -135,6 +115,12 @@ export function createProject(db: Db, input: Partial<ProjectInput> = {}): Promis
         code,
         name,
         description,
+    });
+}
+
+export function transacProject(pool: DbPool, input: Partial<ProjectInput> = {}): Promise<Project> {
+    return pool.transaction(async db => {
+        return createProject(db, input);
     });
 }
 

@@ -1,16 +1,15 @@
-import gql from 'graphql-tag';
-import { pool, buildGqlServer } from '.';
-import { expect } from 'chai';
-import { permsAuth } from './auth';
 import {
-    createUser,
-    createPartFamily,
-    createPartBase,
+    cleanTable,
     cleanTables,
     createPart,
-    cleanTable,
+    createPartBase,
+    createPartFamily,
+    createUser,
 } from '@engspace/server-db/dist/test-helpers';
-import { dedentBlockStringValue } from 'graphql/language/blockString';
+import { expect } from 'chai';
+import gql from 'graphql-tag';
+import { buildGqlServer, pool } from '.';
+import { permsAuth } from './auth';
 
 const PART_FIELDS = gql`
     fragment PartFields on Part {

@@ -3,11 +3,11 @@ import fs from 'fs';
 import path from 'path';
 import { config } from '.';
 import {
+    arraysHaveSameMembers,
+    arraysHaveSameMembersMut,
     bufferSha1sum,
     CharIterator,
     fileSha1sum,
-    arraysHaveSameMembers,
-    arraysHaveSameMembersMut,
 } from '../src/util';
 
 describe('Util', function() {

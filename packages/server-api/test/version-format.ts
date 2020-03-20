@@ -1,9 +1,9 @@
+import { expect } from 'chai';
 import {
-    VersionFormat,
     BadVersionFormatError,
     MismatchVersionFormatError,
+    VersionFormat,
 } from '../src/version-format';
-import { expect } from 'chai';
 
 describe('VersionFormat', function() {
     it('should format version with numbers', function() {
