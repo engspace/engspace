@@ -30,12 +30,16 @@ describe('userDao', () => {
 
         it('should create user with roles', async () => {
             const userA = await pool.transaction(async db => {
-                const u = await userDao.create(db, {
-                    name: 'user.a',
-                    email: 'user.a@domain.net',
-                    fullName: 'User A',
-                });
-                u.roles = await userDao.insertRoles(db, u.id, ['role1', 'role2']);
+                const u = await userDao.create(
+                    db,
+                    {
+                        name: 'user.a',
+                        email: 'user.a@domain.net',
+                        fullName: 'User A',
+                        roles: ['role1', 'role2'],
+                    },
+                    { withRoles: true }
+                );
                 return u;
             });
             expect(userA).to.deep.include({
@@ -45,32 +49,70 @@ describe('userDao', () => {
                 roles: ['role1', 'role2'],
             });
         });
+        it('should create user without roles', async () => {
+            const userA = await pool.transaction(async db => {
+                const u = await userDao.create(
+                    db,
+                    {
+                        name: 'user.a',
+                        email: 'user.a@domain.net',
+                        fullName: 'User A',
+                        roles: ['role1', 'role2'],
+                    },
+                    { withRoles: false }
+                );
+                return u;
+            });
+            expect(userA).to.deep.include({
+                name: 'user.a',
+                email: 'user.a@domain.net',
+                fullName: 'User A',
+            });
+            expect(userA).to.not.have.property('roles');
+        });
     });
 
     describe('Get', () => {
         let users: Dict<User>;
 
         before('create users', async () => {
-            const usrs = await transacUsers(pool, {
+            users = await transacUsers(pool, {
                 a: { name: 'user.a', fullName: 'User A', roles: ['user'] },
                 b: { name: 'user.b', fullName: 'User B', roles: ['manager'] },
                 c: { name: 'user.c', fullName: 'User C', roles: ['admin'] },
             });
-            users = dictMap(usrs, u => filterFields(u, 'roles'));
         });
         after(cleanTable(pool, 'user'));
 
         it('should get user by id', async () => {
             const a = await pool.connect(async db => await userDao.byId(db, users.a.id));
+            expect(a).to.deep.include(filterFields(users.a, 'roles'));
+        });
+        it('should get user by id with roles', async () => {
+            const a = await pool.connect(
+                async db => await userDao.byId(db, users.a.id, { withRoles: true })
+            );
             expect(a).to.deep.include(users.a);
         });
         it('should get user by username', async () => {
             const c = await pool.connect(async db => await userDao.byName(db, 'user.c'));
+            expect(c).to.deep.include(filterFields(users.c, 'roles'));
+        });
+        it('should get user by username with roles', async () => {
+            const c = await pool.connect(
+                async db => await userDao.byName(db, 'user.c', { withRoles: true })
+            );
             expect(c).to.deep.include(users.c);
         });
         it('should get user by email', async () => {
             const b = await pool.connect(
                 async db => await userDao.byEmail(db, 'user.b@engspace.net')
+            );
+            expect(b).to.deep.include(filterFields(users.b, 'roles'));
+        });
+        it('should get user by email with roles', async () => {
+            const b = await pool.connect(
+                async db => await userDao.byEmail(db, 'user.b@engspace.net', { withRoles: true })
             );
             expect(b).to.deep.include(users.b);
         });
@@ -82,7 +124,11 @@ describe('userDao', () => {
             const batch = await pool.connect(db =>
                 userDao.batchByIds(db, [users.b.id, users.c.id, users.a.id])
             );
-            expect(batch).to.eql([users.b, users.c, users.a]);
+            expect(batch).to.eql([
+                filterFields(users.b, 'roles'),
+                filterFields(users.c, 'roles'),
+                filterFields(users.a, 'roles'),
+            ]);
         });
     });
 

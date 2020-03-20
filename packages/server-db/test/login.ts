@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { sql } from 'slonik';
 import { pool } from '.';
 import { Db, loginDao, userDao } from '../src';
-import { Dict, transacUsersAB } from '../src/test-helpers';
+import { Dict, transacUsers } from '../src/test-helpers';
 
 async function createLogins(db: Db, users: Promise<Dict<User>>): Promise<void> {
     const usrs = await users;
@@ -15,10 +15,9 @@ async function createLogins(db: Db, users: Promise<Dict<User>>): Promise<void> {
 describe('Login', () => {
     let users;
     before('Create users', async function() {
-        users = await transacUsersAB(pool);
-        return pool.transaction(async db => {
-            await userDao.insertRoles(db, users.a.id, ['a1', 'a2']);
-            await userDao.insertRoles(db, users.b.id, ['b1', 'b2']);
+        users = await transacUsers(pool, {
+            a: { name: 'a', roles: ['a1', 'a2'] },
+            b: { name: 'b', roles: ['b1', 'b2'] },
         });
     });
     after('Delete users', () => pool.connect(db => userDao.deleteAll(db)));

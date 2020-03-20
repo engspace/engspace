@@ -12,17 +12,8 @@ export interface UserSearch {
 
 const rowToken = sql`id, name, email, full_name`;
 
-class UserDao extends DaoIdent<User> {
-    async create(db: Db, { name, email, fullName }: UserInput): Promise<User> {
-        return db.one(sql`
-            INSERT INTO "user"(name, email, full_name)
-            VALUES(${name}, ${email}, ${fullName})
-            RETURNING ${rowToken}
-        `);
-    }
-
-    async insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
-        const rows = await db.manyFirst(sql`
+async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
+    const rows = await db.manyFirst(sql`
             INSERT INTO user_role(
                 user_id, role
             ) VALUES ${sql.join(
@@ -31,23 +22,72 @@ class UserDao extends DaoIdent<User> {
             )}
             RETURNING role
         `);
-        return rows as string[];
+    return rows as string[];
+}
+
+export interface RoleOptions {
+    withRoles: boolean;
+}
+
+class UserDao extends DaoIdent<User> {
+    async create(
+        db: Db,
+        { name, email, fullName, roles }: UserInput,
+        { withRoles }: RoleOptions = { withRoles: false }
+    ): Promise<User> {
+        const user: User = await db.one(sql`
+            INSERT INTO "user"(name, email, full_name)
+            VALUES(${name}, ${email}, ${fullName})
+            RETURNING ${rowToken}
+        `);
+        if (withRoles && roles && roles.length) {
+            user.roles = await insertRoles(db, user.id, roles);
+        }
+        return user;
     }
 
-    async byName(db: Db, name: string): Promise<User> {
-        return db.maybeOne(sql`
+    async byId(db: Db, id: Id, { withRoles }: RoleOptions = { withRoles: false }): Promise<User> {
+        const user: User = await db.maybeOne(sql`
+            SELECT ${rowToken}
+            FROM "user"
+            WHERE id = ${id}
+        `);
+        if (user && withRoles) {
+            user.roles = await this.rolesById(db, id);
+        }
+        return user;
+    }
+
+    async byName(
+        db: Db,
+        name: string,
+        { withRoles }: RoleOptions = { withRoles: false }
+    ): Promise<User> {
+        const user: User = await db.maybeOne(sql`
             SELECT ${rowToken}
             FROM "user"
             WHERE name = ${name}
         `);
+        if (user && withRoles) {
+            user.roles = await this.rolesById(db, user.id);
+        }
+        return user;
     }
 
-    async byEmail(db: Db, email: string): Promise<User> {
-        return db.maybeOne(sql`
+    async byEmail(
+        db: Db,
+        email: string,
+        { withRoles }: RoleOptions = { withRoles: false }
+    ): Promise<User> {
+        const user: User = await db.maybeOne(sql`
             SELECT ${rowToken}
             FROM "user"
             WHERE email = ${email}
         `);
+        if (user && withRoles) {
+            user.roles = await this.rolesById(db, user.id);
+        }
+        return user;
     }
 
     async search(db: Db, search: UserSearch): Promise<{ count: number; users: User[] }> {
@@ -97,12 +137,21 @@ class UserDao extends DaoIdent<User> {
         return roles as string[];
     }
 
-    async update(db: Db, id: Id, { name, email, fullName }: UserInput): Promise<User> {
-        return db.maybeOne<User>(sql`
+    async update(
+        db: Db,
+        id: Id,
+        { name, email, fullName, roles }: UserInput,
+        { withRoles }: RoleOptions = { withRoles: false }
+    ): Promise<User> {
+        const user: User = await db.maybeOne<User>(sql`
             UPDATE "user" SET name=${name}, email=${email}, full_name=${fullName}
             WHERE id=${id}
             RETURNING ${rowToken}
         `);
+        if (user && withRoles) {
+            user.roles = await this.updateRoles(db, id, roles);
+        }
+        return user;
     }
 
     async updateRoles(db: Db, userId: Id, roles: string[]): Promise<string[]> {
@@ -111,7 +160,7 @@ class UserDao extends DaoIdent<User> {
         `);
 
         if (roles.length) {
-            return this.insertRoles(db, userId, roles);
+            return insertRoles(db, userId, roles);
         }
         return [];
     }

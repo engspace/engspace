@@ -27,6 +27,7 @@ import {
     projectDao,
     userDao,
 } from './dao';
+import { RoleOptions } from './dao/user';
 
 export interface Dict<T> {
     [prop: string]: T;
@@ -65,28 +66,44 @@ export function cleanTables(pool: DbPool, tableNames: string[]) {
     };
 }
 
-export async function createUser(db: Db, input: Partial<UserInput> = {}): Promise<User> {
+export async function createUser(
+    db: Db,
+    input: Partial<UserInput> = {},
+    opts: Partial<RoleOptions> = {}
+): Promise<User> {
     const name = 'user.name';
     const email = `${input.name ?? name}@engspace.net`;
+    const withRoles = !!input.roles;
 
-    const u = await userDao.create(db, {
-        name,
-        email,
-        fullName: 'User Name',
-        ...input,
-    });
-    if (input.roles && input.roles.length) {
-        u.roles = await userDao.insertRoles(db, u.id, input.roles);
-    }
-    return u;
+    return userDao.create(
+        db,
+        {
+            name,
+            email,
+            fullName: 'User Name',
+            ...input,
+        },
+        {
+            withRoles,
+            ...opts,
+        }
+    );
 }
 
-export function transacUser(pool: DbPool, input: Partial<UserInput>): Promise<User> {
-    return pool.transaction(db => createUser(db, input));
+export function transacUser(
+    pool: DbPool,
+    input: Partial<UserInput>,
+    opts: Partial<RoleOptions> = {}
+): Promise<User> {
+    return pool.transaction(db => createUser(db, input, opts));
 }
 
-export function createUsers(db: Db, input: Dict<Partial<UserInput>>): Promise<Dict<User>> {
-    return asyncDictMap(input, inp => createUser(db, inp));
+export function createUsers(
+    db: Db,
+    input: Dict<Partial<UserInput>>,
+    opts: Partial<RoleOptions> = {}
+): Promise<Dict<User>> {
+    return asyncDictMap(input, inp => createUser(db, inp, opts));
 }
 
 export function createUsersAB(db: Db): Promise<{ a: User; b: User }> {
@@ -96,15 +113,18 @@ export function createUsersAB(db: Db): Promise<{ a: User; b: User }> {
     }>;
 }
 
-export function transacUsers(pool: DbPool, input: Dict<Partial<UserInput>>): Promise<Dict<User>> {
-    return pool.transaction(db => asyncDictMap(input, inp => createUser(db, inp)));
+export function transacUsers(
+    pool: DbPool,
+    input: Dict<Partial<UserInput>>,
+    opts: Partial<RoleOptions> = {}
+): Promise<Dict<User>> {
+    return pool.transaction(db => asyncDictMap(input, inp => createUser(db, inp, opts)));
 }
 
 export function transacUsersAB(pool: DbPool): Promise<{ a: User; b: User }> {
-    return transacUsers(pool, { a: { name: 'a' }, b: { name: 'b' } }) as Promise<{
-        a: User;
-        b: User;
-    }>;
+    return pool.transaction(async db => {
+        return createUsersAB(db);
+    });
 }
 
 export function createProject(db: Db, input: Partial<ProjectInput> = {}): Promise<Project> {

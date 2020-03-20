@@ -31,17 +31,15 @@ const USER_READ = gql`
 `;
 
 describe('GraphQL User', () => {
-    const input = {
-        dupond: { name: 'dupond', roles: ['role1'] },
-        dupont: { name: 'dupont', roles: ['role1', 'role2'] },
-        haddock: { name: 'haddock', roles: ['role1', 'role2', 'role3'] },
-    };
-
     describe('Query', () => {
         let users;
 
         before('Create users', async () => {
-            users = await transacUsers(pool, input);
+            users = await transacUsers(pool, {
+                dupond: { name: 'dupond', roles: ['role1'] },
+                dupont: { name: 'dupont', roles: ['role1', 'role2'] },
+                haddock: { name: 'haddock', roles: ['role1', 'role2', 'role3'] },
+            });
         });
 
         after(cleanTable(pool, 'user'));

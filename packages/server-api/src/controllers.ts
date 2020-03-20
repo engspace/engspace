@@ -91,11 +91,8 @@ export class UserControl {
         if (!validator.isEmail(email)) {
             throw new UserInputError(`"${email}" is not a valid email address`);
         }
-        const user = await userDao.create(ctx.db, { name, email, fullName });
-        if (roles && roles.length) {
-            user.roles = await userDao.insertRoles(ctx.db, user.id, roles);
-        }
-        return user;
+
+        return userDao.create(ctx.db, { name, email, fullName, roles }, { withRoles: true });
     }
 
     static async byIds(ctx: ApiContext, ids: readonly Id[]): Promise<User[]> {

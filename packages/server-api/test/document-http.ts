@@ -13,6 +13,7 @@ import path from 'path';
 import { api, buildGqlServer, config, pool } from '.';
 import { bufferSha1sum } from '../src/util';
 import { bearerToken, permsAuth } from './auth';
+import { transacUsers } from '@engspace/server-db/src/test-helpers';
 
 const { storePath, serverPort } = config;
 
@@ -57,10 +58,9 @@ describe('HTTP /api/document', function() {
     let users;
 
     before('Create users', async function() {
-        return pool.transaction(async db => {
-            users = await createUsersAB(db);
-            users.a.roles = await userDao.insertRoles(db, users.a.id, ['user']);
-            users.b.roles = await userDao.insertRoles(db, users.b.id, ['user']);
+        users = await transacUsers(pool, {
+            a: { name: 'a', roles: ['user'] },
+            b: { name: 'b', roles: ['user'] },
         });
     });
 

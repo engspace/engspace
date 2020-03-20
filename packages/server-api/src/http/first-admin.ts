@@ -38,10 +38,11 @@ export function setupFirstAdminRoutes(router: Router, config: EsServerConfig): v
                 'missing password'
             );
 
-            const user = await userDao.create(db, { name, email, fullName });
-            user.roles = await userDao.insertRoles(db, user.id, ['admin']);
-            await loginDao.create(db, user.id, password);
-            ctx.response.body = user;
+            ctx.response.body = await userDao.create(
+                db,
+                { name, email, fullName, roles: ['admin'] },
+                { withRoles: true }
+            );
         });
     });
 }

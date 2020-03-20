@@ -1,6 +1,7 @@
 import { userDao } from '@engspace/server-db';
 import { expect, request } from 'chai';
 import { api, config, pool } from '.';
+import { transacUser } from '@engspace/server-db/src/test-helpers';
 
 const { serverPort } = config;
 
@@ -25,14 +26,7 @@ describe('HTTP /api/first_admin', function() {
             });
         });
         it('should return true if admin exist', async function() {
-            await pool.transaction(async db => {
-                const user = await userDao.create(db, {
-                    email: 'a@a.net',
-                    name: 'a',
-                    fullName: 'A',
-                });
-                await userDao.insertRoles(db, user.id, ['admin']);
-            });
+            await transacUser(pool, { name: 'a', roles: ['admin'] });
             const resp = await request(server).get('/api/first_admin');
             expect(resp).to.have.status(200);
             expect(resp).to.be.json;
@@ -63,14 +57,7 @@ describe('HTTP /api/first_admin', function() {
             expect(resp.body.id).to.be.uuid();
         });
         it('should not create first admin if admin exists', async function() {
-            await pool.transaction(async db => {
-                const user = await userDao.create(db, {
-                    email: 'a@a.net',
-                    name: 'a',
-                    fullName: 'A',
-                });
-                await userDao.insertRoles(db, user.id, ['admin']);
-            });
+            await transacUser(pool, { name: 'a', roles: ['admin'] });
             const resp = await request(server)
                 .post('/api/first_admin')
                 .send({
