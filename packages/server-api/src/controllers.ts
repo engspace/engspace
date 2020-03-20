@@ -27,18 +27,19 @@ import {
     documentRevisionDao,
     memberDao,
     partBaseDao,
+    partDao,
     partFamilyDao,
     projectDao,
     userDao,
-    partDao,
 } from '@engspace/server-db';
 import { ForbiddenError, UserInputError } from 'apollo-server-koa';
 import fs from 'fs';
 import path from 'path';
 import stream from 'stream';
 import util from 'util';
+import validator from 'validator';
 import { EsServerConfig } from '.';
-import { fileSha1sum } from './util';
+import { fileSha1sum, arraysHaveSameMembersMut } from './util';
 
 export interface ApiContext {
     db: Db;
@@ -82,9 +83,19 @@ export interface Pagination {
 }
 
 export class UserControl {
-    static async create(ctx: ApiContext, user: UserInput): Promise<User> {
+    static async create(
+        ctx: ApiContext,
+        { name, email, fullName, roles }: UserInput
+    ): Promise<User> {
         assertUserPerm(ctx, 'user.create');
-        return userDao.create(ctx.db, user);
+        if (!validator.isEmail(email)) {
+            throw new UserInputError(`"${email}" is not a valid email address`);
+        }
+        const user = await userDao.create(ctx.db, { name, email, fullName });
+        if (roles && roles.length) {
+            user.roles = await userDao.insertRoles(ctx.db, user.id, roles);
+        }
+        return user;
     }
 
     static async byIds(ctx: ApiContext, ids: readonly Id[]): Promise<User[]> {
@@ -121,11 +132,28 @@ export class UserControl {
         });
     }
 
-    static async update(ctx: ApiContext, userId: Id, user: UserInput): Promise<User> {
-        if (userId !== ctx.auth.userId) {
-            assertUserPerm(ctx, 'user.update');
+    static async update(ctx: ApiContext, userId: Id, input: UserInput): Promise<User> {
+        const self = userId === ctx.auth.userId;
+        const hasPerm = hasUserPerm(ctx, 'user.update');
+        if (!self && !hasPerm) {
+            throw new ForbiddenError('missing permission: "user.update"');
         }
-        return userDao.update(ctx.db, userId, user);
+        const roles = await userDao.rolesById(ctx.db, userId);
+        const sameRoles = arraysHaveSameMembersMut(roles, input.roles);
+        if (!sameRoles && !hasPerm) {
+            throw new ForbiddenError('missing permission: "user.update"');
+        }
+
+        if (!validator.isEmail(input.email)) {
+            throw new UserInputError(`"${input.email}" is not a valid email address`);
+        }
+        const user = await userDao.update(ctx.db, userId, input);
+        if (!sameRoles) {
+            user.roles = await userDao.updateRoles(ctx.db, userId, input.roles);
+        } else {
+            user.roles = roles;
+        }
+        return user;
     }
 }
 
