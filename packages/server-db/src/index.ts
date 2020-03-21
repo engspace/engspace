@@ -14,10 +14,12 @@ export {
     documentRevisionDao,
     loginDao,
     memberDao,
+    partBaseDao,
     partDao,
     PartDaoInput,
-    partBaseDao,
     partFamilyDao,
+    partRevisionDao,
+    PartRevisionDaoInput,
     projectDao,
     userDao,
 } from './dao';

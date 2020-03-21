@@ -90,6 +90,21 @@ CREATE TABLE part (
     FOREIGN KEY(updated_by) REFERENCES "user"(id)
 );
 
+CREATE TABLE part_revision (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    part_id uuid NOT NULL,
+    revision integer NOT NULL,
+    designation text NOT NULL,
+    created_by uuid NOT NULL,
+    created_at timestamptz NOT NULL,
+    updated_by uuid NOT NULL,
+    updated_at timestamptz NOT NULL,
+
+    FOREIGN KEY(part_id) REFERENCES part(id),
+    FOREIGN KEY(created_by) REFERENCES "user"(id),
+    FOREIGN KEY(updated_by) REFERENCES "user"(id)
+);
+
 CREATE TABLE document (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     name text NOT NULL,

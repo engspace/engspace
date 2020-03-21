@@ -117,6 +117,18 @@ export interface Part extends Tracked {
     designation: string;
 }
 
+export interface PartRevisionInput {
+    partId: Id;
+    designation?: string;
+}
+
+export interface PartRevision extends Tracked {
+    id: Id;
+    part: IdOr<Part>;
+    revision: number;
+    designation: string;
+}
+
 export interface DocumentInput {
     name: string;
     description: string;

@@ -8,6 +8,7 @@ export { memberDao } from './member';
 export { partDao, PartDaoInput } from './part';
 export { partBaseDao } from './part-base';
 export { partFamilyDao } from './part-family';
+export { partRevisionDao, PartRevisionDaoInput } from './part-revision';
 export { projectDao } from './project';
 export { userDao } from './user';
 

@@ -51,6 +51,7 @@ describe('Pool creation', async () => {
             'part_family',
             'part_base',
             'part',
+            'part_revision',
             'document',
             'document_revision',
         ]);

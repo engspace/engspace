@@ -13,6 +13,7 @@ import {
     ProjectMember,
     User,
     UserInput,
+    Tracked,
 } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db, DbPool } from '.';
@@ -28,6 +29,13 @@ import {
     userDao,
 } from './dao';
 import { RoleOptions } from './dao/user';
+
+export function trackedBy(createdBy: User, updatedBy?: User): Partial<Tracked> {
+    return {
+        createdBy: { id: createdBy.id },
+        updatedBy: { id: updatedBy?.id ?? createdBy.id },
+    };
+}
 
 export interface Dict<T> {
     [prop: string]: T;
