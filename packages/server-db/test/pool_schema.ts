@@ -41,6 +41,7 @@ describe('Pool creation', async () => {
             `)
         );
         expect(tables).to.have.members([
+            'cycle_state_enum',
             'metadata',
             'user',
             'user_login',
@@ -55,5 +56,11 @@ describe('Pool creation', async () => {
             'document',
             'document_revision',
         ]);
+        const cycleStates = await pool.connect(async db => {
+            return db.manyFirst(sql`
+                SELECT name FROM cycle_state_enum ORDER BY id
+            `);
+        });
+        expect(cycleStates).to.eql(['edition', 'validation', 'release', 'obsolete']);
     });
 });

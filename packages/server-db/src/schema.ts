@@ -26,6 +26,7 @@ async function executeSqlFile(db: Db, filename: string): Promise<void> {
 
 async function createSchema(db: DatabaseTransactionConnectionType): Promise<void> {
     await executeSqlFile(db, 'extensions.sql');
+    await executeSqlFile(db, 'enums.sql');
     await executeSqlFile(db, 'schema.sql');
 }
 
