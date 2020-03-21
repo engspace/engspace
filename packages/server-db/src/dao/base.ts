@@ -18,19 +18,31 @@ export interface TrackedRow {
     updatedAt: number;
 }
 
-export function mapTrackedRow({ createdBy, createdAt, updatedBy, updatedAt }: TrackedRow): Tracked {
-    return {
-        createdBy: foreignKey(createdBy),
-        createdAt: timestamp(createdAt),
-        updatedBy: foreignKey(updatedBy),
-        updatedAt: timestamp(updatedAt),
-    };
-}
+export const tracked = {
+    mapRow({ createdBy, createdAt, updatedBy, updatedAt }: TrackedRow): Tracked {
+        return {
+            createdBy: foreignKey(createdBy),
+            createdAt: timestamp(createdAt),
+            updatedBy: foreignKey(updatedBy),
+            updatedAt: timestamp(updatedAt),
+        };
+    },
 
-export const trackedSqlToken = sql`
+    selectToken: sql`
         created_by, EXTRACT(EPOCH FROM created_at) AS created_at,
         updated_by, EXTRACT(EPOCH FROM updated_at) AS updated_at
-`;
+    `,
+
+    insertListToken: sql`created_by, created_at, updated_by, updated_at`,
+
+    insertValToken(userId: Id): SqlTokenType {
+        return sql`${userId}, NOW(), ${userId}, NOW()`;
+    },
+
+    updateAssignmentsToken(userId: Id): SqlTokenType {
+        return sql`updated_by = ${userId}, updated_at = NOW()`;
+    },
+};
 
 function reorderWithIds<T extends HasId>(objs: T[], ids: readonly Id[]): T[] {
     return ids.map(id => objs.find(o => o.id === id));

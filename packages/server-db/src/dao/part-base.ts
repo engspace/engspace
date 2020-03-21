@@ -1,4 +1,4 @@
-import { DaoRowMap, foreignKey, TrackedRow, mapTrackedRow, trackedSqlToken } from './base';
+import { DaoRowMap, foreignKey, TrackedRow, tracked } from './base';
 import { PartBase, HasId, Id, PartBaseInput, PartBaseUpdateInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
@@ -17,12 +17,12 @@ function mapRow(row: Row): PartBase {
         family: foreignKey(familyId),
         baseRef,
         designation,
-        ...mapTrackedRow(row),
+        ...tracked.mapRow(row),
     };
 }
 
 const rowToken = sql`
-        id, family_id, base_ref, designation, ${trackedSqlToken}
+        id, family_id, base_ref, designation, ${tracked.selectToken}
     `;
 
 class PartBaseDao extends DaoRowMap<PartBase, Row> {
@@ -34,10 +34,10 @@ class PartBaseDao extends DaoRowMap<PartBase, Row> {
     ): Promise<PartBase> {
         const row: Row = await db.one(sql`
             INSERT INTO part_base (
-                family_id, base_ref, designation, created_by, created_at, updated_by, updated_at
+                family_id, base_ref, designation, ${tracked.insertListToken}
             )
             VALUES (
-                ${familyId}, ${baseRef}, ${designation}, ${userId}, NOW(), ${userId}, NOW()
+                ${familyId}, ${baseRef}, ${designation}, ${tracked.insertValToken(userId)}
             )
             RETURNING ${rowToken}
         `);
@@ -53,8 +53,7 @@ class PartBaseDao extends DaoRowMap<PartBase, Row> {
         const row: Row = await db.maybeOne(sql`
             UPDATE part_base SET
                 designation = ${designation},
-                updated_by = ${userId},
-                updated_at = NOW()
+                ${tracked.updateAssignmentsToken(userId)}
             WHERE id = ${id}
             RETURNING ${rowToken}
         `);
