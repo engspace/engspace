@@ -14,6 +14,8 @@ import {
     User,
     UserInput,
     Tracked,
+    PartRevision,
+    CycleState,
 } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db, DbPool } from '.';
@@ -27,6 +29,8 @@ import {
     partFamilyDao,
     projectDao,
     userDao,
+    PartRevisionDaoInput,
+    partRevisionDao,
 } from './dao';
 import { RoleOptions } from './dao/user';
 
@@ -252,6 +256,32 @@ export function createPart(
         ref,
         baseId: base.id,
         userId: user.id,
+    });
+}
+
+export function createPartRev(
+    db: Db,
+    part: Part,
+    user: User,
+    input: Partial<PartRevisionDaoInput> = {}
+): Promise<PartRevision> {
+    return partRevisionDao.create(db, {
+        designation: part.designation,
+        cycleState: CycleState.Edition,
+        ...input,
+        partId: part.id,
+        userId: user.id,
+    });
+}
+
+export function transacPartRev(
+    pool: DbPool,
+    part: Part,
+    user: User,
+    input: Partial<PartRevisionDaoInput>
+): Promise<PartRevision> {
+    return pool.transaction(async db => {
+        return createPartRev(db, part, user, input);
     });
 }
 
