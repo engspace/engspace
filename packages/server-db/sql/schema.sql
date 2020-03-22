@@ -96,7 +96,7 @@ CREATE TABLE part_revision (
     revision integer NOT NULL,
     designation text NOT NULL,
 
-    cycle_state integer NOT NULL DEFAULT 0,
+    cycle_state text NOT NULL,
 
     created_by uuid NOT NULL,
     created_at timestamptz NOT NULL,

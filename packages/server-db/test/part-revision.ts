@@ -35,6 +35,7 @@ describe('partRevisionDao', function() {
                 return partRevisionDao.create(db, {
                     partId: part.id,
                     designation: 'Part 1',
+                    cycleState: CycleState.Edition,
                     userId: users.a.id,
                 });
             });
@@ -43,7 +44,7 @@ describe('partRevisionDao', function() {
                 part: { id: part.id },
                 revision: 1,
                 designation: 'Part 1',
-                state: CycleState.Edition,
+                cycleState: CycleState.Edition,
                 ...trackedBy(users.a),
             });
         });

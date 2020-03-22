@@ -57,10 +57,8 @@ describe('Pool creation', async () => {
             'document_revision',
         ]);
         const cycleStates = await pool.connect(async db => {
-            return db.manyFirst(sql`
-                SELECT name FROM cycle_state_enum ORDER BY id
-            `);
+            return db.manyFirst(sql`SELECT id FROM cycle_state_enum`);
         });
-        expect(cycleStates).to.eql(['edition', 'validation', 'release', 'obsolete']);
+        expect(cycleStates).to.have.members(['edition', 'validation', 'release', 'obsolete']);
     });
 });

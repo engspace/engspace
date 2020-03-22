@@ -127,7 +127,7 @@ export interface PartRevision extends Tracked {
     part: IdOr<Part>;
     revision: number;
     designation: string;
-    state: CycleState;
+    cycleState: CycleState;
 }
 
 export interface DocumentInput {
