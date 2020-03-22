@@ -95,12 +95,16 @@ CREATE TABLE part_revision (
     part_id uuid NOT NULL,
     revision integer NOT NULL,
     designation text NOT NULL,
+
+    cycle_state integer NOT NULL DEFAULT 0,
+
     created_by uuid NOT NULL,
     created_at timestamptz NOT NULL,
     updated_by uuid NOT NULL,
     updated_at timestamptz NOT NULL,
 
     FOREIGN KEY(part_id) REFERENCES part(id),
+    FOREIGN KEY(cycle_state) REFERENCES cycle_state_enum(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id),
     FOREIGN KEY(updated_by) REFERENCES "user"(id)
 );

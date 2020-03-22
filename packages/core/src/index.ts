@@ -23,11 +23,11 @@ export type DateTime = number;
 /** An helper used to have references to other objects, with optional loading from the database. */
 export type IdOr<T extends { id: Id }> = { id: Id } | T;
 
-export enum CycleStatus {
-    Edition,
-    Validation,
-    Release,
-    Obsolete,
+export enum CycleState {
+    Edition = 'edition',
+    Validation = 'validation',
+    Release = 'release',
+    Obsolete = 'obsolete',
 }
 
 export interface UserInput {
@@ -127,6 +127,7 @@ export interface PartRevision extends Tracked {
     part: IdOr<Part>;
     revision: number;
     designation: string;
+    state: CycleState;
 }
 
 export interface DocumentInput {

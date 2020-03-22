@@ -1,4 +1,4 @@
-import { HasId, Id, PartRevision } from '@engspace/core';
+import { HasId, Id, PartRevision, CycleState } from '@engspace/core';
 import { TrackedRow, foreignKey, tracked, DaoRowMap } from './base';
 import { sql } from 'slonik';
 import { Db } from '..';
@@ -13,21 +13,25 @@ interface Row extends HasId, TrackedRow {
     partId: Id;
     revision: number;
     designation: string;
+    state: string;
 }
 
 function mapRow(row: Row): PartRevision {
-    const { id, partId, revision, designation } = row;
+    const { id, partId, revision, designation, state } = row;
     return {
         id,
         part: foreignKey(partId),
         revision,
         designation,
+        state: state as CycleState,
         ...tracked.mapRow(row),
     };
 }
 
 const rowToken = sql`
-    id, part_id, revision, designation, ${tracked.selectToken}
+    id, part_id, revision, designation,
+    (SELECT name FROM cycle_state_enum WHERE id=cycle_state) AS state,
+    ${tracked.selectToken}
 `;
 
 class PartRevisionDao extends DaoRowMap<PartRevision, Row> {

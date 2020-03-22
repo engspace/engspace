@@ -10,6 +10,7 @@ import {
     createUsersAB,
     trackedBy,
 } from '../src/test-helpers';
+import { CycleState } from '@engspace/core';
 
 describe('partRevisionDao', function() {
     let users;
@@ -42,6 +43,7 @@ describe('partRevisionDao', function() {
                 part: { id: part.id },
                 revision: 1,
                 designation: 'Part 1',
+                state: CycleState.Edition,
                 ...trackedBy(users.a),
             });
         });
