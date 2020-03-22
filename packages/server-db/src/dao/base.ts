@@ -56,7 +56,7 @@ function reorderWithIdsAndMap<Row extends HasId, OutT extends HasId>(
     return ids.map(id => func(rows.find(o => o.id === id)));
 }
 
-export interface DaoConfigIdent {
+export interface DaoIdentConfig {
     table: string;
     rowToken: SqlTokenType;
 }
@@ -65,7 +65,7 @@ export class DaoIdent<T extends HasId> implements Dao<T> {
     public readonly table: string;
     public readonly rowToken: SqlTokenType;
 
-    constructor(config: DaoConfigIdent) {
+    constructor(config: DaoIdentConfig) {
         this.table = config.table;
         this.rowToken = config.rowToken;
     }
@@ -111,7 +111,7 @@ export class DaoIdent<T extends HasId> implements Dao<T> {
     }
 }
 
-export interface DaoConfigRowMap<T extends HasId, R extends HasId> {
+export interface DaoRowMapConfig<T extends HasId, R extends HasId> {
     table: string;
     rowToken: SqlTokenType;
     mapRow: (row: R) => T;
@@ -122,7 +122,7 @@ export class DaoRowMap<T extends HasId, R extends HasId> implements Dao<T> {
     public readonly mapRow: (row: R) => T;
     public readonly rowToken: SqlTokenType;
 
-    constructor(config: DaoConfigRowMap<T, R>) {
+    constructor(config: DaoRowMapConfig<T, R>) {
         this.table = config.table;
         this.rowToken = config.rowToken;
         this.mapRow = config.mapRow;
