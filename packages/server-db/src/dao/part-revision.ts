@@ -56,6 +56,16 @@ class PartRevisionDao extends DaoRowMap<PartRevision, Row> {
         `);
         return mapRow(row);
     }
+
+    async updateCycleState(db: Db, id: Id, cycleState: CycleState): Promise<PartRevision> {
+        const row: Row = await db.one(sql`
+            UPDATE part_revision SET
+                cycle_state = ${cycleState}
+            WHERE id = ${id}
+            RETURNING ${rowToken}
+        `);
+        return mapRow(row);
+    }
 }
 
 export const partRevisionDao = new PartRevisionDao({
