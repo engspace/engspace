@@ -18,6 +18,7 @@ export { userDao } from './user';
  * An object that connects to the database to access a type of object
  */
 export interface Dao<T extends HasId> {
+    readonly table: string;
     byId(db: Db, id: Id): Promise<T>;
     checkId(db: Db, id: Id): Promise<boolean>;
     batchByIds(db: Db, ids: readonly Id[]): Promise<T[]>;
