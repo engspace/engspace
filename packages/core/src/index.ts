@@ -28,6 +28,7 @@ export enum CycleState {
     Validation = 'validation',
     Release = 'release',
     Obsolete = 'obsolete',
+    Cancelled = 'cancelled',
 }
 
 export interface UserInput {
