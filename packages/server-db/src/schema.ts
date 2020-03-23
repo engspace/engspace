@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import { DatabaseTransactionConnectionType, sql } from 'slonik';
+import { sql } from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
 import { Db } from '.';
+import { CycleState } from '@engspace/core';
 
 // import metadata from '../sql/metadata.json';
 
@@ -24,10 +25,51 @@ async function executeSqlFile(db: Db, filename: string): Promise<void> {
     }
 }
 
-async function createSchema(db: DatabaseTransactionConnectionType): Promise<void> {
+async function createSchema(db: Db): Promise<void> {
     await executeSqlFile(db, 'extensions.sql');
     await executeSqlFile(db, 'enums.sql');
     await executeSqlFile(db, 'schema.sql');
+}
+
+interface EnumTable {
+    table: string;
+    key?: string;
+    description?: string;
+}
+
+export async function insertEnum(db: Db, en: string[], table: EnumTable): Promise<void> {
+    await db.any(sql`
+        INSERT INTO ${sql.identifier([table.table])} (
+            ${sql.identifier([table.key ?? 'id'])}
+        )
+        VALUES ${sql.join(
+            en.map(e => sql`(${e})`),
+            sql`, `
+        )}
+    `);
+}
+
+export async function insertEnumWithDesc(
+    db: Db,
+    table: EnumTable,
+    en: Array<{ key: string; description: string }>
+): Promise<void> {
+    await db.any(sql`
+        INSERT INTO ${sql.identifier([table.table])} (
+            ${sql.identifier([table.key ?? 'id'])},
+            ${sql.identifier([table.description ?? 'description'])}
+        )
+        VALUES ${sql.join(
+            en.map(e => sql`(${e.key}, ${e.description})`),
+            sql`, `
+        )}
+    `);
+}
+
+export async function insertCoreEnums(db: Db): Promise<void> {
+    await insertEnum(db, Object.values(CycleState), {
+        table: 'cycle_state_enum',
+    });
 }
 
 // async function upgradeSchema(
@@ -40,7 +82,7 @@ async function createSchema(db: DatabaseTransactionConnectionType): Promise<void
 //     }
 // }
 
-export async function initSchema(db: DatabaseTransactionConnectionType): Promise<void> {
+export async function initSchema(db: Db): Promise<void> {
     const hasMetadataTable = await db.maybeOneFirst(sql`
             SELECT COUNT(table_name)
             FROM information_schema.tables

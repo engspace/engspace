@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { sql } from 'slonik';
 import { serverConnConfig } from '.';
 import { connectionString, createDbPool, initSchema, prepareDb } from '../src';
+import { insertCoreEnums } from '../src/schema';
 
 describe('Pool creation', async () => {
     const dbName = 'engspace_server_db_test2';
@@ -56,9 +57,22 @@ describe('Pool creation', async () => {
             'document',
             'document_revision',
         ]);
-        const cycleStates = await pool.connect(async db => {
+    });
+
+    it('should create code enums', async function() {
+        this.timeout(5000);
+        await prepareDb(preparationConf);
+        const pool = createDbPool(poolConf);
+        await pool.transaction(db => initSchema(db));
+        const cycleStatesBef = await pool.connect(async db => {
+            return db.anyFirst(sql`SELECT id FROM cycle_state_enum`);
+        });
+        await pool.transaction(db => insertCoreEnums(db));
+        const cycleStatesAft = await pool.connect(async db => {
             return db.manyFirst(sql`SELECT id FROM cycle_state_enum`);
         });
-        expect(cycleStates).to.have.members(['edition', 'validation', 'release', 'obsolete']);
+
+        expect(cycleStatesBef).to.have.members([]);
+        expect(cycleStatesAft).to.have.members(['edition', 'validation', 'release', 'obsolete']);
     });
 });
