@@ -1,7 +1,7 @@
 import { ApprovalState, Id, PartApproval } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap, foreignKey, tracked, TrackedRow } from './base';
+import { DaoRowMap, foreignKey, tracked, TrackedRow, nullable } from './base';
 
 interface Row extends TrackedRow {
     id: Id;
@@ -18,7 +18,7 @@ function mapRow(row: Row): PartApproval {
         validation: foreignKey(validationId),
         assignee: foreignKey(assigneeId),
         state: state as ApprovalState,
-        comments,
+        comments: nullable(comments),
         ...tracked.mapRow(row),
     };
 }
@@ -79,7 +79,7 @@ class PartApprovalDao extends DaoRowMap<PartApproval, Row> {
         const row: Row = await db.maybeOne(sql`
             UPDATE part_approval SET
                 state = ${state},
-                comment = ${comments ?? null},
+                comments = ${comments ?? null},
                 ${tracked.updateAssignmentsToken(userId)}
             WHERE id = ${id}
             RETURNING ${rowToken}

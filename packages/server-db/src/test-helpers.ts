@@ -315,7 +315,7 @@ export function createPartApproval(
     partVal: PartValidation,
     assignee: User,
     user: User,
-    input: Partial<PartApprovalDaoInput>
+    input: Partial<PartApprovalDaoInput> = {}
 ): Promise<PartApproval> {
     return partApprovalDao.create(db, {
         ...input,

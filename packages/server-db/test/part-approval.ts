@@ -1,18 +1,20 @@
+import { expect } from 'chai';
 import { pool } from '.';
+import { partApprovalDao } from '..';
 import {
+    cleanTable,
     cleanTables,
     createPart,
+    createPartApproval,
     createPartBase,
     createPartFamily,
-    createUsers,
-    cleanTable,
-    createPartVal,
     createPartRev,
+    createPartVal,
+    createUsers,
     expTrackedTime,
     trackedBy,
 } from '../src/test-helpers';
-import { partApprovalDao } from '..';
-import { expect } from 'chai';
+import { ApprovalState } from '@engspace/core';
 
 describe('partApprovalDao', function() {
     let users;
@@ -50,7 +52,7 @@ describe('partApprovalDao', function() {
     );
     describe('Create', function() {
         afterEach(cleanTable(pool, 'part_approval'));
-        it('should create part approval', async function() {
+        it('should create part approval in pending state', async function() {
             const partAppr = await pool.transaction(async db => {
                 return partApprovalDao.create(db, {
                     validationId: partVal.id,
@@ -62,9 +64,65 @@ describe('partApprovalDao', function() {
             expect(partAppr).to.deep.include({
                 validation: { id: partVal.id },
                 assignee: { id: users.b.id },
+                state: ApprovalState.Pending,
                 ...trackedBy(users.a),
             });
             expTrackedTime(expect, partAppr);
+        });
+    });
+
+    describe('Update', function() {
+        let partAppr;
+        beforeEach(async function() {
+            partAppr = await pool.transaction(async db => {
+                return createPartApproval(db, partVal, users.b, users.a);
+            });
+        });
+        afterEach(cleanTable(pool, 'part_approval'));
+
+        it('should set approval state without comment', async function() {
+            const bef = Date.now();
+            const pa = await pool.transaction(async db => {
+                return partApprovalDao.update(db, partAppr.id, {
+                    state: ApprovalState.Approved,
+                    userId: users.b.id,
+                });
+            });
+            const aft = Date.now();
+            expect(pa).to.deep.include({
+                id: partAppr.id,
+                validation: { id: partVal.id },
+                assignee: { id: users.b.id },
+                state: ApprovalState.Approved,
+                ...trackedBy(users.a, users.b),
+            });
+            expect(pa.updatedAt)
+                .to.be.gt(bef)
+                .and.lt(aft);
+            expect(pa.comments).to.be.undefined;
+        });
+
+        it('should set approval state with comment', async function() {
+            const bef = Date.now();
+            const pa = await pool.transaction(async db => {
+                return partApprovalDao.update(db, partAppr.id, {
+                    state: ApprovalState.Approved,
+                    userId: users.b.id,
+                    comments: 'geprüft',
+                });
+            });
+            const aft = Date.now();
+            expect(pa).to.deep.include({
+                id: partAppr.id,
+                validation: { id: partVal.id },
+                assignee: { id: users.b.id },
+                state: ApprovalState.Approved,
+                comments: 'geprüft',
+                ...trackedBy(users.a, users.b),
+            });
+            expect(pa.updatedAt)
+                .to.be.gt(bef)
+                .and.lt(aft);
         });
     });
 });
