@@ -1,34 +1,52 @@
+import { CycleState, ValidationResult } from '@engspace/core';
 import fs from 'fs';
 import path from 'path';
 import { sql } from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
 import { Db } from '.';
-import { CycleState } from '@engspace/core';
 
 // import metadata from '../sql/metadata.json';
 
-async function executeSqlFile(db: Db, filename: string): Promise<void> {
-    const sqlPath = path.join(__dirname, '../sql', filename);
-    const sqlContent = await fs.promises.readFile(sqlPath);
+function sqlPath(relPath: string): string {
+    return path.join(__dirname, '../sql', relPath);
+}
+
+async function executeSql(db: Db, code: string): Promise<void> {
+    try {
+        await db.query(sql`${raw(code)}`);
+    } catch (err) {
+        /* istanbul ignore next */
+        throw new Error(`Error executing SQL: ${err.message}:\n${code}\n`);
+    }
+}
+
+async function executeSqlFile(db: Db, sqlFile: string): Promise<void> {
+    const sqlContent = await fs.promises.readFile(sqlFile);
     const commands = sqlContent
         .toString()
         .split(';')
         .map(c => c.trim())
         .filter(c => c.length > 0);
     for (const c of commands) {
-        try {
-            await db.query(sql`${raw(c)}`);
-        } catch (err) {
-            /* istanbul ignore next */
-            throw new Error(`Error executing SQL: ${err.message}:\n${c}\n`);
-        }
+        await executeSql(db, c);
+    }
+}
+
+async function executeSqlFolder(db: Db, sqlFolder: string): Promise<void> {
+    const sqlFiles = (await fs.promises.readdir(sqlFolder))
+        .filter(p => p.toLowerCase().endsWith('.sql'))
+        .map(p => path.join(sqlFolder, p));
+    for (const sqlFile of sqlFiles) {
+        const sqlContent = await fs.promises.readFile(sqlFile);
+        await executeSql(db, sqlContent.toString());
     }
 }
 
 async function createSchema(db: Db): Promise<void> {
-    await executeSqlFile(db, 'extensions.sql');
-    await executeSqlFile(db, 'enums.sql');
-    await executeSqlFile(db, 'schema.sql');
+    await executeSqlFile(db, sqlPath('extensions.sql'));
+    await executeSqlFile(db, sqlPath('enums.sql'));
+    await executeSqlFolder(db, sqlPath('functions'));
+    await executeSqlFile(db, sqlPath('schema.sql'));
 }
 
 interface EnumTable {
@@ -69,6 +87,9 @@ export async function insertEnumWithDesc(
 export async function insertCoreEnums(db: Db): Promise<void> {
     await insertEnum(db, Object.values(CycleState), {
         table: 'cycle_state_enum',
+    });
+    await insertEnum(db, Object.values(ValidationResult), {
+        table: 'validation_result_enum',
     });
 }
 
