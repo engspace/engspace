@@ -47,7 +47,7 @@ const serverConnConfig: ServerConnConfig = {
 
 const dbConnConfig: DbConnConfig = {
     ...serverConnConfig,
-    name: 'engspace_server_api_test',
+    name: 'engspace_api_test',
 };
 
 const dbPreparationConfig: DbPreparationConfig = {

@@ -20,6 +20,7 @@ import {
     ProjectMemberInput,
     User,
     UserInput,
+    PartRevision,
 } from '@engspace/core';
 import {
     Db,
@@ -31,6 +32,7 @@ import {
     partFamilyDao,
     projectDao,
     userDao,
+    partRevisionDao,
 } from '@engspace/server-db';
 import { ForbiddenError, UserInputError } from 'apollo-server-koa';
 import fs from 'fs';
@@ -313,6 +315,13 @@ export namespace PartControl {
     export async function update(ctx: ApiContext, id: Id, input: PartUpdateInput): Promise<Part> {
         assertUserPerm(ctx, 'part.update');
         return partDao.updateById(ctx.db, id, input, ctx.auth.userId);
+    }
+}
+
+export namespace PartRevisionControl {
+    export async function byId(ctx: ApiContext, id: Id): Promise<PartRevision> {
+        assertUserPerm(ctx, 'part.read');
+        return partRevisionDao.byId(ctx.db, id);
     }
 }
 

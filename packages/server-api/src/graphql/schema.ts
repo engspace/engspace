@@ -3,11 +3,19 @@ import { gql } from 'apollo-server-koa';
 export const typeDefs = gql`
     scalar DateTime
 
-    enum CycleStatus {
+    enum CycleState {
         EDITION
         VALIDATION
         RELEASE
         OBSOLETE
+        CANCELLED
+    }
+
+    interface Tracked {
+        createdBy: User!
+        createdAt: DateTime!
+        updatedBy: User!
+        updatedAt: DateTime!
     }
 
     input UserInput {
@@ -58,6 +66,71 @@ export const typeDefs = gql`
         roles: [String!]!
     }
 
+    input PartFamilyInput {
+        name: String!
+        code: String!
+    }
+
+    type PartFamily {
+        id: ID!
+        name: String!
+        code: String!
+        counter: Int!
+    }
+
+    input PartBaseInput {
+        familyId: ID!
+        designation: ID!
+    }
+
+    input PartBaseUpdateInput {
+        designation: ID!
+    }
+
+    type PartBase implements Tracked {
+        id: ID!
+        family: PartFamily!
+        baseRef: String!
+        designation: String!
+        createdBy: User!
+        createdAt: DateTime!
+        updatedBy: User!
+        updatedAt: DateTime!
+    }
+
+    input PartInput {
+        baseId: ID!
+        designation: String
+        version: String!
+    }
+
+    input PartUpdateInput {
+        designation: String!
+    }
+
+    type Part implements Tracked {
+        id: ID!
+        base: PartBase!
+        ref: String!
+        designation: String!
+        createdBy: User!
+        createdAt: DateTime!
+        updatedBy: User!
+        updatedAt: DateTime!
+    }
+
+    type PartRevision implements Tracked {
+        id: ID!
+        part: Part!
+        revision: Int!
+        designation: String!
+        cycleState: CycleState!
+        createdBy: User!
+        createdAt: DateTime!
+        updatedBy: User!
+        updatedAt: DateTime!
+    }
+
     input DocumentInput {
         name: String!
         description: String
@@ -100,59 +173,6 @@ export const typeDefs = gql`
         sha1: String
     }
 
-    input PartFamilyInput {
-        name: String!
-        code: String!
-    }
-
-    type PartFamily {
-        id: ID!
-        name: String!
-        code: String!
-        counter: Int!
-    }
-
-    input PartBaseInput {
-        familyId: ID!
-        designation: ID!
-    }
-
-    input PartBaseUpdateInput {
-        designation: ID!
-    }
-
-    type PartBase {
-        id: ID!
-        family: PartFamily!
-        baseRef: String!
-        designation: String!
-        createdBy: User!
-        createdAt: DateTime!
-        updatedBy: User!
-        updatedAt: DateTime!
-    }
-
-    input PartInput {
-        baseId: ID!
-        designation: String
-        version: String!
-    }
-
-    input PartUpdateInput {
-        designation: String!
-    }
-
-    type Part {
-        id: ID!
-        base: PartBase!
-        ref: String!
-        designation: String!
-        createdBy: User!
-        createdAt: DateTime!
-        updatedBy: User!
-        updatedAt: DateTime!
-    }
-
     type Query {
         user(id: ID!): User
         userByName(name: String!): User
@@ -171,6 +191,8 @@ export const typeDefs = gql`
         partBase(id: ID!): PartBase
 
         part(id: ID!): Part
+
+        partRevision(id: ID!): PartRevision
 
         document(id: ID!): Document
         documentSearch(search: String, offset: Int = 0, limit: Int = 1000): DocumentSearch!

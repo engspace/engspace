@@ -18,6 +18,8 @@ import {
     PartBaseInput,
     Part,
     PartInput,
+    PartRevision,
+    Tracked,
 } from '@engspace/core';
 import { UserInputError } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
@@ -30,8 +32,18 @@ import {
     UserControl,
     PartBaseControl,
     PartControl,
+    PartRevisionControl,
 } from '../controllers';
 import { GqlContext } from './context';
+
+const resolveTracked = {
+    createdBy({ createdBy }: Tracked, args, ctx: GqlContext): Promise<User> {
+        return ctx.loaders.user.load(createdBy.id);
+    },
+    updatedBy({ updatedBy }: Tracked, args, ctx: GqlContext): Promise<User> {
+        return ctx.loaders.user.load(updatedBy.id);
+    },
+};
 
 export const resolvers = {
     DateTime: new GraphQLScalarType({
@@ -57,6 +69,14 @@ export const resolvers = {
             throw new UserInputError(`Cannot read DateTime from ${ast.kind}`);
         },
     }),
+
+    Tracked: {
+        __resolveType(tracked): string {
+            if (tracked.baseRef) return 'PartBase';
+            if (tracked.ref) return 'Part';
+            return null;
+        },
+    },
 
     User: {
         async roles({ id, roles }: User, args, ctx: GqlContext): Promise<string[]> {
@@ -90,24 +110,21 @@ export const resolvers = {
         family({ family }: PartBase, args, ctx: GqlContext): Promise<PartFamily> {
             return PartFamilyControl.byId(ctx, family.id);
         },
-        createdBy({ createdBy }: PartBase, args, ctx: GqlContext): Promise<User> {
-            return ctx.loaders.user.load(createdBy.id);
-        },
-        updatedBy({ updatedBy }: PartBase, args, ctx: GqlContext): Promise<User> {
-            return ctx.loaders.user.load(updatedBy.id);
-        },
+        ...resolveTracked,
     },
 
     Part: {
         base({ base }: Part, args, ctx: GqlContext): Promise<PartBase> {
             return PartBaseControl.byId(ctx, base.id);
         },
-        createdBy({ createdBy }: Part, args, ctx: GqlContext): Promise<User> {
-            return ctx.loaders.user.load(createdBy.id);
+        ...resolveTracked,
+    },
+
+    PartRevision: {
+        part({ part }: PartRevision, args, ctx: GqlContext): Promise<Part> {
+            return PartControl.byId(ctx, part.id);
         },
-        updatedBy({ updatedBy }: Part, args, ctx: GqlContext): Promise<User> {
-            return ctx.loaders.user.load(updatedBy.id);
-        },
+        ...resolveTracked,
     },
 
     Document: {
@@ -190,6 +207,10 @@ export const resolvers = {
 
         part(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Part | null> {
             return PartControl.byId(ctx, id);
+        },
+
+        partRevision(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartRevision | null> {
+            return PartRevisionControl.byId(ctx, id);
         },
 
         document(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Document | null> {
