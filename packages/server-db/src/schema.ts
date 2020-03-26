@@ -84,7 +84,7 @@ export async function insertEnum(db: Db, en: string[], table: EnumTable): Promis
 //     `);
 // }
 
-export async function insertCoreEnums(db: Db): Promise<void> {
+async function insertCoreEnums(db: Db): Promise<void> {
     await insertEnum(db, Object.values(CycleState), {
         table: 'cycle_state_enum',
     });
@@ -113,6 +113,7 @@ export async function initSchema(db: Db): Promise<void> {
     /* istanbul ignore else */
     if (!hasMetadataTable) {
         await createSchema(db);
+        await insertCoreEnums(db);
         // } else {
         //     const { dbVersion, application } = await db.one(
         //         sql`SELECT schema_version, application_id FROM metadata`

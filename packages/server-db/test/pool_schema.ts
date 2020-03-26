@@ -10,7 +10,6 @@ import {
     initSchema,
     prepareDb,
 } from '../src';
-import { insertCoreEnums } from '../src/schema';
 
 function preparationConf(dbName: string): DbPreparationConfig {
     return {
@@ -58,7 +57,6 @@ describe('Pool and Schema', async () => {
             pool = createDbPool(poolConf(name));
             await pool.transaction(async db => {
                 await initSchema(db);
-                await insertCoreEnums(db);
             });
         });
 

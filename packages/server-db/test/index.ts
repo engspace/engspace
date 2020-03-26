@@ -15,7 +15,6 @@ import {
     prepareDb,
     ServerConnConfig,
 } from '../src';
-import { insertCoreEnums } from '../src/schema';
 
 chai.use(chaiShallowDeepEqual);
 chai.use(chaiUuid);
@@ -72,7 +71,6 @@ before('db setup', async function() {
     await prepareDb(dbPreparationConfig);
     await pool.transaction(async db => {
         await initSchema(db);
-        await insertCoreEnums(db);
     });
 });
 
