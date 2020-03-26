@@ -24,24 +24,24 @@ export type DateTime = number;
 export type IdOr<T extends { id: Id }> = { id: Id } | T;
 
 export enum CycleState {
-    Edition = 'edition',
-    Validation = 'validation',
-    Release = 'release',
-    Obsolete = 'obsolete',
-    Cancelled = 'cancelled',
+    Edition = 'EDITION',
+    Validation = 'VALIDATION',
+    Release = 'RELEASE',
+    Obsolete = 'OBSOLETE',
+    Cancelled = 'CANCELLED',
 }
 
 export enum ApprovalState {
-    Pending = 'pending',
-    Rejected = 'rejected',
-    Reserved = 'reserved',
-    Approved = 'approved',
+    Pending = 'PENDING',
+    Rejected = 'REJECTED',
+    Reserved = 'RESERVED',
+    Approved = 'APPROVED',
 }
 
 export enum ValidationResult {
-    Release = 'release',
-    TryAgain = 'try-again',
-    Cancel = 'cancel',
+    Release = 'RELEASE',
+    TryAgain = 'TRY_AGAIN',
+    Cancel = 'CANCEL',
 }
 
 export interface UserInput {

@@ -10,8 +10,8 @@ CREATE TABLE validation_result_enum (
 );
 
 CREATE TYPE approval_state_enum AS ENUM (
-    'pending',
-    'rejected',
-    'reserved',
-    'approved'
+    'PENDING',
+    'REJECTED',
+    'RESERVED',
+    'APPROVED'
 );

@@ -11,11 +11,11 @@ BEGIN
         WHERE validation_id = part_val_id
     LOOP
         CASE app_state
-            WHEN 'rejected' THEN
-                RETURN 'rejected';
-            WHEN 'reserved' THEN
+            WHEN 'REJECTED' THEN
+                RETURN 'REJECTED';
+            WHEN 'RESERVED' THEN
                 has_reserved := true;
-            WHEN 'pending' THEN
+            WHEN 'PENDING' THEN
                 has_pending := true;
             ELSE
                 CONTINUE;
@@ -23,11 +23,11 @@ BEGIN
     END LOOP;
 
     IF has_pending THEN
-        RETURN 'pending';
+        RETURN 'PENDING';
     ELSEIF has_reserved THEN
-        RETURN 'reserved';
+        RETURN 'RESERVED';
     END IF;
 
-    RETURN 'approved';
+    RETURN 'APPROVED';
 END
 $$ LANGUAGE PLPGSQL;
