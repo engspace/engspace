@@ -67,22 +67,22 @@ export async function insertEnum(db: Db, en: string[], table: EnumTable): Promis
     `);
 }
 
-export async function insertEnumWithDesc(
-    db: Db,
-    table: EnumTable,
-    en: Array<{ key: string; description: string }>
-): Promise<void> {
-    await db.any(sql`
-        INSERT INTO ${sql.identifier([table.table])} (
-            ${sql.identifier([table.key ?? 'id'])},
-            ${sql.identifier([table.description ?? 'description'])}
-        )
-        VALUES ${sql.join(
-            en.map(e => sql`(${e.key}, ${e.description})`),
-            sql`, `
-        )}
-    `);
-}
+// export async function insertEnumWithDesc(
+//     db: Db,
+//     table: EnumTable,
+//     en: Array<{ key: string; description: string }>
+// ): Promise<void> {
+//     await db.any(sql`
+//         INSERT INTO ${sql.identifier([table.table])} (
+//             ${sql.identifier([table.key ?? 'id'])},
+//             ${sql.identifier([table.description ?? 'description'])}
+//         )
+//         VALUES ${sql.join(
+//             en.map(e => sql`(${e.key}, ${e.description})`),
+//             sql`, `
+//         )}
+//     `);
+// }
 
 export async function insertCoreEnums(db: Db): Promise<void> {
     await insertEnum(db, Object.values(CycleState), {
