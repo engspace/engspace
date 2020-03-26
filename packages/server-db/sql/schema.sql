@@ -109,6 +109,41 @@ CREATE TABLE part_revision (
     FOREIGN KEY(updated_by) REFERENCES "user"(id)
 );
 
+CREATE TABLE part_validation (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    part_rev_id uuid NOT NULL,
+    result text,
+    comments text,
+
+    created_by uuid NOT NULL,
+    created_at timestamptz NOT NULL,
+    updated_by uuid NOT NULL,
+    updated_at timestamptz NOT NULL,
+
+    FOREIGN KEY(part_rev_id) REFERENCES part_revision(id),
+    FOREIGN KEY(result) REFERENCES validation_result_enum(id),
+    FOREIGN KEY(created_by) REFERENCES "user"(id),
+    FOREIGN KEY(updated_by) REFERENCES "user"(id)
+);
+
+CREATE TABLE part_approval (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    validation_id uuid NOT NULL,
+    assignee_id uuid NOT NULL,
+    state approval_state_enum NOT NULL,
+    comments text,
+
+    created_by uuid NOT NULL,
+    created_at timestamptz NOT NULL,
+    updated_by uuid NOT NULL,
+    updated_at timestamptz NOT NULL,
+
+    FOREIGN KEY(validation_id) REFERENCES part_validation(id),
+    FOREIGN KEY(assignee_id) REFERENCES "user"(id),
+    FOREIGN KEY(created_by) REFERENCES "user"(id),
+    FOREIGN KEY(updated_by) REFERENCES "user"(id)
+);
+
 CREATE TABLE document (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     name text NOT NULL,
