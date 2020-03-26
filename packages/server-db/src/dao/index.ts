@@ -6,9 +6,11 @@ export { documentRevisionDao } from './document-revision';
 export { loginDao } from './login';
 export { memberDao } from './member';
 export { partDao, PartDaoInput } from './part';
+export { partApprovalDao, PartApprovalDaoInput, PartApprovalUpdateDaoInput } from './part-approval';
 export { partBaseDao } from './part-base';
 export { partFamilyDao } from './part-family';
 export { partRevisionDao, PartRevisionDaoInput } from './part-revision';
+export { partValidationDao, PartValidationDaoInput } from './part-validation';
 export { projectDao } from './project';
 export { userDao } from './user';
 

@@ -1,7 +1,7 @@
-import { HasId, Id, DateTime, Tracked } from '@engspace/core';
+import { DateTime, HasId, Id, Tracked } from '@engspace/core';
 import { sql, SqlTokenType } from 'slonik';
-import { Db } from '..';
 import { Dao } from '.';
+import { Db } from '..';
 
 export function foreignKey(id: Id | null): HasId | null {
     return id ? { id } : null;
@@ -9,6 +9,10 @@ export function foreignKey(id: Id | null): HasId | null {
 
 export function timestamp(ts: number | null): DateTime | null {
     return ts ? ts * 1000 : null;
+}
+
+export function nullable<T>(val: null | T): undefined | T {
+    return val ? val : undefined;
 }
 
 export interface TrackedRow {
