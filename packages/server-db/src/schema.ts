@@ -1,32 +1,96 @@
+import { CycleState, ValidationResult } from '@engspace/core';
 import fs from 'fs';
 import path from 'path';
-import { DatabaseTransactionConnectionType, sql } from 'slonik';
+import { sql } from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
 import { Db } from '.';
 
 // import metadata from '../sql/metadata.json';
 
-async function executeSqlFile(db: Db, filename: string): Promise<void> {
-    const sqlPath = path.join(__dirname, '../sql', filename);
-    const sqlContent = await fs.promises.readFile(sqlPath);
+function sqlPath(relPath: string): string {
+    return path.join(__dirname, '../sql', relPath);
+}
+
+async function executeSql(db: Db, code: string): Promise<void> {
+    try {
+        await db.query(sql`${raw(code)}`);
+    } catch (err) {
+        /* istanbul ignore next */
+        throw new Error(`Error executing SQL: ${err.message}:\n${code}\n`);
+    }
+}
+
+async function executeSqlFile(db: Db, sqlFile: string): Promise<void> {
+    const sqlContent = await fs.promises.readFile(sqlFile);
     const commands = sqlContent
         .toString()
         .split(';')
         .map(c => c.trim())
         .filter(c => c.length > 0);
     for (const c of commands) {
-        try {
-            await db.query(sql`${raw(c)}`);
-        } catch (err) {
-            /* istanbul ignore next */
-            throw new Error(`Error executing SQL: ${err.message}:\n${c}\n`);
-        }
+        await executeSql(db, c);
     }
 }
 
-async function createSchema(db: DatabaseTransactionConnectionType): Promise<void> {
-    await executeSqlFile(db, 'extensions.sql');
-    await executeSqlFile(db, 'schema.sql');
+async function executeSqlFolder(db: Db, sqlFolder: string): Promise<void> {
+    const sqlFiles = (await fs.promises.readdir(sqlFolder))
+        .filter(p => p.toLowerCase().endsWith('.sql'))
+        .map(p => path.join(sqlFolder, p));
+    for (const sqlFile of sqlFiles) {
+        const sqlContent = await fs.promises.readFile(sqlFile);
+        await executeSql(db, sqlContent.toString());
+    }
+}
+
+async function createSchema(db: Db): Promise<void> {
+    await executeSqlFile(db, sqlPath('extensions.sql'));
+    await executeSqlFile(db, sqlPath('enums.sql'));
+    await executeSqlFolder(db, sqlPath('functions'));
+    await executeSqlFile(db, sqlPath('schema.sql'));
+}
+
+interface EnumTable {
+    table: string;
+    key?: string;
+    description?: string;
+}
+
+export async function insertEnum(db: Db, en: string[], table: EnumTable): Promise<void> {
+    await db.any(sql`
+        INSERT INTO ${sql.identifier([table.table])} (
+            ${sql.identifier([table.key ?? 'id'])}
+        )
+        VALUES ${sql.join(
+            en.map(e => sql`(${e})`),
+            sql`, `
+        )}
+    `);
+}
+
+// export async function insertEnumWithDesc(
+//     db: Db,
+//     table: EnumTable,
+//     en: Array<{ key: string; description: string }>
+// ): Promise<void> {
+//     await db.any(sql`
+//         INSERT INTO ${sql.identifier([table.table])} (
+//             ${sql.identifier([table.key ?? 'id'])},
+//             ${sql.identifier([table.description ?? 'description'])}
+//         )
+//         VALUES ${sql.join(
+//             en.map(e => sql`(${e.key}, ${e.description})`),
+//             sql`, `
+//         )}
+//     `);
+// }
+
+export async function insertCoreEnums(db: Db): Promise<void> {
+    await insertEnum(db, Object.values(CycleState), {
+        table: 'cycle_state_enum',
+    });
+    await insertEnum(db, Object.values(ValidationResult), {
+        table: 'validation_result_enum',
+    });
 }
 
 // async function upgradeSchema(
@@ -39,7 +103,7 @@ async function createSchema(db: DatabaseTransactionConnectionType): Promise<void
 //     }
 // }
 
-export async function initSchema(db: DatabaseTransactionConnectionType): Promise<void> {
+export async function initSchema(db: Db): Promise<void> {
     const hasMetadataTable = await db.maybeOneFirst(sql`
             SELECT COUNT(table_name)
             FROM information_schema.tables

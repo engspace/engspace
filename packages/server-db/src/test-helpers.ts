@@ -1,19 +1,23 @@
 import {
+    CycleState,
     Document,
     DocumentInput,
     DocumentRevision,
     DocumentRevisionInput,
     Part,
+    PartApproval,
     PartBase,
     PartBaseInput,
     PartFamily,
     PartFamilyInput,
+    PartRevision,
+    PartValidation,
     Project,
     ProjectInput,
     ProjectMember,
+    Tracked,
     User,
     UserInput,
-    Tracked,
 } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db, DbPool } from '.';
@@ -21,10 +25,15 @@ import {
     documentDao,
     documentRevisionDao,
     memberDao,
+    partApprovalDao,
+    PartApprovalDaoInput,
     partBaseDao,
     partDao,
     PartDaoInput,
     partFamilyDao,
+    partRevisionDao,
+    PartRevisionDaoInput,
+    partValidationDao,
     projectDao,
     userDao,
 } from './dao';
@@ -35,6 +44,19 @@ export function trackedBy(createdBy: User, updatedBy?: User): Partial<Tracked> {
         createdBy: { id: createdBy.id },
         updatedBy: { id: updatedBy?.id ?? createdBy.id },
     };
+}
+
+export function expTrackedTime(expect: any, obj: Partial<Tracked>, maxAge = 100): void {
+    const now = Date.now();
+    expect(obj.createdAt).to.be.a('number');
+    expect(obj.updatedAt).to.be.a('number');
+    expect(obj.createdAt).to.be.gte(obj.updatedAt);
+    expect(obj.createdAt)
+        .to.be.lte(now)
+        .and.gte(now - maxAge);
+    expect(obj.updatedAt)
+        .to.be.lte(now)
+        .and.gte(now - maxAge);
 }
 
 export interface Dict<T> {
@@ -243,14 +265,62 @@ export function createPart(
     db: Db,
     base: PartBase,
     user: User,
-    ref: string,
+    ref: string = null,
     input: Partial<PartDaoInput> = {}
 ): Promise<Part> {
     return partDao.create(db, {
         designation: 'Part',
         ...input,
-        ref,
+        ref: ref ?? `${base.baseRef}.A`,
         baseId: base.id,
+        userId: user.id,
+    });
+}
+
+export function createPartRev(
+    db: Db,
+    part: Part,
+    user: User,
+    input: Partial<PartRevisionDaoInput> = {}
+): Promise<PartRevision> {
+    return partRevisionDao.create(db, {
+        designation: part.designation,
+        cycleState: CycleState.Edition,
+        ...input,
+        partId: part.id,
+        userId: user.id,
+    });
+}
+
+export function transacPartRev(
+    pool: DbPool,
+    part: Part,
+    user: User,
+    input: Partial<PartRevisionDaoInput>
+): Promise<PartRevision> {
+    return pool.transaction(async db => {
+        return createPartRev(db, part, user, input);
+    });
+}
+
+export function createPartVal(db: Db, partRev: PartRevision, user: User): Promise<PartValidation> {
+    return partValidationDao.create(db, {
+        partRevId: partRev.id,
+        userId: user.id,
+    });
+}
+
+export function createPartApproval(
+    db: Db,
+    partVal: PartValidation,
+    assignee: User,
+    user: User,
+    input: Partial<PartApprovalDaoInput> = {}
+): Promise<PartApproval> {
+    return partApprovalDao.create(db, {
+        ...input,
+        validationId: partVal.id,
+        assigneeId: assignee.id,
         userId: user.id,
     });
 }

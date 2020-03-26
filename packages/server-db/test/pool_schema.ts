@@ -1,59 +1,116 @@
+import { ApprovalState, CycleState, ValidationResult } from '@engspace/core';
 import { expect } from 'chai';
 import { sql } from 'slonik';
 import { serverConnConfig } from '.';
-import { connectionString, createDbPool, initSchema, prepareDb } from '../src';
+import {
+    connectionString,
+    createDbPool,
+    DbPoolConfig,
+    DbPreparationConfig,
+    initSchema,
+    prepareDb,
+} from '../src';
+import { insertCoreEnums } from '../src/schema';
 
-describe('Pool creation', async () => {
-    const dbName = 'engspace_server_db_test2';
-    const preparationConf = {
+function preparationConf(dbName: string): DbPreparationConfig {
+    return {
         serverConnString: connectionString(serverConnConfig),
         name: dbName,
         formatDb: true,
     };
-    const poolConf = {
+}
+
+function poolConf(dbName: string): DbPoolConfig {
+    return {
         dbConnString: connectionString({
             ...serverConnConfig,
             name: dbName,
         }),
     };
-    it('should create a virgin pool', async function() {
-        this.timeout(5000);
-        await prepareDb(preparationConf);
-        const pool = createDbPool(poolConf);
-        const tables = await pool.connect(db =>
-            db.anyFirst(sql`
+}
+
+describe('Pool and Schema', async () => {
+    describe('Virgin pool', function() {
+        const name = 'engspace_db_test_virgin';
+        before(async function() {
+            this.timeout(5000);
+            await prepareDb(preparationConf(name));
+        });
+
+        it('should create a virgin pool', async function() {
+            const pool = createDbPool(poolConf(name));
+            const tables = await pool.connect(db =>
+                db.anyFirst(sql`
                 SELECT table_name FROM information_schema.tables
                 WHERE table_schema = 'public'
             `)
-        );
-        expect(tables).to.have.members([]);
+            );
+            expect(tables).to.have.members([]);
+        });
     });
 
-    it('should create a pool and a schema', async function() {
-        this.timeout(5000);
-        await prepareDb(preparationConf);
-        const pool = createDbPool(poolConf);
-        await pool.transaction(db => initSchema(db));
-        const tables = await pool.connect(db =>
-            db.anyFirst(sql`
-                SELECT table_name FROM information_schema.tables
-                WHERE table_schema = 'public'
-            `)
-        );
-        expect(tables).to.have.members([
-            'metadata',
-            'user',
-            'user_login',
-            'user_role',
-            'project',
-            'project_member',
-            'project_member_role',
-            'part_family',
-            'part_base',
-            'part',
-            'part_revision',
-            'document',
-            'document_revision',
-        ]);
+    describe('Schema', function() {
+        const name = 'engspace_db_test_schema';
+        let pool;
+        before(async function() {
+            this.timeout(5000);
+            await prepareDb(preparationConf(name));
+            pool = createDbPool(poolConf(name));
+            await pool.transaction(async db => {
+                await initSchema(db);
+                await insertCoreEnums(db);
+            });
+        });
+
+        it('should have created all tables', async function() {
+            const tables = await pool.connect(db =>
+                db.anyFirst(sql`
+                    SELECT table_name FROM information_schema.tables
+                    WHERE table_schema = 'public'
+                `)
+            );
+            expect(tables).to.have.same.members([
+                'cycle_state_enum',
+                'validation_result_enum',
+
+                'metadata',
+                'user',
+                'user_login',
+                'user_role',
+                'project',
+                'project_member',
+                'project_member_role',
+                'part_family',
+                'part_base',
+                'part',
+                'part_revision',
+                'part_validation',
+                'part_approval',
+                'document',
+                'document_revision',
+            ]);
+        });
+
+        it('should have created core enums tables', async function() {
+            const cycleStates = await pool.connect(async db => {
+                return db.manyFirst(sql`SELECT id FROM cycle_state_enum`);
+            });
+            const valResults = await pool.connect(async db => {
+                return db.manyFirst(sql`SELECT id FROM validation_result_enum`);
+            });
+            expect(cycleStates).to.have.same.members(Object.values(CycleState));
+            expect(valResults).to.have.same.members(Object.values(ValidationResult));
+        });
+
+        it('should have created core pg enums', async function() {
+            const apprStates = await pool.connect(async db => {
+                return db.manyFirst(sql`
+                    SELECT enumlabel
+                    FROM pg_type JOIN pg_enum
+                        ON pg_enum.enumtypid = pg_type.oid
+                    WHERE typname = 'approval_state_enum'`);
+            });
+            expect(apprStates).to.have.same.members(Object.values(ApprovalState));
+        });
     });
 });

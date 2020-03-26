@@ -8,8 +8,10 @@ import {
     createPartBase,
     createPartFamily,
     createUsersAB,
+    transacPartRev,
     trackedBy,
 } from '../src/test-helpers';
+import { CycleState } from '@engspace/core';
 
 describe('partRevisionDao', function() {
     let users;
@@ -34,6 +36,7 @@ describe('partRevisionDao', function() {
                 return partRevisionDao.create(db, {
                     partId: part.id,
                     designation: 'Part 1',
+                    cycleState: CycleState.Edition,
                     userId: users.a.id,
                 });
             });
@@ -42,7 +45,27 @@ describe('partRevisionDao', function() {
                 part: { id: part.id },
                 revision: 1,
                 designation: 'Part 1',
+                cycleState: CycleState.Edition,
                 ...trackedBy(users.a),
+            });
+        });
+    });
+
+    describe('Update', function() {
+        let partRev;
+        beforeEach(async function() {
+            partRev = await transacPartRev(pool, part, users.a, {
+                cycleState: CycleState.Edition,
+            });
+        });
+        afterEach(cleanTable(pool, 'part_revision'));
+        it('should update cycle state', async function() {
+            const pr = await pool.transaction(async db => {
+                return partRevisionDao.updateCycleState(db, partRev.id, CycleState.Release);
+            });
+            expect(pr).to.eql({
+                ...partRev,
+                cycleState: CycleState.Release,
             });
         });
     });
