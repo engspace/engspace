@@ -1,6 +1,6 @@
 import Koa from 'koa';
 import { EsServerConfig } from '..';
-import { ApiContext } from '../controllers';
+import { ApiContext } from '../control';
 import { getAuthToken, getDb } from '../internal';
 import { GqlLoaders, makeLoaders } from './loaders';
 
@@ -24,7 +24,7 @@ export function gqlContextFactory(config: EsServerConfig): GqlContextFactory {
             db: getDb(ctx),
             loaders: null,
         };
-        gqlCtx.loaders = makeLoaders(gqlCtx);
+        gqlCtx.loaders = makeLoaders(gqlCtx, config.control);
         return gqlCtx;
     };
 }

@@ -15,6 +15,7 @@ import events from 'events';
 import Koa from 'koa';
 import logger from 'koa-logger';
 import { populateData } from './populate-data';
+import { buildControllerSet } from 'server-api/src/control';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -70,11 +71,13 @@ prepareDb(dbPreparationConfig)
 
 function buildServerApi(pool: DbPool): EsServerApi {
     const rolePolicies = buildDefaultAppRolePolicies();
+    const control = buildControllerSet();
 
     const api = new EsServerApi(new Koa(), {
         pool,
         rolePolicies,
         storePath: config.storePath,
+        control,
         cors: true,
         refNaming: {
             partBase: new PartBaseRefNaming('${fam_code}${fam_count:4}'),

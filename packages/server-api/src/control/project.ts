@@ -1,0 +1,84 @@
+import { ApiContext, Pagination } from '.';
+import { ProjectInput, Project, Id, ProjectMemberInput, ProjectMember } from '@engspace/core';
+import { assertUserPerm, assertUserOrProjectPerm } from './helpers';
+import { projectDao, memberDao } from '@engspace/server-db';
+
+export class ProjectControl {
+    create(ctx: ApiContext, project: ProjectInput): Promise<Project> {
+        assertUserPerm(ctx, 'project.create');
+        return projectDao.create(ctx.db, project);
+    }
+
+    byId(ctx: ApiContext, id: Id): Promise<Project> {
+        assertUserPerm(ctx, 'project.read');
+        return projectDao.byId(ctx.db, id);
+    }
+
+    byCode(ctx: ApiContext, code: string): Promise<Project> {
+        assertUserPerm(ctx, 'project.read');
+        return projectDao.byCode(ctx.db, code);
+    }
+
+    search(
+        ctx: ApiContext,
+        search: string,
+        pag?: Pagination
+    ): Promise<{ count: number; projects: Project[] }> {
+        assertUserPerm(ctx, 'project.read');
+        const { offset, limit } = pag;
+        return projectDao.search(ctx.db, {
+            phrase: search,
+            offset,
+            limit,
+        });
+    }
+
+    async update(ctx: ApiContext, id: Id, project: ProjectInput): Promise<Project> {
+        await assertUserOrProjectPerm(ctx, id, 'project.update');
+        return projectDao.updateById(ctx.db, id, project);
+    }
+}
+
+export class MemberControl {
+    async create(ctx: ApiContext, projectMember: ProjectMemberInput): Promise<ProjectMember> {
+        await assertUserOrProjectPerm(ctx, projectMember.projectId, 'member.create');
+        return memberDao.create(ctx.db, projectMember);
+    }
+
+    byId(ctx: ApiContext, id: Id): Promise<ProjectMember | null> {
+        assertUserPerm(ctx, 'member.read');
+        return memberDao.byId(ctx.db, id);
+    }
+
+    byProjectAndUserId(ctx: ApiContext, projectId: Id, userId: Id): Promise<ProjectMember | null> {
+        assertUserPerm(ctx, 'member.read');
+        return memberDao.byProjectAndUserId(ctx.db, projectId, userId);
+    }
+
+    byProjectId(ctx: ApiContext, projId: Id): Promise<ProjectMember[]> {
+        assertUserPerm(ctx, 'member.read');
+        return memberDao.byProjectId(ctx.db, projId);
+    }
+
+    byUserId(ctx: ApiContext, userId: Id): Promise<ProjectMember[]> {
+        assertUserPerm(ctx, 'member.read');
+        return memberDao.byUserId(ctx.db, userId);
+    }
+
+    rolesById(ctx: ApiContext, id: Id): Promise<string[]> {
+        assertUserPerm(ctx, 'member.read');
+        return memberDao.rolesById(ctx.db, id);
+    }
+
+    async updateRolesById(ctx: ApiContext, id: Id, roles: string[]): Promise<ProjectMember> {
+        const mem = await memberDao.byId(ctx.db, id);
+        await assertUserOrProjectPerm(ctx, mem.project.id, 'member.update');
+        return memberDao.updateRolesById(ctx.db, id, roles);
+    }
+
+    async deleteById(ctx: ApiContext, id: Id): Promise<ProjectMember> {
+        const mem = await memberDao.byId(ctx.db, id);
+        await assertUserOrProjectPerm(ctx, mem.project.id, 'member.delete');
+        return memberDao.deleteById(ctx.db, id);
+    }
+}
