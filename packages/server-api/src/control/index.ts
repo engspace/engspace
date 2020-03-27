@@ -2,7 +2,7 @@ import { AuthToken } from '@engspace/core';
 import { Db } from '@engspace/server-db';
 import { EsServerConfig } from '..';
 import { DocumentControl, DocumentRevisionControl } from './document';
-import { PartBaseControl, PartControl, PartControl2, PartRevisionControl } from './part';
+import { PartBaseControl, PartControl, PartControl2 } from './part';
 import { PartFamilyControl } from './part-family';
 import { ProjectControl } from './project';
 import { UserControl } from './user';
@@ -25,7 +25,6 @@ export interface ControllerSet {
     part2: PartControl2;
     partBase: PartBaseControl;
     part: PartControl;
-    partRevision: PartRevisionControl;
     document: DocumentControl;
     documentRevision: DocumentRevisionControl;
 }
@@ -38,7 +37,6 @@ export function buildControllerSet(custom: Partial<ControllerSet> = {}): Control
         part2: custom.part2 ?? new PartControl2(),
         partBase: custom.partBase ?? new PartBaseControl(),
         part: custom.part ?? new PartControl(),
-        partRevision: custom.partRevision ?? new PartRevisionControl(),
         document: custom.document ?? new DocumentControl(),
         documentRevision: custom.documentRevision ?? new DocumentRevisionControl(),
     };
