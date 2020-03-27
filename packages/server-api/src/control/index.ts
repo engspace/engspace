@@ -1,16 +1,11 @@
 import { AuthToken } from '@engspace/core';
 import { Db } from '@engspace/server-db';
 import { EsServerConfig } from '..';
-import { UserControl } from './user';
-import { ProjectControl } from './project';
-import {
-    PartFamilyControl,
-    PartBaseControl,
-    PartControl,
-    PartRevisionControl,
-    PartControl2,
-} from './part';
 import { DocumentControl, DocumentRevisionControl } from './document';
+import { PartBaseControl, PartControl, PartControl2, PartRevisionControl } from './part';
+import { PartFamilyControl } from './part-family';
+import { ProjectControl } from './project';
+import { UserControl } from './user';
 
 export interface ApiContext {
     db: Db;
