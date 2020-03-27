@@ -22,6 +22,7 @@ import Koa from 'koa';
 import path from 'path';
 import { EsServerApi } from '../src';
 import { PartBaseRefNaming, PartRefNaming } from '../src/ref-naming';
+import { buildControllerSet } from '../src/control';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -66,11 +67,13 @@ const dbPoolConfig: DbPoolConfig = {
 
 export const pool: DbPool = createDbPool(dbPoolConfig);
 export const rolePolicies: AppRolePolicies = buildDefaultAppRolePolicies();
+const control = buildControllerSet();
 
 export const api = new EsServerApi(new Koa(), {
     pool,
     rolePolicies,
     storePath: config.storePath,
+    control,
     cors: true,
     refNaming: {
         partBase: new PartBaseRefNaming('${fam_code}${fam_count:3}'),

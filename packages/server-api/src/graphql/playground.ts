@@ -3,16 +3,16 @@ import { loginDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import { ApolloServer } from 'apollo-server-koa';
 import fs from 'fs';
-import mime from 'mime';
 import HttpStatus from 'http-status-codes';
 import Koa from 'koa';
 import session from 'koa-session';
+import mime from 'mime';
 import path from 'path';
 import { EsServerConfig } from '../';
 import { signJwt, verifyJwt } from '../crypto';
 import { attachDb, authJwtSecret, setAuthToken } from '../internal';
 import { gqlContextFactory } from './context';
-import { resolvers } from './resolvers';
+import { buildResolvers } from './resolvers';
 import { typeDefs } from './schema';
 
 export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServerConfig): void {
@@ -97,7 +97,7 @@ export function setupPlaygroundEndpoint(prefix: string, app: Koa, config: EsServ
 
     const playground = new ApolloServer({
         typeDefs,
-        resolvers,
+        resolvers: buildResolvers(config.control),
         introspection: true,
         playground: {
             settings: {

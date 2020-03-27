@@ -78,6 +78,18 @@ export const typeDefs = gql`
         counter: Int!
     }
 
+    """
+    An input to build a new part from scratch:
+     - new PartBase
+     - new Part (with initial version)
+     - new PartRevision (1)
+    """
+    input NewPartInput {
+        familyId: ID!
+        initialVersion: String!
+        designation: String!
+    }
+
     input PartBaseInput {
         familyId: ID!
         designation: ID!
@@ -214,6 +226,8 @@ export const typeDefs = gql`
 
         partFamilyCreate(partFamily: PartFamilyInput!): PartFamily!
         partFamilyUpdate(id: ID!, partFamily: PartFamilyInput!): PartFamily!
+
+        partCreateNew(input: NewPartInput): PartRevision!
 
         partBaseCreate(partBase: PartBaseInput!): PartBase!
         partBaseUpdate(id: ID!, partBase: PartBaseUpdateInput!): PartBase!

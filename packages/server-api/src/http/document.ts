@@ -7,9 +7,9 @@ import HttpStatus from 'http-status-codes';
 import mime from 'mime';
 import validator from 'validator';
 import { EsServerConfig } from '..';
-import { DocumentRevisionControl } from '../controllers';
 import { signJwt, verifyJwt } from '../crypto';
 import { getAuthToken } from '../internal';
+import { isFileError, FileError, FileDownload } from '../control/document';
 
 const docJwtSecret = crypto.randomBytes(32).toString('base64');
 
@@ -19,7 +19,7 @@ interface DownloadToken {
 }
 
 export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): void {
-    const { pool } = config;
+    const { pool, control } = config;
     router.post('/document/upload', async ctx => {
         const { rev_id: revId } = ctx.request.query;
         const {
@@ -49,7 +49,7 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
                 HttpStatus.NOT_FOUND,
                 'Revision not found'
             );
-            return DocumentRevisionControl.uploadChunk(
+            return control.documentRevision.uploadChunk(
                 {
                     db,
                     auth: getAuthToken(ctx),
@@ -94,7 +94,7 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
 }
 
 export function setupPreAuthDocRoutes(router: Router, config: EsServerConfig): void {
-    const { pool, rolePolicies } = config;
+    const { pool, rolePolicies, control } = config;
 
     router.get('/document/download', async ctx => {
         const { token } = ctx.request.query;
@@ -115,7 +115,7 @@ export function setupPreAuthDocRoutes(router: Router, config: EsServerConfig): v
                 userId,
                 userPerms: rolePolicies.user.permissions(roles),
             };
-            const res = await DocumentRevisionControl.download(
+            const res = await control.documentRevision.download(
                 {
                     db,
                     auth,
@@ -123,14 +123,14 @@ export function setupPreAuthDocRoutes(router: Router, config: EsServerConfig): v
                 },
                 documentRevisionId
             );
-            if (DocumentRevisionControl.isFileError(res)) {
-                if (res === DocumentRevisionControl.FileError.NotExist) {
+            if (isFileError(res)) {
+                if (res === FileError.NotExist) {
                     ctx.throw(HttpStatus.NOT_FOUND);
-                } else if (res == DocumentRevisionControl.FileError.Forbidden) {
+                } else if (res == FileError.Forbidden) {
                     ctx.throw(HttpStatus.FORBIDDEN);
                 }
             }
-            return res as DocumentRevisionControl.FileDownload;
+            return res as FileDownload;
         });
         const stream = fs.createReadStream(fd.filepath);
         ctx.set('Content-Disposition', `attachment; filename=${fd.docRev.filename}`);

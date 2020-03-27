@@ -7,18 +7,18 @@ import { ApolloServer } from 'apollo-server-koa';
 import HttpStatus from 'http-status-codes';
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
-import { ApiContext } from './controllers';
 import { verifyJwt } from './crypto';
 import { GqlContext, gqlContextFactory } from './graphql/context';
 import { makeLoaders } from './graphql/loaders';
 import { setupPlaygroundEndpoint, setupPlaygroundLogin } from './graphql/playground';
-import { resolvers } from './graphql/resolvers';
+import { buildResolvers } from './graphql/resolvers';
 import { typeDefs } from './graphql/schema';
 import { setupPostAuthDocRoutes, setupPreAuthDocRoutes } from './http/document';
 import { setupFirstAdminRoutes } from './http/first-admin';
 import { setupLoginRoute } from './http/login';
 import { attachDb, authJwtSecret, setAuthToken } from './internal';
 import { AppRefNaming } from './ref-naming';
+import { ControllerSet, ApiContext } from './control';
 
 export { AppRefNaming, PartBaseRefNaming, PartRefNaming } from './ref-naming';
 
@@ -26,6 +26,7 @@ export interface EsServerConfig {
     rolePolicies: AppRolePolicies;
     storePath: string;
     pool: DbPool;
+    control: ControllerSet;
     cors: boolean;
     refNaming: AppRefNaming;
     // this is for playground only
@@ -120,7 +121,7 @@ export class EsServerApi {
             : undefined;
         const graphQL = new ApolloServer({
             typeDefs,
-            resolvers,
+            resolvers: buildResolvers(this.config.control),
             introspection: false,
             playground: false,
             extensions,
@@ -137,7 +138,7 @@ export class EsServerApi {
     buildTestGqlServer(db: Db, auth: AuthToken): ApolloServer {
         return new ApolloServer({
             typeDefs,
-            resolvers,
+            resolvers: buildResolvers(this.config.control),
             introspection: false,
             playground: false,
             context: (): GqlContext => {
@@ -147,7 +148,7 @@ export class EsServerApi {
                     config: this.config,
                 };
                 return {
-                    loaders: makeLoaders(ctx),
+                    loaders: makeLoaders(ctx, this.config.control),
                     ...ctx,
                 };
             },

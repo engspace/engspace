@@ -1,13 +1,13 @@
 import { Id, User } from '@engspace/core';
 import DataLoader from 'dataloader';
-import { UserControl, ApiContext } from '../controllers';
+import { ControllerSet, ApiContext } from '../control';
 
 export interface GqlLoaders {
     user: DataLoader<Id, User>;
 }
 
-export function makeLoaders(ctx: ApiContext): GqlLoaders {
+export function makeLoaders(ctx: ApiContext, control: ControllerSet): GqlLoaders {
     return {
-        user: new DataLoader(ids => UserControl.byIds(ctx, ids)),
+        user: new DataLoader(ids => control.user.byIds(ctx, ids)),
     };
 }

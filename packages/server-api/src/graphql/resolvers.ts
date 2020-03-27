@@ -21,22 +21,12 @@ import {
     PartRevision,
     Tracked,
 } from '@engspace/core';
-import { UserInputError } from 'apollo-server-koa';
+import { UserInputError, IResolvers } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
-import {
-    DocumentControl,
-    DocumentRevisionControl,
-    MemberControl,
-    PartFamilyControl,
-    ProjectControl,
-    UserControl,
-    PartBaseControl,
-    PartControl,
-    PartRevisionControl,
-} from '../controllers';
 import { GqlContext } from './context';
+import { ControllerSet } from '../control';
 
-const resolveTracked = {
+export const resolveTracked = {
     createdBy({ createdBy }: Tracked, args, ctx: GqlContext): Promise<User> {
         return ctx.loaders.user.load(createdBy.id);
     },
@@ -45,329 +35,353 @@ const resolveTracked = {
     },
 };
 
-export const resolvers = {
-    DateTime: new GraphQLScalarType({
-        name: 'DateTime',
-        description: 'DateTime sent over the wire as milliseconds since epoch',
-        serialize(value: number): number {
-            return value;
-        },
-        parseValue(value: number): number {
-            return value;
-        },
-        parseLiteral(ast: ValueNode): number | null {
-            if (ast.kind === Kind.INT) {
-                return parseInt(ast.value);
-            } else if (ast.kind === Kind.STRING) {
-                const date = new Date(ast.value);
-                const ms = date.getTime();
-                if (isNaN(ms)) {
-                    throw new UserInputError(`Cannot read DateTime from ${ast.kind}: ${ast.value}`);
+export function buildResolvers(control: ControllerSet): IResolvers {
+    return {
+        DateTime: new GraphQLScalarType({
+            name: 'DateTime',
+            description: 'DateTime sent over the wire as milliseconds since epoch',
+            serialize(value: number): number {
+                return value;
+            },
+            parseValue(value: number): number {
+                return value;
+            },
+            parseLiteral(ast: ValueNode): number | null {
+                if (ast.kind === Kind.INT) {
+                    return parseInt(ast.value);
+                } else if (ast.kind === Kind.STRING) {
+                    const date = new Date(ast.value);
+                    const ms = date.getTime();
+                    if (isNaN(ms)) {
+                        throw new UserInputError(
+                            `Cannot read DateTime from ${ast.kind}: ${ast.value}`
+                        );
+                    }
+                    return ms;
                 }
-                return ms;
-            }
-            throw new UserInputError(`Cannot read DateTime from ${ast.kind}`);
-        },
-    }),
+                throw new UserInputError(`Cannot read DateTime from ${ast.kind}`);
+            },
+        }),
 
-    Tracked: {
-        __resolveType(tracked): string {
-            if (tracked.baseRef) return 'PartBase';
-            if (tracked.ref) return 'Part';
-            return null;
-        },
-    },
-
-    User: {
-        async roles({ id, roles }: User, args, ctx: GqlContext): Promise<string[]> {
-            if (roles) return roles;
-            return UserControl.rolesById(ctx, id);
-        },
-        membership({ id }: User, args, ctx: GqlContext): Promise<ProjectMember[]> {
-            return MemberControl.byUserId(ctx, id);
-        },
-    },
-
-    Project: {
-        members({ id }: Project, args, ctx: GqlContext): Promise<ProjectMember[]> {
-            return MemberControl.byProjectId(ctx, id);
-        },
-    },
-
-    ProjectMember: {
-        project({ project }: ProjectMember, args, ctx: GqlContext): Promise<Project> {
-            return ProjectControl.byId(ctx, project.id);
-        },
-        user({ user }: ProjectMember, args, ctx: GqlContext): Promise<User> {
-            return ctx.loaders.user.load(user.id);
-        },
-        roles({ id }: ProjectMember, args, ctx: GqlContext): Promise<string[]> {
-            return MemberControl.rolesById(ctx, id);
-        },
-    },
-
-    PartBase: {
-        family({ family }: PartBase, args, ctx: GqlContext): Promise<PartFamily> {
-            return PartFamilyControl.byId(ctx, family.id);
-        },
-        ...resolveTracked,
-    },
-
-    Part: {
-        base({ base }: Part, args, ctx: GqlContext): Promise<PartBase> {
-            return PartBaseControl.byId(ctx, base.id);
-        },
-        ...resolveTracked,
-    },
-
-    PartRevision: {
-        part({ part }: PartRevision, args, ctx: GqlContext): Promise<Part> {
-            return PartControl.byId(ctx, part.id);
-        },
-        ...resolveTracked,
-    },
-
-    Document: {
-        createdBy({ createdBy }: Document, args, ctx: GqlContext): Promise<User> {
-            return ctx.loaders.user.load(createdBy.id);
+        Tracked: {
+            __resolveType(tracked): string {
+                if (tracked.baseRef) return 'PartBase';
+                if (tracked.ref) return 'Part';
+                return null;
+            },
         },
 
-        checkout({ checkout }: Document, args, ctx: GqlContext): Promise<User | null> {
-            if (!checkout) return null;
-            return ctx.loaders.user.load(checkout.id);
+        User: {
+            async roles({ id, roles }: User, args, ctx: GqlContext): Promise<string[]> {
+                if (roles) return roles;
+                return control.user.rolesById(ctx, id);
+            },
+            membership({ id }: User, args, ctx: GqlContext): Promise<ProjectMember[]> {
+                return control.member.byUserId(ctx, id);
+            },
         },
 
-        revisions({ id }: Document, args, ctx: GqlContext): Promise<DocumentRevision[]> {
-            return DocumentRevisionControl.byDocumentId(ctx, id);
+        Project: {
+            members({ id }: Project, args, ctx: GqlContext): Promise<ProjectMember[]> {
+                return control.member.byProjectId(ctx, id);
+            },
         },
 
-        lastRevision({ id }: Document, args, ctx: GqlContext): Promise<DocumentRevision | null> {
-            return DocumentRevisionControl.lastByDocumentId(ctx, id);
-        },
-    },
-
-    DocumentRevision: {
-        document({ document }: DocumentRevision, args, ctx: GqlContext): Promise<Document> {
-            return DocumentControl.byId(ctx, document.id);
-        },
-        createdBy({ createdBy }: DocumentRevision, args, ctx: GqlContext): Promise<User> {
-            return ctx.loaders.user.load(createdBy.id);
-        },
-    },
-
-    Query: {
-        user(parent, { id }, ctx: GqlContext): Promise<User> {
-            return ctx.loaders.user.load(id);
-        },
-        userByName(parent, { name }, ctx: GqlContext): Promise<User> {
-            return UserControl.byName(ctx, name);
-        },
-        userByEmail(parent, { email }, ctx: GqlContext): Promise<User> {
-            return UserControl.byEmail(ctx, email);
-        },
-        userSearch(parent, args, ctx: GqlContext): Promise<{ count: number; users: User[] }> {
-            const { search, offset, limit } = args;
-            return UserControl.search(ctx, search, { offset, limit });
+        ProjectMember: {
+            project({ project }: ProjectMember, args, ctx: GqlContext): Promise<Project> {
+                return control.project.byId(ctx, project.id);
+            },
+            user({ user }: ProjectMember, args, ctx: GqlContext): Promise<User> {
+                return ctx.loaders.user.load(user.id);
+            },
+            roles({ id }: ProjectMember, args, ctx: GqlContext): Promise<string[]> {
+                return control.member.rolesById(ctx, id);
+            },
         },
 
-        project(parent, { id }, ctx: GqlContext): Promise<Project> {
-            return ProjectControl.byId(ctx, id);
-        },
-        projectByCode(parent, { code }, ctx: GqlContext): Promise<Project> {
-            return ProjectControl.byCode(ctx, code);
-        },
-        projectSearch(
-            parent,
-            args,
-            ctx: GqlContext
-        ): Promise<{ count: number; projects: Project[] }> {
-            const { search, offset, limit } = args;
-            return ProjectControl.search(ctx, search, { offset, limit });
+        PartBase: {
+            family({ family }: PartBase, args, ctx: GqlContext): Promise<PartFamily> {
+                return control.partFamily.byId(ctx, family.id);
+            },
+            ...resolveTracked,
         },
 
-        projectMember(parent, { id }: { id: Id }, ctx: GqlContext): Promise<ProjectMember | null> {
-            return MemberControl.byId(ctx, id);
+        Part: {
+            base({ base }: Part, args, ctx: GqlContext): Promise<PartBase> {
+                return control.partBase.byId(ctx, base.id);
+            },
+            ...resolveTracked,
         },
 
-        projectMemberByProjectAndUserId(
-            parent,
-            { projectId, userId }: { projectId: Id; userId: Id },
-            ctx: GqlContext
-        ): Promise<ProjectMember | null> {
-            return MemberControl.byProjectAndUserId(ctx, projectId, userId);
+        PartRevision: {
+            part({ part }: PartRevision, args, ctx: GqlContext): Promise<Part> {
+                return control.part.byId(ctx, part.id);
+            },
+            ...resolveTracked,
         },
 
-        partFamily(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartFamily | null> {
-            return PartFamilyControl.byId(ctx, id);
+        Document: {
+            createdBy({ createdBy }: Document, args, ctx: GqlContext): Promise<User> {
+                return ctx.loaders.user.load(createdBy.id);
+            },
+
+            checkout({ checkout }: Document, args, ctx: GqlContext): Promise<User | null> {
+                if (!checkout) return null;
+                return ctx.loaders.user.load(checkout.id);
+            },
+
+            revisions({ id }: Document, args, ctx: GqlContext): Promise<DocumentRevision[]> {
+                return control.documentRevision.byDocumentId(ctx, id);
+            },
+
+            lastRevision(
+                { id }: Document,
+                args,
+                ctx: GqlContext
+            ): Promise<DocumentRevision | null> {
+                return control.documentRevision.lastByDocumentId(ctx, id);
+            },
         },
 
-        partBase(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartBase | null> {
-            return PartBaseControl.byId(ctx, id);
+        DocumentRevision: {
+            document({ document }: DocumentRevision, args, ctx: GqlContext): Promise<Document> {
+                return control.document.byId(ctx, document.id);
+            },
+            createdBy({ createdBy }: DocumentRevision, args, ctx: GqlContext): Promise<User> {
+                return ctx.loaders.user.load(createdBy.id);
+            },
         },
 
-        part(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Part | null> {
-            return PartControl.byId(ctx, id);
+        Query: {
+            user(parent, { id }, ctx: GqlContext): Promise<User> {
+                return ctx.loaders.user.load(id);
+            },
+            userByName(parent, { name }, ctx: GqlContext): Promise<User> {
+                return control.user.byName(ctx, name);
+            },
+            userByEmail(parent, { email }, ctx: GqlContext): Promise<User> {
+                return control.user.byEmail(ctx, email);
+            },
+            userSearch(parent, args, ctx: GqlContext): Promise<{ count: number; users: User[] }> {
+                const { search, offset, limit } = args;
+                return control.user.search(ctx, search, { offset, limit });
+            },
+
+            project(parent, { id }, ctx: GqlContext): Promise<Project> {
+                return control.project.byId(ctx, id);
+            },
+            projectByCode(parent, { code }, ctx: GqlContext): Promise<Project> {
+                return control.project.byCode(ctx, code);
+            },
+            projectSearch(
+                parent,
+                args,
+                ctx: GqlContext
+            ): Promise<{ count: number; projects: Project[] }> {
+                const { search, offset, limit } = args;
+                return control.project.search(ctx, search, { offset, limit });
+            },
+
+            projectMember(
+                parent,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<ProjectMember | null> {
+                return control.member.byId(ctx, id);
+            },
+
+            projectMemberByProjectAndUserId(
+                parent,
+                { projectId, userId }: { projectId: Id; userId: Id },
+                ctx: GqlContext
+            ): Promise<ProjectMember | null> {
+                return control.member.byProjectAndUserId(ctx, projectId, userId);
+            },
+
+            partFamily(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartFamily | null> {
+                return control.partFamily.byId(ctx, id);
+            },
+
+            partBase(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartBase | null> {
+                return control.partBase.byId(ctx, id);
+            },
+
+            part(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Part | null> {
+                return control.part.byId(ctx, id);
+            },
+
+            partRevision(
+                parent,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<PartRevision | null> {
+                return control.partRevision.byId(ctx, id);
+            },
+
+            document(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Document | null> {
+                return control.document.byId(ctx, id);
+            },
+            documentSearch(
+                parent,
+                { search, offset, limit }: { search: string; offset: number; limit: number },
+                ctx: GqlContext
+            ): Promise<DocumentSearch> {
+                return control.document.search(ctx, search, offset, limit);
+            },
+            documentRevision(
+                parent,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<DocumentRevision | null> {
+                return control.documentRevision.byId(ctx, id);
+            },
+
+            testDateTimeToIso8601(parent, { dt }: { dt: DateTime }): Promise<string> {
+                const date = new Date(dt);
+                return Promise.resolve(date.toISOString());
+            },
         },
 
-        partRevision(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartRevision | null> {
-            return PartRevisionControl.byId(ctx, id);
-        },
+        Mutation: {
+            async userCreate(
+                parent,
+                { user }: { user: UserInput },
+                ctx: GqlContext
+            ): Promise<User> {
+                return control.user.create(ctx, user);
+            },
+            async userUpdate(
+                parent,
+                { id, user }: { id: Id; user: UserInput },
+                ctx: GqlContext
+            ): Promise<User> {
+                return control.user.update(ctx, id, user);
+            },
 
-        document(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Document | null> {
-            return DocumentControl.byId(ctx, id);
-        },
-        documentSearch(
-            parent,
-            { search, offset, limit }: { search: string; offset: number; limit: number },
-            ctx: GqlContext
-        ): Promise<DocumentSearch> {
-            return DocumentControl.search(ctx, search, offset, limit);
-        },
-        documentRevision(
-            parent,
-            { id }: { id: Id },
-            ctx: GqlContext
-        ): Promise<DocumentRevision | null> {
-            return DocumentRevisionControl.byId(ctx, id);
-        },
+            async projectCreate(
+                parent,
+                { project }: { project: ProjectInput },
+                ctx: GqlContext
+            ): Promise<Project> {
+                return control.project.create(ctx, project);
+            },
+            async projectUpdate(
+                parent,
+                { id, project }: { id: Id; project: ProjectInput },
+                ctx: GqlContext
+            ): Promise<Project> {
+                return control.project.update(ctx, id, project);
+            },
 
-        testDateTimeToIso8601(parent, { dt }: { dt: DateTime }): Promise<string> {
-            const date = new Date(dt);
-            return Promise.resolve(date.toISOString());
-        },
-    },
+            async projectMemberCreate(
+                parent,
+                { projectMember }: { projectMember: ProjectMemberInput },
+                ctx: GqlContext
+            ): Promise<ProjectMember> {
+                return control.member.create(ctx, projectMember);
+            },
+            async projectMemberUpdateRoles(
+                parent,
+                { id, roles }: { id: Id; roles: string[] },
+                ctx: GqlContext
+            ): Promise<ProjectMember> {
+                return control.member.updateRolesById(ctx, id, roles);
+            },
+            async projectMemberDelete(
+                parent,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<ProjectMember> {
+                return control.member.deleteById(ctx, id);
+            },
 
-    Mutation: {
-        async userCreate(parent, { user }: { user: UserInput }, ctx: GqlContext): Promise<User> {
-            return UserControl.create(ctx, user);
-        },
-        async userUpdate(
-            parent,
-            { id, user }: { id: Id; user: UserInput },
-            ctx: GqlContext
-        ): Promise<User> {
-            return UserControl.update(ctx, id, user);
-        },
+            async partFamilyCreate(
+                parent,
+                { partFamily }: { partFamily: PartFamilyInput },
+                ctx: GqlContext
+            ): Promise<PartFamily> {
+                return control.partFamily.create(ctx, partFamily);
+            },
 
-        async projectCreate(
-            parent,
-            { project }: { project: ProjectInput },
-            ctx: GqlContext
-        ): Promise<Project> {
-            return ProjectControl.create(ctx, project);
-        },
-        async projectUpdate(
-            parent,
-            { id, project }: { id: Id; project: ProjectInput },
-            ctx: GqlContext
-        ): Promise<Project> {
-            return ProjectControl.update(ctx, id, project);
-        },
+            async partFamilyUpdate(
+                parent,
+                { id, partFamily }: { id: Id; partFamily: PartFamilyInput },
+                ctx: GqlContext
+            ): Promise<PartFamily> {
+                return control.partFamily.update(ctx, id, partFamily);
+            },
 
-        async projectMemberCreate(
-            parent,
-            { projectMember }: { projectMember: ProjectMemberInput },
-            ctx: GqlContext
-        ): Promise<ProjectMember> {
-            return MemberControl.create(ctx, projectMember);
-        },
-        async projectMemberUpdateRoles(
-            parent,
-            { id, roles }: { id: Id; roles: string[] },
-            ctx: GqlContext
-        ): Promise<ProjectMember> {
-            return MemberControl.updateRolesById(ctx, id, roles);
-        },
-        async projectMemberDelete(
-            parent,
-            { id }: { id: Id },
-            ctx: GqlContext
-        ): Promise<ProjectMember> {
-            return MemberControl.deleteById(ctx, id);
-        },
+            async partBaseCreate(
+                parent,
+                { partBase }: { partBase: PartBaseInput },
+                ctx: GqlContext
+            ): Promise<PartBase> {
+                return control.partBase.create(ctx, partBase);
+            },
 
-        async partFamilyCreate(
-            parent,
-            { partFamily }: { partFamily: PartFamilyInput },
-            ctx: GqlContext
-        ): Promise<PartFamily> {
-            return PartFamilyControl.create(ctx, partFamily);
-        },
+            async partBaseUpdate(
+                parent,
+                { id, partBase }: { id: Id; partBase: PartBaseInput },
+                ctx: GqlContext
+            ): Promise<PartBase> {
+                return control.partBase.update(ctx, id, partBase);
+            },
 
-        async partFamilyUpdate(
-            parent,
-            { id, partFamily }: { id: Id; partFamily: PartFamilyInput },
-            ctx: GqlContext
-        ): Promise<PartFamily> {
-            return PartFamilyControl.update(ctx, id, partFamily);
-        },
+            async partCreate(
+                parent,
+                { input }: { input: PartInput },
+                ctx: GqlContext
+            ): Promise<Part> {
+                return control.part.create(ctx, input);
+            },
 
-        async partBaseCreate(
-            parent,
-            { partBase }: { partBase: PartBaseInput },
-            ctx: GqlContext
-        ): Promise<PartBase> {
-            return PartBaseControl.create(ctx, partBase);
-        },
+            async partUpdate(
+                parent,
+                { id, input }: { id: Id; input: PartInput },
+                ctx: GqlContext
+            ): Promise<Part> {
+                return control.part.update(ctx, id, input);
+            },
 
-        async partBaseUpdate(
-            parent,
-            { id, partBase }: { id: Id; partBase: PartBaseInput },
-            ctx: GqlContext
-        ): Promise<PartBase> {
-            return PartBaseControl.update(ctx, id, partBase);
-        },
+            async documentCreate(
+                parent,
+                { document }: { document: DocumentInput },
+                ctx: GqlContext
+            ): Promise<Document> {
+                return control.document.create(ctx, document);
+            },
 
-        async partCreate(parent, { input }: { input: PartInput }, ctx: GqlContext): Promise<Part> {
-            return PartControl.create(ctx, input);
-        },
+            async documentCheckout(
+                parent,
+                { id, revision }: { id: Id; revision: number },
+                ctx: GqlContext
+            ): Promise<Document> {
+                return control.document.checkout(ctx, id, revision);
+            },
 
-        async partUpdate(
-            parent,
-            { id, input }: { id: Id; input: PartInput },
-            ctx: GqlContext
-        ): Promise<Part> {
-            return PartControl.update(ctx, id, input);
-        },
+            async documentDiscardCheckout(
+                parent,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<Document> {
+                return control.document.discardCheckout(ctx, id);
+            },
 
-        async documentCreate(
-            parent,
-            { document }: { document: DocumentInput },
-            ctx: GqlContext
-        ): Promise<Document> {
-            return DocumentControl.create(ctx, document);
-        },
+            async documentRevise(
+                parent,
+                { documentRevision }: { documentRevision: DocumentRevisionInput },
+                ctx: GqlContext
+            ): Promise<DocumentRevision> {
+                return control.documentRevision.create(ctx, documentRevision);
+            },
 
-        async documentCheckout(
-            parent,
-            { id, revision }: { id: Id; revision: number },
-            ctx: GqlContext
-        ): Promise<Document> {
-            return DocumentControl.checkout(ctx, id, revision);
+            async documentRevisionCheck(
+                parent,
+                { id, sha1 }: { id: Id; sha1: string },
+                ctx: GqlContext
+            ): Promise<DocumentRevision> {
+                return control.documentRevision.finalizeUpload(ctx, id, sha1);
+            },
         },
-
-        async documentDiscardCheckout(
-            parent,
-            { id }: { id: Id },
-            ctx: GqlContext
-        ): Promise<Document> {
-            return DocumentControl.discardCheckout(ctx, id);
-        },
-
-        async documentRevise(
-            parent,
-            { documentRevision }: { documentRevision: DocumentRevisionInput },
-            ctx: GqlContext
-        ): Promise<DocumentRevision> {
-            return DocumentRevisionControl.create(ctx, documentRevision);
-        },
-
-        async documentRevisionCheck(
-            parent,
-            { id, sha1 }: { id: Id; sha1: string },
-            ctx: GqlContext
-        ): Promise<DocumentRevision> {
-            return DocumentRevisionControl.finalizeUpload(ctx, id, sha1);
-        },
-    },
-};
+    };
+}
