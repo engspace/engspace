@@ -1,7 +1,7 @@
 language: node_js
 node_js:
   - lts/*
-  - 13.9.0 # 13.10.X must be disabled due to node#32184
+  - node
 services:
   - postgresql
 before_install:
