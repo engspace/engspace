@@ -36,6 +36,28 @@ describe('Dao Base', function() {
             expect(proj).to.be.null;
         });
 
+        it('should get row count', async function() {
+            const rc0 = await pool.connect(async db => {
+                return projectDao.rowCount(db);
+            });
+            const rc10 = await pool.transaction(async db => {
+                const p = [];
+                for (let i = 0; i < 10; i++) {
+                    p.push(
+                        projectDao.create(db, {
+                            code: `code${i}`,
+                            name: `Proj${i}`,
+                            description: `Project ${i}`,
+                        })
+                    );
+                }
+                await Promise.all(p);
+                return projectDao.rowCount(db);
+            });
+            expect(rc0).to.equal(0);
+            expect(rc10).to.equal(10);
+        });
+
         it('should check that an id exists', async function() {
             const { id } = await pool.transaction(async db => {
                 return projectDao.create(db, {
@@ -183,6 +205,32 @@ describe('Dao Base', function() {
                 return documentDao.byId(db, wrongUuid);
             });
             expect(doc).to.be.null;
+        });
+
+        it('should get row count', async function() {
+            const rc0 = await pool.connect(async db => {
+                return documentDao.rowCount(db);
+            });
+            const rc10 = await pool.transaction(async db => {
+                const p = [];
+                for (let i = 0; i < 10; i++) {
+                    p.push(
+                        documentDao.create(
+                            db,
+                            {
+                                name: `doc${i}`,
+                                description: `Document ${i}`,
+                                initialCheckout: false,
+                            },
+                            users.a.id
+                        )
+                    );
+                }
+                await Promise.all(p);
+                return documentDao.rowCount(db);
+            });
+            expect(rc0).to.equal(0);
+            expect(rc10).to.equal(10);
         });
 
         it('should check that a row exists', async function() {

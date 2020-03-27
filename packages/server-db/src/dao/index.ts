@@ -22,6 +22,7 @@ export { userDao } from './user';
 export interface Dao<T extends HasId> {
     readonly table: string;
     byId(db: Db, id: Id): Promise<T>;
+    rowCount(db: Db): Promise<number>;
     checkId(db: Db, id: Id): Promise<boolean>;
     batchByIds(db: Db, ids: readonly Id[]): Promise<T[]>;
     deleteById(db: Db, id: Id): Promise<T>;

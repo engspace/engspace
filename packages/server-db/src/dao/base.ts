@@ -82,6 +82,13 @@ export class DaoIdent<T extends HasId> implements Dao<T> {
         return row;
     }
 
+    async rowCount(db: Db): Promise<number> {
+        const count = await db.oneFirst(sql`
+            SELECT COUNT(*) FROM ${sql.identifier([this.table])}
+        `);
+        return count as number;
+    }
+
     async checkId(db: Db, id: Id): Promise<boolean> {
         const res = await db.maybeOneFirst(sql`
             SELECT id FROM ${sql.identifier([this.table])}
@@ -138,6 +145,13 @@ export class DaoRowMap<T extends HasId, R extends HasId> implements Dao<T> {
             WHERE id = ${id}
         `);
         return row ? this.mapRow(row) : null;
+    }
+
+    async rowCount(db: Db): Promise<number> {
+        const count = await db.oneFirst(sql`
+            SELECT COUNT(*) FROM ${sql.identifier([this.table])}
+        `);
+        return count as number;
     }
 
     async checkId(db: Db, id: Id): Promise<boolean> {
