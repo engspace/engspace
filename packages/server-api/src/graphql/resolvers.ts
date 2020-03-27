@@ -77,13 +77,13 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.user.rolesById(ctx, id);
             },
             membership({ id }: User, args, ctx: GqlContext): Promise<ProjectMember[]> {
-                return control.member.byUserId(ctx, id);
+                return control.project.membersByUserId(ctx, id);
             },
         },
 
         Project: {
             members({ id }: Project, args, ctx: GqlContext): Promise<ProjectMember[]> {
-                return control.member.byProjectId(ctx, id);
+                return control.project.membersByProjectId(ctx, id);
             },
         },
 
@@ -95,7 +95,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return ctx.loaders.user.load(user.id);
             },
             roles({ id }: ProjectMember, args, ctx: GqlContext): Promise<string[]> {
-                return control.member.rolesById(ctx, id);
+                return control.project.memberRoles(ctx, id);
             },
         },
 
@@ -187,7 +187,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { id }: { id: Id },
                 ctx: GqlContext
             ): Promise<ProjectMember | null> {
-                return control.member.byId(ctx, id);
+                return control.project.memberById(ctx, id);
             },
 
             projectMemberByProjectAndUserId(
@@ -195,7 +195,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { projectId, userId }: { projectId: Id; userId: Id },
                 ctx: GqlContext
             ): Promise<ProjectMember | null> {
-                return control.member.byProjectAndUserId(ctx, projectId, userId);
+                return control.project.memberByProjectAndUserId(ctx, projectId, userId);
             },
 
             partFamily(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartFamily | null> {
@@ -278,21 +278,21 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { projectMember }: { projectMember: ProjectMemberInput },
                 ctx: GqlContext
             ): Promise<ProjectMember> {
-                return control.member.create(ctx, projectMember);
+                return control.project.addMember(ctx, projectMember);
             },
             async projectMemberUpdateRoles(
                 parent,
                 { id, roles }: { id: Id; roles: string[] },
                 ctx: GqlContext
             ): Promise<ProjectMember> {
-                return control.member.updateRolesById(ctx, id, roles);
+                return control.project.updateMemberRoles(ctx, id, roles);
             },
             async projectMemberDelete(
                 parent,
                 { id }: { id: Id },
                 ctx: GqlContext
             ): Promise<ProjectMember> {
-                return control.member.deleteById(ctx, id);
+                return control.project.deleteMember(ctx, id);
             },
 
             async partFamilyCreate(
