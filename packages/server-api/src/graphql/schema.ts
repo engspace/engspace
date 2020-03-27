@@ -194,8 +194,7 @@ export const typeDefs = gql`
         project(id: ID!): Project
         projectByCode(code: String!): Project
         projectSearch(search: String, offset: Int = 0, limit: Int = 1000): ProjectSearch!
-
-        projectMember(id: ID!): ProjectMember
+        projectMember(memberId: ID!): ProjectMember
         projectMemberByProjectAndUserId(projectId: ID!, userId: ID!): ProjectMember
 
         partFamily(id: ID!): PartFamily
@@ -219,10 +218,9 @@ export const typeDefs = gql`
 
         projectCreate(project: ProjectInput!): Project!
         projectUpdate(id: ID!, project: ProjectInput!): Project!
-
-        projectMemberCreate(projectMember: ProjectMemberInput!): ProjectMember!
-        projectMemberUpdateRoles(id: ID!, roles: [String!]): ProjectMember!
-        projectMemberDelete(id: ID!): ProjectMember!
+        projectAddMember(input: ProjectMemberInput!): ProjectMember!
+        projectUpdateMemberRoles(memberId: ID!, roles: [String!]): ProjectMember!
+        projectDeleteMember(memberId: ID!): ProjectMember!
 
         partFamilyCreate(partFamily: PartFamilyInput!): PartFamily!
         partFamilyUpdate(id: ID!, partFamily: PartFamilyInput!): PartFamily!

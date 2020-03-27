@@ -184,10 +184,10 @@ export function buildResolvers(control: ControllerSet): IResolvers {
 
             projectMember(
                 parent,
-                { id }: { id: Id },
+                { memberId }: { memberId: Id },
                 ctx: GqlContext
             ): Promise<ProjectMember | null> {
-                return control.project.memberById(ctx, id);
+                return control.project.memberById(ctx, memberId);
             },
 
             projectMemberByProjectAndUserId(
@@ -273,26 +273,26 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.project.update(ctx, id, project);
             },
 
-            async projectMemberCreate(
+            async projectAddMember(
                 parent,
-                { projectMember }: { projectMember: ProjectMemberInput },
+                { input }: { input: ProjectMemberInput },
                 ctx: GqlContext
             ): Promise<ProjectMember> {
-                return control.project.addMember(ctx, projectMember);
+                return control.project.addMember(ctx, input);
             },
-            async projectMemberUpdateRoles(
+            async projectUpdateMemberRoles(
                 parent,
-                { id, roles }: { id: Id; roles: string[] },
+                { memberId, roles }: { memberId: Id; roles: string[] },
                 ctx: GqlContext
             ): Promise<ProjectMember> {
-                return control.project.updateMemberRoles(ctx, id, roles);
+                return control.project.updateMemberRoles(ctx, memberId, roles);
             },
-            async projectMemberDelete(
+            async projectDeleteMember(
                 parent,
-                { id }: { id: Id },
+                { memberId }: { memberId: Id },
                 ctx: GqlContext
             ): Promise<ProjectMember> {
-                return control.project.deleteMember(ctx, id);
+                return control.project.deleteMember(ctx, memberId);
             },
 
             async partFamilyCreate(

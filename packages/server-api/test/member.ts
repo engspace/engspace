@@ -20,7 +20,7 @@ const MEMBER_FIELDS = gql`
 
 const MEMBER_READ = gql`
     query ReadMember($id: ID!) {
-        projectMember(id: $id) {
+        projectMember(memberId: $id) {
             ...MemberFields
         }
     }
@@ -59,8 +59,8 @@ const MEMBER_READ_BYUSER = gql`
 `;
 
 const MEMBER_CREATE = gql`
-    mutation CreateMember($member: ProjectMemberInput!) {
-        projectMemberCreate(projectMember: $member) {
+    mutation CreateMember($input: ProjectMemberInput!) {
+        projectAddMember(input: $input) {
             ...MemberFields
         }
     }
@@ -69,7 +69,7 @@ const MEMBER_CREATE = gql`
 
 const MEMBER_UPDATE = gql`
     mutation UpdateMember($id: ID!, $roles: [String!]!) {
-        projectMemberUpdateRoles(id: $id, roles: $roles) {
+        projectUpdateMemberRoles(memberId: $id, roles: $roles) {
             ...MemberFields
         }
     }
@@ -78,7 +78,7 @@ const MEMBER_UPDATE = gql`
 
 export const MEMBER_DELETE = gql`
     mutation DeleteMember($id: ID!) {
-        projectMemberDelete(id: $id) {
+        projectDeleteMember(memberId: $id) {
             ...MemberFields
         }
     }
@@ -304,7 +304,7 @@ describe('GraphQL ProjectMember', function() {
                     return mutate({
                         mutation: MEMBER_CREATE,
                         variables: {
-                            member: {
+                            input: {
                                 projectId: projects.a.id,
                                 userId: users.a.id,
                                 roles: ['user', 'designer', 'some other role'],
@@ -314,12 +314,12 @@ describe('GraphQL ProjectMember', function() {
                 });
                 expect(errors).to.be.undefined;
                 expect(data).to.be.an('object');
-                expect(data.projectMemberCreate.id).to.be.uuid();
-                expect(data.projectMemberCreate).to.deep.include({
+                expect(data.projectAddMember.id).to.be.uuid();
+                expect(data.projectAddMember).to.deep.include({
                     project: { id: projects.a.id },
                     user: { id: users.a.id },
                 });
-                expect(data.projectMemberCreate.roles).to.have.members([
+                expect(data.projectAddMember.roles).to.have.members([
                     'user',
                     'some other role',
                     'designer',
@@ -342,7 +342,7 @@ describe('GraphQL ProjectMember', function() {
                     return mutate({
                         mutation: MEMBER_CREATE,
                         variables: {
-                            member: {
+                            input: {
                                 projectId: projects.b.id,
                                 userId: users.a.id,
                                 roles: ['user', 'designer', 'some other role'],
@@ -352,12 +352,12 @@ describe('GraphQL ProjectMember', function() {
                 });
                 expect(errors).to.be.undefined;
                 expect(data).to.be.an('object');
-                expect(data.projectMemberCreate.id).to.be.uuid();
-                expect(data.projectMemberCreate).to.deep.include({
+                expect(data.projectAddMember.id).to.be.uuid();
+                expect(data.projectAddMember).to.deep.include({
                     project: { id: projects.b.id },
                     user: { id: users.a.id },
                 });
-                expect(data.projectMemberCreate.roles).to.have.members([
+                expect(data.projectAddMember.roles).to.have.members([
                     'user',
                     'some other role',
                     'designer',
@@ -373,7 +373,7 @@ describe('GraphQL ProjectMember', function() {
                     return mutate({
                         mutation: MEMBER_CREATE,
                         variables: {
-                            member: {
+                            input: {
                                 projectId: projects.a.id,
                                 userId: users.b.id,
                                 roles: ['user', 'designer', 'some other role'],
@@ -384,6 +384,7 @@ describe('GraphQL ProjectMember', function() {
                 expect(errors)
                     .to.be.an('array')
                     .with.lengthOf.at.least(1);
+                expect(errors[0].message).to.contain('member.create');
                 expect(data).to.be.null;
             });
         });
@@ -412,8 +413,8 @@ describe('GraphQL ProjectMember', function() {
                     return { memId: m.id, errors, data };
                 });
                 expect(errors).to.be.undefined;
-                expect(data.projectMemberUpdateRoles.id).to.equal(memId);
-                expect(data.projectMemberUpdateRoles.roles).to.have.members(['designer', 'leader']);
+                expect(data.projectUpdateMemberRoles.id).to.equal(memId);
+                expect(data.projectUpdateMemberRoles.roles).to.have.members(['designer', 'leader']);
             });
 
             it('should not update member roles without "member.update"', async function() {
@@ -464,7 +465,7 @@ describe('GraphQL ProjectMember', function() {
                 });
                 expect(errors).to.be.undefined;
                 expect(data).to.be.an('object');
-                expect(data.projectMemberDelete).to.be.an('object');
+                expect(data.projectDeleteMember).to.be.an('object');
                 expect(mem).to.be.null;
             });
 
