@@ -61,8 +61,8 @@ const DOC_READ_ALL_REVS = gql`
 `;
 
 const DOC_REVISE = gql`
-    mutation ReviseDocument($revision: DocumentRevisionInput!) {
-        documentRevise(documentRevision: $revision) {
+    mutation ReviseDocument($input: DocumentRevisionInput!) {
+        documentRevise(input: $input) {
             ...DocRevFields
             document {
                 checkout {
@@ -315,7 +315,7 @@ describe('GraphQL Document Revision', function() {
                     return mutate({
                         mutation: DOC_REVISE,
                         variables: {
-                            revision: {
+                            input: {
                                 documentId: document.id,
                                 filename: 'file.ext',
                                 filesize: 1000,
@@ -352,7 +352,7 @@ describe('GraphQL Document Revision', function() {
                     return mutate({
                         mutation: DOC_REVISE,
                         variables: {
-                            revision: {
+                            input: {
                                 documentId: document.id,
                                 filename: 'file.ext',
                                 filesize: 1000,
@@ -380,7 +380,7 @@ describe('GraphQL Document Revision', function() {
                     return mutate({
                         mutation: DOC_REVISE,
                         variables: {
-                            revision: {
+                            input: {
                                 documentId: doc.id,
                                 filename: 'file.ext',
                                 filesize: 1000,

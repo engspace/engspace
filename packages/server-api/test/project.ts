@@ -49,8 +49,8 @@ const PROJECT_SEARCH = gql`
 `;
 
 export const PROJECT_CREATE = gql`
-    mutation CreateProject($project: ProjectInput!) {
-        projectCreate(project: $project) {
+    mutation CreateProject($input: ProjectInput!) {
+        projectCreate(input: $input) {
             ...ProjectFields
         }
     }
@@ -58,8 +58,8 @@ export const PROJECT_CREATE = gql`
 `;
 
 export const PROJECT_UPDATE = gql`
-    mutation UpdateProject($id: ID!, $project: ProjectInput!) {
-        projectUpdate(id: $id, project: $project) {
+    mutation UpdateProject($id: ID!, $input: ProjectInput!) {
+        projectUpdate(id: $id, input: $input) {
             ...ProjectFields
         }
     }
@@ -201,7 +201,7 @@ describe('GraphQL Project', () => {
                     return mutate({
                         mutation: PROJECT_CREATE,
                         variables: {
-                            project: input,
+                            input,
                         },
                     });
                 });
@@ -216,7 +216,7 @@ describe('GraphQL Project', () => {
                     return mutate({
                         mutation: PROJECT_CREATE,
                         variables: {
-                            project: input,
+                            input,
                         },
                     });
                 });
@@ -253,7 +253,7 @@ describe('GraphQL Project', () => {
                         mutation: PROJECT_UPDATE,
                         variables: {
                             id: moon.id,
-                            project: mars,
+                            input: mars,
                         },
                     });
                 });
@@ -271,7 +271,7 @@ describe('GraphQL Project', () => {
                         mutation: PROJECT_UPDATE,
                         variables: {
                             id: moon.id,
-                            project: mars,
+                            input: mars,
                         },
                     });
                 });

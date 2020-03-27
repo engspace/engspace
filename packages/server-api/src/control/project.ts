@@ -33,9 +33,9 @@ export class ProjectControl {
         });
     }
 
-    async update(ctx: ApiContext, id: Id, project: ProjectInput): Promise<Project> {
+    async update(ctx: ApiContext, id: Id, input: ProjectInput): Promise<Project> {
         await assertUserOrProjectPerm(ctx, id, 'project.update');
-        return projectDao.updateById(ctx.db, id, project);
+        return projectDao.updateById(ctx.db, id, input);
     }
 
     async addMember(ctx: ApiContext, input: ProjectMemberInput): Promise<ProjectMember> {

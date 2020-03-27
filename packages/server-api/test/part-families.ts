@@ -27,8 +27,8 @@ const PARTFAM_READ = gql`
 `;
 
 const PARTFAM_CREATE = gql`
-    mutation CreatePartFamily($partFamily: PartFamilyInput!) {
-        partFamilyCreate(partFamily: $partFamily) {
+    mutation CreatePartFamily($input: PartFamilyInput!) {
+        partFamilyCreate(input: $input) {
             ...PartFamFields
         }
     }
@@ -36,8 +36,8 @@ const PARTFAM_CREATE = gql`
 `;
 
 const PARTFAM_UPDATE = gql`
-    mutation UpdatePartFamily($id: ID!, $partFamily: PartFamilyInput!) {
-        partFamilyUpdate(id: $id, partFamily: $partFamily) {
+    mutation UpdatePartFamily($id: ID!, $input: PartFamilyInput!) {
+        partFamilyUpdate(id: $id, input: $input) {
             ...PartFamFields
         }
     }
@@ -123,7 +123,7 @@ describe('GraphQL PartFamily', function() {
                 return mutate({
                     mutation: PARTFAM_CREATE,
                     variables: {
-                        partFamily: {
+                        input: {
                             name: 'pf',
                             code: '111',
                         },
@@ -144,7 +144,7 @@ describe('GraphQL PartFamily', function() {
                 return mutate({
                     mutation: PARTFAM_CREATE,
                     variables: {
-                        partFamily: {
+                        input: {
                             name: 'pf',
                             code: '111',
                         },
@@ -172,7 +172,7 @@ describe('GraphQL PartFamily', function() {
                     mutation: PARTFAM_UPDATE,
                     variables: {
                         id: fam.id,
-                        partFamily: {
+                        input: {
                             name: 'pf2',
                             code: '112',
                         },
@@ -200,7 +200,7 @@ describe('GraphQL PartFamily', function() {
                     mutation: PARTFAM_UPDATE,
                     variables: {
                         id: fam.id,
-                        partFamily: {
+                        input: {
                             name: 'pf2',
                             code: '112',
                         },

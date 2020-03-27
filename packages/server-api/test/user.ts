@@ -157,8 +157,8 @@ describe('GraphQL User', () => {
                     const { mutate } = buildGqlServer(db, auth);
                     return mutate({
                         mutation: gql`
-                            mutation CreateUser($user: UserInput!) {
-                                userCreate(user: $user) {
+                            mutation CreateUser($input: UserInput!) {
+                                userCreate(input: $input) {
                                     ...UserFields
                                     roles
                                 }
@@ -166,7 +166,7 @@ describe('GraphQL User', () => {
                             ${USER_FIELDS}
                         `,
                         variables: {
-                            user: {
+                            input: {
                                 name: 'b',
                                 email: 'b@b.net',
                                 fullName: 'User B',
@@ -192,8 +192,8 @@ describe('GraphQL User', () => {
                     const { mutate } = buildGqlServer(db, auth);
                     return mutate({
                         mutation: gql`
-                            mutation CreateUser($user: UserInput!) {
-                                userCreate(user: $user) {
+                            mutation CreateUser($input: UserInput!) {
+                                userCreate(input: $input) {
                                     ...UserFields
                                     roles
                                 }
@@ -201,7 +201,7 @@ describe('GraphQL User', () => {
                             ${USER_FIELDS}
                         `,
                         variables: {
-                            user: {
+                            input: {
                                 name: 'b',
                                 email: 'b@b.net',
                                 fullName: 'User B',
@@ -223,8 +223,8 @@ describe('GraphQL User', () => {
                     const { mutate } = buildGqlServer(db, auth);
                     return mutate({
                         mutation: gql`
-                            mutation CreateUser($user: UserInput!) {
-                                userCreate(user: $user) {
+                            mutation CreateUser($input: UserInput!) {
+                                userCreate(input: $input) {
                                     ...UserFields
                                     roles
                                 }
@@ -232,7 +232,7 @@ describe('GraphQL User', () => {
                             ${USER_FIELDS}
                         `,
                         variables: {
-                            user: {
+                            input: {
                                 name: 'b',
                                 email: 'not_a_mail.net',
                                 fullName: 'User B',
@@ -271,8 +271,8 @@ describe('GraphQL User', () => {
                     );
                     return mutate({
                         mutation: gql`
-                            mutation UpdateUser($id: ID!, $user: UserInput!) {
-                                userUpdate(id: $id, user: $user) {
+                            mutation UpdateUser($id: ID!, $input: UserInput!) {
+                                userUpdate(id: $id, input: $input) {
                                     ...UserFields
                                     roles
                                 }
@@ -281,7 +281,7 @@ describe('GraphQL User', () => {
                         `,
                         variables: {
                             id: users.b.id,
-                            user: bob,
+                            input: bob,
                         },
                     });
                 });
@@ -298,8 +298,8 @@ describe('GraphQL User', () => {
                     const { mutate } = buildGqlServer(db, permsAuth(users.a, []));
                     return mutate({
                         mutation: gql`
-                            mutation UpdateUser($id: ID!, $user: UserInput!) {
-                                userUpdate(id: $id, user: $user) {
+                            mutation UpdateUser($id: ID!, $input: UserInput!) {
+                                userUpdate(id: $id, input: $input) {
                                     ...UserFields
                                     roles
                                 }
@@ -308,7 +308,7 @@ describe('GraphQL User', () => {
                         `,
                         variables: {
                             id: users.b.id,
-                            user: bob,
+                            input: bob,
                         },
                     });
                 });
@@ -322,8 +322,8 @@ describe('GraphQL User', () => {
                     const { mutate } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
                     return mutate({
                         mutation: gql`
-                            mutation UpdateUser($id: ID!, $user: UserInput!) {
-                                userUpdate(id: $id, user: $user) {
+                            mutation UpdateUser($id: ID!, $input: UserInput!) {
+                                userUpdate(id: $id, input: $input) {
                                     ...UserFields
                                     roles
                                 }
@@ -332,7 +332,7 @@ describe('GraphQL User', () => {
                         `,
                         variables: {
                             id: users.a.id,
-                            user: bob,
+                            input: bob,
                         },
                     });
                 });
@@ -350,8 +350,8 @@ describe('GraphQL User', () => {
                     const { mutate } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
                     return mutate({
                         mutation: gql`
-                            mutation UpdateUser($id: ID!, $user: UserInput!) {
-                                userUpdate(id: $id, user: $user) {
+                            mutation UpdateUser($id: ID!, $input: UserInput!) {
+                                userUpdate(id: $id, input: $input) {
                                     ...UserFields
                                     roles
                                 }
@@ -360,7 +360,7 @@ describe('GraphQL User', () => {
                         `,
                         variables: {
                             id: users.a.id,
-                            user: bob, // self promotion to manager
+                            input: bob, // self promotion to manager
                         },
                     });
                 });

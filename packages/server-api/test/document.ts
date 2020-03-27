@@ -42,8 +42,8 @@ const DOC_SEARCH = gql`
 `;
 
 const DOC_CREATE = gql`
-    mutation CreateDoc($document: DocumentInput!) {
-        documentCreate(document: $document) {
+    mutation CreateDoc($input: DocumentInput!) {
+        documentCreate(input: $input) {
             ...DocFields
         }
     }
@@ -213,7 +213,7 @@ describe('GraphQL documents', function() {
                     return mutate({
                         mutation: DOC_CREATE,
                         variables: {
-                            document: {
+                            input: {
                                 name: 'a',
                                 description: 'doc A',
                                 initialCheckout: true,
@@ -243,7 +243,7 @@ describe('GraphQL documents', function() {
                     return mutate({
                         mutation: DOC_CREATE,
                         variables: {
-                            document: {
+                            input: {
                                 name: 'a',
                                 description: 'doc A',
                                 initialCheckout: false,
@@ -273,7 +273,7 @@ describe('GraphQL documents', function() {
                     return mutate({
                         mutation: DOC_CREATE,
                         variables: {
-                            document: {
+                            input: {
                                 name: 'a',
                                 description: 'doc A',
                                 initialCheckout: true,
@@ -282,6 +282,7 @@ describe('GraphQL documents', function() {
                     });
                 });
                 expect(errors).to.be.an('array').not.empty;
+                expect(errors[0].message).to.contain('document.create');
                 expect(data).to.be.null;
             });
         });

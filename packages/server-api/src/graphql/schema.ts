@@ -84,7 +84,7 @@ export const typeDefs = gql`
      - new Part (with initial version)
      - new PartRevision (1)
     """
-    input NewPartInput {
+    input PartCreateNewInput {
         familyId: ID!
         initialVersion: String!
         designation: String!
@@ -198,11 +198,8 @@ export const typeDefs = gql`
         projectMemberByProjectAndUserId(projectId: ID!, userId: ID!): ProjectMember
 
         partFamily(id: ID!): PartFamily
-
         partBase(id: ID!): PartBase
-
         part(id: ID!): Part
-
         partRevision(id: ID!): PartRevision
 
         document(id: ID!): Document
@@ -213,30 +210,28 @@ export const typeDefs = gql`
     }
 
     type Mutation {
-        userCreate(user: UserInput!): User!
-        userUpdate(id: ID!, user: UserInput!): User!
+        userCreate(input: UserInput!): User!
+        userUpdate(id: ID!, input: UserInput!): User!
 
-        projectCreate(project: ProjectInput!): Project!
-        projectUpdate(id: ID!, project: ProjectInput!): Project!
+        projectCreate(input: ProjectInput!): Project!
+        projectUpdate(id: ID!, input: ProjectInput!): Project!
         projectAddMember(input: ProjectMemberInput!): ProjectMember!
         projectUpdateMemberRoles(memberId: ID!, roles: [String!]): ProjectMember!
         projectDeleteMember(memberId: ID!): ProjectMember!
 
-        partFamilyCreate(partFamily: PartFamilyInput!): PartFamily!
-        partFamilyUpdate(id: ID!, partFamily: PartFamilyInput!): PartFamily!
+        partFamilyCreate(input: PartFamilyInput!): PartFamily!
+        partFamilyUpdate(id: ID!, input: PartFamilyInput!): PartFamily!
 
-        partCreateNew(input: NewPartInput): PartRevision!
-
-        partBaseCreate(partBase: PartBaseInput!): PartBase!
-        partBaseUpdate(id: ID!, partBase: PartBaseUpdateInput!): PartBase!
+        partBaseCreate(input: PartBaseInput!): PartBase!
+        partBaseUpdate(id: ID!, input: PartBaseUpdateInput!): PartBase!
 
         partCreate(input: PartInput!): Part!
         partUpdate(id: ID!, input: PartUpdateInput!): Part!
 
-        documentCreate(document: DocumentInput!): Document!
+        documentCreate(input: DocumentInput!): Document!
         documentCheckout(id: ID!, revision: Int!): Document!
         documentDiscardCheckout(id: ID!): Document!
-        documentRevise(documentRevision: DocumentRevisionInput): DocumentRevision!
+        documentRevise(input: DocumentRevisionInput): DocumentRevision!
         documentRevisionCheck(id: ID!, sha1: String!): DocumentRevision!
     }
 `;

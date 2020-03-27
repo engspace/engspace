@@ -65,7 +65,7 @@ describe('End to end GraphQL', function() {
                     query: print(PROJECT_UPDATE),
                     variables: {
                         id: proj.id,
-                        project: {
+                        input: {
                             name: 'projectname',
                             code: 'projectcode',
                             description: 'project description',
@@ -91,7 +91,7 @@ describe('End to end GraphQL', function() {
                     query: print(PROJECT_UPDATE),
                     variables: {
                         id: proj.id,
-                        project: {
+                        input: {
                             name: 'projectname',
                             code: 'projectcode',
                             description: 'project description',
@@ -249,7 +249,7 @@ describe('End to end GraphQL', function() {
                 .send({
                     query: print(PROJECT_CREATE),
                     variables: {
-                        project: {
+                        input: {
                             name: 'projectname',
                             code: 'projectcode',
                             description: 'project description',
@@ -287,7 +287,7 @@ describe('End to end GraphQL', function() {
                 .send({
                     query: print(PROJECT_CREATE),
                     variables: {
-                        project: {
+                        input: {
                             name: 'projectname',
                             code: 'projectcode',
                             description: 'project description',

@@ -41,8 +41,8 @@ const PARTBASE_READ = gql`
 `;
 
 const PARTBASE_CREATE = gql`
-    mutation CreatePartBase($partBase: PartBaseInput!) {
-        partBaseCreate(partBase: $partBase) {
+    mutation CreatePartBase($input: PartBaseInput!) {
+        partBaseCreate(input: $input) {
             ...PartBaseFields
         }
     }
@@ -50,8 +50,8 @@ const PARTBASE_CREATE = gql`
 `;
 
 const PARTBASE_UPDATE = gql`
-    mutation UpdatePartBase($id: ID!, $partBase: PartBaseUpdateInput!) {
-        partBaseUpdate(id: $id, partBase: $partBase) {
+    mutation UpdatePartBase($id: ID!, $input: PartBaseUpdateInput!) {
+        partBaseUpdate(id: $id, input: $input) {
             ...PartBaseFields
         }
     }
@@ -153,7 +153,7 @@ describe('GraphQL PartBase', function() {
                 return mutate({
                     mutation: PARTBASE_CREATE,
                     variables: {
-                        partBase: {
+                        input: {
                             familyId: family.id,
                             designation: 'Part',
                         },
@@ -182,7 +182,7 @@ describe('GraphQL PartBase', function() {
                 return mutate({
                     mutation: PARTBASE_CREATE,
                     variables: {
-                        partBase: {
+                        input: {
                             familyId: family.id,
                             designation: 'Part',
                         },
@@ -208,7 +208,7 @@ describe('GraphQL PartBase', function() {
                 return mutate({
                     mutation: PARTBASE_CREATE,
                     variables: {
-                        partBase: {
+                        input: {
                             familyId: family.id,
                             designation: 'Part',
                         },
@@ -242,7 +242,7 @@ describe('GraphQL PartBase', function() {
                 return mutate({
                     mutation: PARTBASE_CREATE,
                     variables: {
-                        partBase: {
+                        input: {
                             familyId: family.id,
                             designation: 'Part',
                         },
@@ -277,7 +277,7 @@ describe('GraphQL PartBase', function() {
                 );
                 return mutate({
                     mutation: PARTBASE_UPDATE,
-                    variables: { id: part.id, partBase: { designation: 'B' } },
+                    variables: { id: part.id, input: { designation: 'B' } },
                 });
             });
             const aft = Date.now();
@@ -314,7 +314,7 @@ describe('GraphQL PartBase', function() {
                 );
                 return mutate({
                     mutation: PARTBASE_UPDATE,
-                    variables: { id: part.id, partBase: { designation: 'B' } },
+                    variables: { id: part.id, input: { designation: 'B' } },
                 });
             });
             expect(errors).to.be.an('array').not.empty;
