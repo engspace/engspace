@@ -93,9 +93,20 @@ export interface ProjectMember {
     roles?: string[];
 }
 
+export interface PartFamilyInput {
+    code: string;
+    name: string;
+}
+
 export interface PartFamily extends PartFamilyInput {
     id: Id;
     counter: number;
+}
+
+export interface PartCreateNewInput {
+    familyId: Id;
+    designation: string;
+    initialVersion: string;
 }
 
 export interface PartBaseInput {
@@ -202,9 +213,4 @@ export interface DocumentRevision {
 export interface DocumentSearch {
     count: number;
     documents: Document[];
-}
-
-export interface PartFamilyInput {
-    code: string;
-    name: string;
 }

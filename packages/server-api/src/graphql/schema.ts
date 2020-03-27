@@ -222,6 +222,8 @@ export const typeDefs = gql`
         partFamilyCreate(input: PartFamilyInput!): PartFamily!
         partFamilyUpdate(id: ID!, input: PartFamilyInput!): PartFamily!
 
+        partCreateNew(input: PartCreateNewInput!): PartRevision!
+
         partBaseCreate(input: PartBaseInput!): PartBase!
         partBaseUpdate(id: ID!, input: PartBaseUpdateInput!): PartBase!
 

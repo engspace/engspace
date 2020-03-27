@@ -1,19 +1,21 @@
-import { ApiContext } from '.';
 import {
-    PartFamilyInput,
-    PartFamily,
+    CycleState,
     Id,
-    PartBaseInput,
-    PartBase,
-    PartBaseUpdateInput,
-    PartInput,
     Part,
-    PartUpdateInput,
+    PartBase,
+    PartBaseInput,
+    PartBaseUpdateInput,
+    PartCreateNewInput,
+    PartFamily,
+    PartFamilyInput,
+    PartInput,
     PartRevision,
+    PartUpdateInput,
 } from '@engspace/core';
-import { assertUserPerm } from './helpers';
-import { partFamilyDao, partBaseDao, partDao, partRevisionDao } from '@engspace/server-db';
+import { partBaseDao, partDao, partFamilyDao, partRevisionDao } from '@engspace/server-db';
 import { UserInputError } from 'apollo-server-koa';
+import { ApiContext } from '.';
+import { assertUserPerm } from './helpers';
 
 export class PartFamilyControl {
     async create(ctx: ApiContext, partFamily: PartFamilyInput): Promise<PartFamily> {
@@ -29,6 +31,45 @@ export class PartFamilyControl {
     async update(ctx: ApiContext, id: Id, partFamily: PartFamilyInput): Promise<PartFamily> {
         assertUserPerm(ctx, 'partfamily.update');
         return partFamilyDao.updateById(ctx.db, id, partFamily);
+    }
+}
+
+export class PartControl2 {
+    async createNew(ctx: ApiContext, input: PartCreateNewInput): Promise<PartRevision> {
+        assertUserPerm(ctx, 'part.create');
+
+        const { userId } = ctx.auth;
+
+        const baseRef = await ctx.db.transaction(async db => {
+            const fam = await partFamilyDao.bumpCounterById(db, input.familyId);
+            return ctx.config.refNaming.partBase.getBaseRef(fam);
+        });
+
+        const partBase = await partBaseDao.create(
+            ctx.db,
+            {
+                familyId: input.familyId,
+                designation: input.designation,
+            },
+            baseRef,
+            userId
+        );
+
+        const ref = ctx.config.refNaming.part.getRef(partBase, input.initialVersion);
+
+        const part = await partDao.create(ctx.db, {
+            baseId: partBase.id,
+            designation: input.designation,
+            ref,
+            userId,
+        });
+
+        return partRevisionDao.create(ctx.db, {
+            partId: part.id,
+            designation: input.designation,
+            cycleState: CycleState.Edition,
+            userId,
+        });
     }
 }
 

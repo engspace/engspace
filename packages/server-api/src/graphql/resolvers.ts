@@ -20,6 +20,7 @@ import {
     PartInput,
     PartRevision,
     Tracked,
+    PartCreateNewInput,
 } from '@engspace/core';
 import { UserInputError, IResolvers } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
@@ -301,13 +302,20 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             ): Promise<PartFamily> {
                 return control.partFamily.create(ctx, input);
             },
-
             async partFamilyUpdate(
                 parent,
                 { id, input }: { id: Id; input: PartFamilyInput },
                 ctx: GqlContext
             ): Promise<PartFamily> {
                 return control.partFamily.update(ctx, id, input);
+            },
+
+            partCreateNew(
+                parent,
+                { input }: { input: PartCreateNewInput },
+                ctx: GqlContext
+            ): Promise<PartRevision> {
+                return control.part2.createNew(ctx, input);
             },
 
             async partBaseCreate(
