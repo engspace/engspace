@@ -50,9 +50,9 @@ describe('partValidationDao', function() {
             expect(val).to.deep.include({
                 partRev: { id: partRev.id },
                 state: ApprovalState.Approved,
+                result: null,
+                comments: null,
             });
-            expect(val.result).to.be.undefined;
-            expect(val.comments).to.be.undefined;
         });
     });
 
