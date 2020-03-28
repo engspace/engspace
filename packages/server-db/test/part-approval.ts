@@ -6,6 +6,7 @@ import {
     cleanTables,
     createPart,
     createPartApproval,
+    createPartApprovals,
     createPartBase,
     createPartFamily,
     createPartRev,
@@ -71,6 +72,23 @@ describe('partApprovalDao', function() {
         });
     });
 
+    describe('Read', function() {
+        let approvals;
+        before(async function() {
+            approvals = await pool.transaction(async db => {
+                return createPartApprovals(db, partVal, users, users.a);
+            });
+        });
+        after(cleanTable(pool, 'part_approval'));
+
+        it('should read approvals for a validation', async function() {
+            const apprs = await pool.connect(async db => {
+                return partApprovalDao.byValidationId(db, partVal.id);
+            });
+            expect(apprs).to.have.same.deep.members(Object.values(approvals));
+        });
+    });
+
     describe('Update', function() {
         let partAppr;
         beforeEach(async function() {
@@ -94,12 +112,12 @@ describe('partApprovalDao', function() {
                 validation: { id: partVal.id },
                 assignee: { id: users.b.id },
                 state: ApprovalState.Approved,
+                comments: null,
                 ...trackedBy(users.a, users.b),
             });
             expect(pa.updatedAt)
                 .to.be.gt(bef)
                 .and.lt(aft);
-            expect(pa.comments).to.be.undefined;
         });
 
         it('should set approval state with comment', async function() {

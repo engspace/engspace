@@ -71,6 +71,14 @@ class PartApprovalDao extends DaoRowMap<PartApproval, Row> {
         return mapRow(row);
     }
 
+    async byValidationId(db: Db, validationId: Id): Promise<PartApproval[]> {
+        const rows: Row[] = await db.any(sql`
+            SELECT ${rowToken} FROM part_approval
+            WHERE validation_id = ${validationId}
+        `);
+        return rows.map(r => mapRow(r));
+    }
+
     async update(
         db: Db,
         id: Id,
