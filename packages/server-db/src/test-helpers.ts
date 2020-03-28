@@ -269,7 +269,7 @@ export function createPart(
     input: Partial<PartDaoInput> = {}
 ): Promise<Part> {
     return partDao.create(db, {
-        designation: 'Part',
+        designation: base.designation ?? 'Part',
         ...input,
         ref: ref ?? `${base.baseRef}.A`,
         baseId: base.id,
@@ -284,7 +284,7 @@ export function createPartRev(
     input: Partial<PartRevisionDaoInput> = {}
 ): Promise<PartRevision> {
     return partRevisionDao.create(db, {
-        designation: part.designation,
+        designation: part.designation ?? 'Part',
         cycleState: CycleState.Edition,
         ...input,
         partId: part.id,
