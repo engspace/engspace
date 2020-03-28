@@ -160,14 +160,14 @@ describe('Ref naming', function() {
                 function bad(): string {
                     return rn.extractVersion({ baseRef: 'P01' }, 'P001.AB');
                 }
-                expect(bad).to.throw;
+                expect(bad).to.throw('base reference name');
             });
             it('should throw if missing literal', function() {
                 const rn = new PartRefNaming('${part_base_ref}.${part_version:AA}');
                 function bad(): string {
                     return rn.extractVersion({ baseRef: 'P001' }, 'P001AB');
                 }
-                expect(bad).to.throw;
+                expect(bad).to.throw('literal');
             });
             it('should throw if unexpected literal', function() {
                 const rn = new PartRefNaming('${part_base_ref}.${part_version:AA}');
@@ -188,7 +188,7 @@ describe('Ref naming', function() {
                 function bad(): string {
                     return rn.extractVersion({ baseRef: 'P001' }, 'P001.02');
                 }
-                expect(bad).to.throw;
+                expect(bad).to.throw('wrong version format');
             });
         });
     });

@@ -236,14 +236,14 @@ export class PartRefNaming extends RefNaming {
         for (const tok of this.tokens) {
             if (tok.tok === Tok.Lit) {
                 if (!r.startsWith(tok.value)) {
-                    throw new Error(`"${ref}" does not match expected ref-naming`);
+                    throw new Error(`"${ref}" does not match expected literal`);
                 }
                 r = r.substr(tok.value.length);
             } else if (tok.tok === Tok.Var) {
                 switch (tok.ident) {
                     case 'part_base_ref': {
                         if (!r.startsWith(baseRef)) {
-                            throw new Error(`"${ref}" does not match expected ref-naming`);
+                            throw new Error(`"${ref}" does not match expected base reference name`);
                         }
                         r = r.substr(baseRef.length);
                         break;
@@ -251,7 +251,7 @@ export class PartRefNaming extends RefNaming {
                     case 'part_version': {
                         v = r.substr(0, tok.format.input.length);
                         if (!tok.format.matches(v)) {
-                            throw new Error(`"${ref}" does not match expected ref-naming`);
+                            throw new Error(`"${ref}" has wrong version format`);
                         }
                         r = r.substr(v.length);
                         break;
@@ -259,6 +259,7 @@ export class PartRefNaming extends RefNaming {
                 }
             }
         }
+        /* istanbul ignore next */
         if (!v.length) {
             throw new Error(`Could not find part version out of "${ref}"`);
         }
