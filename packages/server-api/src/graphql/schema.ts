@@ -103,6 +103,18 @@ export const typeDefs = gql`
         designation: String!
     }
 
+    """
+    An input to fork a part to another version:
+     - sharing same PartBase
+     - new Part (with version)
+     - new PartRevision (1)
+    """
+    input PartForkInput {
+        partId: ID!
+        version: String
+        designation: String
+    }
+
     input PartBaseInput {
         familyId: ID!
         designation: ID!
@@ -264,6 +276,7 @@ export const typeDefs = gql`
         partFamilyUpdate(id: ID!, input: PartFamilyInput!): PartFamily!
 
         partCreateNew(input: PartCreateNewInput!): PartRevision!
+        partFork(input: PartForkInput!): PartRevision!
 
         partBaseCreate(input: PartBaseInput!): PartBase!
         partBaseUpdate(id: ID!, input: PartBaseUpdateInput!): PartBase!

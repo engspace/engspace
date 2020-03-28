@@ -6,6 +6,7 @@ import {
     PartBaseInput,
     PartBaseUpdateInput,
     PartCreateNewInput,
+    PartForkInput,
     PartInput,
     PartRevision,
     PartUpdateInput,
@@ -57,6 +58,32 @@ export class PartControl {
         return partRevisionDao.create(ctx.db, {
             partId: part.id,
             designation: input.designation,
+            cycleState: CycleState.Edition,
+            userId,
+        });
+    }
+
+    async fork(
+        ctx: ApiContext,
+        { partId, version, designation }: PartForkInput
+    ): Promise<PartRevision> {
+        assertUserPerm(ctx, 'part.create');
+        const { userId } = ctx.auth;
+        const part = await partDao.byId(ctx.db, partId);
+        const base = await partBaseDao.byId(ctx.db, part.base.id);
+        const prn = ctx.config.refNaming.part;
+        const ref = version
+            ? prn.getRef(base, version)
+            : prn.getNext(base, prn.extractVersion(base, part.ref));
+        const fork = await partDao.create(ctx.db, {
+            baseId: base.id,
+            ref,
+            designation: designation ?? part.designation,
+            userId,
+        });
+        return partRevisionDao.create(ctx.db, {
+            partId: fork.id,
+            designation: fork.designation,
             cycleState: CycleState.Edition,
             userId,
         });

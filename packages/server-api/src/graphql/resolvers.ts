@@ -6,28 +6,29 @@ import {
     DocumentRevisionInput,
     DocumentSearch,
     Id,
+    Part,
+    PartApproval,
+    PartBase,
+    PartBaseInput,
+    PartCreateNewInput,
     PartFamily,
     PartFamilyInput,
+    PartForkInput,
+    PartInput,
+    PartRevision,
+    PartValidation,
     Project,
     ProjectInput,
     ProjectMember,
     ProjectMemberInput,
+    Tracked,
     User,
     UserInput,
-    PartBase,
-    PartBaseInput,
-    Part,
-    PartInput,
-    PartRevision,
-    Tracked,
-    PartCreateNewInput,
-    PartValidation,
-    PartApproval,
 } from '@engspace/core';
-import { UserInputError, IResolvers } from 'apollo-server-koa';
+import { IResolvers, UserInputError } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
-import { GqlContext } from './context';
 import { ControllerSet } from '../control';
+import { GqlContext } from './context';
 
 export const resolveTracked = {
     createdBy({ createdBy }: Tracked, args, ctx: GqlContext): Promise<User> {
@@ -293,14 +294,10 @@ export function buildResolvers(control: ControllerSet): IResolvers {
         },
 
         Mutation: {
-            async userCreate(
-                parent,
-                { input }: { input: UserInput },
-                ctx: GqlContext
-            ): Promise<User> {
+            userCreate(parent, { input }: { input: UserInput }, ctx: GqlContext): Promise<User> {
                 return control.user.create(ctx, input);
             },
-            async userUpdate(
+            userUpdate(
                 parent,
                 { id, input }: { id: Id; input: UserInput },
                 ctx: GqlContext
@@ -308,35 +305,35 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.user.update(ctx, id, input);
             },
 
-            async projectCreate(
+            projectCreate(
                 parent,
                 { input }: { input: ProjectInput },
                 ctx: GqlContext
             ): Promise<Project> {
                 return control.project.create(ctx, input);
             },
-            async projectUpdate(
+            projectUpdate(
                 parent,
                 { id, input }: { id: Id; input: ProjectInput },
                 ctx: GqlContext
             ): Promise<Project> {
                 return control.project.update(ctx, id, input);
             },
-            async projectAddMember(
+            projectAddMember(
                 parent,
                 { input }: { input: ProjectMemberInput },
                 ctx: GqlContext
             ): Promise<ProjectMember> {
                 return control.project.addMember(ctx, input);
             },
-            async projectUpdateMemberRoles(
+            projectUpdateMemberRoles(
                 parent,
                 { memberId, roles }: { memberId: Id; roles: string[] },
                 ctx: GqlContext
             ): Promise<ProjectMember> {
                 return control.project.updateMemberRoles(ctx, memberId, roles);
             },
-            async projectDeleteMember(
+            projectDeleteMember(
                 parent,
                 { memberId }: { memberId: Id },
                 ctx: GqlContext
@@ -344,14 +341,14 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.project.deleteMember(ctx, memberId);
             },
 
-            async partFamilyCreate(
+            partFamilyCreate(
                 parent,
                 { input }: { input: PartFamilyInput },
                 ctx: GqlContext
             ): Promise<PartFamily> {
                 return control.partFamily.create(ctx, input);
             },
-            async partFamilyUpdate(
+            partFamilyUpdate(
                 parent,
                 { id, input }: { id: Id; input: PartFamilyInput },
                 ctx: GqlContext
@@ -367,7 +364,15 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.part.createNew(ctx, input);
             },
 
-            async partBaseCreate(
+            partFork(
+                parent,
+                { input }: { input: PartForkInput },
+                ctx: GqlContext
+            ): Promise<PartRevision> {
+                return control.part.fork(ctx, input);
+            },
+
+            partBaseCreate(
                 parent,
                 { input }: { input: PartBaseInput },
                 ctx: GqlContext
@@ -375,7 +380,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.partBase1.create(ctx, input);
             },
 
-            async partBaseUpdate(
+            partBaseUpdate(
                 parent,
                 { id, input }: { id: Id; input: PartBaseInput },
                 ctx: GqlContext
@@ -383,15 +388,11 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.part.updateBase(ctx, id, input);
             },
 
-            async partCreate(
-                parent,
-                { input }: { input: PartInput },
-                ctx: GqlContext
-            ): Promise<Part> {
+            partCreate(parent, { input }: { input: PartInput }, ctx: GqlContext): Promise<Part> {
                 return control.part1.create(ctx, input);
             },
 
-            async partUpdate(
+            partUpdate(
                 parent,
                 { id, input }: { id: Id; input: PartInput },
                 ctx: GqlContext
@@ -399,7 +400,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.part.updatePart(ctx, id, input);
             },
 
-            async documentCreate(
+            documentCreate(
                 parent,
                 { input }: { input: DocumentInput },
                 ctx: GqlContext
@@ -407,7 +408,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.document.create(ctx, input);
             },
 
-            async documentCheckout(
+            documentCheckout(
                 parent,
                 { id, revision }: { id: Id; revision: number },
                 ctx: GqlContext
@@ -415,7 +416,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.document.checkout(ctx, id, revision);
             },
 
-            async documentDiscardCheckout(
+            documentDiscardCheckout(
                 parent,
                 { id }: { id: Id },
                 ctx: GqlContext
@@ -423,7 +424,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.document.discardCheckout(ctx, id);
             },
 
-            async documentRevise(
+            documentRevise(
                 parent,
                 { input }: { input: DocumentRevisionInput },
                 ctx: GqlContext
@@ -431,7 +432,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.documentRevision.create(ctx, input);
             },
 
-            async documentRevisionCheck(
+            documentRevisionCheck(
                 parent,
                 { id, sha1 }: { id: Id; sha1: string },
                 ctx: GqlContext

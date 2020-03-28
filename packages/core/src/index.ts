@@ -109,6 +109,12 @@ export interface PartCreateNewInput {
     initialVersion: string;
 }
 
+export interface PartForkInput {
+    partId: Id;
+    version?: string;
+    designation?: string;
+}
+
 export interface PartBaseInput {
     familyId: Id;
     designation: string;
