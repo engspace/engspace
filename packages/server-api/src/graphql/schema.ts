@@ -115,6 +115,17 @@ export const typeDefs = gql`
         designation: String
     }
 
+    """
+    An input to revise a part:
+     - sharing same PartBase
+     - sharing same Part
+     - new PartRevision
+    """
+    input PartRevisionInput {
+        partId: ID!
+        designation: String
+    }
+
     input PartBaseInput {
         familyId: ID!
         designation: ID!
@@ -277,6 +288,7 @@ export const typeDefs = gql`
 
         partCreateNew(input: PartCreateNewInput!): PartRevision!
         partFork(input: PartForkInput!): PartRevision!
+        partRevise(input: PartRevisionInput!): PartRevision!
 
         partBaseCreate(input: PartBaseInput!): PartBase!
         partBaseUpdate(id: ID!, input: PartBaseUpdateInput!): PartBase!

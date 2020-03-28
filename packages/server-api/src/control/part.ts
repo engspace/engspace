@@ -12,6 +12,7 @@ import {
     PartUpdateInput,
     PartValidation,
     PartApproval,
+    PartRevisionInput,
 } from '@engspace/core';
 import {
     partBaseDao,
@@ -86,6 +87,26 @@ export class PartControl {
             designation: fork.designation,
             cycleState: CycleState.Edition,
             userId,
+        });
+    }
+
+    async revise(
+        ctx: ApiContext,
+        { partId, designation }: PartRevisionInput
+    ): Promise<PartRevision> {
+        assertUserPerm(ctx, 'part.create');
+
+        let des = designation;
+        if (!des) {
+            const part = await partDao.byId(ctx.db, partId);
+            des = part.designation;
+        }
+
+        return partRevisionDao.create(ctx.db, {
+            partId,
+            designation: des,
+            cycleState: CycleState.Edition,
+            userId: ctx.auth.userId,
         });
     }
 

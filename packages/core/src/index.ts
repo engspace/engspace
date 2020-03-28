@@ -115,6 +115,11 @@ export interface PartForkInput {
     designation?: string;
 }
 
+export interface PartRevisionInput {
+    partId: Id;
+    designation?: string;
+}
+
 export interface PartBaseInput {
     familyId: Id;
     designation: string;
@@ -146,11 +151,6 @@ export interface Part extends Tracked {
     base: IdOr<PartBase>;
     ref: string;
     designation: string;
-}
-
-export interface PartRevisionInput {
-    partId: Id;
-    designation?: string;
 }
 
 export interface PartRevision extends Tracked {

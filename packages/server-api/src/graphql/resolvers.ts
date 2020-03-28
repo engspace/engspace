@@ -24,6 +24,7 @@ import {
     Tracked,
     User,
     UserInput,
+    PartRevisionInput,
 } from '@engspace/core';
 import { IResolvers, UserInputError } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
@@ -370,6 +371,14 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 ctx: GqlContext
             ): Promise<PartRevision> {
                 return control.part.fork(ctx, input);
+            },
+
+            partRevise(
+                parent,
+                { input }: { input: PartRevisionInput },
+                ctx: GqlContext
+            ): Promise<PartRevision> {
+                return control.part.revise(ctx, input);
             },
 
             partBaseCreate(
