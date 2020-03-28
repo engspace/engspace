@@ -4,14 +4,18 @@ import {
     createPartBase,
     createPartFamily,
     createPartRev,
-    createUsersAB,
+    createUsers,
     trackedBy,
+    createPartVal,
+    createPartApprovals,
 } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool } from '.';
 import { permsAuth } from './auth';
 import { TRACKED_FIELDS } from './helpers';
+import { ApprovalState, PartApproval } from '@engspace/core';
+import { Dict } from '@engspace/server-db/src/test-helpers';
 
 const PARTBASE_FIELDS = gql`
     fragment PartBaseFields on PartBase {
@@ -53,6 +57,39 @@ const PARTREV_FIELDS = gql`
     ${TRACKED_FIELDS}
 `;
 
+const PARTVAL_FIELDS = gql`
+    fragment PartValFields on PartValidation {
+        id
+        partRev {
+            id
+        }
+        state
+        result
+        comments
+        approvals {
+            id
+        }
+        ...TrackedFields
+    }
+    ${TRACKED_FIELDS}
+`;
+
+const PARTAPPR_FIELDS = gql`
+    fragment PartApprFields on PartApproval {
+        id
+        validation {
+            id
+        }
+        assignee {
+            id
+        }
+        state
+        comments
+        ...TrackedFields
+    }
+    ${TRACKED_FIELDS}
+`;
+
 const PARTBASE_READ = gql`
     query ReadPartBase($id: ID!) {
         partBase(id: $id) {
@@ -80,6 +117,24 @@ const PARTREV_READ = gql`
     ${PARTREV_FIELDS}
 `;
 
+const PARTVAL_READ = gql`
+    query ReadPartVal($id: ID!) {
+        partValidation(id: $id) {
+            ...PartValFields
+        }
+    }
+    ${PARTVAL_FIELDS}
+`;
+
+const PARTAPPR_READ = gql`
+    query ReadPartAppr($id: ID!) {
+        partApproval(id: $id) {
+            ...PartApprFields
+        }
+    }
+    ${PARTAPPR_FIELDS}
+`;
+
 describe('GraphQL Part - Queries', function() {
     let users;
     let family;
@@ -90,7 +145,13 @@ describe('GraphQL Part - Queries', function() {
     before('create res', async function() {
         bef = Date.now();
         await pool.transaction(async db => {
-            users = await createUsersAB(db);
+            users = await createUsers(db, {
+                a: { name: 'a' },
+                b: { name: 'b' },
+                c: { name: 'c' },
+                d: { name: 'd' },
+                e: { name: 'e' },
+            });
             family = await createPartFamily(db, { code: 'P' });
             partBase = await createPartBase(db, family, users.a, 'P001', { designation: 'Part 1' });
             part = await createPart(db, partBase, users.a, 'P001.01');
@@ -228,6 +289,93 @@ describe('GraphQL Part - Queries', function() {
             expect(errors).to.be.not.empty;
             expect(errors[0].message).to.contain('part.read');
             expect(data.partRevision).to.null;
+        });
+    });
+
+    describe('Validation', function() {
+        let partVal;
+        let approvals: Dict<PartApproval>;
+
+        before(async function() {
+            return pool.transaction(async db => {
+                partVal = await createPartVal(db, partRev, users.a);
+                approvals = await createPartApprovals(db, partVal, users, users.a);
+            });
+        });
+        after(cleanTables(pool, ['part_approval', 'part_validation']));
+
+        it('should read part validation', async function() {
+            const { errors, data } = await pool.transaction(async db => {
+                const { query } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['partval.read', 'part.read', 'user.read'])
+                );
+                return query({
+                    query: PARTVAL_READ,
+                    variables: { id: partVal.id },
+                });
+            });
+            expect(errors).to.be.undefined;
+            expect(data.partValidation).to.deep.include({
+                ...partVal,
+                state: ApprovalState.Pending,
+                ...trackedBy(users.a),
+            });
+            expect(data.partValidation.approvals).to.have.same.deep.members(
+                Object.values(approvals).map(a => ({
+                    id: a.id,
+                }))
+            );
+        });
+
+        it('should not read part validation without "partval.read"', async function() {
+            const { errors, data } = await pool.transaction(async db => {
+                const { query } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['part.read', 'user.read'])
+                );
+                return query({
+                    query: PARTVAL_READ,
+                    variables: { id: partVal.id },
+                });
+            });
+            expect(errors).to.be.not.empty;
+            expect(errors[0].message).to.contain('partval.read');
+            expect(data.partValidation).to.be.null;
+        });
+
+        it('should read part approval', async function() {
+            const { errors, data } = await pool.transaction(async db => {
+                const { query } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['partval.read', 'part.read', 'user.read'])
+                );
+                return query({
+                    query: PARTAPPR_READ,
+                    variables: { id: approvals.d.id },
+                });
+            });
+            expect(errors).to.be.undefined;
+            expect(data.partApproval).to.deep.include({
+                ...approvals.d,
+                ...trackedBy(users.a),
+            });
+        });
+
+        it('should read part approval without "partval.read"', async function() {
+            const { errors, data } = await pool.transaction(async db => {
+                const { query } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['part.read', 'user.read'])
+                );
+                return query({
+                    query: PARTAPPR_READ,
+                    variables: { id: approvals.d.id },
+                });
+            });
+            expect(errors).to.be.not.empty;
+            expect(errors[0].message).to.contain('partval.read');
+            expect(data.partApproval).to.be.null;
         });
     });
 });

@@ -9,8 +9,17 @@ import {
     PartInput,
     PartRevision,
     PartUpdateInput,
+    PartValidation,
+    PartApproval,
 } from '@engspace/core';
-import { partBaseDao, partDao, partFamilyDao, partRevisionDao } from '@engspace/server-db';
+import {
+    partBaseDao,
+    partDao,
+    partFamilyDao,
+    partRevisionDao,
+    partValidationDao,
+    partApprovalDao,
+} from '@engspace/server-db';
 import { UserInputError } from 'apollo-server-koa';
 import { ApiContext } from '.';
 import { assertUserPerm } from './helpers';
@@ -53,29 +62,44 @@ export class PartControl {
         });
     }
 
-    async baseById(ctx: ApiContext, id: Id): Promise<PartBase> {
+    baseById(ctx: ApiContext, baseId: Id): Promise<PartBase> {
         assertUserPerm(ctx, 'part.read');
-        return partBaseDao.byId(ctx.db, id);
+        return partBaseDao.byId(ctx.db, baseId);
     }
 
-    async updateBase(ctx: ApiContext, id: Id, partBase: PartBaseUpdateInput): Promise<PartBase> {
+    partById(ctx: ApiContext, partId: Id): Promise<Part> {
+        assertUserPerm(ctx, 'part.read');
+        return partDao.byId(ctx.db, partId);
+    }
+
+    revisionById(ctx: ApiContext, revisionId: Id): Promise<PartRevision> {
+        assertUserPerm(ctx, 'part.read');
+        return partRevisionDao.byId(ctx.db, revisionId);
+    }
+
+    validationById(ctx: ApiContext, validationId: Id): Promise<PartValidation> {
+        assertUserPerm(ctx, 'partval.read');
+        return partValidationDao.byId(ctx.db, validationId);
+    }
+
+    approvalById(ctx: ApiContext, approvalId: Id): Promise<PartApproval> {
+        assertUserPerm(ctx, 'partval.read');
+        return partApprovalDao.byId(ctx.db, approvalId);
+    }
+
+    approvalsByValidationId(ctx: ApiContext, validationId: Id): Promise<PartApproval[]> {
+        assertUserPerm(ctx, 'partval.read');
+        return partApprovalDao.byValidationId(ctx.db, validationId);
+    }
+
+    updateBase(ctx: ApiContext, id: Id, partBase: PartBaseUpdateInput): Promise<PartBase> {
         assertUserPerm(ctx, 'part.update');
         return partBaseDao.updateById(ctx.db, id, partBase, ctx.auth.userId);
     }
 
-    async partById(ctx: ApiContext, id: Id): Promise<Part> {
-        assertUserPerm(ctx, 'part.read');
-        return partDao.byId(ctx.db, id);
-    }
-
-    async updatePart(ctx: ApiContext, id: Id, input: PartUpdateInput): Promise<Part> {
+    updatePart(ctx: ApiContext, id: Id, input: PartUpdateInput): Promise<Part> {
         assertUserPerm(ctx, 'part.update');
         return partDao.updateById(ctx.db, id, input, ctx.auth.userId);
-    }
-
-    async revisionById(ctx: ApiContext, id: Id): Promise<PartRevision> {
-        assertUserPerm(ctx, 'part.read');
-        return partRevisionDao.byId(ctx.db, id);
     }
 }
 

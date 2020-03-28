@@ -21,6 +21,8 @@ import {
     PartRevision,
     Tracked,
     PartCreateNewInput,
+    PartValidation,
+    PartApproval,
 } from '@engspace/core';
 import { UserInputError, IResolvers } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
@@ -104,6 +106,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             family({ family }: PartBase, args, ctx: GqlContext): Promise<PartFamily> {
                 return control.partFamily.byId(ctx, family.id);
             },
+
             ...resolveTracked,
         },
 
@@ -111,6 +114,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             base({ base }: Part, args, ctx: GqlContext): Promise<PartBase> {
                 return control.part.baseById(ctx, base.id);
             },
+
             ...resolveTracked,
         },
 
@@ -118,6 +122,35 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             part({ part }: PartRevision, args, ctx: GqlContext): Promise<Part> {
                 return control.part.partById(ctx, part.id);
             },
+
+            ...resolveTracked,
+        },
+
+        PartValidation: {
+            partRev({ partRev }: PartValidation, args, ctx: GqlContext): Promise<PartRevision> {
+                return control.part.revisionById(ctx, partRev.id);
+            },
+
+            approvals({ id }: PartValidation, args, ctx: GqlContext): Promise<PartApproval[]> {
+                return control.part.approvalsByValidationId(ctx, id);
+            },
+
+            ...resolveTracked,
+        },
+
+        PartApproval: {
+            validation(
+                { validation }: PartApproval,
+                args,
+                ctx: GqlContext
+            ): Promise<PartValidation> {
+                return control.part.validationById(ctx, validation.id);
+            },
+
+            assignee({ assignee }: PartApproval, args, ctx: GqlContext): Promise<User> {
+                return ctx.loaders.user.load(assignee.id);
+            },
+
             ...resolveTracked,
         },
 
@@ -217,6 +250,22 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 ctx: GqlContext
             ): Promise<PartRevision | null> {
                 return control.part.revisionById(ctx, id);
+            },
+
+            partValidation(
+                parent,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<PartValidation | null> {
+                return control.part.validationById(ctx, id);
+            },
+
+            partApproval(
+                parent,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<PartApproval | null> {
+                return control.part.approvalById(ctx, id);
             },
 
             document(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Document | null> {

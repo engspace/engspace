@@ -11,6 +11,19 @@ export const typeDefs = gql`
         CANCELLED
     }
 
+    enum ApprovalState {
+        PENDING
+        REJECTED
+        RESERVED
+        APPROVED
+    }
+
+    enum ValidationResult {
+        RELEASE
+        TRY_AGAIN
+        CANCEL
+    }
+
     interface Tracked {
         createdBy: User!
         createdAt: DateTime!
@@ -143,6 +156,31 @@ export const typeDefs = gql`
         updatedAt: DateTime!
     }
 
+    type PartValidation implements Tracked {
+        id: ID!
+        partRev: PartRevision!
+        state: ApprovalState!
+        approvals: [PartApproval!]!
+        result: ValidationResult
+        comments: String
+        createdBy: User!
+        createdAt: DateTime!
+        updatedBy: User!
+        updatedAt: DateTime!
+    }
+
+    type PartApproval implements Tracked {
+        id: ID!
+        validation: PartValidation!
+        assignee: User!
+        state: ApprovalState!
+        comments: String
+        createdBy: User!
+        createdAt: DateTime!
+        updatedBy: User!
+        updatedAt: DateTime!
+    }
+
     input DocumentInput {
         name: String!
         description: String
@@ -198,9 +236,12 @@ export const typeDefs = gql`
         projectMemberByProjectAndUserId(projectId: ID!, userId: ID!): ProjectMember
 
         partFamily(id: ID!): PartFamily
+
         partBase(id: ID!): PartBase
         part(id: ID!): Part
         partRevision(id: ID!): PartRevision
+        partValidation(id: ID!): PartValidation
+        partApproval(id: ID!): PartApproval
 
         document(id: ID!): Document
         documentSearch(search: String, offset: Int = 0, limit: Int = 1000): DocumentSearch!
