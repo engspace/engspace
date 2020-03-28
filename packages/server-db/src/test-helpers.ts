@@ -325,6 +325,18 @@ export function createPartApproval(
     });
 }
 
+export function createPartApprovals(
+    db: Db,
+    partVal: PartValidation,
+    assignees: Dict<User>,
+    user: User,
+    input: Partial<PartApprovalDaoInput> = {}
+): Promise<Dict<PartApproval>> {
+    return asyncDictMap(assignees, assignee =>
+        createPartApproval(db, partVal, assignee, user, input)
+    );
+}
+
 // Documents
 
 export async function createDoc(
