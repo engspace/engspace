@@ -15,7 +15,7 @@ import { UserInputError } from 'apollo-server-koa';
 import { ApiContext } from '.';
 import { assertUserPerm } from './helpers';
 
-export class PartControl2 {
+export class PartControl {
     async createNew(ctx: ApiContext, input: PartCreateNewInput): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.create');
 
@@ -79,7 +79,7 @@ export class PartControl2 {
     }
 }
 
-export class PartBaseControl {
+export class PartBaseControl1 {
     async create(ctx: ApiContext, partBase: PartBaseInput): Promise<PartBase> {
         assertUserPerm(ctx, 'part.create');
         const baseRef = await ctx.db.transaction(async db => {
@@ -90,7 +90,7 @@ export class PartBaseControl {
     }
 }
 
-export class PartControl {
+export class PartControl1 {
     async create(ctx: ApiContext, input: PartInput): Promise<Part> {
         assertUserPerm(ctx, 'part.create');
         const base = await partBaseDao.byId(ctx.db, input.baseId);

@@ -109,14 +109,14 @@ export function buildResolvers(control: ControllerSet): IResolvers {
 
         Part: {
             base({ base }: Part, args, ctx: GqlContext): Promise<PartBase> {
-                return control.part2.baseById(ctx, base.id);
+                return control.part.baseById(ctx, base.id);
             },
             ...resolveTracked,
         },
 
         PartRevision: {
             part({ part }: PartRevision, args, ctx: GqlContext): Promise<Part> {
-                return control.part2.partById(ctx, part.id);
+                return control.part.partById(ctx, part.id);
             },
             ...resolveTracked,
         },
@@ -204,11 +204,11 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             },
 
             partBase(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartBase | null> {
-                return control.part2.baseById(ctx, id);
+                return control.part.baseById(ctx, id);
             },
 
             part(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Part | null> {
-                return control.part2.partById(ctx, id);
+                return control.part.partById(ctx, id);
             },
 
             partRevision(
@@ -216,7 +216,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { id }: { id: Id },
                 ctx: GqlContext
             ): Promise<PartRevision | null> {
-                return control.part2.revisionById(ctx, id);
+                return control.part.revisionById(ctx, id);
             },
 
             document(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Document | null> {
@@ -315,7 +315,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { input }: { input: PartCreateNewInput },
                 ctx: GqlContext
             ): Promise<PartRevision> {
-                return control.part2.createNew(ctx, input);
+                return control.part.createNew(ctx, input);
             },
 
             async partBaseCreate(
@@ -323,7 +323,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { input }: { input: PartBaseInput },
                 ctx: GqlContext
             ): Promise<PartBase> {
-                return control.partBase.create(ctx, input);
+                return control.partBase1.create(ctx, input);
             },
 
             async partBaseUpdate(
@@ -331,7 +331,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { id, input }: { id: Id; input: PartBaseInput },
                 ctx: GqlContext
             ): Promise<PartBase> {
-                return control.part2.updateBase(ctx, id, input);
+                return control.part.updateBase(ctx, id, input);
             },
 
             async partCreate(
@@ -339,7 +339,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { input }: { input: PartInput },
                 ctx: GqlContext
             ): Promise<Part> {
-                return control.part.create(ctx, input);
+                return control.part1.create(ctx, input);
             },
 
             async partUpdate(
@@ -347,7 +347,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { id, input }: { id: Id; input: PartInput },
                 ctx: GqlContext
             ): Promise<Part> {
-                return control.part2.updatePart(ctx, id, input);
+                return control.part.updatePart(ctx, id, input);
             },
 
             async documentCreate(
