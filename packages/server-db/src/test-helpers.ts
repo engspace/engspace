@@ -7,7 +7,6 @@ import {
     Part,
     PartApproval,
     PartBase,
-    PartBaseInput,
     PartFamily,
     PartFamilyInput,
     PartRevision,
@@ -36,6 +35,7 @@ import {
     partValidationDao,
     projectDao,
     userDao,
+    PartBaseDaoInput,
 } from './dao';
 import { RoleOptions } from './dao/user';
 
@@ -247,18 +247,15 @@ export function createPartBase(
     family: PartFamily,
     user: User,
     baseRef: string,
-    input: Partial<PartBaseInput> = {}
+    input: Partial<PartBaseDaoInput> = {}
 ): Promise<PartBase> {
-    return partBaseDao.create(
-        db,
-        {
-            designation: 'Part Designation',
-            ...input,
-            familyId: family.id,
-        },
+    return partBaseDao.create(db, {
+        designation: 'Part Designation',
+        ...input,
+        familyId: family.id,
         baseRef,
-        user.id
-    );
+        userId: user.id,
+    });
 }
 
 export function createPart(

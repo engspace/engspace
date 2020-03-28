@@ -2,27 +2,23 @@ import {
     CycleState,
     Id,
     Part,
+    PartApproval,
     PartBase,
-    PartBaseInput,
-    PartBaseUpdateInput,
     PartCreateNewInput,
     PartForkInput,
-    PartInput,
     PartRevision,
+    PartRevisionInput,
     PartUpdateInput,
     PartValidation,
-    PartApproval,
-    PartRevisionInput,
 } from '@engspace/core';
 import {
+    partApprovalDao,
     partBaseDao,
     partDao,
     partFamilyDao,
     partRevisionDao,
     partValidationDao,
-    partApprovalDao,
 } from '@engspace/server-db';
-import { UserInputError } from 'apollo-server-koa';
 import { ApiContext } from '.';
 import { assertUserPerm } from './helpers';
 
@@ -37,22 +33,19 @@ export class PartControl {
             return ctx.config.refNaming.partBase.getBaseRef(fam);
         });
 
-        const partBase = await partBaseDao.create(
-            ctx.db,
-            {
-                familyId: input.familyId,
-                designation: input.designation,
-            },
+        const partBase = await partBaseDao.create(ctx.db, {
+            familyId: input.familyId,
             baseRef,
-            userId
-        );
+            designation: input.designation,
+            userId,
+        });
 
         const ref = ctx.config.refNaming.part.getRef(partBase, input.initialVersion);
 
         const part = await partDao.create(ctx.db, {
             baseId: partBase.id,
-            designation: input.designation,
             ref,
+            designation: input.designation,
             userId,
         });
 
@@ -140,40 +133,8 @@ export class PartControl {
         return partApprovalDao.byValidationId(ctx.db, validationId);
     }
 
-    updateBase(ctx: ApiContext, id: Id, partBase: PartBaseUpdateInput): Promise<PartBase> {
-        assertUserPerm(ctx, 'part.update');
-        return partBaseDao.updateById(ctx.db, id, partBase, ctx.auth.userId);
-    }
-
     updatePart(ctx: ApiContext, id: Id, input: PartUpdateInput): Promise<Part> {
         assertUserPerm(ctx, 'part.update');
         return partDao.updateById(ctx.db, id, input, ctx.auth.userId);
-    }
-}
-
-export class PartBaseControl1 {
-    async create(ctx: ApiContext, partBase: PartBaseInput): Promise<PartBase> {
-        assertUserPerm(ctx, 'part.create');
-        const baseRef = await ctx.db.transaction(async db => {
-            const fam = await partFamilyDao.bumpCounterById(db, partBase.familyId);
-            return ctx.config.refNaming.partBase.getBaseRef(fam);
-        });
-        return partBaseDao.create(ctx.db, partBase, baseRef, ctx.auth.userId);
-    }
-}
-
-export class PartControl1 {
-    async create(ctx: ApiContext, input: PartInput): Promise<Part> {
-        assertUserPerm(ctx, 'part.create');
-        const base = await partBaseDao.byId(ctx.db, input.baseId);
-        if (!base) {
-            throw new UserInputError(`unexisting PartRef: "${input.baseId}"`);
-        }
-        return partDao.create(ctx.db, {
-            baseId: input.baseId,
-            designation: input.designation ?? base.designation,
-            ref: ctx.config.refNaming.part.getRef(base, input.version),
-            userId: ctx.auth.userId,
-        });
     }
 }

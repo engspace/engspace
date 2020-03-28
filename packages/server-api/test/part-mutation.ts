@@ -71,6 +71,21 @@ const PART_REVISE = gql`
     ${PARTREV_DEEPFIELDS}
 `;
 
+const PART_UPDATE = gql`
+    mutation UpdatePart($id: ID!, $input: PartUpdateInput!) {
+        partUpdate(id: $id, input: $input) {
+            id
+            base {
+                id
+            }
+            ref
+            designation
+            ...TrackedFields
+        }
+    }
+    ${TRACKED_FIELDS}
+`;
+
 describe('GraphQL Part - Mutations', function() {
     let users;
     let family;
@@ -435,6 +450,74 @@ describe('GraphQL Part - Mutations', function() {
             expect(errors).to.be.not.empty;
             expect(errors[0].message).to.contain('part.create');
 
+            expect(data).to.be.null;
+        });
+    });
+
+    describe('partUpdate', function() {
+        let partBase;
+        let part;
+        beforeEach(function() {
+            return pool.transaction(async db => {
+                partBase = await createPartBase(db, family, users.a, 'P001', {
+                    designation: 'SOME EXISTING PART',
+                });
+                part = await createPart(db, partBase, users.a, 'P001.01');
+                await partFamilyDao.bumpCounterById(db, family.id);
+            });
+        });
+        this.afterEach(cleanTables(pool, ['part', 'part_base']));
+        this.afterEach(resetFamilyCounters(pool));
+
+        it('should update a Part', async function() {
+            const bef2 = Date.now();
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.b, ['part.update', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PART_UPDATE,
+                    variables: {
+                        id: part.id,
+                        input: {
+                            designation: 'NEW DESIGNATION',
+                        },
+                    },
+                });
+            });
+            const aft2 = Date.now();
+            expect(errors).to.be.undefined;
+            expect(data.partUpdate).to.deep.include({
+                base: { id: partBase.id },
+                ref: 'P001.01',
+                designation: 'NEW DESIGNATION',
+                ...trackedBy(users.a, users.b),
+                createdAt: part.createdAt,
+            });
+            expect(data.partUpdate.updatedAt)
+                .to.be.gt(bef2)
+                .and.lt(aft2);
+        });
+
+        it('should not update a Part without "part.update"', async function() {
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.b, ['part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PART_UPDATE,
+                    variables: {
+                        id: part.id,
+                        input: {
+                            designation: 'NEW DESIGNATION',
+                        },
+                    },
+                });
+            });
+            expect(errors).to.be.not.empty;
+            expect(errors[0].message).to.contain('part.update');
             expect(data).to.be.null;
         });
     });

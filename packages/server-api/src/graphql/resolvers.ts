@@ -9,13 +9,13 @@ import {
     Part,
     PartApproval,
     PartBase,
-    PartBaseInput,
     PartCreateNewInput,
     PartFamily,
     PartFamilyInput,
     PartForkInput,
-    PartInput,
     PartRevision,
+    PartRevisionInput,
+    PartUpdateInput,
     PartValidation,
     Project,
     ProjectInput,
@@ -24,7 +24,6 @@ import {
     Tracked,
     User,
     UserInput,
-    PartRevisionInput,
 } from '@engspace/core';
 import { IResolvers, UserInputError } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
@@ -364,7 +363,6 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             ): Promise<PartRevision> {
                 return control.part.createNew(ctx, input);
             },
-
             partFork(
                 parent,
                 { input }: { input: PartForkInput },
@@ -372,7 +370,6 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             ): Promise<PartRevision> {
                 return control.part.fork(ctx, input);
             },
-
             partRevise(
                 parent,
                 { input }: { input: PartRevisionInput },
@@ -380,30 +377,9 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             ): Promise<PartRevision> {
                 return control.part.revise(ctx, input);
             },
-
-            partBaseCreate(
-                parent,
-                { input }: { input: PartBaseInput },
-                ctx: GqlContext
-            ): Promise<PartBase> {
-                return control.partBase1.create(ctx, input);
-            },
-
-            partBaseUpdate(
-                parent,
-                { id, input }: { id: Id; input: PartBaseInput },
-                ctx: GqlContext
-            ): Promise<PartBase> {
-                return control.part.updateBase(ctx, id, input);
-            },
-
-            partCreate(parent, { input }: { input: PartInput }, ctx: GqlContext): Promise<Part> {
-                return control.part1.create(ctx, input);
-            },
-
             partUpdate(
                 parent,
-                { id, input }: { id: Id; input: PartInput },
+                { id, input }: { id: Id; input: PartUpdateInput },
                 ctx: GqlContext
             ): Promise<Part> {
                 return control.part.updatePart(ctx, id, input);

@@ -16,6 +16,7 @@ export {
     memberDao,
     partApprovalDao,
     partBaseDao,
+    PartBaseDaoInput,
     partDao,
     PartDaoInput,
     partFamilyDao,

@@ -1,4 +1,4 @@
-import { HasId, Id, PartBaseUpdateInput, Part } from '@engspace/core';
+import { HasId, Id, Part, PartUpdateInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
 import { DaoRowMap, foreignKey, tracked, TrackedRow } from './base';
@@ -46,12 +46,7 @@ class PartDao extends DaoRowMap<Part, Row> {
         return mapRow(row);
     }
 
-    async updateById(
-        db: Db,
-        id: Id,
-        { designation }: PartBaseUpdateInput,
-        userId: Id
-    ): Promise<Part> {
+    async updateById(db: Db, id: Id, { designation }: PartUpdateInput, userId: Id): Promise<Part> {
         const row: Row = await db.maybeOne(sql`
             UPDATE part SET
                 designation = ${designation},

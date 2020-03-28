@@ -126,13 +126,11 @@ export const typeDefs = gql`
         designation: String
     }
 
-    input PartBaseInput {
-        familyId: ID!
-        designation: ID!
-    }
-
-    input PartBaseUpdateInput {
-        designation: ID!
+    """
+    An input to update a part
+    """
+    input PartUpdateInput {
+        designation: String!
     }
 
     type PartBase implements Tracked {
@@ -144,16 +142,6 @@ export const typeDefs = gql`
         createdAt: DateTime!
         updatedBy: User!
         updatedAt: DateTime!
-    }
-
-    input PartInput {
-        baseId: ID!
-        designation: String
-        version: String!
-    }
-
-    input PartUpdateInput {
-        designation: String!
     }
 
     type Part implements Tracked {
@@ -289,11 +277,6 @@ export const typeDefs = gql`
         partCreateNew(input: PartCreateNewInput!): PartRevision!
         partFork(input: PartForkInput!): PartRevision!
         partRevise(input: PartRevisionInput!): PartRevision!
-
-        partBaseCreate(input: PartBaseInput!): PartBase!
-        partBaseUpdate(id: ID!, input: PartBaseUpdateInput!): PartBase!
-
-        partCreate(input: PartInput!): Part!
         partUpdate(id: ID!, input: PartUpdateInput!): Part!
 
         documentCreate(input: DocumentInput!): Document!

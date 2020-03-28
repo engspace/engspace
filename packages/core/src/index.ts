@@ -120,12 +120,7 @@ export interface PartRevisionInput {
     designation?: string;
 }
 
-export interface PartBaseInput {
-    familyId: Id;
-    designation: string;
-}
-
-export interface PartBaseUpdateInput {
+export interface PartUpdateInput {
     designation: string;
 }
 
@@ -133,16 +128,6 @@ export interface PartBase extends Tracked {
     id: Id;
     family: IdOr<PartFamily>;
     baseRef: string;
-    designation: string;
-}
-
-export interface PartInput {
-    baseId: Id;
-    designation: string;
-    version: string;
-}
-
-export interface PartUpdateInput {
     designation: string;
 }
 
