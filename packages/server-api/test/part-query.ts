@@ -103,119 +103,131 @@ describe('GraphQL Part - Queries', function() {
         cleanTables(pool, ['part_revision', 'part', 'part_base', 'part_family', 'user'])
     );
 
-    it('should query a part base', async function() {
-        const { errors, data } = await pool.connect(async db => {
-            const { query } = buildGqlServer(
-                db,
-                permsAuth(users.a, ['partfamily.read', 'user.read', 'part.read'])
-            );
-            return query({
-                query: PARTBASE_READ,
-                variables: {
-                    id: partBase.id,
-                },
+    describe('PartBase', function() {
+        it('should query a part base', async function() {
+            const { errors, data } = await pool.connect(async db => {
+                const { query } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['partfamily.read', 'user.read', 'part.read'])
+                );
+                return query({
+                    query: PARTBASE_READ,
+                    variables: {
+                        id: partBase.id,
+                    },
+                });
             });
+            expect(errors).to.be.undefined;
+            expect(data).to.be.an('object');
+            expect(data.partBase).to.deep.include({
+                id: partBase.id,
+                baseRef: 'P001',
+                designation: 'Part 1',
+                family: { id: family.id },
+                ...trackedBy(users.a),
+            });
+            expect(data.partBase.createdAt)
+                .to.be.gte(bef)
+                .and.lte(aft);
+            expect(data.partBase.updatedAt)
+                .to.be.gte(bef)
+                .and.lte(aft);
         });
-        expect(errors).to.be.undefined;
-        expect(data).to.be.an('object');
-        expect(data.partBase).to.deep.include({
-            id: partBase.id,
-            baseRef: 'P001',
-            designation: 'Part 1',
-            family: { id: family.id },
-            ...trackedBy(users.a),
+
+        it('should not query a part base without "part.read"', async function() {
+            const { errors, data } = await pool.connect(async db => {
+                const { query } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['partfamily.read', 'user.read'])
+                );
+                return query({
+                    query: PARTBASE_READ,
+                    variables: {
+                        id: partBase.id,
+                    },
+                });
+            });
+            expect(errors).to.be.an('array').not.empty;
+            expect(errors[0].message).to.contain('part.read');
+            expect(data.partBase).to.be.null;
         });
-        expect(data.partBase.createdAt)
-            .to.be.gte(bef)
-            .and.lte(aft);
-        expect(data.partBase.updatedAt)
-            .to.be.gte(bef)
-            .and.lte(aft);
     });
 
-    it('should not query a part base without "part.read"', async function() {
-        const { errors, data } = await pool.connect(async db => {
-            const { query } = buildGqlServer(
-                db,
-                permsAuth(users.a, ['partfamily.read', 'user.read'])
-            );
-            return query({
-                query: PARTBASE_READ,
-                variables: {
-                    id: partBase.id,
-                },
+    describe('Part', function() {
+        it('should query a Part', async function() {
+            const { errors, data } = await pool.connect(async db => {
+                const { query } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['part.read', 'user.read'])
+                );
+                return query({
+                    query: PART_READ,
+                    variables: {
+                        id: part.id,
+                    },
+                });
             });
+            expect(errors).to.be.undefined;
+            expect(data.part).to.deep.include({
+                id: part.id,
+                base: { id: partBase.id },
+                ref: 'P001.01',
+                createdBy: { id: users.a.id },
+                updatedBy: { id: users.a.id },
+            });
+            expect(data.part.createdAt)
+                .to.be.gt(bef)
+                .and.lt(aft);
+            expect(data.part.updatedAt).to.equal(data.part.createdAt);
         });
-        expect(errors).to.be.an('array').not.empty;
-        expect(errors[0].message).to.contain('part.read');
-        expect(data.partBase).to.be.null;
+
+        it('should not query a Part without "part.read"', async function() {
+            const { errors, data } = await pool.connect(async db => {
+                const { query } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
+                return query({
+                    query: PART_READ,
+                    variables: {
+                        id: part.id,
+                    },
+                });
+            });
+            expect(errors).to.be.an('array').not.empty;
+            expect(errors[0].message).to.contain('part.read');
+            expect(data.part).to.be.null;
+        });
     });
 
-    it('should query a Part', async function() {
-        const { errors, data } = await pool.connect(async db => {
-            const { query } = buildGqlServer(db, permsAuth(users.a, ['part.read', 'user.read']));
-            return query({
-                query: PART_READ,
-                variables: {
-                    id: part.id,
-                },
+    describe('PartRevision', function() {
+        it('should query a part revision', async function() {
+            const { errors, data } = await pool.transaction(async db => {
+                const { query } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['part.read', 'user.read'])
+                );
+                return query({
+                    query: PARTREV_READ,
+                    variables: {
+                        id: partRev.id,
+                    },
+                });
             });
+            expect(errors).to.be.undefined;
+            expect(data.partRevision).to.deep.include(partRev);
         });
-        expect(errors).to.be.undefined;
-        expect(data.part).to.deep.include({
-            id: part.id,
-            base: { id: partBase.id },
-            ref: 'P001.01',
-            createdBy: { id: users.a.id },
-            updatedBy: { id: users.a.id },
-        });
-        expect(data.part.createdAt)
-            .to.be.gt(bef)
-            .and.lt(aft);
-        expect(data.part.updatedAt).to.equal(data.part.createdAt);
-    });
 
-    it('should not query a Part without "part.read"', async function() {
-        const { errors, data } = await pool.connect(async db => {
-            const { query } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
-            return query({
-                query: PART_READ,
-                variables: {
-                    id: part.id,
-                },
+        it('should not query a part revision without "part.read"', async function() {
+            const { errors, data } = await pool.transaction(async db => {
+                const { query } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
+                return query({
+                    query: PARTREV_READ,
+                    variables: {
+                        id: partRev.id,
+                    },
+                });
             });
+            expect(errors).to.be.not.empty;
+            expect(errors[0].message).to.contain('part.read');
+            expect(data.partRevision).to.null;
         });
-        expect(errors).to.be.an('array').not.empty;
-        expect(errors[0].message).to.contain('part.read');
-        expect(data.part).to.be.null;
-    });
-
-    it('should query a part revision', async function() {
-        const { errors, data } = await pool.transaction(async db => {
-            const { query } = buildGqlServer(db, permsAuth(users.a, ['part.read', 'user.read']));
-            return query({
-                query: PARTREV_READ,
-                variables: {
-                    id: partRev.id,
-                },
-            });
-        });
-        expect(errors).to.be.undefined;
-        expect(data.partRevision).to.deep.include(partRev);
-    });
-
-    it('should not query a part revision without "part.read"', async function() {
-        const { errors, data } = await pool.transaction(async db => {
-            const { query } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
-            return query({
-                query: PARTREV_READ,
-                variables: {
-                    id: partRev.id,
-                },
-            });
-        });
-        expect(errors).to.be.not.empty;
-        expect(errors[0].message).to.contain('part.read');
-        expect(data.partRevision).to.null;
     });
 });
