@@ -1,6 +1,10 @@
 import { CharIterator } from './util';
-import { PartFamily, PartBase } from '@engspace/core';
+import { PartFamily } from '@engspace/core';
 import { VersionFormat } from './version-format';
+
+interface HasBaseRef {
+    baseRef: string;
+}
 
 enum Tok {
     Lit,
@@ -180,13 +184,13 @@ export class PartRefNaming extends RefNaming {
         }
     }
 
-    getRef(base: PartBase, version: string): string {
+    getRef({ baseRef }: HasBaseRef, version: string): string {
         const parts = [];
         for (const tok of this.tokens) {
             if (tok.tok === Tok.Var) {
                 switch (tok.ident) {
                     case 'part_base_ref':
-                        parts.push(base.baseRef);
+                        parts.push(baseRef);
                         break;
                     case 'part_version': {
                         if (!tok.format.matches(version)) {
@@ -206,24 +210,61 @@ export class PartRefNaming extends RefNaming {
         return parts.join('');
     }
 
-    getNext(base: PartBase, currentVersion: string): string {
+    getNext({ baseRef }: HasBaseRef, currentVersion: string): string {
         const parts = [];
         for (const tok of this.tokens) {
             if (tok.tok === Tok.Var) {
                 switch (tok.ident) {
                     case 'part_base_ref':
-                        parts.push(base.baseRef);
+                        parts.push(baseRef);
                         break;
                     case 'part_version': {
                         parts.push(tok.format.getNext(currentVersion));
                         break;
                     }
                 }
-            }
-            if (tok.tok === Tok.Lit) {
+            } else if (tok.tok === Tok.Lit) {
                 parts.push(tok.value);
             }
         }
         return parts.join('');
+    }
+
+    extractVersion({ baseRef }: HasBaseRef, ref: string): string {
+        let r = ref;
+        let v;
+        for (const tok of this.tokens) {
+            if (tok.tok === Tok.Lit) {
+                if (!r.startsWith(tok.value)) {
+                    throw new Error(`"${ref}" does not match expected ref-naming`);
+                }
+                r = r.substr(tok.value.length);
+            } else if (tok.tok === Tok.Var) {
+                switch (tok.ident) {
+                    case 'part_base_ref': {
+                        if (!r.startsWith(baseRef)) {
+                            throw new Error(`"${ref}" does not match expected ref-naming`);
+                        }
+                        r = r.substr(baseRef.length);
+                        break;
+                    }
+                    case 'part_version': {
+                        v = r.substr(0, tok.format.input.length);
+                        if (!tok.format.matches(v)) {
+                            throw new Error(`"${ref}" does not match expected ref-naming`);
+                        }
+                        r = r.substr(v.length);
+                        break;
+                    }
+                }
+            }
+        }
+        if (!v.length) {
+            throw new Error(`Could not find part version out of "${ref}"`);
+        }
+        if (r.length) {
+            throw new Error(`"${ref}" does not match expected ref-naming`);
+        }
+        return v;
     }
 }
