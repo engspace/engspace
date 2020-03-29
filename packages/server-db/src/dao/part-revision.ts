@@ -64,6 +64,27 @@ export class PartRevisionDao extends DaoRowMap<PartRevision, Row> {
         return mapRow(row);
     }
 
+    async byPartId(db: Db, partId: Id): Promise<PartRevision[]> {
+        const rows: Row[] = await db.any(sql`
+            SELECT ${rowToken} FROM part_revision
+            WHERE part_id = ${partId}
+        `);
+        return rows.map(row => mapRow(row));
+    }
+
+    async lastByPartId(db: Db, partId: Id): Promise<PartRevision> {
+        const row: Row = await db.maybeOne(sql`
+            SELECT ${rowToken} FROM part_revision
+            WHERE
+                part_id = ${partId} AND
+                revision = (
+                    SELECT MAX(revision) FROM part_revision WHERE part_id = ${partId}
+                )
+        `);
+        if (!row) return null;
+        return mapRow(row);
+    }
+
     async updateCycleState(db: Db, id: Id, cycleState: CycleState): Promise<PartRevision> {
         const row: Row = await db.one(sql`
             UPDATE part_revision SET

@@ -1,4 +1,4 @@
-import { CycleState } from '@engspace/core';
+import { CycleState, PartRevision } from '@engspace/core';
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
 import { trackedBy } from '../src/test-helpers';
@@ -38,6 +38,39 @@ describe('PartRevisionDao', function() {
                 cycleState: CycleState.Edition,
                 ...trackedBy(users.a),
             });
+        });
+    });
+
+    describe('byPartId - lastByPartId', function() {
+        let partRevs: PartRevision[];
+        before(async function() {
+            return pool.transaction(async db => {
+                partRevs = [];
+                partRevs.push(
+                    await th.createPartRev(db, part, users.a, { cycleState: CycleState.Obsolete })
+                );
+                partRevs.push(
+                    await th.createPartRev(db, part, users.a, { cycleState: CycleState.Cancelled })
+                );
+                partRevs.push(
+                    await th.createPartRev(db, part, users.a, { cycleState: CycleState.Release })
+                );
+            });
+        });
+        after(th.cleanTable('part_revision'));
+
+        it('should get all part revisions', async function() {
+            const revs = await pool.connect(async db => {
+                return dao.partRevision.byPartId(db, part.id);
+            });
+            expect(revs).to.eql(partRevs);
+        });
+
+        it('should get last part revision', async function() {
+            const rev = await pool.connect(async db => {
+                return dao.partRevision.lastByPartId(db, part.id);
+            });
+            expect(rev).to.eql(partRevs[2]);
         });
     });
 
