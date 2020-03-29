@@ -85,9 +85,6 @@ function getPermsForRole(roleDescs: RoleDescriptorSet, role: string): string[] {
 }
 
 function getPermsForRoles(roleDescs: RoleDescriptorSet, roles: string[]): string[] {
-    if (roles.length == 0) {
-        return [];
-    }
     if (roles.length == 1) {
         return getPermsForRole(roleDescs, roles[0]);
     }
