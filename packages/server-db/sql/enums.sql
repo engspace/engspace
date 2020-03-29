@@ -9,6 +9,7 @@ CREATE TABLE validation_result_enum (
     description text
 );
 
+-- this enum is better hard coded because used in es_validation_state
 CREATE TYPE approval_state_enum AS ENUM (
     'PENDING',
     'REJECTED',

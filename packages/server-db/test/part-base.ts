@@ -27,14 +27,12 @@ describe('partBaseDao', function() {
                 return partBaseDao.create(db, {
                     familyId: families.rm.id,
                     baseRef: 'RM0001',
-                    designation: 'water',
                     userId: users.a.id,
                 });
             });
             expect(pb).to.deep.include({
                 family: { id: families.rm.id },
                 baseRef: 'RM0001',
-                designation: 'water',
                 createdBy: { id: users.a.id },
                 updatedBy: { id: users.a.id },
             });

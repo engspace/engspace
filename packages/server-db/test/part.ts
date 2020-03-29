@@ -22,7 +22,7 @@ describe('partDao', function() {
                 fullName: 'User A',
             });
             family = await createPartFamily(db);
-            partBase = await createPartBase(db, family, userA, 'P001', { designation: 'Part 1' });
+            partBase = await createPartBase(db, family, userA, 'P001');
         });
     });
 

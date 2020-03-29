@@ -33,17 +33,16 @@ export class PartControl {
             return ctx.config.refNaming.partBase.getBaseRef(fam);
         });
 
-        const partBase = await partBaseDao.create(ctx.db, {
+        const base = await partBaseDao.create(ctx.db, {
             familyId: input.familyId,
             baseRef,
-            designation: input.designation,
             userId,
         });
 
-        const ref = ctx.config.refNaming.part.getRef(partBase, input.initialVersion);
+        const ref = ctx.config.refNaming.part.getRef(base, input.initialVersion);
 
         const part = await partDao.create(ctx.db, {
-            baseId: partBase.id,
+            baseId: base.id,
             ref,
             designation: input.designation,
             userId,

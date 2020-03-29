@@ -62,13 +62,15 @@ CREATE TABLE part_base (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     family_id uuid NOT NULL,
     base_ref text NOT NULL,
-    designation text NOT NULL,
+
     created_by uuid NOT NULL,
     created_at timestamptz NOT NULL,
     updated_by uuid NOT NULL,
     updated_at timestamptz NOT NULL,
 
     UNIQUE(base_ref),
+    CHECK(LENGTH(base_ref) > 0),
+
     FOREIGN KEY(family_id) REFERENCES part_family(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id),
     FOREIGN KEY(updated_by) REFERENCES "user"(id)
@@ -85,6 +87,9 @@ CREATE TABLE part (
     updated_at timestamptz NOT NULL,
 
     UNIQUE(ref),
+    CHECK(LENGTH(ref) > 0),
+    CHECK(LENGTH(designation) > 0),
+
     FOREIGN KEY(base_id) REFERENCES part_base(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id),
     FOREIGN KEY(updated_by) REFERENCES "user"(id)
@@ -102,6 +107,9 @@ CREATE TABLE part_revision (
     created_at timestamptz NOT NULL,
     updated_by uuid NOT NULL,
     updated_at timestamptz NOT NULL,
+
+    CHECK(revision > 0),
+    CHECK(LENGTH(designation) > 0),
 
     FOREIGN KEY(part_id) REFERENCES part(id),
     FOREIGN KEY(cycle_state) REFERENCES cycle_state_enum(id),

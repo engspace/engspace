@@ -128,7 +128,6 @@ export interface PartBase extends Tracked {
     id: Id;
     family: IdOr<PartFamily>;
     baseRef: string;
-    designation: string;
 }
 
 export interface Part extends Tracked {

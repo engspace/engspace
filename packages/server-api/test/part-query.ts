@@ -21,7 +21,6 @@ const PARTBASE_FIELDS = gql`
     fragment PartBaseFields on PartBase {
         id
         baseRef
-        designation
         family {
             id
         }
@@ -153,7 +152,7 @@ describe('GraphQL Part - Queries', function() {
                 e: { name: 'e' },
             });
             family = await createPartFamily(db, { code: 'P' });
-            partBase = await createPartBase(db, family, users.a, 'P001', { designation: 'Part 1' });
+            partBase = await createPartBase(db, family, users.a, 'P001');
             part = await createPart(db, partBase, users.a, 'P001.01');
             partRev = await createPartRev(db, part, users.a);
         });
@@ -183,7 +182,6 @@ describe('GraphQL Part - Queries', function() {
             expect(data.partBase).to.deep.include({
                 id: partBase.id,
                 baseRef: 'P001',
-                designation: 'Part 1',
                 family: { id: family.id },
                 ...trackedBy(users.a),
             });

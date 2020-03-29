@@ -7,42 +7,36 @@ interface Row extends HasId, TrackedRow {
     id: Id;
     familyId: Id;
     baseRef: string;
-    designation: string;
 }
 
 function mapRow(row: Row): PartBase {
-    const { id, familyId, baseRef, designation } = row;
+    const { id, familyId, baseRef } = row;
     return {
         id,
         family: foreignKey(familyId),
         baseRef,
-        designation,
         ...tracked.mapRow(row),
     };
 }
 
 const rowToken = sql`
-        id, family_id, base_ref, designation, ${tracked.selectToken}
+        id, family_id, base_ref, ${tracked.selectToken}
     `;
 
 export interface PartBaseDaoInput {
     familyId: Id;
     baseRef: string;
-    designation: string;
     userId: Id;
 }
 
 class PartBaseDao extends DaoRowMap<PartBase, Row> {
-    async create(
-        db: Db,
-        { familyId, baseRef, designation, userId }: PartBaseDaoInput
-    ): Promise<PartBase> {
+    async create(db: Db, { familyId, baseRef, userId }: PartBaseDaoInput): Promise<PartBase> {
         const row: Row = await db.one(sql`
             INSERT INTO part_base (
-                family_id, base_ref, designation, ${tracked.insertListToken}
+                family_id, base_ref, ${tracked.insertListToken}
             )
             VALUES (
-                ${familyId}, ${baseRef}, ${designation}, ${tracked.insertValToken(userId)}
+                ${familyId}, ${baseRef}, ${tracked.insertValToken(userId)}
             )
             RETURNING ${rowToken}
         `);
