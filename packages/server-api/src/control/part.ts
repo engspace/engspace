@@ -3,6 +3,7 @@ import {
     Id,
     Part,
     PartApproval,
+    PartApprovalInput,
     PartBase,
     PartCreateNewInput,
     PartForkInput,
@@ -10,6 +11,8 @@ import {
     PartRevisionInput,
     PartUpdateInput,
     PartValidation,
+    PartValidationInput,
+    ApprovalState,
 } from '@engspace/core';
 import { DaoSet } from '@engspace/server-db';
 import { ApiContext } from '.';
@@ -95,6 +98,35 @@ export class PartControl {
             cycleState: CycleState.Edition,
             userId: ctx.auth.userId,
         });
+    }
+
+    async startValidation(
+        ctx: ApiContext,
+        { partRevId, requiredApprovals }: PartValidationInput
+    ): Promise<PartValidation> {
+        assertUserPerm(ctx, 'partval.create');
+        const { userId } = ctx.auth;
+        const val = await this.dao.partValidation.create(ctx.db, {
+            partRevId: partRevId,
+            userId,
+        });
+
+        const approvals = await Promise.all(
+            requiredApprovals.map(({ assigneeId }: PartApprovalInput) =>
+                this.dao.partApproval.create(ctx.db, {
+                    validationId: val.id,
+                    assigneeId,
+                    state: ApprovalState.Pending,
+                    userId,
+                })
+            )
+        );
+
+        return {
+            ...val,
+            approvals,
+            state: approvals.length > 0 ? ApprovalState.Pending : ApprovalState.Approved,
+        };
     }
 
     baseById(ctx: ApiContext, baseId: Id): Promise<PartBase> {

@@ -145,6 +145,15 @@ export interface PartRevision extends Tracked {
     cycleState: CycleState;
 }
 
+export interface PartApprovalInput {
+    assigneeId: Id;
+}
+
+export interface PartValidationInput {
+    partRevId: Id;
+    requiredApprovals: PartApprovalInput[];
+}
+
 export interface PartApproval extends Tracked {
     id: Id;
     validation: IdOr<PartValidation>;

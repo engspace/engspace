@@ -127,6 +127,21 @@ export const typeDefs = gql`
     }
 
     """
+    An input that initiate the approval of a part by a user
+    """
+    input PartApprovalInput {
+        assigneeId: ID!
+    }
+
+    """
+    An input that starts a validation process
+    """
+    input PartValidationInput {
+        partRevId: ID!
+        requiredApprovals: [PartApprovalInput!]!
+    }
+
+    """
     An input to update a part
     """
     input PartUpdateInput {
@@ -277,6 +292,7 @@ export const typeDefs = gql`
         partCreateNew(input: PartCreateNewInput!): PartRevision!
         partFork(input: PartForkInput!): PartRevision!
         partRevise(input: PartRevisionInput!): PartRevision!
+        partStartValidation(input: PartValidationInput!): PartValidation!
         partUpdate(id: ID!, input: PartUpdateInput!): Part!
 
         documentCreate(input: DocumentInput!): Document!

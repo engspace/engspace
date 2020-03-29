@@ -1,5 +1,5 @@
-import { CycleState } from '@engspace/core';
-import { trackedBy } from '@engspace/server-db/dist/test-helpers';
+import { CycleState, User, ApprovalState } from '@engspace/core';
+import { trackedBy, Dict } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, dao, pool, th } from '.';
@@ -31,54 +31,44 @@ const PARTREV_DEEPFIELDS = gql`
     ${TRACKED_FIELDS}
 `;
 
-const PART_CREATENEW = gql`
-    mutation CreateNewPart($input: PartCreateNewInput!) {
-        partCreateNew(input: $input) {
-            ...PartRevDeepFields
-        }
-    }
-    ${PARTREV_DEEPFIELDS}
-`;
-
-const PART_FORK = gql`
-    mutation ForkPart($input: PartForkInput!) {
-        partFork(input: $input) {
-            ...PartRevDeepFields
-        }
-    }
-    ${PARTREV_DEEPFIELDS}
-`;
-
-const PART_REVISE = gql`
-    mutation RevisePart($input: PartRevisionInput!) {
-        partRevise(input: $input) {
-            ...PartRevDeepFields
-        }
-    }
-    ${PARTREV_DEEPFIELDS}
-`;
-
-const PART_UPDATE = gql`
-    mutation UpdatePart($id: ID!, $input: PartUpdateInput!) {
-        partUpdate(id: $id, input: $input) {
+const PARTVAL_DEEPFIELDS = gql`
+    fragment PartValDeepFields on PartValidation {
+        id
+        partRev {
             id
-            base {
+            revision
+            cycleState
+        }
+        approvals {
+            id
+            assignee {
                 id
+                name
             }
-            ref
-            designation
+            state
+            comments
             ...TrackedFields
         }
+        state
+        result
+        comments
+        ...TrackedFields
     }
     ${TRACKED_FIELDS}
 `;
 
 describe('GraphQL Part - Mutations', function() {
-    let users;
+    let users: Dict<User>;
     let family;
     before('create res', async function() {
         return pool.transaction(async db => {
-            users = await th.createUsersAB(db);
+            users = await th.createUsers(db, {
+                a: { name: 'a' },
+                b: { name: 'b' },
+                c: { name: 'c' },
+                d: { name: 'd' },
+                e: { name: 'e' },
+            });
             family = await th.createPartFamily(db, { code: 'P' });
         });
     });
@@ -88,6 +78,15 @@ describe('GraphQL Part - Mutations', function() {
     afterEach(th.resetFamilyCounters());
 
     describe('partCreateNew', function() {
+        const PART_CREATENEW = gql`
+            mutation CreateNewPart($input: PartCreateNewInput!) {
+                partCreateNew(input: $input) {
+                    ...PartRevDeepFields
+                }
+            }
+            ${PARTREV_DEEPFIELDS}
+        `;
+
         it('should create a new Part', async function() {
             const { errors, data } = await pool.transaction(async db => {
                 const { mutate } = buildGqlServer(
@@ -157,6 +156,15 @@ describe('GraphQL Part - Mutations', function() {
     });
 
     describe('partFork', function() {
+        const PART_FORK = gql`
+            mutation ForkPart($input: PartForkInput!) {
+                partFork(input: $input) {
+                    ...PartRevDeepFields
+                }
+            }
+            ${PARTREV_DEEPFIELDS}
+        `;
+
         let partBase;
         let part;
         let partRev;
@@ -318,6 +326,15 @@ describe('GraphQL Part - Mutations', function() {
     });
 
     describe('partRevise', function() {
+        const PART_REVISE = gql`
+            mutation RevisePart($input: PartRevisionInput!) {
+                partRevise(input: $input) {
+                    ...PartRevDeepFields
+                }
+            }
+            ${PARTREV_DEEPFIELDS}
+        `;
+
         let partBase;
         let part;
         let partRev;
@@ -435,7 +452,132 @@ describe('GraphQL Part - Mutations', function() {
         });
     });
 
+    describe('partStartValidation', function() {
+        const PART_STARTVAL = gql`
+            mutation StartPartVal($input: PartValidationInput!) {
+                partStartValidation(input: $input) {
+                    ...PartValDeepFields
+                }
+            }
+            ${PARTVAL_DEEPFIELDS}
+        `;
+        let partBase;
+        let part;
+        let partRev;
+        beforeEach(function() {
+            return pool.transaction(async db => {
+                partBase = await th.createPartBase(db, family, users.a, 'P001');
+                part = await th.createPart(db, partBase, users.a, 'P001.01', {
+                    designation: 'SOME EXISTING PART',
+                });
+                partRev = await th.createPartRev(db, part, users.a);
+                await dao.partFamily.bumpCounterById(db, family.id);
+            });
+        });
+        this.afterEach(
+            th.cleanTables([
+                'part_approval',
+                'part_validation',
+                'part_revision',
+                'part',
+                'part_base',
+            ])
+        );
+        this.afterEach(th.resetFamilyCounters());
+
+        it('should start a validation', async function() {
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['partval.create', 'partval.read', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PART_STARTVAL,
+                    variables: {
+                        input: {
+                            partRevId: partRev.id,
+                            requiredApprovals: Object.values(users).map(u => ({
+                                assigneeId: u.id,
+                            })),
+                        },
+                    },
+                });
+            });
+            expect(errors).to.be.undefined;
+            expect(data.partStartValidation).to.deep.include({
+                partRev: {
+                    id: partRev.id,
+                    revision: partRev.revision,
+                    cycleState: partRev.cycleState,
+                },
+                state: ApprovalState.Pending,
+                result: null,
+                comments: null,
+                ...trackedBy(users.a),
+            });
+            expect(data.partStartValidation.id).to.be.uuid();
+            expect(data.partStartValidation.approvals)
+                .to.be.an('array')
+                .with.lengthOf(5);
+            const approvals = data.partStartValidation.approvals.sort((a, b) =>
+                a.assignee.name < b.assignee.name ? -1 : 1
+            );
+            const assignees = Object.values(users).sort((a, b) => (a.name < b.name ? -1 : 1));
+
+            for (let i = 0; i < 5; ++i) {
+                expect(approvals[i]).to.deep.include({
+                    assignee: {
+                        id: assignees[i].id,
+                        name: assignees[i].name,
+                    },
+                    state: ApprovalState.Pending,
+                    comments: null,
+                    ...trackedBy(users.a),
+                });
+                expect(approvals[i].id).to.be.uuid();
+            }
+        });
+
+        it('should not start a validation without "partval.create"', async function() {
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['partval.read', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PART_STARTVAL,
+                    variables: {
+                        input: {
+                            partRevId: partRev.id,
+                            requiredApprovals: Object.values(users).map(u => ({
+                                assigneeId: u.id,
+                            })),
+                        },
+                    },
+                });
+            });
+            expect(errors).to.not.be.empty;
+            expect(errors[0].message).to.contain('partval.create');
+            expect(data).to.be.null;
+        });
+    });
+
     describe('partUpdate', function() {
+        const PART_UPDATE = gql`
+            mutation UpdatePart($id: ID!, $input: PartUpdateInput!) {
+                partUpdate(id: $id, input: $input) {
+                    id
+                    base {
+                        id
+                    }
+                    ref
+                    designation
+                    ...TrackedFields
+                }
+            }
+            ${TRACKED_FIELDS}
+        `;
+
         let partBase;
         let part;
         beforeEach(function() {
