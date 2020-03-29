@@ -255,12 +255,17 @@ describe('UserDao', () => {
 
         it('should update user and roles', async function() {
             const userB = await pool.transaction(async db => {
-                const b = await dao.user.update(db, userA.id, {
-                    name: 'user.b',
-                    email: 'user.b@engspace.net',
-                    fullName: 'User B',
-                });
-                b.roles = await dao.user.updateRoles(db, userA.id, ['role2', 'role3']);
+                const b = await dao.user.update(
+                    db,
+                    userA.id,
+                    {
+                        name: 'user.b',
+                        email: 'user.b@engspace.net',
+                        fullName: 'User B',
+                        roles: ['role2', 'role3'],
+                    },
+                    { withRoles: true }
+                );
                 return b;
             });
             expect(userB).to.eql({
@@ -270,6 +275,20 @@ describe('UserDao', () => {
                 fullName: 'User B',
                 roles: ['role2', 'role3'],
             });
+        });
+
+        it('should update only roles', async function() {
+            const roles = await pool.transaction(async db => {
+                return dao.user.updateRoles(db, userA.id, ['role2', 'role3']);
+            });
+            expect(roles).to.eql(['role2', 'role3']);
+        });
+
+        it('should remove all roles', async function() {
+            const roles = await pool.transaction(async db => {
+                return dao.user.updateRoles(db, userA.id, []);
+            });
+            expect(roles).to.be.empty;
         });
     });
 });

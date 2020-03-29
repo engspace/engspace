@@ -1,7 +1,7 @@
 import { Id, User, UserInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoIdent, DaoIdentConfig } from './base';
+import { DaoIdent } from './base';
 
 export interface UserSearch {
     phrase?: string;
