@@ -1,7 +1,6 @@
 import { Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { UserDao } from '.';
 
 export interface LoginResult {
     id: Id;
