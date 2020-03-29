@@ -25,6 +25,7 @@ import {
     User,
     UserInput,
     PartValidationInput,
+    PartApprovalUpdateInput,
 } from '@engspace/core';
 import { IResolvers, UserInputError } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
@@ -371,6 +372,13 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             ): Promise<PartRevision> {
                 return control.part.fork(ctx, input);
             },
+            partUpdate(
+                parent,
+                { id, input }: { id: Id; input: PartUpdateInput },
+                ctx: GqlContext
+            ): Promise<Part> {
+                return control.part.updatePart(ctx, id, input);
+            },
             partRevise(
                 parent,
                 { input }: { input: PartRevisionInput },
@@ -385,12 +393,12 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             ): Promise<PartValidation> {
                 return control.part.startValidation(ctx, input);
             },
-            partUpdate(
+            partApprovalUpdate(
                 parent,
-                { id, input }: { id: Id; input: PartUpdateInput },
+                { id, input }: { id: Id; input: PartApprovalUpdateInput },
                 ctx: GqlContext
-            ): Promise<Part> {
-                return control.part.updatePart(ctx, id, input);
+            ): Promise<PartApproval> {
+                return control.part.updateApproval(ctx, id, input);
             },
 
             documentCreate(

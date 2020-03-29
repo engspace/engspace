@@ -116,6 +116,13 @@ export const typeDefs = gql`
     }
 
     """
+    An input to update a part
+    """
+    input PartUpdateInput {
+        designation: String!
+    }
+
+    """
     An input to revise a part:
      - sharing same PartBase
      - sharing same Part
@@ -127,13 +134,6 @@ export const typeDefs = gql`
     }
 
     """
-    An input that initiate the approval of a part by a user
-    """
-    input PartApprovalInput {
-        assigneeId: ID!
-    }
-
-    """
     An input that starts a validation process
     """
     input PartValidationInput {
@@ -142,10 +142,18 @@ export const typeDefs = gql`
     }
 
     """
-    An input to update a part
+    An input that initiate the approval of a part by a user
     """
-    input PartUpdateInput {
-        designation: String!
+    input PartApprovalInput {
+        assigneeId: ID!
+    }
+
+    """
+    An input that sets the approval decision
+    """
+    input PartApprovalUpdateInput {
+        decision: ApprovalState!
+        comments: String
     }
 
     type PartBase implements Tracked {
@@ -291,9 +299,10 @@ export const typeDefs = gql`
 
         partCreateNew(input: PartCreateNewInput!): PartRevision!
         partFork(input: PartForkInput!): PartRevision!
+        partUpdate(id: ID!, input: PartUpdateInput!): Part!
         partRevise(input: PartRevisionInput!): PartRevision!
         partStartValidation(input: PartValidationInput!): PartValidation!
-        partUpdate(id: ID!, input: PartUpdateInput!): Part!
+        partApprovalUpdate(id: ID!, input: PartApprovalUpdateInput!): PartApproval!
 
         documentCreate(input: DocumentInput!): Document!
         documentCheckout(id: ID!, revision: Int!): Document!

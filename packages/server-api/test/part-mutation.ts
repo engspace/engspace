@@ -325,6 +325,90 @@ describe('GraphQL Part - Mutations', function() {
         });
     });
 
+    describe('partUpdate', function() {
+        const PART_UPDATE = gql`
+            mutation UpdatePart($id: ID!, $input: PartUpdateInput!) {
+                partUpdate(id: $id, input: $input) {
+                    id
+                    base {
+                        id
+                    }
+                    ref
+                    designation
+                    ...TrackedFields
+                }
+            }
+            ${TRACKED_FIELDS}
+        `;
+
+        let partBase;
+        let part;
+        beforeEach(function() {
+            return pool.transaction(async db => {
+                partBase = await th.createPartBase(db, family, users.a, 'P001');
+                part = await th.createPart(db, partBase, users.a, 'P001.01', {
+                    designation: 'SOME EXISTING PART',
+                });
+                await dao.partFamily.bumpCounterById(db, family.id);
+            });
+        });
+        this.afterEach(th.cleanTables(['part', 'part_base']));
+        this.afterEach(th.resetFamilyCounters());
+
+        it('should update a Part', async function() {
+            const bef2 = Date.now();
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.b, ['part.update', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PART_UPDATE,
+                    variables: {
+                        id: part.id,
+                        input: {
+                            designation: 'NEW DESIGNATION',
+                        },
+                    },
+                });
+            });
+            const aft2 = Date.now();
+            expect(errors).to.be.undefined;
+            expect(data.partUpdate).to.deep.include({
+                base: { id: partBase.id },
+                ref: 'P001.01',
+                designation: 'NEW DESIGNATION',
+                ...trackedBy(users.a, users.b),
+                createdAt: part.createdAt,
+            });
+            expect(data.partUpdate.updatedAt)
+                .to.be.gt(bef2)
+                .and.lt(aft2);
+            expect(data.partUpdate.updatedAt).to.be.gt(data.partUpdate.createdAt);
+        });
+
+        it('should not update a Part without "part.update"', async function() {
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.b, ['part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PART_UPDATE,
+                    variables: {
+                        id: part.id,
+                        input: {
+                            designation: 'NEW DESIGNATION',
+                        },
+                    },
+                });
+            });
+            expect(errors).to.be.not.empty;
+            expect(errors[0].message).to.contain('part.update');
+            expect(data).to.be.null;
+        });
+    });
+
     describe('partRevise', function() {
         const PART_REVISE = gql`
             mutation RevisePart($input: PartRevisionInput!) {
@@ -584,87 +668,205 @@ describe('GraphQL Part - Mutations', function() {
         });
     });
 
-    describe('partUpdate', function() {
-        const PART_UPDATE = gql`
-            mutation UpdatePart($id: ID!, $input: PartUpdateInput!) {
-                partUpdate(id: $id, input: $input) {
+    describe('partApprovalUpdate', async function() {
+        const PARTAPPR_UPDATE = gql`
+            mutation UpdatePartAppr($id: ID!, $input: PartApprovalUpdateInput!) {
+                partApprovalUpdate(id: $id, input: $input) {
                     id
-                    base {
+                    assignee {
                         id
                     }
-                    ref
-                    designation
-                    ...TrackedFields
+                    state
+                    comments
+                    validation {
+                        state
+                    }
                 }
             }
-            ${TRACKED_FIELDS}
         `;
 
         let partBase;
         let part;
+        let partRev;
+        let partVal;
+        let partApprs;
         beforeEach(function() {
             return pool.transaction(async db => {
                 partBase = await th.createPartBase(db, family, users.a, 'P001');
                 part = await th.createPart(db, partBase, users.a, 'P001.01', {
                     designation: 'SOME EXISTING PART',
                 });
+                partRev = await th.createPartRev(db, part, users.a);
+                partVal = await th.createPartVal(db, partRev, users.a);
+                partApprs = await th.createPartApprovals(db, partVal, users, users.a);
                 await dao.partFamily.bumpCounterById(db, family.id);
             });
         });
-        this.afterEach(th.cleanTables(['part', 'part_base']));
+        this.afterEach(
+            th.cleanTables([
+                'part_approval',
+                'part_validation',
+                'part_revision',
+                'part',
+                'part_base',
+            ])
+        );
         this.afterEach(th.resetFamilyCounters());
 
-        it('should update a Part', async function() {
-            const bef2 = Date.now();
+        it('should update a part approval', async function() {
             const { errors, data } = await pool.transaction(async db => {
                 const { mutate } = buildGqlServer(
                     db,
-                    permsAuth(users.b, ['part.update', 'part.read', 'user.read'])
+                    permsAuth(users.b, ['partval.read', 'part.read', 'user.read'])
                 );
                 return mutate({
-                    mutation: PART_UPDATE,
+                    mutation: PARTAPPR_UPDATE,
                     variables: {
-                        id: part.id,
+                        id: partApprs.b.id,
                         input: {
-                            designation: 'NEW DESIGNATION',
+                            decision: ApprovalState.Approved,
                         },
                     },
                 });
             });
-            const aft2 = Date.now();
             expect(errors).to.be.undefined;
-            expect(data.partUpdate).to.deep.include({
-                base: { id: partBase.id },
-                ref: 'P001.01',
-                designation: 'NEW DESIGNATION',
-                ...trackedBy(users.a, users.b),
-                createdAt: part.createdAt,
+            expect(data.partApprovalUpdate).to.deep.include({
+                id: partApprs.b.id,
+                state: ApprovalState.Approved,
+                assignee: {
+                    id: users.b.id,
+                },
+                comments: null,
+                validation: {
+                    state: ApprovalState.Pending,
+                },
             });
-            expect(data.partUpdate.updatedAt)
-                .to.be.gt(bef2)
-                .and.lt(aft2);
-            expect(data.partUpdate.updatedAt).to.be.gt(data.partUpdate.createdAt);
         });
 
-        it('should not update a Part without "part.update"', async function() {
+        it('should update a part approval with comments', async function() {
             const { errors, data } = await pool.transaction(async db => {
                 const { mutate } = buildGqlServer(
                     db,
-                    permsAuth(users.b, ['part.read', 'user.read'])
+                    permsAuth(users.b, ['partval.read', 'part.read', 'user.read'])
                 );
                 return mutate({
-                    mutation: PART_UPDATE,
+                    mutation: PARTAPPR_UPDATE,
                     variables: {
-                        id: part.id,
+                        id: partApprs.b.id,
                         input: {
-                            designation: 'NEW DESIGNATION',
+                            decision: ApprovalState.Approved,
+                            comments: 'sucks, but fine...',
                         },
                     },
                 });
             });
-            expect(errors).to.be.not.empty;
-            expect(errors[0].message).to.contain('part.update');
+            expect(errors).to.be.undefined;
+            expect(data.partApprovalUpdate).to.deep.include({
+                id: partApprs.b.id,
+                state: ApprovalState.Approved,
+                assignee: {
+                    id: users.b.id,
+                },
+                comments: 'sucks, but fine...',
+                validation: {
+                    state: ApprovalState.Pending,
+                },
+            });
+        });
+
+        it('should not update someone else part approval', async function() {
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['partval.update', 'partval.read', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PARTAPPR_UPDATE,
+                    variables: {
+                        id: partApprs.b.id,
+                        input: {
+                            decision: ApprovalState.Approved,
+                        },
+                    },
+                });
+            });
+            expect(errors).to.not.be.empty;
+            expect(errors[0].message).to.contain('someone else');
             expect(data).to.be.null;
+        });
+
+        it('rejecting a part approval should reject validation', async function() {
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.b, ['partval.read', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PARTAPPR_UPDATE,
+                    variables: {
+                        id: partApprs.b.id,
+                        input: {
+                            decision: ApprovalState.Rejected,
+                        },
+                    },
+                });
+            });
+            expect(errors).to.be.undefined;
+            expect(data.partApprovalUpdate).to.deep.include({
+                id: partApprs.b.id,
+                state: ApprovalState.Rejected,
+                assignee: {
+                    id: users.b.id,
+                },
+                comments: null,
+                validation: {
+                    state: ApprovalState.Rejected,
+                },
+            });
+        });
+
+        it('all assignees approved should approve validation', async function() {
+            await pool.transaction(async db => {
+                return Promise.all([
+                    dao.partApproval.update(db, partApprs.a.id, {
+                        state: ApprovalState.Approved,
+                        userId: users.a.id,
+                    }),
+                    dao.partApproval.update(db, partApprs.b.id, {
+                        state: ApprovalState.Approved,
+                        userId: users.b.id,
+                    }),
+                    dao.partApproval.update(db, partApprs.c.id, {
+                        state: ApprovalState.Approved,
+                        userId: users.c.id,
+                    }),
+                    dao.partApproval.update(db, partApprs.d.id, {
+                        state: ApprovalState.Approved,
+                        userId: users.d.id,
+                    }),
+                ]);
+            });
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.e, ['partval.read', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PARTAPPR_UPDATE,
+                    variables: {
+                        id: partApprs.e.id,
+                        input: {
+                            decision: ApprovalState.Approved,
+                        },
+                    },
+                });
+            });
+            expect(errors).to.be.undefined;
+            expect(data.partApprovalUpdate).to.deep.include({
+                validation: {
+                    state: ApprovalState.Approved,
+                },
+            });
         });
     });
 });

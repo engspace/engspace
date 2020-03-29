@@ -4,6 +4,7 @@ import {
     Part,
     PartApproval,
     PartApprovalInput,
+    PartApprovalUpdateInput,
     PartBase,
     PartCreateNewInput,
     PartForkInput,
@@ -17,7 +18,7 @@ import {
 import { DaoSet } from '@engspace/server-db';
 import { ApiContext } from '.';
 import { assertUserPerm } from './helpers';
-import { UserInputError } from 'apollo-server-koa';
+import { UserInputError, ForbiddenError } from 'apollo-server-koa';
 
 export class PartControl {
     constructor(private dao: DaoSet) {}
@@ -106,6 +107,21 @@ export class PartControl {
         });
     }
 
+    baseById(ctx: ApiContext, baseId: Id): Promise<PartBase> {
+        assertUserPerm(ctx, 'part.read');
+        return this.dao.partBase.byId(ctx.db, baseId);
+    }
+
+    partById(ctx: ApiContext, partId: Id): Promise<Part> {
+        assertUserPerm(ctx, 'part.read');
+        return this.dao.part.byId(ctx.db, partId);
+    }
+
+    revisionById(ctx: ApiContext, revisionId: Id): Promise<PartRevision> {
+        assertUserPerm(ctx, 'part.read');
+        return this.dao.partRevision.byId(ctx.db, revisionId);
+    }
+
     async startValidation(
         ctx: ApiContext,
         { partRevId, requiredApprovals }: PartValidationInput
@@ -135,19 +151,21 @@ export class PartControl {
         };
     }
 
-    baseById(ctx: ApiContext, baseId: Id): Promise<PartBase> {
-        assertUserPerm(ctx, 'part.read');
-        return this.dao.partBase.byId(ctx.db, baseId);
-    }
-
-    partById(ctx: ApiContext, partId: Id): Promise<Part> {
-        assertUserPerm(ctx, 'part.read');
-        return this.dao.part.byId(ctx.db, partId);
-    }
-
-    revisionById(ctx: ApiContext, revisionId: Id): Promise<PartRevision> {
-        assertUserPerm(ctx, 'part.read');
-        return this.dao.partRevision.byId(ctx.db, revisionId);
+    async updateApproval(
+        { db, auth }: ApiContext,
+        approvalId: Id,
+        { decision, comments }: PartApprovalUpdateInput
+    ): Promise<PartApproval> {
+        const { userId } = auth;
+        const { assignee } = await this.dao.partApproval.byId(db, approvalId);
+        if (assignee.id !== userId) {
+            throw new ForbiddenError("Cannot update someone else's approval");
+        }
+        return this.dao.partApproval.update(db, approvalId, {
+            state: decision,
+            comments,
+            userId,
+        });
     }
 
     validationById(ctx: ApiContext, validationId: Id): Promise<PartValidation> {

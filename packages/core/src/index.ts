@@ -154,6 +154,11 @@ export interface PartValidationInput {
     requiredApprovals: PartApprovalInput[];
 }
 
+export interface PartApprovalUpdateInput {
+    decision: ApprovalState;
+    comments?: string;
+}
+
 export interface PartApproval extends Tracked {
     id: Id;
     validation: IdOr<PartValidation>;
