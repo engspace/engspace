@@ -6,7 +6,7 @@ export const wrongUuid = '01234567-89ab-4000-8fff-cdef01234567';
 
 describe('Dao Base', function() {
     describe('DaoIdent (with dao.project)', function() {
-        afterEach('Delete projects', th.cleanTable(pool, 'project'));
+        afterEach('Delete projects', th.cleanTable('project'));
 
         it('should get a row by id', async function() {
             const { id } = await pool.transaction(async db => {
@@ -168,11 +168,11 @@ describe('Dao Base', function() {
     describe('DaoRowMap (with dao.document)', function() {
         let users;
         before('create users', async function() {
-            users = await th.transacUsersAB(pool);
+            users = await th.transacUsersAB();
         });
-        after('delete users', th.cleanTable(pool, 'user'));
+        after('delete users', th.cleanTable('user'));
 
-        afterEach('delete documents', th.cleanTable(pool, 'document'));
+        afterEach('delete documents', th.cleanTable('document'));
 
         it('should get a row by id', async function() {
             const { id } = await pool.transaction(async db => {

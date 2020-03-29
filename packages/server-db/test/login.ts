@@ -15,7 +15,7 @@ async function createLogins(db: Db, users: Promise<Dict<User>>): Promise<void> {
 describe('Login', () => {
     let users;
     before('Create users', async function() {
-        users = await th.transacUsers(pool, {
+        users = await th.transacUsers({
             a: { name: 'a', roles: ['a1', 'a2'] },
             b: { name: 'b', roles: ['b1', 'b2'] },
         });

@@ -51,13 +51,13 @@ describe('HTTP /api/document', function() {
     let users;
 
     before('Create users', async function() {
-        users = await th.transacUsers(pool, {
+        users = await th.transacUsers({
             a: { name: 'a', roles: ['user'] },
             b: { name: 'b', roles: ['user'] },
         });
     });
 
-    after('Delete users', th.cleanTable(pool, 'user'));
+    after('Delete users', th.cleanTable('user'));
 
     let server;
 

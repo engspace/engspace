@@ -41,9 +41,9 @@ const PARTFAM_UPDATE = gql`
 describe('GraphQL PartFamily', function() {
     let users;
     before('Create users', async function() {
-        users = await th.transacUsersAB(pool);
+        users = await th.transacUsersAB();
     });
-    after('Delete users', th.cleanTable(pool, 'user'));
+    after('Delete users', th.cleanTable('user'));
 
     describe('Query', function() {
         let families;

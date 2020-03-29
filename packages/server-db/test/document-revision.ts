@@ -4,7 +4,7 @@ import { dao, pool, th } from '.';
 describe('dao.documentRevision', function() {
     let users;
     before('create users', async function() {
-        users = await th.transacUsersAB(pool);
+        users = await th.transacUsersAB();
     });
 
     after('delete users', async function() {

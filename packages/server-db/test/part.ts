@@ -17,10 +17,10 @@ describe('dao.part', function() {
         });
     });
 
-    after('delete res', th.cleanTables(pool, ['part_base', 'part_family', 'user']));
+    after('delete res', th.cleanTables(['part_base', 'part_family', 'user']));
 
     describe('create', function() {
-        afterEach('delete res', th.cleanTable(pool, 'part'));
+        afterEach('delete res', th.cleanTable('part'));
 
         it('should create a part', async function() {
             const bef = Date.now();
@@ -60,7 +60,7 @@ describe('dao.part', function() {
                 });
             });
         });
-        afterEach('delete part', th.cleanTable(pool, 'part'));
+        afterEach('delete part', th.cleanTable('part'));
 
         it('should update a part', async function() {
             const bef = Date.now();

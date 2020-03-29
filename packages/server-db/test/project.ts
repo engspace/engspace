@@ -3,7 +3,7 @@ import { dao, pool, th } from '.';
 
 describe('dao.project', () => {
     describe('create', () => {
-        afterEach('clean up', th.cleanTable(pool, 'project'));
+        afterEach('clean up', th.cleanTable('project'));
 
         it('should create project', async function() {
             const proj = await pool.transaction(async db => {
@@ -25,12 +25,12 @@ describe('dao.project', () => {
     describe('Get', () => {
         let projects;
         before('create projects', async () => {
-            projects = await th.transacProjects(pool, {
+            projects = await th.transacProjects({
                 a: { code: 'a' },
                 b: { code: 'b' },
             });
         });
-        after('delete projects', th.cleanTable(pool, 'project'));
+        after('delete projects', th.cleanTable('project'));
 
         it('should find project by id', async () =>
             pool.connect(async db => {
@@ -54,12 +54,12 @@ describe('dao.project', () => {
     describe('Search', () => {
         let projects;
         before('create projects', async () => {
-            projects = await th.transacProjects(pool, {
+            projects = await th.transacProjects({
                 chair: { code: 'chair' },
                 desk: { code: 'desk' },
             });
         });
-        after('delete projects', th.cleanTable(pool, 'project'));
+        after('delete projects', th.cleanTable('project'));
 
         it('should find project by partial code', async function() {
             const result = await pool.connect(async db => {
@@ -154,12 +154,12 @@ describe('dao.project', () => {
     describe('Patch', async () => {
         let projects;
         beforeEach('create projects', async () => {
-            projects = await th.transacProjects(pool, {
+            projects = await th.transacProjects({
                 chair: { code: 'chair' },
                 desk: { code: 'desk' },
             });
         });
-        afterEach('delete projects', th.cleanTable(pool, 'project'));
+        afterEach('delete projects', th.cleanTable('project'));
 
         it('should patch project description', async () =>
             pool.connect(async db => {
@@ -195,12 +195,12 @@ describe('dao.project', () => {
     describe('Delete', () => {
         let projects;
         beforeEach('create projects', async () => {
-            projects = await th.transacProjects(pool, {
+            projects = await th.transacProjects({
                 chair: { code: 'chair' },
                 desk: { code: 'desk' },
             });
         });
-        afterEach('delete projects', th.cleanTable(pool, 'project'));
+        afterEach('delete projects', th.cleanTable('project'));
 
         it('should delete by id', async () => {
             await pool.connect(db => dao.project.deleteById(db, projects.chair.id));

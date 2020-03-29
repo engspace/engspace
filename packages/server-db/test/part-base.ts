@@ -13,7 +13,7 @@ describe('dao.partBase', function() {
             });
         });
     });
-    after(th.cleanTables(pool, ['part_family', 'user']));
+    after(th.cleanTables(['part_family', 'user']));
 
     describe('Create', function() {
         const msBef = Date.now();

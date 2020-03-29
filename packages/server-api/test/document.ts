@@ -69,7 +69,7 @@ const DOC_DISCARD_CHECKOUT = gql`
 describe('GraphQL documents', function() {
     let users;
     before('Create users', async function() {
-        users = await th.transacUsers(pool, {
+        users = await th.transacUsers({
             a: { name: 'a' },
             b: { name: 'b' },
             c: { name: 'c' },
@@ -77,7 +77,7 @@ describe('GraphQL documents', function() {
         });
     });
 
-    after('Delete users', th.cleanTable(pool, 'user'));
+    after('Delete users', th.cleanTable('user'));
 
     describe('Query', function() {
         let docs;
@@ -103,7 +103,7 @@ describe('GraphQL documents', function() {
                 };
             });
         });
-        after('Delete documents', th.cleanTable(pool, 'document'));
+        after('Delete documents', th.cleanTable('document'));
 
         it('should read a document with "document.read"', async function() {
             const { errors, data } = await pool.connect(async db => {

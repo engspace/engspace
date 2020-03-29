@@ -28,14 +28,14 @@ describe('GraphQL User', () => {
         let users;
 
         before('Create users', async () => {
-            users = await th.transacUsers(pool, {
+            users = await th.transacUsers({
                 dupond: { name: 'dupond', roles: ['role1'] },
                 dupont: { name: 'dupont', roles: ['role1', 'role2'] },
                 haddock: { name: 'haddock', roles: ['role1', 'role2', 'role3'] },
             });
         });
 
-        after(th.cleanTable(pool, 'user'));
+        after(th.cleanTable('user'));
 
         it('should read a user with "user.read"', async () => {
             const result = await pool.connect(async db => {
@@ -140,9 +140,9 @@ describe('GraphQL User', () => {
         describe('Create', () => {
             let userA;
             beforeEach('create user', async function() {
-                userA = th.transacUser(pool, { name: 'a' });
+                userA = th.transacUser({ name: 'a' });
             });
-            afterEach(th.cleanTable(pool, 'user'));
+            afterEach(th.cleanTable('user'));
 
             it('should create user with "user.create"', async () => {
                 const result = await pool.transaction(async db => {
@@ -244,10 +244,10 @@ describe('GraphQL User', () => {
             let users;
 
             beforeEach('Create users', async () => {
-                users = await th.transacUsersAB(pool);
+                users = await th.transacUsersAB();
             });
 
-            afterEach(th.cleanTable(pool, 'user'));
+            afterEach(th.cleanTable('user'));
 
             const bob: UserInput = {
                 name: 'bob',

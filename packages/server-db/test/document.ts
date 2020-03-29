@@ -6,10 +6,10 @@ import { Dict } from '../src/test-helpers';
 describe('dao.document', function() {
     let users;
     before('create users', async function() {
-        users = await th.transacUsersAB(pool);
+        users = await th.transacUsersAB();
     });
 
-    after('delete users', th.cleanTable(pool, 'user'));
+    after('delete users', th.cleanTable('user'));
 
     describe('Create', function() {
         const msBefore = Date.now();

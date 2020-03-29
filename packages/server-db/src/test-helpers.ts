@@ -66,19 +66,19 @@ export function expTrackedTime(expect: any, obj: Partial<Tracked>, maxAge = 100)
  * Set of helpers that makes testing easier
  */
 export class TestHelpers {
-    constructor(private dao: DaoSet) {}
+    constructor(private pool: DbPool, private dao: DaoSet) {}
 
-    cleanTable(pool: DbPool, tableName: string) {
+    cleanTable(tableName: string) {
         return async (): Promise<void> => {
-            return pool.transaction(async db => {
+            return this.pool.transaction(async db => {
                 await db.query(sql`DELETE FROM ${sql.identifier([tableName])}`);
             });
         };
     }
 
-    cleanTables(pool: DbPool, tableNames: string[]) {
+    cleanTables(tableNames: string[]) {
         return async (): Promise<void> => {
-            return pool.transaction(async db => {
+            return this.pool.transaction(async db => {
                 for (const tableName of tableNames) {
                     await db.query(sql`DELETE FROM ${sql.identifier([tableName])}`);
                 }
@@ -110,12 +110,8 @@ export class TestHelpers {
         );
     }
 
-    transacUser(
-        pool: DbPool,
-        input: Partial<UserInput>,
-        opts: Partial<RoleOptions> = {}
-    ): Promise<User> {
-        return pool.transaction(db => this.createUser(db, input, opts));
+    transacUser(input: Partial<UserInput>, opts: Partial<RoleOptions> = {}): Promise<User> {
+        return this.pool.transaction(db => this.createUser(db, input, opts));
     }
 
     createUsers(
@@ -134,15 +130,16 @@ export class TestHelpers {
     }
 
     transacUsers(
-        pool: DbPool,
         input: Dict<Partial<UserInput>>,
         opts: Partial<RoleOptions> = {}
     ): Promise<Dict<User>> {
-        return pool.transaction(db => asyncDictMap(input, inp => this.createUser(db, inp, opts)));
+        return this.pool.transaction(db =>
+            asyncDictMap(input, inp => this.createUser(db, inp, opts))
+        );
     }
 
-    transacUsersAB(pool: DbPool): Promise<{ a: User; b: User }> {
-        return pool.transaction(async db => {
+    transacUsersAB(): Promise<{ a: User; b: User }> {
+        return this.pool.transaction(async db => {
             return this.createUsersAB(db);
         });
     }
@@ -158,8 +155,8 @@ export class TestHelpers {
         });
     }
 
-    transacProject(pool: DbPool, input: Partial<ProjectInput> = {}): Promise<Project> {
-        return pool.transaction(async db => {
+    transacProject(input: Partial<ProjectInput> = {}): Promise<Project> {
+        return this.pool.transaction(async db => {
             return this.createProject(db, input);
         });
     }
@@ -168,8 +165,8 @@ export class TestHelpers {
         return asyncDictMap(input, inp => this.createProject(db, inp));
     }
 
-    transacProjects(pool: DbPool, input: Dict<Partial<ProjectInput>>): Promise<Dict<Project>> {
-        return pool.transaction(async db => {
+    transacProjects(input: Dict<Partial<ProjectInput>>): Promise<Dict<Project>> {
+        return this.pool.transaction(async db => {
             return asyncDictMap(input, inp => this.createProject(db, inp));
         });
     }
@@ -182,13 +179,8 @@ export class TestHelpers {
         });
     }
 
-    transacMember(
-        pool: DbPool,
-        proj: Project,
-        user: User,
-        roles: string[]
-    ): Promise<ProjectMember> {
-        return pool.transaction(async db =>
+    transacMember(proj: Project, user: User, roles: string[]): Promise<ProjectMember> {
+        return this.pool.transaction(async db =>
             this.dao.projectMember.create(db, {
                 projectId: proj.id,
                 userId: user.id,
@@ -210,9 +202,9 @@ export class TestHelpers {
         return asyncDictMap(input, inp => this.createPartFamily(db, inp));
     }
 
-    resetFamilyCounters(pool: DbPool) {
+    resetFamilyCounters() {
         return (): Promise<void> => {
-            return pool.transaction(async db => {
+            return this.pool.transaction(async db => {
                 await db.query(sql`UPDATE part_family SET counter=0`);
             });
         };
@@ -258,12 +250,11 @@ export class TestHelpers {
     }
 
     transacPartRev(
-        pool: DbPool,
         part: Part,
         user: User,
         input: Partial<PartRevisionDaoInput>
     ): Promise<PartRevision> {
-        return pool.transaction(async db => {
+        return this.pool.transaction(async db => {
             return this.createPartRev(db, part, user, input);
         });
     }

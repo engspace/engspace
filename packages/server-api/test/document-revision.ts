@@ -81,7 +81,7 @@ describe('GraphQL Document Revision', function() {
             });
         });
     });
-    after('Delete users and document', th.cleanTables(pool, ['document', 'user']));
+    after('Delete users and document', th.cleanTables(['document', 'user']));
 
     describe('Query', function() {
         let revisions;

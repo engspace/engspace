@@ -6,7 +6,7 @@ import { Dict, dictMap } from '../src/test-helpers';
 
 describe('dao.user', () => {
     describe('Create', () => {
-        afterEach(th.cleanTable(pool, 'user'));
+        afterEach(th.cleanTable('user'));
 
         it('should create user', async () => {
             const userA = await pool.transaction(async db => {
@@ -75,13 +75,13 @@ describe('dao.user', () => {
         let users: Dict<User>;
 
         before('create users', async () => {
-            users = await th.transacUsers(pool, {
+            users = await th.transacUsers({
                 a: { name: 'user.a', fullName: 'User A', roles: ['user'] },
                 b: { name: 'user.b', fullName: 'User B', roles: ['manager'] },
                 c: { name: 'user.c', fullName: 'User C', roles: ['admin'] },
             });
         });
-        after(th.cleanTable(pool, 'user'));
+        after(th.cleanTable('user'));
 
         it('should get user by id', async () => {
             const a = await pool.connect(async db => await dao.user.byId(db, users.a.id));
@@ -135,7 +135,7 @@ describe('dao.user', () => {
         let users: Dict<User>;
 
         before('create users', async () => {
-            const usrs = await th.transacUsers(pool, {
+            const usrs = await th.transacUsers({
                 alphonse: { name: 'alphonse', fullName: 'Alphonse', roles: ['user'] },
                 philippe: { name: 'philippe', fullName: 'Philippe', roles: ['manager'] },
                 sophie: { name: 'sophie', fullName: 'Sophie', roles: ['admin'] },
@@ -143,7 +143,7 @@ describe('dao.user', () => {
             });
             users = dictMap(usrs, u => filterFields(u, 'roles'));
         });
-        after(th.cleanTable(pool, 'user'));
+        after(th.cleanTable('user'));
 
         it('should find users partial name', async () => {
             const result = await pool.connect(
@@ -225,13 +225,13 @@ describe('dao.user', () => {
     describe('Update', function() {
         let userA;
         beforeEach('create users', async () => {
-            userA = await th.transacUser(pool, {
+            userA = await th.transacUser({
                 name: 'user.a',
                 fullName: 'User A',
                 roles: ['role1', 'role2'],
             });
         });
-        afterEach(th.cleanTable(pool, 'user'));
+        afterEach(th.cleanTable('user'));
 
         it('should update user', async function() {
             const userB = await pool.transaction(async db => {

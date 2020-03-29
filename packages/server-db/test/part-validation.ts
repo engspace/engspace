@@ -25,10 +25,10 @@ describe('dao.partValidation', function() {
     });
     after(
         'clean deps',
-        th.cleanTables(pool, ['part_revision', 'part', 'part_base', 'part_family', 'user'])
+        th.cleanTables(['part_revision', 'part', 'part_base', 'part_family', 'user'])
     );
     describe('Create', function() {
-        afterEach(th.cleanTable(pool, 'part_validation'));
+        afterEach(th.cleanTable('part_validation'));
 
         it('should create part validation', async function() {
             const val = await pool.transaction(async db => {
@@ -51,7 +51,7 @@ describe('dao.partValidation', function() {
                 return th.createPartVal(db, partRev, users.a);
             });
         });
-        afterEach(th.cleanTables(pool, ['part_approval', 'part_validation']));
+        afterEach(th.cleanTables(['part_approval', 'part_validation']));
 
         it('should be rejected if one is rejected', async function() {
             const val = await pool.transaction(async db => {

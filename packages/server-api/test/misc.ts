@@ -7,10 +7,10 @@ import { permsAuth } from './auth';
 describe('Miscellaneous', function() {
     let users;
     before('Create users', async function() {
-        users = await th.transacUsersAB(pool);
+        users = await th.transacUsersAB();
     });
 
-    after('Delete users', th.cleanTable(pool, 'user'));
+    after('Delete users', th.cleanTable('user'));
 
     describe('Crypto', function() {
         it('should verify a valid token', async function() {

@@ -21,7 +21,7 @@ describe('Login', () => {
         server = api.koa.listen(serverPort, done);
     });
 
-    after(th.cleanTable(pool, 'user'));
+    after(th.cleanTable('user'));
 
     it('should return bearer token', async () => {
         const resp = await request(server)

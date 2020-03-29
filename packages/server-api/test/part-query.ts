@@ -150,7 +150,7 @@ describe('GraphQL Part - Queries', function() {
     });
     after(
         'delete res',
-        th.cleanTables(pool, ['part_revision', 'part', 'part_base', 'part_family', 'user'])
+        th.cleanTables(['part_revision', 'part', 'part_base', 'part_family', 'user'])
     );
 
     describe('PartBase', function() {
@@ -290,7 +290,7 @@ describe('GraphQL Part - Queries', function() {
                 approvals = await th.createPartApprovals(db, partVal, users, users.a);
             });
         });
-        after(th.cleanTables(pool, ['part_approval', 'part_validation']));
+        after(th.cleanTables(['part_approval', 'part_validation']));
 
         it('should read part validation', async function() {
             const { errors, data } = await pool.transaction(async db => {

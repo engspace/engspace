@@ -28,7 +28,7 @@ describe('dao.partApproval', function() {
     });
     after(
         'clean deps',
-        th.cleanTables(pool, [
+        th.cleanTables([
             'part_validation',
             'part_revision',
             'part',
@@ -38,7 +38,7 @@ describe('dao.partApproval', function() {
         ])
     );
     describe('Create', function() {
-        afterEach(th.cleanTable(pool, 'part_approval'));
+        afterEach(th.cleanTable('part_approval'));
         it('should create part approval in pending state', async function() {
             const partAppr = await pool.transaction(async db => {
                 return dao.partApproval.create(db, {
@@ -65,7 +65,7 @@ describe('dao.partApproval', function() {
                 return th.createPartApprovals(db, partVal, users, users.a);
             });
         });
-        after(th.cleanTable(pool, 'part_approval'));
+        after(th.cleanTable('part_approval'));
 
         it('should read approvals for a validation', async function() {
             const apprs = await pool.connect(async db => {
@@ -82,7 +82,7 @@ describe('dao.partApproval', function() {
                 return th.createPartApproval(db, partVal, users.b, users.a);
             });
         });
-        afterEach(th.cleanTable(pool, 'part_approval'));
+        afterEach(th.cleanTable('part_approval'));
 
         it('should set approval state without comment', async function() {
             const bef = Date.now();

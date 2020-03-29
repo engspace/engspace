@@ -64,19 +64,19 @@ describe('GraphQL Project', () => {
     let users;
 
     before('Create users', async () => {
-        users = await th.transacUsersAB(pool);
+        users = await th.transacUsersAB();
     });
 
-    after(th.cleanTable(pool, 'user'));
+    after(th.cleanTable('user'));
 
     describe('Query', function() {
         let projects;
 
         before('Create projects', async () => {
-            projects = await th.transacProjects(pool, { a: { code: 'a' }, b: { code: 'b' } });
+            projects = await th.transacProjects({ a: { code: 'a' }, b: { code: 'b' } });
         });
 
-        after(th.cleanTable(pool, 'project'));
+        after(th.cleanTable('project'));
 
         it('should read project with "project.read"', async () => {
             const result = await pool.connect(async db => {
@@ -181,7 +181,7 @@ describe('GraphQL Project', () => {
 
     describe('Mutation', () => {
         describe('Create', () => {
-            afterEach(th.cleanTable(pool, 'project'));
+            afterEach(th.cleanTable('project'));
 
             const input = {
                 code: 'a',
@@ -225,14 +225,14 @@ describe('GraphQL Project', () => {
             let moon;
 
             beforeEach('Create projects', async () => {
-                moon = await th.transacProject(pool, {
+                moon = await th.transacProject({
                     code: 'moon',
                     name: 'Moon',
                     description: 'Man on Moon',
                 });
             });
 
-            afterEach(th.cleanTable(pool, 'project'));
+            afterEach(th.cleanTable('project'));
 
             const mars = {
                 code: 'mars',

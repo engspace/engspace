@@ -12,10 +12,10 @@ describe('End to end GraphQL', function() {
     let userA;
 
     before('Create users', async function() {
-        userA = await th.transacUser(pool, { name: 'a' });
+        userA = await th.transacUser({ name: 'a' });
     });
 
-    after('Delete users', th.cleanTable(pool, 'user'));
+    after('Delete users', th.cleanTable('user'));
 
     let server;
 
@@ -24,7 +24,7 @@ describe('End to end GraphQL', function() {
     });
 
     describe('General', function() {
-        afterEach(th.cleanTable(pool, 'project'));
+        afterEach(th.cleanTable('project'));
 
         it('should return 404 if unmatched resource', async function() {
             const token = await bearerToken(permsAuth(userA, ['project.read']));
@@ -132,10 +132,10 @@ describe('End to end GraphQL', function() {
         let projectA;
 
         before('Create projects', async function() {
-            projectA = await th.transacProject(pool, { code: 'a' });
+            projectA = await th.transacProject({ code: 'a' });
         });
 
-        after(th.cleanTable(pool, 'project'));
+        after(th.cleanTable('project'));
 
         it('read project values with GET', async function() {
             const token = await bearerToken(permsAuth(userA, ['project.read']));

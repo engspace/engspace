@@ -16,10 +16,10 @@ describe('dao.partRevision', function() {
             part = await th.createPart(db, partBase, users.a, 'P01.A');
         });
     });
-    after('clean deps', th.cleanTables(pool, ['part', 'part_base', 'part_family', 'user']));
+    after('clean deps', th.cleanTables(['part', 'part_base', 'part_family', 'user']));
 
     describe('Create', function() {
-        afterEach(th.cleanTable(pool, 'part_revision'));
+        afterEach(th.cleanTable('part_revision'));
 
         it('should create part revision', async function() {
             const pr = await pool.transaction(async db => {
@@ -44,11 +44,11 @@ describe('dao.partRevision', function() {
     describe('Update', function() {
         let partRev;
         beforeEach(async function() {
-            partRev = await th.transacPartRev(pool, part, users.a, {
+            partRev = await th.transacPartRev(part, users.a, {
                 cycleState: CycleState.Edition,
             });
         });
-        afterEach(th.cleanTable(pool, 'part_revision'));
+        afterEach(th.cleanTable('part_revision'));
         it('should update cycle state', async function() {
             const pr = await pool.transaction(async db => {
                 return dao.partRevision.updateCycleState(db, partRev.id, CycleState.Release);

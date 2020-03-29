@@ -33,10 +33,10 @@ describe('dao.projectMember', () => {
         );
     });
 
-    after('Delete users and projects', th.cleanTables(pool, ['project', 'user']));
+    after('Delete users and projects', th.cleanTables(['project', 'user']));
 
     describe('Create', () => {
-        afterEach('delete all members', th.cleanTable(pool, 'project_member'));
+        afterEach('delete all members', th.cleanTable('project_member'));
         it('should create a project member', async () => {
             const mem = await pool.transaction(db =>
                 dao.projectMember.create(db, {
@@ -66,7 +66,7 @@ describe('dao.projectMember', () => {
                 };
             });
         });
-        after('delete all members', th.cleanTable(pool, 'project_member'));
+        after('delete all members', th.cleanTable('project_member'));
 
         it('should get a member project and user id', async () => {
             const aa = await pool.connect(db =>
@@ -138,9 +138,9 @@ describe('dao.projectMember', () => {
         let aa;
 
         beforeEach('create members', async function() {
-            aa = await th.transacMember(pool, projects.a, users.a, ['role1']);
+            aa = await th.transacMember(projects.a, users.a, ['role1']);
         });
-        afterEach('delete all members', th.cleanTable(pool, 'project_member'));
+        afterEach('delete all members', th.cleanTable('project_member'));
 
         it('should remove all project member roles', async function() {
             const memb = await pool.transaction(async db => {
@@ -177,7 +177,7 @@ describe('dao.projectMember', () => {
                 };
             });
         });
-        afterEach('delete all members', th.cleanTable(pool, 'project_member'));
+        afterEach('delete all members', th.cleanTable('project_member'));
 
         it('should delete a specific member', async () => {
             await pool.connect(db =>

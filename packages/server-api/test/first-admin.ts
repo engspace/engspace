@@ -24,7 +24,7 @@ describe('HTTP /api/first_admin', function() {
             });
         });
         it('should return true if admin exist', async function() {
-            await th.transacUser(pool, { name: 'a', roles: ['admin'] });
+            await th.transacUser({ name: 'a', roles: ['admin'] });
             const resp = await request(server).get('/api/first_admin');
             expect(resp).to.have.status(200);
             expect(resp).to.be.json;
@@ -55,7 +55,7 @@ describe('HTTP /api/first_admin', function() {
             expect(resp.body.id).to.be.uuid();
         });
         it('should not create first admin if admin exists', async function() {
-            await th.transacUser(pool, { name: 'a', roles: ['admin'] });
+            await th.transacUser({ name: 'a', roles: ['admin'] });
             const resp = await request(server)
                 .post('/api/first_admin')
                 .send({

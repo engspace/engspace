@@ -1,5 +1,6 @@
 import { AppRolePolicies, AuthToken, buildDefaultAppRolePolicies } from '@engspace/core';
 import {
+    buildDaoSet,
     connectionString,
     createDbPool,
     Db,
@@ -10,8 +11,8 @@ import {
     initSchema,
     prepareDb,
     ServerConnConfig,
-    buildDaoSet,
 } from '@engspace/server-db';
+import { TestHelpers } from '@engspace/server-db/dist/test-helpers';
 import { ApolloServerTestClient, createTestClient } from 'apollo-server-testing';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -22,9 +23,8 @@ import fs from 'fs';
 import Koa from 'koa';
 import path from 'path';
 import { EsServerApi } from '../src';
-import { PartBaseRefNaming, PartRefNaming } from '../src/ref-naming';
 import { buildControllerSet } from '../src/control';
-import { TestHelpers } from '@engspace/server-db/dist/test-helpers';
+import { PartBaseRefNaming, PartRefNaming } from '../src/ref-naming';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -72,7 +72,7 @@ export const rolePolicies: AppRolePolicies = buildDefaultAppRolePolicies();
 export const dao = buildDaoSet();
 const control = buildControllerSet(dao);
 
-export const th = new TestHelpers(dao);
+export const th = new TestHelpers(pool, dao);
 
 export const api = new EsServerApi(new Koa(), {
     pool,

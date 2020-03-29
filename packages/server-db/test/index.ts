@@ -67,7 +67,7 @@ const dbPoolConfig: DbPoolConfig = {
 
 export const pool: DbPool = createDbPool(dbPoolConfig);
 export const dao = buildDaoSet();
-export const th = new TestHelpers(dao);
+export const th = new TestHelpers(pool, dao);
 
 before('db setup', async function() {
     this.timeout(5000);

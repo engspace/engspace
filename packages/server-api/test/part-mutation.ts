@@ -82,10 +82,10 @@ describe('GraphQL Part - Mutations', function() {
             family = await th.createPartFamily(db, { code: 'P' });
         });
     });
-    after('delete res', th.cleanTables(pool, ['part_base', 'part_family', 'user']));
+    after('delete res', th.cleanTables(['part_base', 'part_family', 'user']));
 
-    afterEach(th.cleanTables(pool, ['part_revision', 'part', 'part_base']));
-    afterEach(th.resetFamilyCounters(pool));
+    afterEach(th.cleanTables(['part_revision', 'part', 'part_base']));
+    afterEach(th.resetFamilyCounters());
 
     describe('partCreateNew', function() {
         it('should create a new Part', async function() {
@@ -170,8 +170,8 @@ describe('GraphQL Part - Mutations', function() {
                 await dao.partFamily.bumpCounterById(db, family.id);
             });
         });
-        this.afterEach(th.cleanTables(pool, ['part_revision', 'part', 'part_base']));
-        this.afterEach(th.resetFamilyCounters(pool));
+        this.afterEach(th.cleanTables(['part_revision', 'part', 'part_base']));
+        this.afterEach(th.resetFamilyCounters());
 
         it('should create a fork of a part', async function() {
             const { errors, data } = await pool.transaction(async db => {
@@ -331,8 +331,8 @@ describe('GraphQL Part - Mutations', function() {
                 await dao.partFamily.bumpCounterById(db, family.id);
             });
         });
-        this.afterEach(th.cleanTables(pool, ['part_revision', 'part', 'part_base']));
-        this.afterEach(th.resetFamilyCounters(pool));
+        this.afterEach(th.cleanTables(['part_revision', 'part', 'part_base']));
+        this.afterEach(th.resetFamilyCounters());
 
         it('should revise a part', async function() {
             const { errors, data } = await pool.transaction(async db => {
@@ -447,8 +447,8 @@ describe('GraphQL Part - Mutations', function() {
                 await dao.partFamily.bumpCounterById(db, family.id);
             });
         });
-        this.afterEach(th.cleanTables(pool, ['part', 'part_base']));
-        this.afterEach(th.resetFamilyCounters(pool));
+        this.afterEach(th.cleanTables(['part', 'part_base']));
+        this.afterEach(th.resetFamilyCounters());
 
         it('should update a Part', async function() {
             const bef2 = Date.now();
