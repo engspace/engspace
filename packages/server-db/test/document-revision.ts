@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
 
-describe('dao.documentRevision', function() {
+describe('DocumentRevisionDao', function() {
     let users;
     before('create users', async function() {
         users = await th.transacUsersAB();

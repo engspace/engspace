@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
 
-describe('dao.partBase', function() {
+describe('PartBaseDao', function() {
     let users;
     let families;
     before(async function() {

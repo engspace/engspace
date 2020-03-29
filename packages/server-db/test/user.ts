@@ -4,7 +4,7 @@ import deepEqual from 'deep-equal';
 import { dao, filterFields, pool, th } from '.';
 import { Dict, dictMap } from '../src/test-helpers';
 
-describe('dao.user', () => {
+describe('UserDao', () => {
     describe('Create', () => {
         afterEach(th.cleanTable('user'));
 

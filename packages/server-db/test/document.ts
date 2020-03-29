@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { dao, pool, th } from '.';
 import { Dict } from '../src/test-helpers';
 
-describe('dao.document', function() {
+describe('DocumentDao', function() {
     let users;
     before('create users', async function() {
         users = await th.transacUsersAB();

@@ -2,7 +2,7 @@ import { ApprovalState } from '@engspace/core';
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
 
-describe('dao.partValidation', function() {
+describe('PartValidationDao', function() {
     let users;
     let fam;
     let partBase;

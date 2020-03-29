@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { dao, pool, th } from '.';
 import { Dict } from '../src/test-helpers';
 
-describe('dao.projectMember', () => {
+describe('ProjectMemberDao', () => {
     let users: Dict<User>;
     let projects: Dict<Project>;
 

@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { dao, pool, th } from '.';
 import { trackedBy } from '../src/test-helpers';
 
-describe('dao.partRevision', function() {
+describe('PartRevisionDao', function() {
     let users;
     let fam;
     let partBase;

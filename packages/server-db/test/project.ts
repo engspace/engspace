@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
 
-describe('dao.project', () => {
+describe('ProjectDao', () => {
     describe('create', () => {
         afterEach('clean up', th.cleanTable('project'));
 

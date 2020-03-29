@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { pool, dao } from '.';
 
-describe('dao.partFamily', function() {
+describe('PartFamilyDao', function() {
     describe('create', function() {
         afterEach('delete families', async function() {
             await pool.transaction(async db => {
