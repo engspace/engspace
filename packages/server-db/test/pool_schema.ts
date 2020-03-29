@@ -1,4 +1,4 @@
-import { ApprovalState, CycleState, ValidationResult } from '@engspace/core';
+import { ApprovalDecision, CycleState, ValidationResult } from '@engspace/core';
 import { expect } from 'chai';
 import { sql } from 'slonik';
 import { serverConnConfig } from '.';
@@ -106,9 +106,9 @@ describe('Pool and Schema', async () => {
                     SELECT enumlabel
                     FROM pg_type JOIN pg_enum
                         ON pg_enum.enumtypid = pg_type.oid
-                    WHERE typname = 'approval_state_enum'`);
+                    WHERE typname = 'approval_decision_enum'`);
             });
-            expect(apprStates).to.have.same.members(Object.values(ApprovalState));
+            expect(apprStates).to.have.same.members(Object.values(ApprovalDecision));
         });
     });
 });

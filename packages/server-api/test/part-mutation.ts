@@ -1,4 +1,4 @@
-import { CycleState, User, ApprovalState } from '@engspace/core';
+import { CycleState, User, ApprovalDecision } from '@engspace/core';
 import { trackedBy, Dict } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
@@ -45,7 +45,7 @@ const PARTVAL_DEEPFIELDS = gql`
                 id
                 name
             }
-            state
+            decision
             comments
             ...TrackedFields
         }
@@ -616,7 +616,7 @@ describe('GraphQL Part - Mutations', function() {
                     revision: partRev.revision,
                     cycleState: partRev.cycleState,
                 },
-                state: ApprovalState.Pending,
+                state: ApprovalDecision.Pending,
                 result: null,
                 comments: null,
                 ...trackedBy(users.a),
@@ -636,7 +636,7 @@ describe('GraphQL Part - Mutations', function() {
                         id: assignees[i].id,
                         name: assignees[i].name,
                     },
-                    state: ApprovalState.Pending,
+                    decision: ApprovalDecision.Pending,
                     comments: null,
                     ...trackedBy(users.a),
                 });
@@ -676,7 +676,7 @@ describe('GraphQL Part - Mutations', function() {
                     assignee {
                         id
                     }
-                    state
+                    decision
                     comments
                     validation {
                         state
@@ -724,7 +724,7 @@ describe('GraphQL Part - Mutations', function() {
                     variables: {
                         id: partApprs.b.id,
                         input: {
-                            decision: ApprovalState.Approved,
+                            decision: ApprovalDecision.Approved,
                         },
                     },
                 });
@@ -732,13 +732,13 @@ describe('GraphQL Part - Mutations', function() {
             expect(errors).to.be.undefined;
             expect(data.partApprovalUpdate).to.deep.include({
                 id: partApprs.b.id,
-                state: ApprovalState.Approved,
+                decision: ApprovalDecision.Approved,
                 assignee: {
                     id: users.b.id,
                 },
                 comments: null,
                 validation: {
-                    state: ApprovalState.Pending,
+                    state: ApprovalDecision.Pending,
                 },
             });
         });
@@ -754,7 +754,7 @@ describe('GraphQL Part - Mutations', function() {
                     variables: {
                         id: partApprs.b.id,
                         input: {
-                            decision: ApprovalState.Approved,
+                            decision: ApprovalDecision.Approved,
                             comments: 'sucks, but fine...',
                         },
                     },
@@ -763,13 +763,13 @@ describe('GraphQL Part - Mutations', function() {
             expect(errors).to.be.undefined;
             expect(data.partApprovalUpdate).to.deep.include({
                 id: partApprs.b.id,
-                state: ApprovalState.Approved,
+                decision: ApprovalDecision.Approved,
                 assignee: {
                     id: users.b.id,
                 },
                 comments: 'sucks, but fine...',
                 validation: {
-                    state: ApprovalState.Pending,
+                    state: ApprovalDecision.Pending,
                 },
             });
         });
@@ -785,7 +785,7 @@ describe('GraphQL Part - Mutations', function() {
                     variables: {
                         id: partApprs.b.id,
                         input: {
-                            decision: ApprovalState.Approved,
+                            decision: ApprovalDecision.Approved,
                         },
                     },
                 });
@@ -806,7 +806,7 @@ describe('GraphQL Part - Mutations', function() {
                     variables: {
                         id: partApprs.b.id,
                         input: {
-                            decision: ApprovalState.Rejected,
+                            decision: ApprovalDecision.Rejected,
                         },
                     },
                 });
@@ -814,13 +814,13 @@ describe('GraphQL Part - Mutations', function() {
             expect(errors).to.be.undefined;
             expect(data.partApprovalUpdate).to.deep.include({
                 id: partApprs.b.id,
-                state: ApprovalState.Rejected,
+                decision: ApprovalDecision.Rejected,
                 assignee: {
                     id: users.b.id,
                 },
                 comments: null,
                 validation: {
-                    state: ApprovalState.Rejected,
+                    state: ApprovalDecision.Rejected,
                 },
             });
         });
@@ -829,19 +829,19 @@ describe('GraphQL Part - Mutations', function() {
             await pool.transaction(async db => {
                 return Promise.all([
                     dao.partApproval.update(db, partApprs.a.id, {
-                        state: ApprovalState.Approved,
+                        decision: ApprovalDecision.Approved,
                         userId: users.a.id,
                     }),
                     dao.partApproval.update(db, partApprs.b.id, {
-                        state: ApprovalState.Approved,
+                        decision: ApprovalDecision.Approved,
                         userId: users.b.id,
                     }),
                     dao.partApproval.update(db, partApprs.c.id, {
-                        state: ApprovalState.Approved,
+                        decision: ApprovalDecision.Approved,
                         userId: users.c.id,
                     }),
                     dao.partApproval.update(db, partApprs.d.id, {
-                        state: ApprovalState.Approved,
+                        decision: ApprovalDecision.Approved,
                         userId: users.d.id,
                     }),
                 ]);
@@ -856,7 +856,7 @@ describe('GraphQL Part - Mutations', function() {
                     variables: {
                         id: partApprs.e.id,
                         input: {
-                            decision: ApprovalState.Approved,
+                            decision: ApprovalDecision.Approved,
                         },
                     },
                 });
@@ -864,7 +864,7 @@ describe('GraphQL Part - Mutations', function() {
             expect(errors).to.be.undefined;
             expect(data.partApprovalUpdate).to.deep.include({
                 validation: {
-                    state: ApprovalState.Approved,
+                    state: ApprovalDecision.Approved,
                 },
             });
         });

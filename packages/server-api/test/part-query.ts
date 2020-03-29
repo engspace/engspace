@@ -1,4 +1,4 @@
-import { ApprovalState, PartApproval } from '@engspace/core';
+import { ApprovalDecision, PartApproval } from '@engspace/core';
 import { trackedBy } from '@engspace/server-db/dist/test-helpers';
 import { Dict } from '@engspace/server-db/src/test-helpers';
 import { expect } from 'chai';
@@ -72,7 +72,7 @@ const PARTAPPR_FIELDS = gql`
         assignee {
             id
         }
-        state
+        decision
         comments
         ...TrackedFields
     }
@@ -306,7 +306,7 @@ describe('GraphQL Part - Queries', function() {
             expect(errors).to.be.undefined;
             expect(data.partValidation).to.deep.include({
                 ...partVal,
-                state: ApprovalState.Pending,
+                state: ApprovalDecision.Pending,
                 ...trackedBy(users.a),
             });
             expect(data.partValidation.approvals).to.have.same.deep.members(

@@ -138,7 +138,7 @@ CREATE TABLE part_approval (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     validation_id uuid NOT NULL,
     assignee_id uuid NOT NULL,
-    state approval_state_enum NOT NULL,
+    decision approval_decision_enum NOT NULL,
     comments text,
 
     created_by uuid NOT NULL,

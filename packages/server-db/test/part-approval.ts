@@ -1,4 +1,4 @@
-import { ApprovalState } from '@engspace/core';
+import { ApprovalDecision } from '@engspace/core';
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
 import { expTrackedTime, trackedBy } from '../src/test-helpers';
@@ -39,7 +39,7 @@ describe('PartApprovalDao', function() {
     );
     describe('Create', function() {
         afterEach(th.cleanTable('part_approval'));
-        it('should create part approval in pending state', async function() {
+        it('should create part approval in pending decision', async function() {
             const partAppr = await pool.transaction(async db => {
                 return dao.partApproval.create(db, {
                     validationId: partVal.id,
@@ -51,7 +51,7 @@ describe('PartApprovalDao', function() {
             expect(partAppr).to.deep.include({
                 validation: { id: partVal.id },
                 assignee: { id: users.b.id },
-                state: ApprovalState.Pending,
+                decision: ApprovalDecision.Pending,
                 ...trackedBy(users.a),
             });
             expTrackedTime(expect, partAppr);
@@ -84,11 +84,11 @@ describe('PartApprovalDao', function() {
         });
         afterEach(th.cleanTable('part_approval'));
 
-        it('should set approval state without comment', async function() {
+        it('should set approval decision without comment', async function() {
             const bef = Date.now();
             const pa = await pool.transaction(async db => {
                 return dao.partApproval.update(db, partAppr.id, {
-                    state: ApprovalState.Approved,
+                    decision: ApprovalDecision.Approved,
                     userId: users.b.id,
                 });
             });
@@ -97,7 +97,7 @@ describe('PartApprovalDao', function() {
                 id: partAppr.id,
                 validation: { id: partVal.id },
                 assignee: { id: users.b.id },
-                state: ApprovalState.Approved,
+                decision: ApprovalDecision.Approved,
                 comments: null,
                 ...trackedBy(users.a, users.b),
             });
@@ -106,11 +106,11 @@ describe('PartApprovalDao', function() {
                 .and.lt(aft);
         });
 
-        it('should set approval state with comment', async function() {
+        it('should set approval decision with comment', async function() {
             const bef = Date.now();
             const pa = await pool.transaction(async db => {
                 return dao.partApproval.update(db, partAppr.id, {
-                    state: ApprovalState.Approved,
+                    decision: ApprovalDecision.Approved,
                     userId: users.b.id,
                     comments: 'geprüft',
                 });
@@ -120,7 +120,7 @@ describe('PartApprovalDao', function() {
                 id: partAppr.id,
                 validation: { id: partVal.id },
                 assignee: { id: users.b.id },
-                state: ApprovalState.Approved,
+                decision: ApprovalDecision.Approved,
                 comments: 'geprüft',
                 ...trackedBy(users.a, users.b),
             });

@@ -1,4 +1,4 @@
-import { ApprovalState, Id, PartApproval } from '@engspace/core';
+import { ApprovalDecision, Id, PartApproval } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
 import { DaoRowMap, foreignKey, tracked, TrackedRow, nullable } from './base';
@@ -7,17 +7,17 @@ interface Row extends TrackedRow {
     id: Id;
     validationId: Id;
     assigneeId: Id;
-    state: string;
+    decision: string;
     comments?: string;
 }
 
 function mapRow(row: Row): PartApproval {
-    const { id, validationId, assigneeId, state, comments } = row;
+    const { id, validationId, assigneeId, decision, comments } = row;
     return {
         id,
         validation: foreignKey(validationId),
         assignee: foreignKey(assigneeId),
-        state: state as ApprovalState,
+        decision: decision as ApprovalDecision,
         comments: nullable(comments),
         ...tracked.mapRow(row),
     };
@@ -27,7 +27,7 @@ const rowToken = sql`
     id,
     validation_id,
     assignee_id,
-    state,
+    decision,
     comments,
     ${tracked.selectToken}
 `;
@@ -35,13 +35,13 @@ const rowToken = sql`
 export interface PartApprovalDaoInput {
     validationId: Id;
     assigneeId: Id;
-    state?: ApprovalState;
+    decision?: ApprovalDecision;
     comments?: string;
     userId: Id;
 }
 
 export interface PartApprovalUpdateDaoInput {
-    state: ApprovalState;
+    decision: ApprovalDecision;
     comments?: string;
     userId: Id;
 }
@@ -56,20 +56,20 @@ export class PartApprovalDao extends DaoRowMap<PartApproval, Row> {
     }
     async create(
         db: Db,
-        { validationId, assigneeId, state, comments, userId }: PartApprovalDaoInput
+        { validationId, assigneeId, decision, comments, userId }: PartApprovalDaoInput
     ): Promise<PartApproval> {
         const row: Row = await db.one(sql`
             INSERT INTO part_approval (
                 validation_id,
                 assignee_id,
-                state,
+                decision,
                 comments,
                 ${tracked.insertListToken}
             )
             VALUES (
                 ${validationId},
                 ${assigneeId},
-                ${state ?? ApprovalState.Pending},
+                ${decision ?? ApprovalDecision.Pending},
                 ${comments ?? null},
                 ${tracked.insertValToken(userId)}
             )
@@ -89,11 +89,11 @@ export class PartApprovalDao extends DaoRowMap<PartApproval, Row> {
     async update(
         db: Db,
         id: Id,
-        { state, comments, userId }: PartApprovalUpdateDaoInput
+        { decision, comments, userId }: PartApprovalUpdateDaoInput
     ): Promise<PartApproval> {
         const row: Row = await db.maybeOne(sql`
             UPDATE part_approval SET
-                state = ${state},
+                decision = ${decision},
                 comments = ${comments ?? null},
                 ${tracked.updateAssignmentsToken(userId)}
             WHERE id = ${id}

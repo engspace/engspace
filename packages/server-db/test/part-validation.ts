@@ -1,4 +1,4 @@
-import { ApprovalState } from '@engspace/core';
+import { ApprovalDecision } from '@engspace/core';
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
 
@@ -37,7 +37,7 @@ describe('PartValidationDao', function() {
             expect(val.id).to.be.uuid();
             expect(val).to.deep.include({
                 partRev: { id: partRev.id },
-                state: ApprovalState.Approved,
+                state: ApprovalDecision.Approved,
                 result: null,
                 comments: null,
             });
@@ -56,77 +56,77 @@ describe('PartValidationDao', function() {
         it('should be rejected if one is rejected', async function() {
             const val = await pool.transaction(async db => {
                 await th.createPartApproval(db, partVal, users.a, users.b, {
-                    state: ApprovalState.Approved,
+                    decision: ApprovalDecision.Approved,
                 });
                 await th.createPartApproval(db, partVal, users.a, users.c, {
-                    state: ApprovalState.Rejected,
+                    decision: ApprovalDecision.Rejected,
                 });
                 await th.createPartApproval(db, partVal, users.a, users.d, {
-                    state: ApprovalState.Reserved,
+                    decision: ApprovalDecision.Reserved,
                 });
                 await th.createPartApproval(db, partVal, users.a, users.e, {
-                    state: ApprovalState.Pending,
+                    decision: ApprovalDecision.Pending,
                 });
                 return dao.partValidation.byId(db, partVal.id);
             });
-            expect(val.state).to.eql(ApprovalState.Rejected);
+            expect(val.state).to.eql(ApprovalDecision.Rejected);
         });
 
         it('should be pending if one is pending', async function() {
             const val = await pool.transaction(async db => {
                 await th.createPartApproval(db, partVal, users.a, users.b, {
-                    state: ApprovalState.Approved,
+                    decision: ApprovalDecision.Approved,
                 });
                 await th.createPartApproval(db, partVal, users.a, users.c, {
-                    state: ApprovalState.Approved,
+                    decision: ApprovalDecision.Approved,
                 });
                 await th.createPartApproval(db, partVal, users.a, users.d, {
-                    state: ApprovalState.Reserved,
+                    decision: ApprovalDecision.Reserved,
                 });
                 await th.createPartApproval(db, partVal, users.a, users.e, {
-                    state: ApprovalState.Pending,
+                    decision: ApprovalDecision.Pending,
                 });
                 return dao.partValidation.byId(db, partVal.id);
             });
-            expect(val.state).to.eql(ApprovalState.Pending);
+            expect(val.state).to.eql(ApprovalDecision.Pending);
         });
 
         it('should be reserved if one is reserved', async function() {
             const val = await pool.transaction(async db => {
                 await th.createPartApproval(db, partVal, users.a, users.b, {
-                    state: ApprovalState.Approved,
+                    decision: ApprovalDecision.Approved,
                 });
                 await th.createPartApproval(db, partVal, users.a, users.c, {
-                    state: ApprovalState.Approved,
+                    decision: ApprovalDecision.Approved,
                 });
                 await th.createPartApproval(db, partVal, users.a, users.d, {
-                    state: ApprovalState.Reserved,
+                    decision: ApprovalDecision.Reserved,
                 });
                 await th.createPartApproval(db, partVal, users.a, users.e, {
-                    state: ApprovalState.Approved,
+                    decision: ApprovalDecision.Approved,
                 });
                 return dao.partValidation.byId(db, partVal.id);
             });
-            expect(val.state).to.eql(ApprovalState.Reserved);
+            expect(val.state).to.eql(ApprovalDecision.Reserved);
         });
 
         it('should be approved if all are approved', async function() {
             const val = await pool.transaction(async db => {
                 await th.createPartApproval(db, partVal, users.a, users.b, {
-                    state: ApprovalState.Approved,
+                    decision: ApprovalDecision.Approved,
                 });
                 await th.createPartApproval(db, partVal, users.a, users.c, {
-                    state: ApprovalState.Approved,
+                    decision: ApprovalDecision.Approved,
                 });
                 await th.createPartApproval(db, partVal, users.a, users.d, {
-                    state: ApprovalState.Approved,
+                    decision: ApprovalDecision.Approved,
                 });
                 await th.createPartApproval(db, partVal, users.a, users.e, {
-                    state: ApprovalState.Approved,
+                    decision: ApprovalDecision.Approved,
                 });
                 return dao.partValidation.byId(db, partVal.id);
             });
-            expect(val.state).to.eql(ApprovalState.Approved);
+            expect(val.state).to.eql(ApprovalDecision.Approved);
         });
     });
 });

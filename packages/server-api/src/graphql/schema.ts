@@ -11,7 +11,7 @@ export const typeDefs = gql`
         CANCELLED
     }
 
-    enum ApprovalState {
+    enum ApprovalDecision {
         PENDING
         REJECTED
         RESERVED
@@ -152,7 +152,7 @@ export const typeDefs = gql`
     An input that sets the approval decision
     """
     input PartApprovalUpdateInput {
-        decision: ApprovalState!
+        decision: ApprovalDecision!
         comments: String
     }
 
@@ -193,7 +193,7 @@ export const typeDefs = gql`
     type PartValidation implements Tracked {
         id: ID!
         partRev: PartRevision!
-        state: ApprovalState!
+        state: ApprovalDecision!
         approvals: [PartApproval!]!
         result: ValidationResult
         comments: String
@@ -207,7 +207,7 @@ export const typeDefs = gql`
         id: ID!
         validation: PartValidation!
         assignee: User!
-        state: ApprovalState!
+        decision: ApprovalDecision!
         comments: String
         createdBy: User!
         createdAt: DateTime!

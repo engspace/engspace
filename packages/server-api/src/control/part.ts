@@ -13,7 +13,7 @@ import {
     PartUpdateInput,
     PartValidation,
     PartValidationInput,
-    ApprovalState,
+    ApprovalDecision,
 } from '@engspace/core';
 import { DaoSet } from '@engspace/server-db';
 import { ApiContext } from '.';
@@ -138,7 +138,7 @@ export class PartControl {
                 this.dao.partApproval.create(ctx.db, {
                     validationId: val.id,
                     assigneeId,
-                    state: ApprovalState.Pending,
+                    decision: ApprovalDecision.Pending,
                     userId,
                 })
             )
@@ -147,7 +147,7 @@ export class PartControl {
         return {
             ...val,
             approvals,
-            state: approvals.length > 0 ? ApprovalState.Pending : ApprovalState.Approved,
+            state: approvals.length > 0 ? ApprovalDecision.Pending : ApprovalDecision.Approved,
         };
     }
 
@@ -162,7 +162,7 @@ export class PartControl {
             throw new ForbiddenError("Cannot update someone else's approval");
         }
         return this.dao.partApproval.update(db, approvalId, {
-            state: decision,
+            decision: decision,
             comments,
             userId,
         });

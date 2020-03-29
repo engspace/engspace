@@ -31,7 +31,7 @@ export enum CycleState {
     Cancelled = 'CANCELLED',
 }
 
-export enum ApprovalState {
+export enum ApprovalDecision {
     Pending = 'PENDING',
     Rejected = 'REJECTED',
     Reserved = 'RESERVED',
@@ -155,7 +155,7 @@ export interface PartValidationInput {
 }
 
 export interface PartApprovalUpdateInput {
-    decision: ApprovalState;
+    decision: ApprovalDecision;
     comments?: string;
 }
 
@@ -163,14 +163,14 @@ export interface PartApproval extends Tracked {
     id: Id;
     validation: IdOr<PartValidation>;
     assignee: IdOr<User>;
-    state: ApprovalState;
+    decision: ApprovalDecision;
     comments?: string;
 }
 
 export interface PartValidation extends Tracked {
     id: Id;
     partRev: IdOr<PartRevision>;
-    state: ApprovalState;
+    state: ApprovalDecision;
     approvals?: PartApproval[];
     result?: ValidationResult;
     comments?: string;
