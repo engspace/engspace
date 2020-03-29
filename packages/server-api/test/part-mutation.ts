@@ -344,8 +344,9 @@ describe('GraphQL Part - Mutations', function() {
                 part = await th.createPart(db, partBase, users.a, 'P001.01', {
                     designation: 'SOME EXISTING PART',
                 });
-                partRev = await th.createPartRev(db, part, users.a);
+                const pr = await th.createPartRev(db, part, users.a);
                 await dao.partFamily.bumpCounterById(db, family.id);
+                partRev = await dao.partRevision.updateCycleState(db, pr.id, CycleState.Release);
             });
         });
         this.afterEach(th.cleanTables(['part_revision', 'part', 'part_base']));
@@ -448,6 +449,27 @@ describe('GraphQL Part - Mutations', function() {
             expect(errors).to.be.not.empty;
             expect(errors[0].message).to.contain('part.create');
 
+            expect(data).to.be.null;
+        });
+
+        it('should not revise a part if previous is edition', async function() {
+            await pool.transaction(async db => {
+                return dao.partRevision.updateCycleState(db, partRev.id, CycleState.Edition);
+            });
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PART_REVISE,
+                    variables: {
+                        input: { partId: part.id },
+                    },
+                });
+            });
+            expect(errors).to.not.be.empty;
+            expect(errors[0].message.toLowerCase()).to.contain('edition');
             expect(data).to.be.null;
         });
     });

@@ -17,6 +17,7 @@ import {
 import { DaoSet } from '@engspace/server-db';
 import { ApiContext } from '.';
 import { assertUserPerm } from './helpers';
+import { UserInputError } from 'apollo-server-koa';
 
 export class PartControl {
     constructor(private dao: DaoSet) {}
@@ -85,6 +86,11 @@ export class PartControl {
         { partId, designation }: PartRevisionInput
     ): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.create');
+
+        const last = await this.dao.partRevision.lastByPartId(ctx.db, partId);
+        if (last && last.cycleState === CycleState.Edition) {
+            throw new UserInputError('Cannot revise a part that is in edition mode!');
+        }
 
         let des = designation;
         if (!des) {
