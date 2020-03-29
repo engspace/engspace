@@ -1,5 +1,5 @@
 import { AppRolePolicies, AuthToken } from '@engspace/core';
-import { Db, DbPool } from '@engspace/server-db';
+import { DaoSet, Db, DbPool } from '@engspace/server-db';
 import cors from '@koa/cors';
 import Router from '@koa/router';
 import { ApolloLogExtension } from 'apollo-log';
@@ -7,6 +7,7 @@ import { ApolloServer } from 'apollo-server-koa';
 import HttpStatus from 'http-status-codes';
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
+import { ApiContext, buildControllerSet, ControllerSet } from './control';
 import { verifyJwt } from './crypto';
 import { GqlContext, gqlContextFactory } from './graphql/context';
 import { makeLoaders } from './graphql/loaders';
@@ -18,14 +19,15 @@ import { setupFirstAdminRoutes } from './http/first-admin';
 import { setupLoginRoute } from './http/login';
 import { attachDb, authJwtSecret, setAuthToken } from './internal';
 import { AppRefNaming } from './ref-naming';
-import { ControllerSet, ApiContext } from './control';
 
 export { AppRefNaming, PartBaseRefNaming, PartRefNaming } from './ref-naming';
+export { ControllerSet, buildControllerSet };
 
 export interface EsServerConfig {
     rolePolicies: AppRolePolicies;
     storePath: string;
     pool: DbPool;
+    dao: DaoSet;
     control: ControllerSet;
     cors: boolean;
     refNaming: AppRefNaming;

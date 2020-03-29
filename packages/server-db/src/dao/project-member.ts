@@ -19,7 +19,14 @@ function mapRow(row: Row): ProjectMember {
 
 const rowToken = sql`id, project_id, user_id`;
 
-class MemberDao extends DaoRowMap<ProjectMember, Row> {
+export class ProjectMemberDao extends DaoRowMap<ProjectMember, Row> {
+    constructor() {
+        super({
+            rowToken,
+            mapRow,
+            table: 'project_member',
+        });
+    }
     /**
      * Add a single member to the database.
      *
@@ -165,9 +172,3 @@ async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
     `);
     return inserted as string[];
 }
-
-export const memberDao = new MemberDao({
-    table: 'project_member',
-    rowToken,
-    mapRow,
-});

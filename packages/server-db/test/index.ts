@@ -5,6 +5,7 @@ import chaiUuid from 'chai-uuid';
 import events from 'events';
 import _ from 'lodash';
 import {
+    buildDaoSet,
     connectionString,
     createDbPool,
     DbConnConfig,
@@ -15,6 +16,7 @@ import {
     prepareDb,
     ServerConnConfig,
 } from '../src';
+import { TestHelpers } from '../src/test-helpers';
 
 chai.use(chaiShallowDeepEqual);
 chai.use(chaiUuid);
@@ -64,6 +66,8 @@ const dbPoolConfig: DbPoolConfig = {
 };
 
 export const pool: DbPool = createDbPool(dbPoolConfig);
+export const dao = buildDaoSet();
+export const th = new TestHelpers(dao);
 
 before('db setup', async function() {
     this.timeout(5000);

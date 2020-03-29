@@ -29,7 +29,14 @@ const rowToken = sql`
         EXTRACT(EPOCH FROM created_at) AS created_at, checkout
     `;
 
-class DocumentDao extends DaoRowMap<Document, Row> {
+export class DocumentDao extends DaoRowMap<Document, Row> {
+    constructor() {
+        super({
+            rowToken,
+            mapRow,
+            table: 'document',
+        });
+    }
     async create(db: Db, document: DocumentInput, userId: Id): Promise<Document> {
         const { name, description, initialCheckout } = document;
         const row: Row = await db.one(sql`
@@ -98,9 +105,3 @@ class DocumentDao extends DaoRowMap<Document, Row> {
         return mapRow(row);
     }
 }
-
-export const documentDao = new DocumentDao({
-    table: 'document',
-    rowToken,
-    mapRow,
-});

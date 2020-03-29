@@ -1,25 +1,23 @@
 import { expect } from 'chai';
-import { pool } from '.';
-import { documentDao, projectDao } from '../src';
-import { cleanTable, transacUsersAB } from '../src/test-helpers';
+import { dao, pool, th } from '.';
 
 // fake v4 uuid
 export const wrongUuid = '01234567-89ab-4000-8fff-cdef01234567';
 
 describe('Dao Base', function() {
-    describe('DaoIdent (with projectDao)', function() {
-        afterEach('Delete projects', cleanTable(pool, 'project'));
+    describe('DaoIdent (with dao.project)', function() {
+        afterEach('Delete projects', th.cleanTable(pool, 'project'));
 
         it('should get a row by id', async function() {
             const { id } = await pool.transaction(async db => {
-                return projectDao.create(db, {
+                return dao.project.create(db, {
                     name: 'a',
                     code: 'b',
                     description: 'c',
                 });
             });
             const proj = await pool.connect(async db => {
-                return projectDao.byId(db, id);
+                return dao.project.byId(db, id);
             });
             expect(proj).to.deep.include({
                 id,
@@ -31,20 +29,20 @@ describe('Dao Base', function() {
 
         it('should get null with unknown uuid', async function() {
             const proj = await pool.connect(async db => {
-                return projectDao.byId(db, wrongUuid);
+                return dao.project.byId(db, wrongUuid);
             });
             expect(proj).to.be.null;
         });
 
         it('should get row count', async function() {
             const rc0 = await pool.connect(async db => {
-                return projectDao.rowCount(db);
+                return dao.project.rowCount(db);
             });
             const rc10 = await pool.transaction(async db => {
                 const p = [];
                 for (let i = 0; i < 10; i++) {
                     p.push(
-                        projectDao.create(db, {
+                        dao.project.create(db, {
                             code: `code${i}`,
                             name: `Proj${i}`,
                             description: `Project ${i}`,
@@ -52,7 +50,7 @@ describe('Dao Base', function() {
                     );
                 }
                 await Promise.all(p);
-                return projectDao.rowCount(db);
+                return dao.project.rowCount(db);
             });
             expect(rc0).to.equal(0);
             expect(rc10).to.equal(10);
@@ -60,33 +58,33 @@ describe('Dao Base', function() {
 
         it('should check that an id exists', async function() {
             const { id } = await pool.transaction(async db => {
-                return projectDao.create(db, {
+                return dao.project.create(db, {
                     name: 'a',
                     code: 'b',
                     description: 'c',
                 });
             });
             const has = await pool.connect(async db => {
-                return projectDao.checkId(db, id);
+                return dao.project.checkId(db, id);
             });
             expect(has).to.be.true;
         });
 
         it('should check that an id does not exist', async function() {
             const has = await pool.connect(async db => {
-                return projectDao.checkId(db, wrongUuid);
+                return dao.project.checkId(db, wrongUuid);
             });
             expect(has).to.be.false;
         });
 
         it('should return a value batch', async function() {
             const { id1, id2 } = await pool.transaction(async db => {
-                const proj1 = await projectDao.create(db, {
+                const proj1 = await dao.project.create(db, {
                     name: 'a',
                     code: 'b',
                     description: 'c',
                 });
-                const proj2 = await projectDao.create(db, {
+                const proj2 = await dao.project.create(db, {
                     name: 'd',
                     code: 'e',
                     description: 'f',
@@ -94,7 +92,7 @@ describe('Dao Base', function() {
                 return { id1: proj1.id, id2: proj2.id };
             });
             const batch = await pool.connect(async db => {
-                return projectDao.batchByIds(db, [id2, id1]);
+                return dao.project.batchByIds(db, [id2, id1]);
             });
             expect(batch).to.eql([
                 {
@@ -114,14 +112,14 @@ describe('Dao Base', function() {
 
         it('should delete by id', async function() {
             const { id } = await pool.transaction(async db => {
-                return projectDao.create(db, {
+                return dao.project.create(db, {
                     name: 'a',
                     code: 'b',
                     description: 'c',
                 });
             });
             const proj = await pool.connect(async db => {
-                return projectDao.deleteById(db, id);
+                return dao.project.deleteById(db, id);
             });
             expect(proj).to.deep.include({
                 id,
@@ -130,26 +128,26 @@ describe('Dao Base', function() {
                 description: 'c',
             });
             const has = await pool.connect(async db => {
-                return projectDao.checkId(db, id);
+                return dao.project.checkId(db, id);
             });
             expect(has).to.be.false;
         });
 
         it('should get null if deleting wrong id', async function() {
             const doc = await pool.transaction(async db => {
-                return projectDao.deleteById(db, wrongUuid);
+                return dao.project.deleteById(db, wrongUuid);
             });
             expect(doc).to.be.null;
         });
 
         it('should delete all rows', async function() {
             const { id1, id2 } = await pool.transaction(async db => {
-                const proj1 = await projectDao.create(db, {
+                const proj1 = await dao.project.create(db, {
                     name: 'a',
                     code: 'b',
                     description: 'c',
                 });
-                const proj2 = await projectDao.create(db, {
+                const proj2 = await dao.project.create(db, {
                     name: 'd',
                     code: 'e',
                     description: 'f',
@@ -157,28 +155,28 @@ describe('Dao Base', function() {
                 return { id1: proj1.id, id2: proj2.id };
             });
             const deleted = await pool.connect(async db => {
-                return projectDao.deleteAll(db);
+                return dao.project.deleteAll(db);
             });
             expect(deleted).to.equal(2);
             const has = await pool.connect(async db => {
-                return Promise.all([projectDao.checkId(db, id1), projectDao.checkId(db, id2)]);
+                return Promise.all([dao.project.checkId(db, id1), dao.project.checkId(db, id2)]);
             });
             expect(has).to.eql([false, false]);
         });
     });
 
-    describe('DaoRowMap (with documentDao)', function() {
+    describe('DaoRowMap (with dao.document)', function() {
         let users;
         before('create users', async function() {
-            users = await transacUsersAB(pool);
+            users = await th.transacUsersAB(pool);
         });
-        after('delete users', cleanTable(pool, 'user'));
+        after('delete users', th.cleanTable(pool, 'user'));
 
-        afterEach('delete documents', cleanTable(pool, 'document'));
+        afterEach('delete documents', th.cleanTable(pool, 'document'));
 
         it('should get a row by id', async function() {
             const { id } = await pool.transaction(async db => {
-                return documentDao.create(
+                return dao.document.create(
                     db,
                     {
                         name: 'a',
@@ -189,7 +187,7 @@ describe('Dao Base', function() {
                 );
             });
             const doc = await pool.connect(async db => {
-                return documentDao.byId(db, id);
+                return dao.document.byId(db, id);
             });
             expect(doc).to.deep.include({
                 id,
@@ -202,20 +200,20 @@ describe('Dao Base', function() {
 
         it('should get null if unknown id', async function() {
             const doc = await pool.connect(async db => {
-                return documentDao.byId(db, wrongUuid);
+                return dao.document.byId(db, wrongUuid);
             });
             expect(doc).to.be.null;
         });
 
         it('should get row count', async function() {
             const rc0 = await pool.connect(async db => {
-                return documentDao.rowCount(db);
+                return dao.document.rowCount(db);
             });
             const rc10 = await pool.transaction(async db => {
                 const p = [];
                 for (let i = 0; i < 10; i++) {
                     p.push(
-                        documentDao.create(
+                        dao.document.create(
                             db,
                             {
                                 name: `doc${i}`,
@@ -227,7 +225,7 @@ describe('Dao Base', function() {
                     );
                 }
                 await Promise.all(p);
-                return documentDao.rowCount(db);
+                return dao.document.rowCount(db);
             });
             expect(rc0).to.equal(0);
             expect(rc10).to.equal(10);
@@ -235,7 +233,7 @@ describe('Dao Base', function() {
 
         it('should check that a row exists', async function() {
             const { id } = await pool.transaction(async db => {
-                return documentDao.create(
+                return dao.document.create(
                     db,
                     {
                         name: 'a',
@@ -246,21 +244,21 @@ describe('Dao Base', function() {
                 );
             });
             const has = await pool.connect(async db => {
-                return documentDao.checkId(db, id);
+                return dao.document.checkId(db, id);
             });
             expect(has).to.be.true;
         });
 
         it('should check that a row does not exist', async function() {
             const has = await pool.connect(async db => {
-                return documentDao.checkId(db, wrongUuid);
+                return dao.document.checkId(db, wrongUuid);
             });
             expect(has).to.be.false;
         });
 
         it('should batch rows by ids', async function() {
             const { id1, id2 } = await pool.transaction(async db => {
-                const doc1 = await documentDao.create(
+                const doc1 = await dao.document.create(
                     db,
                     {
                         name: 'a',
@@ -269,7 +267,7 @@ describe('Dao Base', function() {
                     },
                     users.a.id
                 );
-                const doc2 = await documentDao.create(
+                const doc2 = await dao.document.create(
                     db,
                     {
                         name: 'c',
@@ -281,7 +279,7 @@ describe('Dao Base', function() {
                 return { id1: doc1.id, id2: doc2.id };
             });
             const docs = await pool.connect(async db => {
-                return documentDao.batchByIds(db, [id2, id1]);
+                return dao.document.batchByIds(db, [id2, id1]);
             });
             expect(docs)
                 .to.be.an('array')
@@ -304,7 +302,7 @@ describe('Dao Base', function() {
 
         it('should delete a row by id', async function() {
             const { id } = await pool.transaction(async db => {
-                return documentDao.create(
+                return dao.document.create(
                     db,
                     {
                         name: 'a',
@@ -315,7 +313,7 @@ describe('Dao Base', function() {
                 );
             });
             const deleted = await pool.transaction(async db => {
-                return documentDao.deleteById(db, id);
+                return dao.document.deleteById(db, id);
             });
             expect(deleted).to.deep.include({
                 id,
@@ -325,21 +323,21 @@ describe('Dao Base', function() {
                 checkout: null,
             });
             const has = await pool.connect(async db => {
-                return documentDao.checkId(db, id);
+                return dao.document.checkId(db, id);
             });
             expect(has).to.be.false;
         });
 
         it('should get null if deleting wrong id', async function() {
             const doc = await pool.transaction(async db => {
-                return documentDao.deleteById(db, wrongUuid);
+                return dao.document.deleteById(db, wrongUuid);
             });
             expect(doc).to.be.null;
         });
 
         it('should delete all rows', async function() {
             const { id1, id2 } = await pool.transaction(async db => {
-                const doc1 = await documentDao.create(
+                const doc1 = await dao.document.create(
                     db,
                     {
                         name: 'a',
@@ -348,7 +346,7 @@ describe('Dao Base', function() {
                     },
                     users.a.id
                 );
-                const doc2 = await documentDao.create(
+                const doc2 = await dao.document.create(
                     db,
                     {
                         name: 'c',
@@ -360,11 +358,11 @@ describe('Dao Base', function() {
                 return { id1: doc1.id, id2: doc2.id };
             });
             const deleted = await pool.transaction(async db => {
-                return documentDao.deleteAll(db);
+                return dao.document.deleteAll(db);
             });
             expect(deleted).to.equal(2);
             const has = await pool.connect(async db => {
-                return Promise.all([documentDao.checkId(db, id1), documentDao.checkId(db, id2)]);
+                return Promise.all([dao.document.checkId(db, id1), dao.document.checkId(db, id2)]);
             });
             expect(has).to.eql([false, false]);
         });

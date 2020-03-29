@@ -1,5 +1,4 @@
 import { AuthToken } from '@engspace/core';
-import { loginDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import { ApolloServer } from 'apollo-server-koa';
 import fs from 'fs';
@@ -19,7 +18,7 @@ export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServe
     app.keys = esConfig.sessionKeys;
     app.use(session(app));
 
-    const { rolePolicies, pool } = esConfig;
+    const { rolePolicies, pool, dao } = esConfig;
 
     const router = new Router({ prefix });
 
@@ -47,7 +46,7 @@ export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServe
         );
 
         const user = await pool.connect(async db => {
-            return loginDao.login(db, username, password);
+            return dao.login.login(db, username, password);
         });
         if (user) {
             const perms = rolePolicies.user.permissions(user.roles);

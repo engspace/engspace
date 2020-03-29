@@ -1,8 +1,6 @@
-import { documentDao } from '@engspace/server-db';
-import { cleanTable, createDoc, transacUsers } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool } from '.';
+import { buildGqlServer, dao, pool, th } from '.';
 import { permsAuth } from './auth';
 
 const DOC_FIELDS = gql`
@@ -71,7 +69,7 @@ const DOC_DISCARD_CHECKOUT = gql`
 describe('GraphQL documents', function() {
     let users;
     before('Create users', async function() {
-        users = await transacUsers(pool, {
+        users = await th.transacUsers(pool, {
             a: { name: 'a' },
             b: { name: 'b' },
             c: { name: 'c' },
@@ -79,33 +77,33 @@ describe('GraphQL documents', function() {
         });
     });
 
-    after('Delete users', cleanTable(pool, 'user'));
+    after('Delete users', th.cleanTable(pool, 'user'));
 
     describe('Query', function() {
         let docs;
         before('Create documents', async function() {
             docs = await pool.transaction(async db => {
                 return {
-                    a: await createDoc(db, users.a, {
+                    a: await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
                     }),
-                    b: await createDoc(db, users.b, {
+                    b: await th.createDoc(db, users.b, {
                         name: 'b',
                         description: 'doc B',
                     }),
-                    c: await createDoc(db, users.c, {
+                    c: await th.createDoc(db, users.c, {
                         name: 'c',
                         description: 'doc C',
                     }),
-                    d: await createDoc(db, users.d, {
+                    d: await th.createDoc(db, users.d, {
                         name: 'd',
                         description: 'doc D',
                     }),
                 };
             });
         });
-        after('Delete documents', cleanTable(pool, 'document'));
+        after('Delete documents', th.cleanTable(pool, 'document'));
 
         it('should read a document with "document.read"', async function() {
             const { errors, data } = await pool.connect(async db => {
@@ -200,7 +198,7 @@ describe('GraphQL documents', function() {
         const msBefore = Date.now();
 
         afterEach('Delete documents', async function() {
-            await pool.transaction(async db => documentDao.deleteAll(db));
+            await pool.transaction(async db => dao.document.deleteAll(db));
         });
 
         describe('Create', function() {
@@ -290,7 +288,7 @@ describe('GraphQL documents', function() {
         describe('Checkout', function() {
             it('should checkout a free document with "document.revise"', async function() {
                 const { errors, data } = await pool.transaction(async db => {
-                    const doc = await createDoc(db, users.a, {
+                    const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
                         initialCheckout: false,
@@ -318,7 +316,7 @@ describe('GraphQL documents', function() {
             });
             it('should not checkout a free document without "document.revise"', async function() {
                 const { errors, data } = await pool.transaction(async db => {
-                    const doc = await createDoc(db, users.a, {
+                    const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
                         initialCheckout: false,
@@ -340,7 +338,7 @@ describe('GraphQL documents', function() {
             });
             it('should not checkout a busy document', async function() {
                 const { errors, data } = await pool.transaction(async db => {
-                    const doc = await createDoc(db, users.a, {
+                    const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
                         initialCheckout: true,
@@ -363,7 +361,7 @@ describe('GraphQL documents', function() {
             });
             it('should not checkout with wrong revision', async function() {
                 const { errors, data } = await pool.transaction(async db => {
-                    const doc = await createDoc(db, users.a, {
+                    const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
                         initialCheckout: false,
@@ -388,7 +386,7 @@ describe('GraphQL documents', function() {
         describe('Discard checkout', function() {
             it('should discard a used document with "document.revise"', async function() {
                 const { errors, data } = await pool.transaction(async db => {
-                    const doc = await createDoc(db, users.a, {
+                    const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
                         initialCheckout: true,
@@ -416,7 +414,7 @@ describe('GraphQL documents', function() {
 
             it('should not discard a used document without "document.revise"', async function() {
                 const { errors, data } = await pool.transaction(async db => {
-                    const doc = await createDoc(db, users.a, {
+                    const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
                         initialCheckout: true,
@@ -438,7 +436,7 @@ describe('GraphQL documents', function() {
 
             it('should not discard a document used by another user', async function() {
                 const { errors, data } = await pool.transaction(async db => {
-                    const doc = await createDoc(db, users.a, {
+                    const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
                         initialCheckout: true,

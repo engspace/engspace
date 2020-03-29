@@ -10,21 +10,26 @@ import { createInterceptors } from 'slonik-interceptor-preset';
 import { raw } from 'slonik-sql-tag-raw';
 
 export {
-    documentDao,
-    documentRevisionDao,
-    loginDao,
-    memberDao,
-    partApprovalDao,
-    partBaseDao,
+    buildDaoSet,
+    DaoSet,
+    DocumentDao,
+    DocumentRevisionDao,
+    LoginDao,
+    PartApprovalDao,
+    PartApprovalDaoInput,
+    PartApprovalUpdateDaoInput,
+    PartBaseDao,
     PartBaseDaoInput,
-    partDao,
+    PartDao,
     PartDaoInput,
-    partFamilyDao,
-    partRevisionDao,
+    PartFamilyDao,
+    PartRevisionDao,
     PartRevisionDaoInput,
-    partValidationDao,
-    projectDao,
-    userDao,
+    PartValidationDao,
+    PartValidationDaoInput,
+    ProjectDao,
+    ProjectMemberDao,
+    UserDao,
 } from './dao';
 export { initSchema } from './schema';
 

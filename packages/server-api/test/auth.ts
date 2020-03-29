@@ -1,6 +1,6 @@
 import { AuthToken, HasId, User, UserInput } from '@engspace/core';
-import { Db, userDao } from '@engspace/server-db';
-import { rolePolicies } from '.';
+import { Db } from '@engspace/server-db';
+import { dao, rolePolicies } from '.';
 import { signJwt } from '../src/crypto';
 import { authJwtSecret } from '../src/internal';
 
@@ -19,7 +19,7 @@ export function permsAuth(user: HasId, userPerms: string[]): AuthToken {
 }
 
 export async function createAuth(db: Db, userInput: UserInput): Promise<AuthToken> {
-    const user = await userDao.create(db, userInput);
+    const user = await dao.user.create(db, userInput);
     return auth(user);
 }
 

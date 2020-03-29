@@ -32,7 +32,14 @@ const rowToken = sql`
     id, base_id, ref, designation, ${tracked.selectToken}
 `;
 
-class PartDao extends DaoRowMap<Part, Row> {
+export class PartDao extends DaoRowMap<Part, Row> {
+    constructor() {
+        super({
+            rowToken,
+            mapRow,
+            table: 'part',
+        });
+    }
     async create(db: Db, { baseId, ref, designation, userId }: PartDaoInput): Promise<Part> {
         const row: Row = await db.one(sql`
             INSERT INTO part (
@@ -57,9 +64,3 @@ class PartDao extends DaoRowMap<Part, Row> {
         return row ? mapRow(row) : null;
     }
 }
-
-export const partDao = new PartDao({
-    table: 'part',
-    rowToken,
-    mapRow,
-});

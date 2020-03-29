@@ -1,12 +1,6 @@
-import { partFamilyDao } from '@engspace/server-db';
-import {
-    cleanTable,
-    createPartFamilies,
-    transacUsersAB,
-} from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool } from '.';
+import { buildGqlServer, dao, pool, th } from '.';
 import { permsAuth } from './auth';
 
 const PARTFAM_FIELDS = gql`
@@ -47,15 +41,15 @@ const PARTFAM_UPDATE = gql`
 describe('GraphQL PartFamily', function() {
     let users;
     before('Create users', async function() {
-        users = await transacUsersAB(pool);
+        users = await th.transacUsersAB(pool);
     });
-    after('Delete users', cleanTable(pool, 'user'));
+    after('Delete users', th.cleanTable(pool, 'user'));
 
     describe('Query', function() {
         let families;
         before('Create part families', async function() {
             families = await pool.transaction(async db => {
-                return createPartFamilies(db, {
+                return th.createPartFamilies(db, {
                     fam1: {
                         name: 'family 1',
                         code: '1',
@@ -72,7 +66,7 @@ describe('GraphQL PartFamily', function() {
             });
         });
         after('Delete part families', async function() {
-            await pool.transaction(async db => partFamilyDao.deleteAll(db));
+            await pool.transaction(async db => dao.partFamily.deleteAll(db));
         });
 
         it('should read part families', async function() {
@@ -111,7 +105,7 @@ describe('GraphQL PartFamily', function() {
 
     describe('Mutate', function() {
         afterEach('Delete part families', async function() {
-            await pool.transaction(async db => partFamilyDao.deleteAll(db));
+            await pool.transaction(async db => dao.partFamily.deleteAll(db));
         });
 
         it('should create part family', async function() {
@@ -158,7 +152,7 @@ describe('GraphQL PartFamily', function() {
 
         it('should update part family', async function() {
             const fam = await pool.transaction(async db => {
-                return partFamilyDao.create(db, {
+                return dao.partFamily.create(db, {
                     name: 'pf',
                     code: '111',
                 });
@@ -189,7 +183,7 @@ describe('GraphQL PartFamily', function() {
 
         it('should not update part family without "partfamily.update"', async function() {
             const fam = await pool.transaction(async db => {
-                return partFamilyDao.create(db, {
+                return dao.partFamily.create(db, {
                     name: 'pf',
                     code: '111',
                 });

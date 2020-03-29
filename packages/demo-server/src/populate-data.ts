@@ -16,26 +16,17 @@ import {
     prepareStore,
     prepareUsers,
 } from '@engspace/demo-data-input';
-import {
-    Db,
-    DbPool,
-    documentDao,
-    documentRevisionDao,
-    loginDao,
-    memberDao,
-    partFamilyDao,
-    projectDao,
-    userDao,
-} from '@engspace/server-db';
+import { Db, DbPool } from '@engspace/server-db';
+import { dao } from '.';
 
 export async function createDemoUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
-    return asyncKeyMap(users, async u => userDao.create(db, u));
+    return asyncKeyMap(users, async u => dao.user.create(db, u));
 }
 
 export async function createDemoLogins(db: Db, users: Promise<DemoUserSet>): Promise<void> {
     const usrs = await users;
     for (const name in usrs) {
-        await loginDao.create(db, usrs[name].id, name);
+        await dao.login.create(db, usrs[name].id, name);
     }
 }
 
@@ -43,7 +34,7 @@ export async function createDemoProjects(
     db: Db,
     projs: DemoProjectInputSet
 ): Promise<DemoProjectSet> {
-    return asyncKeyMap(projs, async p => projectDao.create(db, p));
+    return asyncKeyMap(projs, async p => dao.project.create(db, p));
 }
 
 export async function createDemoMembers(
@@ -54,7 +45,7 @@ export async function createDemoMembers(
     const [projs, usrs] = await Promise.all([projects, users]);
     return Promise.all(
         membersInput.map(m =>
-            memberDao.create(db, {
+            dao.projectMember.create(db, {
                 projectId: projs[m.project].id,
                 userId: usrs[m.user].id,
                 roles: m.roles,
@@ -67,7 +58,7 @@ export async function createDemoPartFamilies(
     db: Db,
     input: DemoPartFamilyInputSet
 ): Promise<DemoPartFamilySet> {
-    return asyncKeyMap(input, async pf => partFamilyDao.create(db, pf));
+    return asyncKeyMap(input, async pf => dao.partFamily.create(db, pf));
 }
 
 async function createDocument(
@@ -82,10 +73,10 @@ async function createDocument(
         initialCheckout: true,
     };
     const usrs = await users;
-    const doc = await documentDao.create(db, docInput, usrs[creator].id);
+    const doc = await dao.document.create(db, docInput, usrs[creator].id);
     const { input, sha1 } = await prepareRevision(Promise.resolve(doc), filepath, storePath);
-    const rev = await documentRevisionDao.create(db, input, usrs[creator].id);
-    await documentRevisionDao.updateSha1(db, rev.id, sha1);
+    const rev = await dao.documentRevision.create(db, input, usrs[creator].id);
+    await dao.documentRevision.updateSha1(db, rev.id, sha1);
     doc.revisions = [rev];
     doc.lastRevision = rev;
     return doc;

@@ -1,12 +1,6 @@
-import {
-    cleanTable,
-    transacProject,
-    transacProjects,
-    transacUsersAB,
-} from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool } from '.';
+import { buildGqlServer, pool, th } from '.';
 import { permsAuth } from './auth';
 
 export const PROJECT_FIELDS = gql`
@@ -70,19 +64,19 @@ describe('GraphQL Project', () => {
     let users;
 
     before('Create users', async () => {
-        users = await transacUsersAB(pool);
+        users = await th.transacUsersAB(pool);
     });
 
-    after(cleanTable(pool, 'user'));
+    after(th.cleanTable(pool, 'user'));
 
     describe('Query', function() {
         let projects;
 
         before('Create projects', async () => {
-            projects = await transacProjects(pool, { a: { code: 'a' }, b: { code: 'b' } });
+            projects = await th.transacProjects(pool, { a: { code: 'a' }, b: { code: 'b' } });
         });
 
-        after(cleanTable(pool, 'project'));
+        after(th.cleanTable(pool, 'project'));
 
         it('should read project with "project.read"', async () => {
             const result = await pool.connect(async db => {
@@ -187,7 +181,7 @@ describe('GraphQL Project', () => {
 
     describe('Mutation', () => {
         describe('Create', () => {
-            afterEach(cleanTable(pool, 'project'));
+            afterEach(th.cleanTable(pool, 'project'));
 
             const input = {
                 code: 'a',
@@ -231,14 +225,14 @@ describe('GraphQL Project', () => {
             let moon;
 
             beforeEach('Create projects', async () => {
-                moon = await transacProject(pool, {
+                moon = await th.transacProject(pool, {
                     code: 'moon',
                     name: 'Moon',
                     description: 'Man on Moon',
                 });
             });
 
-            afterEach(cleanTable(pool, 'project'));
+            afterEach(th.cleanTable(pool, 'project'));
 
             const mars = {
                 code: 'mars',

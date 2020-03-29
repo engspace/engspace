@@ -10,6 +10,7 @@ import {
     initSchema,
     prepareDb,
     ServerConnConfig,
+    buildDaoSet,
 } from '@engspace/server-db';
 import { ApolloServerTestClient, createTestClient } from 'apollo-server-testing';
 import chai from 'chai';
@@ -23,6 +24,7 @@ import path from 'path';
 import { EsServerApi } from '../src';
 import { PartBaseRefNaming, PartRefNaming } from '../src/ref-naming';
 import { buildControllerSet } from '../src/control';
+import { TestHelpers } from '@engspace/server-db/dist/test-helpers';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -67,13 +69,17 @@ const dbPoolConfig: DbPoolConfig = {
 
 export const pool: DbPool = createDbPool(dbPoolConfig);
 export const rolePolicies: AppRolePolicies = buildDefaultAppRolePolicies();
-const control = buildControllerSet();
+export const dao = buildDaoSet();
+const control = buildControllerSet(dao);
+
+export const th = new TestHelpers(dao);
 
 export const api = new EsServerApi(new Koa(), {
     pool,
     rolePolicies,
     storePath: config.storePath,
     control,
+    dao,
     cors: true,
     refNaming: {
         partBase: new PartBaseRefNaming('${fam_code}${fam_count:3}'),

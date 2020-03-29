@@ -1,5 +1,4 @@
 import { Id } from '@engspace/core';
-import { documentRevisionDao, userDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import crypto from 'crypto';
 import fs from 'fs';
@@ -19,7 +18,7 @@ interface DownloadToken {
 }
 
 export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): void {
-    const { pool, control } = config;
+    const { pool, control, dao } = config;
     router.post('/document/upload', async ctx => {
         const { rev_id: revId } = ctx.request.query;
         const {
@@ -45,7 +44,7 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
         }
         await pool.connect(async db => {
             ctx.assert(
-                await documentRevisionDao.checkId(db, revId),
+                await dao.documentRevision.checkId(db, revId),
                 HttpStatus.NOT_FOUND,
                 'Revision not found'
             );
@@ -77,7 +76,7 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
             ctx.throw(HttpStatus.BAD_REQUEST, 'wrong document or revision');
         }
         const documentRevisionId = await pool.connect(async db => {
-            return documentRevisionDao.idByDocumentIdAndRev(db, documentId, parseInt(revision));
+            return dao.documentRevision.idByDocumentIdAndRev(db, documentId, parseInt(revision));
         });
         if (!documentRevisionId) {
             ctx.throw(HttpStatus.NOT_FOUND, 'wrong document or revision number');
@@ -94,7 +93,7 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
 }
 
 export function setupPreAuthDocRoutes(router: Router, config: EsServerConfig): void {
-    const { pool, rolePolicies, control } = config;
+    const { pool, rolePolicies, control, dao } = config;
 
     router.get('/document/download', async ctx => {
         const { token } = ctx.request.query;
@@ -110,7 +109,7 @@ export function setupPreAuthDocRoutes(router: Router, config: EsServerConfig): v
             ctx.throw(HttpStatus.BAD_REQUEST);
         }
         const fd = await pool.connect(async db => {
-            const roles = await userDao.rolesById(db, userId);
+            const roles = await dao.user.rolesById(db, userId);
             const auth = {
                 userId,
                 userPerms: rolePolicies.user.permissions(roles),

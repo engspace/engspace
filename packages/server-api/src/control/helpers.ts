@@ -1,5 +1,4 @@
 import { Id } from '@engspace/core';
-import { memberDao } from '@engspace/server-db';
 import { ForbiddenError } from 'apollo-server-koa';
 import { ApiContext } from '.';
 
@@ -19,7 +18,12 @@ export async function hasProjectPerm(
     perm: string
 ): Promise<boolean> {
     const { rolePolicies } = ctx.config;
-    const member = await memberDao.byProjectAndUserId(ctx.db, projectId, ctx.auth.userId, true);
+    const member = await ctx.config.dao.projectMember.byProjectAndUserId(
+        ctx.db,
+        projectId,
+        ctx.auth.userId,
+        true
+    );
     return member && rolePolicies.project.permissions(member.roles).includes(perm);
 }
 

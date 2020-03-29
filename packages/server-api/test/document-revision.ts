@@ -1,13 +1,6 @@
-import { documentRevisionDao } from '@engspace/server-db';
-import {
-    cleanTables,
-    createDoc,
-    createDocRev,
-    createUsersAB,
-} from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool } from '.';
+import { buildGqlServer, dao, pool, th } from '.';
 import { permsAuth } from './auth';
 
 const DOCREV_FIELDS = gql`
@@ -80,56 +73,56 @@ describe('GraphQL Document Revision', function() {
 
     before('Create users and document', async function() {
         await pool.transaction(async db => {
-            users = await createUsersAB(db);
-            document = await createDoc(db, users.a, {
+            users = await th.createUsersAB(db);
+            document = await th.createDoc(db, users.a, {
                 name: 'a',
                 description: 'doc A',
                 initialCheckout: true,
             });
         });
     });
-    after('Delete users and document', cleanTables(pool, ['document', 'user']));
+    after('Delete users and document', th.cleanTables(pool, ['document', 'user']));
 
     describe('Query', function() {
         let revisions;
 
         before('Create revisions', async function() {
             revisions = await pool.transaction(async db => {
-                const rev1 = await createDocRev(db, document, users.a, {
+                const rev1 = await th.createDocRev(db, document, users.a, {
                     filesize: 1000,
                     filename: 'file_v1.ext',
                     changeDescription: 'creation',
                 });
-                const rev2 = await createDocRev(db, document, users.a, {
+                const rev2 = await th.createDocRev(db, document, users.a, {
                     filesize: 2000,
                     filename: 'file_v2.ext',
                     changeDescription: 'update 1',
                 });
-                const rev3 = await createDocRev(db, document, users.a, {
+                const rev3 = await th.createDocRev(db, document, users.a, {
                     filesize: 3000,
                     filename: 'file_v3.ext',
                     changeDescription: 'update 2',
                 });
-                const rev4 = await createDocRev(db, document, users.a, {
+                const rev4 = await th.createDocRev(db, document, users.a, {
                     filesize: 4000,
                     filename: 'file_v4.ext',
                     changeDescription: 'update 3',
                 });
                 await Promise.all([
-                    documentRevisionDao.updateAddProgress(db, rev1.id, 1000),
-                    documentRevisionDao.updateAddProgress(db, rev2.id, 2000),
-                    documentRevisionDao.updateAddProgress(db, rev3.id, 3000),
-                    documentRevisionDao.updateAddProgress(db, rev4.id, 3500),
-                    documentRevisionDao.updateSha1(db, rev1.id, 'aa'.repeat(10)),
-                    documentRevisionDao.updateSha1(db, rev2.id, 'ab'.repeat(10)),
-                    documentRevisionDao.updateSha1(db, rev3.id, 'ac'.repeat(10)),
+                    dao.documentRevision.updateAddProgress(db, rev1.id, 1000),
+                    dao.documentRevision.updateAddProgress(db, rev2.id, 2000),
+                    dao.documentRevision.updateAddProgress(db, rev3.id, 3000),
+                    dao.documentRevision.updateAddProgress(db, rev4.id, 3500),
+                    dao.documentRevision.updateSha1(db, rev1.id, 'aa'.repeat(10)),
+                    dao.documentRevision.updateSha1(db, rev2.id, 'ab'.repeat(10)),
+                    dao.documentRevision.updateSha1(db, rev3.id, 'ac'.repeat(10)),
                 ]);
                 return [rev1, rev2, rev3, rev4];
             });
         });
 
         after('Delete revisions', async function() {
-            await pool.transaction(async db => documentRevisionDao.deleteAll(db));
+            await pool.transaction(async db => dao.documentRevision.deleteAll(db));
         });
 
         it('should read document revision with "document.read"', async function() {
@@ -303,7 +296,7 @@ describe('GraphQL Document Revision', function() {
     describe('Mutation', function() {
         describe('Create', function() {
             afterEach('Delete revisions', async function() {
-                await pool.transaction(async db => documentRevisionDao.deleteAll(db));
+                await pool.transaction(async db => dao.documentRevision.deleteAll(db));
             });
 
             it('should revise a document with "document.revise"', async function() {
@@ -368,7 +361,7 @@ describe('GraphQL Document Revision', function() {
 
             it('should not revise a document checked-out by someone else', async function() {
                 const { errors, data } = await pool.transaction(async db => {
-                    const doc = await createDoc(db, users.a, {
+                    const doc = await th.createDoc(db, users.a, {
                         name: 'b',
                         description: 'doc B',
                         initialCheckout: true,

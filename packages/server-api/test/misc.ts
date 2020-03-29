@@ -1,17 +1,16 @@
-import { cleanTable, transacUsersAB } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool } from '.';
+import { buildGqlServer, pool, th } from '.';
 import { signJwt, verifyJwt } from '../src/crypto';
 import { permsAuth } from './auth';
 
 describe('Miscellaneous', function() {
     let users;
     before('Create users', async function() {
-        users = await transacUsersAB(pool);
+        users = await th.transacUsersAB(pool);
     });
 
-    after('Delete users', cleanTable(pool, 'user'));
+    after('Delete users', th.cleanTable(pool, 'user'));
 
     describe('Crypto', function() {
         it('should verify a valid token', async function() {

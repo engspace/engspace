@@ -1,15 +1,14 @@
-import { loginDao, userDao } from '@engspace/server-db';
 import Router from '@koa/router';
 import HttpStatus from 'http-status-codes';
 import validator from 'validator';
 import { EsServerConfig } from '..';
 
 export function setupFirstAdminRoutes(router: Router, config: EsServerConfig): void {
-    const { pool } = config;
+    const { pool, dao } = config;
 
     router.get('/first_admin', async ctx => {
         const result = await pool.connect(db =>
-            userDao.search(db, {
+            dao.user.search(db, {
                 role: 'admin',
             })
         );
@@ -20,7 +19,7 @@ export function setupFirstAdminRoutes(router: Router, config: EsServerConfig): v
 
     router.post('/first_admin', async ctx => {
         await pool.transaction(async db => {
-            const adminSearch = await userDao.search(db, {
+            const adminSearch = await dao.user.search(db, {
                 role: 'admin',
             });
             ctx.assert(adminSearch.count === 0, HttpStatus.FORBIDDEN);
@@ -38,7 +37,7 @@ export function setupFirstAdminRoutes(router: Router, config: EsServerConfig): v
                 'missing password'
             );
 
-            ctx.response.body = await userDao.create(
+            ctx.response.body = await dao.user.create(
                 db,
                 { name, email, fullName, roles: ['admin'] },
                 { withRoles: true }

@@ -1,7 +1,7 @@
 import { Id, User, UserInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoIdent } from './base';
+import { DaoIdent, DaoIdentConfig } from './base';
 
 export interface UserSearch {
     phrase?: string;
@@ -29,7 +29,14 @@ export interface RoleOptions {
     withRoles: boolean;
 }
 
-class UserDao extends DaoIdent<User> {
+export class UserDao extends DaoIdent<User> {
+    constructor() {
+        super({
+            rowToken,
+            table: 'user',
+        });
+    }
+
     async create(
         db: Db,
         { name, email, fullName, roles }: UserInput,
@@ -165,8 +172,3 @@ class UserDao extends DaoIdent<User> {
         return [];
     }
 }
-
-export const userDao = new UserDao({
-    table: 'user',
-    rowToken,
-});

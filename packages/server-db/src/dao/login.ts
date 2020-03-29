@@ -1,7 +1,7 @@
 import { Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { userDao } from './user';
+import { UserDao } from '.';
 
 export interface LoginResult {
     id: Id;
@@ -14,16 +14,16 @@ export interface LoginResult {
  * local username+password authentication
  *
  * The password is seperated from the "user" table to
- * allow an Engspace application to have more advanced
+ * allow an Engspace applications to have more advanced
  * authentication strategy
  */
-export const loginDao = {
+export class LoginDao {
     async create(db: Db, userId: Id, password: string): Promise<void> {
         await db.query(sql`
             INSERT INTO user_login(user_id, password)
             VALUES(${userId}, crypt(${password}, gen_salt('bf')))
         `);
-    },
+    }
 
     async login(db: Db, nameOrEmail: string, password: string): Promise<LoginResult | null> {
         interface Result {
@@ -43,12 +43,15 @@ export const loginDao = {
             return {
                 id: result.id,
                 name: result.name,
-                roles: await userDao.rolesById(db, result.id),
+                roles: (await db.anyFirst(sql`
+                    SELECT role FROM user_role
+                    WHERE user_id = ${result.id}
+                `)) as string[],
             };
         } else {
             return null;
         }
-    },
+    }
 
     async checkById(db: Db, userId: Id, password: string): Promise<boolean> {
         const ok = await db.maybeOneFirst(sql`
@@ -56,7 +59,7 @@ export const loginDao = {
             FROM user_login WHERE user_id = ${userId}
         `);
         return (ok || false) as boolean;
-    },
+    }
 
     async patch(db: Db, userId: Id, password: string): Promise<void> {
         await db.query(sql`
@@ -65,17 +68,17 @@ export const loginDao = {
             WHERE
                 user_id = ${userId}
         `);
-    },
+    }
 
     async deleteById(db: Db, userId: Id): Promise<void> {
         await db.query(sql`
             DELETE FROM user_login WHERE user_id = ${userId}
         `);
-    },
+    }
 
     async deleteAll(db: Db): Promise<void> {
         await db.query(sql`
             DELETE FROM user_login
         `);
-    },
-};
+    }
+}

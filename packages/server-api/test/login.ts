@@ -1,8 +1,6 @@
-import { loginDao } from '@engspace/server-db';
-import { cleanTable, createUser } from '@engspace/server-db/dist/test-helpers';
 import { expect, request } from 'chai';
 import http from 'http';
-import { api, config, pool } from '.';
+import { api, config, dao, pool, th } from '.';
 import { verifyJwt } from '../src/crypto';
 import { authJwtSecret } from '../src/internal';
 import { auth } from './auth';
@@ -15,15 +13,15 @@ describe('Login', () => {
 
     before('Create users', async () => {
         return pool.transaction(async db => {
-            userA = await createUser(db, { name: 'a', roles: ['user'] });
-            await loginDao.create(db, userA.id, 'a');
+            userA = await th.createUser(db, { name: 'a', roles: ['user'] });
+            await dao.login.create(db, userA.id, 'a');
         });
     });
     before('Start server', done => {
         server = api.koa.listen(serverPort, done);
     });
 
-    after(cleanTable(pool, 'user'));
+    after(th.cleanTable(pool, 'user'));
 
     it('should return bearer token', async () => {
         const resp = await request(server)

@@ -1,8 +1,6 @@
-import { memberDao, projectDao } from '@engspace/server-db';
-import { cleanTable, transacProject, transacUser } from '@engspace/server-db/dist/test-helpers';
 import { expect, request } from 'chai';
 import { print } from 'graphql/language/printer';
-import { api, config, pool } from '.';
+import { api, config, dao, pool, th } from '.';
 import { signJwt } from '../src/crypto';
 import { bearerToken, permsAuth } from './auth';
 import { MEMBER_DELETE } from './member';
@@ -14,10 +12,10 @@ describe('End to end GraphQL', function() {
     let userA;
 
     before('Create users', async function() {
-        userA = await transacUser(pool, { name: 'a' });
+        userA = await th.transacUser(pool, { name: 'a' });
     });
 
-    after('Delete users', cleanTable(pool, 'user'));
+    after('Delete users', th.cleanTable(pool, 'user'));
 
     let server;
 
@@ -26,7 +24,7 @@ describe('End to end GraphQL', function() {
     });
 
     describe('General', function() {
-        afterEach(cleanTable(pool, 'project'));
+        afterEach(th.cleanTable(pool, 'project'));
 
         it('should return 404 if unmatched resource', async function() {
             const token = await bearerToken(permsAuth(userA, ['project.read']));
@@ -51,7 +49,7 @@ describe('End to end GraphQL', function() {
 
         it('GraphQL may not use PATCH and get 405', async function() {
             const proj = await pool.transaction(async db => {
-                return projectDao.create(db, {
+                return dao.project.create(db, {
                     name: 'a',
                     code: 'b',
                     description: 'c',
@@ -77,7 +75,7 @@ describe('End to end GraphQL', function() {
 
         it('GraphQL may not use PUT and get 405', async function() {
             const proj = await pool.transaction(async db => {
-                return projectDao.create(db, {
+                return dao.project.create(db, {
                     name: 'a',
                     code: 'b',
                     description: 'c',
@@ -103,12 +101,12 @@ describe('End to end GraphQL', function() {
 
         it('GraphQL may not use DELETE and get 405', async function() {
             const mem = await pool.transaction(async db => {
-                const proj = await projectDao.create(db, {
+                const proj = await dao.project.create(db, {
                     name: 'a',
                     code: 'b',
                     description: 'c',
                 });
-                return memberDao.create(db, {
+                return dao.projectMember.create(db, {
                     projectId: proj.id,
                     userId: userA.id,
                     roles: ['leader'],
@@ -134,10 +132,10 @@ describe('End to end GraphQL', function() {
         let projectA;
 
         before('Create projects', async function() {
-            projectA = await transacProject(pool, { code: 'a' });
+            projectA = await th.transacProject(pool, { code: 'a' });
         });
 
-        after(cleanTable(pool, 'project'));
+        after(th.cleanTable(pool, 'project'));
 
         it('read project values with GET', async function() {
             const token = await bearerToken(permsAuth(userA, ['project.read']));

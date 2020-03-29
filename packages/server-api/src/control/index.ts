@@ -1,5 +1,5 @@
 import { AuthToken } from '@engspace/core';
-import { Db } from '@engspace/server-db';
+import { Db, DaoSet } from '@engspace/server-db';
 import { EsServerConfig } from '..';
 import { DocumentControl, DocumentRevisionControl } from './document';
 import { PartControl } from './part';
@@ -27,13 +27,16 @@ export interface ControllerSet {
     documentRevision: DocumentRevisionControl;
 }
 
-export function buildControllerSet(custom: Partial<ControllerSet> = {}): ControllerSet {
+export function buildControllerSet(
+    dao: DaoSet,
+    custom: Partial<ControllerSet> = {}
+): ControllerSet {
     return {
-        user: custom.user ?? new UserControl(),
-        project: custom.project ?? new ProjectControl(),
-        partFamily: custom.partFamily ?? new PartFamilyControl(),
-        part: custom.part ?? new PartControl(),
-        document: custom.document ?? new DocumentControl(),
-        documentRevision: custom.documentRevision ?? new DocumentRevisionControl(),
+        user: custom.user ?? new UserControl(dao),
+        project: custom.project ?? new ProjectControl(dao),
+        partFamily: custom.partFamily ?? new PartFamilyControl(dao),
+        part: custom.part ?? new PartControl(dao),
+        document: custom.document ?? new DocumentControl(dao),
+        documentRevision: custom.documentRevision ?? new DocumentRevisionControl(dao),
     };
 }

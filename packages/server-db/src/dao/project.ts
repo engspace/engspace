@@ -13,7 +13,13 @@ export interface ProjectSearch {
 
 const rowToken = sql`id, code, name, description`;
 
-class ProjectDao extends DaoIdent<Project> {
+export class ProjectDao extends DaoIdent<Project> {
+    constructor() {
+        super({
+            rowToken,
+            table: 'project',
+        });
+    }
     async create(db: Db, proj: ProjectInput): Promise<Project> {
         const { code, name, description } = proj;
         return db.one(sql`
@@ -96,8 +102,3 @@ class ProjectDao extends DaoIdent<Project> {
         `);
     }
 }
-
-export const projectDao = new ProjectDao({
-    table: 'project',
-    rowToken,
-});

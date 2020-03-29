@@ -1,17 +1,16 @@
 import { User } from '@engspace/core';
 import { expect } from 'chai';
 import deepEqual from 'deep-equal';
-import { filterFields, pool } from '.';
-import { userDao } from '../src';
-import { cleanTable, Dict, dictMap, transacUser, transacUsers } from '../src/test-helpers';
+import { dao, filterFields, pool, th } from '.';
+import { Dict, dictMap } from '../src/test-helpers';
 
-describe('userDao', () => {
+describe('dao.user', () => {
     describe('Create', () => {
-        afterEach(cleanTable(pool, 'user'));
+        afterEach(th.cleanTable(pool, 'user'));
 
         it('should create user', async () => {
             const userA = await pool.transaction(async db => {
-                return userDao.create(db, {
+                return dao.user.create(db, {
                     name: 'user.a',
                     email: 'user.a@domain.net',
                     fullName: 'User A',
@@ -23,14 +22,14 @@ describe('userDao', () => {
                 fullName: 'User A',
             });
             const roles = await pool.connect(async db => {
-                return userDao.rolesById(db, userA.id);
+                return dao.user.rolesById(db, userA.id);
             });
             expect(roles).to.be.an('array').empty;
         });
 
         it('should create user with roles', async () => {
             const userA = await pool.transaction(async db => {
-                const u = await userDao.create(
+                const u = await dao.user.create(
                     db,
                     {
                         name: 'user.a',
@@ -51,7 +50,7 @@ describe('userDao', () => {
         });
         it('should create user without roles', async () => {
             const userA = await pool.transaction(async db => {
-                const u = await userDao.create(
+                const u = await dao.user.create(
                     db,
                     {
                         name: 'user.a',
@@ -76,53 +75,53 @@ describe('userDao', () => {
         let users: Dict<User>;
 
         before('create users', async () => {
-            users = await transacUsers(pool, {
+            users = await th.transacUsers(pool, {
                 a: { name: 'user.a', fullName: 'User A', roles: ['user'] },
                 b: { name: 'user.b', fullName: 'User B', roles: ['manager'] },
                 c: { name: 'user.c', fullName: 'User C', roles: ['admin'] },
             });
         });
-        after(cleanTable(pool, 'user'));
+        after(th.cleanTable(pool, 'user'));
 
         it('should get user by id', async () => {
-            const a = await pool.connect(async db => await userDao.byId(db, users.a.id));
+            const a = await pool.connect(async db => await dao.user.byId(db, users.a.id));
             expect(a).to.deep.include(filterFields(users.a, 'roles'));
         });
         it('should get user by id with roles', async () => {
             const a = await pool.connect(
-                async db => await userDao.byId(db, users.a.id, { withRoles: true })
+                async db => await dao.user.byId(db, users.a.id, { withRoles: true })
             );
             expect(a).to.deep.include(users.a);
         });
         it('should get user by username', async () => {
-            const c = await pool.connect(async db => await userDao.byName(db, 'user.c'));
+            const c = await pool.connect(async db => await dao.user.byName(db, 'user.c'));
             expect(c).to.deep.include(filterFields(users.c, 'roles'));
         });
         it('should get user by username with roles', async () => {
             const c = await pool.connect(
-                async db => await userDao.byName(db, 'user.c', { withRoles: true })
+                async db => await dao.user.byName(db, 'user.c', { withRoles: true })
             );
             expect(c).to.deep.include(users.c);
         });
         it('should get user by email', async () => {
             const b = await pool.connect(
-                async db => await userDao.byEmail(db, 'user.b@engspace.net')
+                async db => await dao.user.byEmail(db, 'user.b@engspace.net')
             );
             expect(b).to.deep.include(filterFields(users.b, 'roles'));
         });
         it('should get user by email with roles', async () => {
             const b = await pool.connect(
-                async db => await userDao.byEmail(db, 'user.b@engspace.net', { withRoles: true })
+                async db => await dao.user.byEmail(db, 'user.b@engspace.net', { withRoles: true })
             );
             expect(b).to.deep.include(users.b);
         });
         it('should get the roles by id', async () => {
-            const roles = await pool.connect(db => userDao.rolesById(db, users.b.id));
+            const roles = await pool.connect(db => dao.user.rolesById(db, users.b.id));
             expect(roles).to.eql(['manager']);
         });
         it('should batch get users', async () => {
             const batch = await pool.connect(db =>
-                userDao.batchByIds(db, [users.b.id, users.c.id, users.a.id])
+                dao.user.batchByIds(db, [users.b.id, users.c.id, users.a.id])
             );
             expect(batch).to.eql([
                 filterFields(users.b, 'roles'),
@@ -136,7 +135,7 @@ describe('userDao', () => {
         let users: Dict<User>;
 
         before('create users', async () => {
-            const usrs = await transacUsers(pool, {
+            const usrs = await th.transacUsers(pool, {
                 alphonse: { name: 'alphonse', fullName: 'Alphonse', roles: ['user'] },
                 philippe: { name: 'philippe', fullName: 'Philippe', roles: ['manager'] },
                 sophie: { name: 'sophie', fullName: 'Sophie', roles: ['admin'] },
@@ -144,12 +143,12 @@ describe('userDao', () => {
             });
             users = dictMap(usrs, u => filterFields(u, 'roles'));
         });
-        after(cleanTable(pool, 'user'));
+        after(th.cleanTable(pool, 'user'));
 
         it('should find users partial name', async () => {
             const result = await pool.connect(
                 async db =>
-                    await userDao.search(db, {
+                    await dao.user.search(db, {
                         phrase: 'ph',
                     })
             );
@@ -166,7 +165,7 @@ describe('userDao', () => {
         it('should find with limit and offset', async () => {
             const result = await pool.connect(
                 async db =>
-                    await userDao.search(db, {
+                    await dao.user.search(db, {
                         phrase: 'ph',
                         offset: 1,
                         limit: 1,
@@ -189,7 +188,7 @@ describe('userDao', () => {
 
         it('should find with case insensitivity', async () => {
             const result = await pool.connect(async db => {
-                return userDao.search(db, {
+                return dao.user.search(db, {
                     phrase: 'pH',
                     offset: 1,
                     limit: 1,
@@ -211,7 +210,7 @@ describe('userDao', () => {
 
         it('should find user by role', async () => {
             const result = await pool.connect(async db => {
-                return userDao.search(db, {
+                return dao.user.search(db, {
                     role: 'manager',
                 });
             });
@@ -226,17 +225,17 @@ describe('userDao', () => {
     describe('Update', function() {
         let userA;
         beforeEach('create users', async () => {
-            userA = await transacUser(pool, {
+            userA = await th.transacUser(pool, {
                 name: 'user.a',
                 fullName: 'User A',
                 roles: ['role1', 'role2'],
             });
         });
-        afterEach(cleanTable(pool, 'user'));
+        afterEach(th.cleanTable(pool, 'user'));
 
         it('should update user', async function() {
             const userB = await pool.transaction(async db => {
-                return userDao.update(db, userA.id, {
+                return dao.user.update(db, userA.id, {
                     name: 'user.b',
                     email: 'user.b@engspace.net',
                     fullName: 'User B',
@@ -249,19 +248,19 @@ describe('userDao', () => {
                 fullName: 'User B',
             });
             const roles = await pool.connect(async db => {
-                return userDao.rolesById(db, userA.id);
+                return dao.user.rolesById(db, userA.id);
             });
             expect(roles).to.have.members(['role1', 'role2']);
         });
 
         it('should update user and roles', async function() {
             const userB = await pool.transaction(async db => {
-                const b = await userDao.update(db, userA.id, {
+                const b = await dao.user.update(db, userA.id, {
                     name: 'user.b',
                     email: 'user.b@engspace.net',
                     fullName: 'User B',
                 });
-                b.roles = await userDao.updateRoles(db, userA.id, ['role2', 'role3']);
+                b.roles = await dao.user.updateRoles(db, userA.id, ['role2', 'role3']);
                 return b;
             });
             expect(userB).to.eql({

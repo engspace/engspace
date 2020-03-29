@@ -1,30 +1,28 @@
 import { expect } from 'chai';
-import { pool } from '.';
-import { partBaseDao } from '../src';
-import { cleanTables, createPartFamilies, createUsersAB } from '../src/test-helpers';
+import { dao, pool, th } from '.';
 
-describe('partBaseDao', function() {
+describe('dao.partBase', function() {
     let users;
     let families;
     before(async function() {
         return pool.transaction(async db => {
-            users = await createUsersAB(db);
-            families = await createPartFamilies(db, {
+            users = await th.createUsersAB(db);
+            families = await th.createPartFamilies(db, {
                 rm: { code: 'RM', name: 'Raw material' },
                 tf: { code: 'TF', name: 'Transformed' },
             });
         });
     });
-    after(cleanTables(pool, ['part_family', 'user']));
+    after(th.cleanTables(pool, ['part_family', 'user']));
 
     describe('Create', function() {
         const msBef = Date.now();
         afterEach('delete part bases', async function() {
-            await pool.transaction(async db => partBaseDao.deleteAll(db));
+            await pool.transaction(async db => dao.partBase.deleteAll(db));
         });
         it('should create part base', async function() {
             const pb = await pool.transaction(async db => {
-                return partBaseDao.create(db, {
+                return dao.partBase.create(db, {
                     familyId: families.rm.id,
                     baseRef: 'RM0001',
                     userId: users.a.id,

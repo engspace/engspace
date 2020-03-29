@@ -1,21 +1,11 @@
-import {
-    cleanTables,
-    createPart,
-    createPartBase,
-    createPartFamily,
-    createPartRev,
-    createUsers,
-    trackedBy,
-    createPartVal,
-    createPartApprovals,
-} from '@engspace/server-db/dist/test-helpers';
+import { ApprovalState, PartApproval } from '@engspace/core';
+import { trackedBy } from '@engspace/server-db/dist/test-helpers';
+import { Dict } from '@engspace/server-db/src/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool } from '.';
+import { buildGqlServer, pool, th } from '.';
 import { permsAuth } from './auth';
 import { TRACKED_FIELDS } from './helpers';
-import { ApprovalState, PartApproval } from '@engspace/core';
-import { Dict } from '@engspace/server-db/src/test-helpers';
 
 const PARTBASE_FIELDS = gql`
     fragment PartBaseFields on PartBase {
@@ -144,23 +134,23 @@ describe('GraphQL Part - Queries', function() {
     before('create res', async function() {
         bef = Date.now();
         await pool.transaction(async db => {
-            users = await createUsers(db, {
+            users = await th.createUsers(db, {
                 a: { name: 'a' },
                 b: { name: 'b' },
                 c: { name: 'c' },
                 d: { name: 'd' },
                 e: { name: 'e' },
             });
-            family = await createPartFamily(db, { code: 'P' });
-            partBase = await createPartBase(db, family, users.a, 'P001');
-            part = await createPart(db, partBase, users.a, 'P001.01');
-            partRev = await createPartRev(db, part, users.a);
+            family = await th.createPartFamily(db, { code: 'P' });
+            partBase = await th.createPartBase(db, family, users.a, 'P001');
+            part = await th.createPart(db, partBase, users.a, 'P001.01');
+            partRev = await th.createPartRev(db, part, users.a);
         });
         aft = Date.now();
     });
     after(
         'delete res',
-        cleanTables(pool, ['part_revision', 'part', 'part_base', 'part_family', 'user'])
+        th.cleanTables(pool, ['part_revision', 'part', 'part_base', 'part_family', 'user'])
     );
 
     describe('PartBase', function() {
@@ -296,11 +286,11 @@ describe('GraphQL Part - Queries', function() {
 
         before(async function() {
             return pool.transaction(async db => {
-                partVal = await createPartVal(db, partRev, users.a);
-                approvals = await createPartApprovals(db, partVal, users, users.a);
+                partVal = await th.createPartVal(db, partRev, users.a);
+                approvals = await th.createPartApprovals(db, partVal, users, users.a);
             });
         });
-        after(cleanTables(pool, ['part_approval', 'part_validation']));
+        after(th.cleanTables(pool, ['part_approval', 'part_validation']));
 
         it('should read part validation', async function() {
             const { errors, data } = await pool.transaction(async db => {

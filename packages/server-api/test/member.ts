@@ -1,8 +1,6 @@
-import { memberDao, projectDao, userDao } from '@engspace/server-db';
-import { createMember, createProjects, createUsers } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool } from '.';
+import { buildGqlServer, dao, pool, th } from '.';
 import { permsAuth } from './auth';
 
 const MEMBER_FIELDS = gql`
@@ -90,12 +88,12 @@ describe('GraphQL ProjectMember', function() {
     let projects;
     before('Create users and projects', async function() {
         return pool.transaction(async db => {
-            users = await createUsers(db, {
+            users = await th.createUsers(db, {
                 a: { name: 'a' },
                 b: { name: 'b' },
                 c: { name: 'c' },
             });
-            projects = await createProjects(db, {
+            projects = await th.createProjects(db, {
                 a: { code: 'a' },
                 b: { name: 'b' },
             });
@@ -104,8 +102,8 @@ describe('GraphQL ProjectMember', function() {
 
     after('Delete users and projects', async function() {
         return pool.transaction(async db => {
-            await projectDao.deleteAll(db);
-            await userDao.deleteAll(db);
+            await dao.project.deleteAll(db);
+            await dao.user.deleteAll(db);
         });
     });
 
@@ -115,17 +113,17 @@ describe('GraphQL ProjectMember', function() {
         before('Create members', async function() {
             members = await pool.transaction(async db => {
                 return {
-                    aa: await createMember(db, projects.a, users.a, ['role1']),
-                    bb: await createMember(db, projects.b, users.b, ['role2']),
-                    ab: await createMember(db, projects.a, users.b, ['role3', 'role4']),
-                    bc: await createMember(db, projects.b, users.c, ['role5', 'role6']),
+                    aa: await th.createMember(db, projects.a, users.a, ['role1']),
+                    bb: await th.createMember(db, projects.b, users.b, ['role2']),
+                    ab: await th.createMember(db, projects.a, users.b, ['role3', 'role4']),
+                    bc: await th.createMember(db, projects.b, users.c, ['role5', 'role6']),
                 };
             });
         });
 
         after('Delete members', async function() {
             return pool.transaction(async db => {
-                await memberDao.deleteAll(db);
+                await dao.projectMember.deleteAll(db);
             });
         });
 
@@ -285,7 +283,7 @@ describe('GraphQL ProjectMember', function() {
     describe('Mutation', function() {
         afterEach('Delete members', async function() {
             return pool.transaction(async db => {
-                await memberDao.deleteAll(db);
+                await dao.projectMember.deleteAll(db);
             });
         });
 
@@ -328,7 +326,7 @@ describe('GraphQL ProjectMember', function() {
             it('should create a member using project perms', async function() {
                 // give to c leader role on b project
                 await pool.transaction(async db => {
-                    return memberDao.create(db, {
+                    return dao.projectMember.create(db, {
                         projectId: projects.b.id,
                         userId: users.c.id,
                         roles: ['leader'],
@@ -392,7 +390,7 @@ describe('GraphQL ProjectMember', function() {
         describe('Update', function() {
             it('should update member roles with "member.update"', async function() {
                 const { memId, errors, data } = await pool.transaction(async db => {
-                    const m = await memberDao.create(db, {
+                    const m = await dao.projectMember.create(db, {
                         projectId: projects.a.id,
                         userId: users.a.id,
                         roles: ['user', 'designer', 'some other role'],
@@ -419,7 +417,7 @@ describe('GraphQL ProjectMember', function() {
 
             it('should not update member roles without "member.update"', async function() {
                 const { errors, data } = await pool.transaction(async db => {
-                    const m = await memberDao.create(db, {
+                    const m = await dao.projectMember.create(db, {
                         projectId: projects.a.id,
                         userId: users.a.id,
                         roles: ['user', 'designer', 'some other role'],
@@ -443,7 +441,7 @@ describe('GraphQL ProjectMember', function() {
         describe('Delete', function() {
             it('should delete a member with "member.delete"', async function() {
                 const { mem, errors, data } = await pool.transaction(async db => {
-                    const m = await memberDao.create(db, {
+                    const m = await dao.projectMember.create(db, {
                         projectId: projects.a.id,
                         userId: users.a.id,
                         roles: ['user', 'designer', 'some other role'],
@@ -461,7 +459,7 @@ describe('GraphQL ProjectMember', function() {
                         mutation: MEMBER_DELETE,
                         variables: { id: m.id },
                     });
-                    return { mem: await memberDao.byId(db, m.id), errors, data };
+                    return { mem: await dao.projectMember.byId(db, m.id), errors, data };
                 });
                 expect(errors).to.be.undefined;
                 expect(data).to.be.an('object');
@@ -471,7 +469,7 @@ describe('GraphQL ProjectMember', function() {
 
             it('should not delete a member without "member.delete"', async function() {
                 const { errors, data } = await pool.transaction(async db => {
-                    const m = await memberDao.create(db, {
+                    const m = await dao.projectMember.create(db, {
                         projectId: projects.a.id,
                         userId: users.a.id,
                         roles: ['user', 'designer', 'some other role'],

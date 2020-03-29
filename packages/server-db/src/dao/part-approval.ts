@@ -46,7 +46,14 @@ export interface PartApprovalUpdateDaoInput {
     userId: Id;
 }
 
-class PartApprovalDao extends DaoRowMap<PartApproval, Row> {
+export class PartApprovalDao extends DaoRowMap<PartApproval, Row> {
+    constructor() {
+        super({
+            rowToken,
+            mapRow,
+            table: 'part_approval',
+        });
+    }
     async create(
         db: Db,
         { validationId, assigneeId, state, comments, userId }: PartApprovalDaoInput
@@ -95,9 +102,3 @@ class PartApprovalDao extends DaoRowMap<PartApproval, Row> {
         return mapRow(row);
     }
 }
-
-export const partApprovalDao = new PartApprovalDao({
-    table: 'part_approval',
-    rowToken,
-    mapRow,
-});

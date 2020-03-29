@@ -1,6 +1,12 @@
 import { buildDefaultAppRolePolicies } from '@engspace/core';
-import { EsServerApi, PartBaseRefNaming, PartRefNaming } from '@engspace/server-api';
 import {
+    buildControllerSet,
+    EsServerApi,
+    PartBaseRefNaming,
+    PartRefNaming,
+} from '@engspace/server-api';
+import {
+    buildDaoSet,
     connectionString,
     createDbPool,
     DbConnConfig,
@@ -15,7 +21,6 @@ import events from 'events';
 import Koa from 'koa';
 import logger from 'koa-logger';
 import { populateData } from './populate-data';
-import { buildControllerSet } from 'server-api/src/control';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -55,6 +60,8 @@ const dbPoolConfig: DbPoolConfig = {
 };
 
 const pool: DbPool = createDbPool(dbPoolConfig);
+export const dao = buildDaoSet();
+
 prepareDb(dbPreparationConfig)
     .then(async () => {
         await pool.transaction(db => initSchema(db));
@@ -71,13 +78,14 @@ prepareDb(dbPreparationConfig)
 
 function buildServerApi(pool: DbPool): EsServerApi {
     const rolePolicies = buildDefaultAppRolePolicies();
-    const control = buildControllerSet();
+    const control = buildControllerSet(dao);
 
     const api = new EsServerApi(new Koa(), {
         pool,
         rolePolicies,
         storePath: config.storePath,
         control,
+        dao,
         cors: true,
         refNaming: {
             partBase: new PartBaseRefNaming('${fam_code}${fam_count:4}'),

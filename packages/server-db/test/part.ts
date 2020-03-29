@@ -1,40 +1,31 @@
 import { expect } from 'chai';
-import { pool } from '.';
-import { partDao } from '../src';
-import {
-    cleanTable,
-    cleanTables,
-    createPart,
-    createPartBase,
-    createPartFamily,
-    createUser,
-} from '../src/test-helpers';
+import { dao, pool, th } from '.';
 
-describe('partDao', function() {
+describe('dao.part', function() {
     let userA;
     let family;
     let partBase;
     before('create res', async function() {
         return pool.transaction(async db => {
-            userA = await createUser(db, {
+            userA = await th.createUser(db, {
                 name: 'user.a',
                 email: 'user.ab@engspace.net',
                 fullName: 'User A',
             });
-            family = await createPartFamily(db);
-            partBase = await createPartBase(db, family, userA, 'P001');
+            family = await th.createPartFamily(db);
+            partBase = await th.createPartBase(db, family, userA, 'P001');
         });
     });
 
-    after('delete res', cleanTables(pool, ['part_base', 'part_family', 'user']));
+    after('delete res', th.cleanTables(pool, ['part_base', 'part_family', 'user']));
 
     describe('create', function() {
-        afterEach('delete res', cleanTable(pool, 'part'));
+        afterEach('delete res', th.cleanTable(pool, 'part'));
 
         it('should create a part', async function() {
             const bef = Date.now();
             const part = await pool.transaction(async db => {
-                return partDao.create(db, {
+                return dao.part.create(db, {
                     baseId: partBase.id,
                     ref: 'P001.01',
                     designation: 'Part 1',
@@ -61,20 +52,20 @@ describe('partDao', function() {
         let userB;
         beforeEach('create part', async function() {
             return pool.transaction(async db => {
-                part = await createPart(db, partBase, userA, 'P001.01');
-                userB = await createUser(db, {
+                part = await th.createPart(db, partBase, userA, 'P001.01');
+                userB = await th.createUser(db, {
                     name: 'user.b',
                     email: 'user.b@engspace.net',
                     fullName: 'User B',
                 });
             });
         });
-        afterEach('delete part', cleanTable(pool, 'part'));
+        afterEach('delete part', th.cleanTable(pool, 'part'));
 
         it('should update a part', async function() {
             const bef = Date.now();
             const updated = await pool.transaction(async db => {
-                return partDao.updateById(db, part.id, { designation: 'Updated part' }, userB.id);
+                return dao.part.updateById(db, part.id, { designation: 'Updated part' }, userB.id);
             });
             const aft = Date.now();
             expect(updated).to.deep.include({

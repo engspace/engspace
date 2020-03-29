@@ -1,23 +1,9 @@
-import { expect } from 'chai';
-import { pool } from '.';
-import { partApprovalDao } from '..';
-import {
-    cleanTable,
-    cleanTables,
-    createPart,
-    createPartApproval,
-    createPartApprovals,
-    createPartBase,
-    createPartFamily,
-    createPartRev,
-    createPartVal,
-    createUsers,
-    expTrackedTime,
-    trackedBy,
-} from '../src/test-helpers';
 import { ApprovalState } from '@engspace/core';
+import { expect } from 'chai';
+import { dao, pool, th } from '.';
+import { expTrackedTime, trackedBy } from '../src/test-helpers';
 
-describe('partApprovalDao', function() {
+describe('dao.partApproval', function() {
     let users;
     let fam;
     let partBase;
@@ -26,23 +12,23 @@ describe('partApprovalDao', function() {
     let partVal;
     before('create deps', async function() {
         return pool.transaction(async db => {
-            users = await createUsers(db, {
+            users = await th.createUsers(db, {
                 a: { name: 'a' },
                 b: { name: 'b' },
                 c: { name: 'c' },
                 d: { name: 'd' },
                 e: { name: 'e' },
             });
-            fam = await createPartFamily(db, { code: 'P' });
-            partBase = await createPartBase(db, fam, users.a, 'P01');
-            part = await createPart(db, partBase, users.a, 'P01.A');
-            partRev = await createPartRev(db, part, users.a);
-            partVal = await createPartVal(db, partRev, users.a);
+            fam = await th.createPartFamily(db, { code: 'P' });
+            partBase = await th.createPartBase(db, fam, users.a, 'P01');
+            part = await th.createPart(db, partBase, users.a, 'P01.A');
+            partRev = await th.createPartRev(db, part, users.a);
+            partVal = await th.createPartVal(db, partRev, users.a);
         });
     });
     after(
         'clean deps',
-        cleanTables(pool, [
+        th.cleanTables(pool, [
             'part_validation',
             'part_revision',
             'part',
@@ -52,10 +38,10 @@ describe('partApprovalDao', function() {
         ])
     );
     describe('Create', function() {
-        afterEach(cleanTable(pool, 'part_approval'));
+        afterEach(th.cleanTable(pool, 'part_approval'));
         it('should create part approval in pending state', async function() {
             const partAppr = await pool.transaction(async db => {
-                return partApprovalDao.create(db, {
+                return dao.partApproval.create(db, {
                     validationId: partVal.id,
                     assigneeId: users.b.id,
                     userId: users.a.id,
@@ -76,14 +62,14 @@ describe('partApprovalDao', function() {
         let approvals;
         before(async function() {
             approvals = await pool.transaction(async db => {
-                return createPartApprovals(db, partVal, users, users.a);
+                return th.createPartApprovals(db, partVal, users, users.a);
             });
         });
-        after(cleanTable(pool, 'part_approval'));
+        after(th.cleanTable(pool, 'part_approval'));
 
         it('should read approvals for a validation', async function() {
             const apprs = await pool.connect(async db => {
-                return partApprovalDao.byValidationId(db, partVal.id);
+                return dao.partApproval.byValidationId(db, partVal.id);
             });
             expect(apprs).to.have.same.deep.members(Object.values(approvals));
         });
@@ -93,15 +79,15 @@ describe('partApprovalDao', function() {
         let partAppr;
         beforeEach(async function() {
             partAppr = await pool.transaction(async db => {
-                return createPartApproval(db, partVal, users.b, users.a);
+                return th.createPartApproval(db, partVal, users.b, users.a);
             });
         });
-        afterEach(cleanTable(pool, 'part_approval'));
+        afterEach(th.cleanTable(pool, 'part_approval'));
 
         it('should set approval state without comment', async function() {
             const bef = Date.now();
             const pa = await pool.transaction(async db => {
-                return partApprovalDao.update(db, partAppr.id, {
+                return dao.partApproval.update(db, partAppr.id, {
                     state: ApprovalState.Approved,
                     userId: users.b.id,
                 });
@@ -123,7 +109,7 @@ describe('partApprovalDao', function() {
         it('should set approval state with comment', async function() {
             const bef = Date.now();
             const pa = await pool.transaction(async db => {
-                return partApprovalDao.update(db, partAppr.id, {
+                return dao.partApproval.update(db, partAppr.id, {
                     state: ApprovalState.Approved,
                     userId: users.b.id,
                     comments: 'geprüft',

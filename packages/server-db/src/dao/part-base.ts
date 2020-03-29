@@ -29,7 +29,14 @@ export interface PartBaseDaoInput {
     userId: Id;
 }
 
-class PartBaseDao extends DaoRowMap<PartBase, Row> {
+export class PartBaseDao extends DaoRowMap<PartBase, Row> {
+    constructor() {
+        super({
+            rowToken,
+            mapRow,
+            table: 'part_base',
+        });
+    }
     async create(db: Db, { familyId, baseRef, userId }: PartBaseDaoInput): Promise<PartBase> {
         const row: Row = await db.one(sql`
             INSERT INTO part_base (
@@ -43,9 +50,3 @@ class PartBaseDao extends DaoRowMap<PartBase, Row> {
         return mapRow(row);
     }
 }
-
-export const partBaseDao = new PartBaseDao({
-    table: 'part_base',
-    rowToken,
-    mapRow,
-});

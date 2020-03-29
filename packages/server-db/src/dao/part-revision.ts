@@ -33,7 +33,14 @@ const rowToken = sql`
     id, part_id, revision, designation, cycle_state, ${tracked.selectToken}
 `;
 
-class PartRevisionDao extends DaoRowMap<PartRevision, Row> {
+export class PartRevisionDao extends DaoRowMap<PartRevision, Row> {
+    constructor() {
+        super({
+            rowToken,
+            mapRow,
+            table: 'part_revision',
+        });
+    }
     async create(
         db: Db,
         { partId, designation, cycleState, userId }: PartRevisionDaoInput
@@ -67,9 +74,3 @@ class PartRevisionDao extends DaoRowMap<PartRevision, Row> {
         return mapRow(row);
     }
 }
-
-export const partRevisionDao = new PartRevisionDao({
-    table: 'part_revision',
-    rowToken,
-    mapRow,
-});

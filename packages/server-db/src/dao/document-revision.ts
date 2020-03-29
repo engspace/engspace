@@ -1,7 +1,7 @@
 import { DocumentRevision, DocumentRevisionInput, HasId, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap } from './base';
+import { DaoRowMap, DaoRowMapConfig } from './base';
 
 interface Row extends HasId {
     id: Id;
@@ -49,7 +49,15 @@ const rowToken = sql`
         ENCODE(sha1, 'hex') as sha1
     `;
 
-class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
+export class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
+    constructor() {
+        super({
+            rowToken,
+            mapRow,
+            table: 'document_revision',
+        });
+    }
+
     public async create(
         db: Db,
         documentRev: DocumentRevisionInput,
@@ -140,9 +148,3 @@ class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
         return mapRow(row);
     }
 }
-
-export const documentRevisionDao = new DocumentRevisionDao({
-    table: 'document_revision',
-    rowToken,
-    mapRow,
-});

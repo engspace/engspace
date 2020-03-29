@@ -5,7 +5,13 @@ import { DaoIdent } from './base';
 
 const rowToken = sql`id, name, code, counter`;
 
-class PartFamilyDao extends DaoIdent<PartFamily> {
+export class PartFamilyDao extends DaoIdent<PartFamily> {
+    constructor() {
+        super({
+            rowToken,
+            table: 'part_family',
+        });
+    }
     async create(db: Db, pf: PartFamilyInput): Promise<PartFamily> {
         return db.one(sql`
             INSERT INTO part_family(code, name)
@@ -31,8 +37,3 @@ class PartFamilyDao extends DaoIdent<PartFamily> {
         `);
     }
 }
-
-export const partFamilyDao = new PartFamilyDao({
-    table: 'part_family',
-    rowToken,
-});

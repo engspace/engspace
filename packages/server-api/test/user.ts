@@ -1,14 +1,7 @@
 import { UserInput } from '@engspace/core';
-import { userDao } from '@engspace/server-db';
-import {
-    cleanTable,
-    transacUser,
-    transacUsers,
-    transacUsersAB,
-} from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool } from '.';
+import { buildGqlServer, dao, pool, th } from '.';
 import { permsAuth } from './auth';
 
 export const USER_FIELDS = gql`
@@ -35,14 +28,14 @@ describe('GraphQL User', () => {
         let users;
 
         before('Create users', async () => {
-            users = await transacUsers(pool, {
+            users = await th.transacUsers(pool, {
                 dupond: { name: 'dupond', roles: ['role1'] },
                 dupont: { name: 'dupont', roles: ['role1', 'role2'] },
                 haddock: { name: 'haddock', roles: ['role1', 'role2', 'role3'] },
             });
         });
 
-        after(cleanTable(pool, 'user'));
+        after(th.cleanTable(pool, 'user'));
 
         it('should read a user with "user.read"', async () => {
             const result = await pool.connect(async db => {
@@ -147,9 +140,9 @@ describe('GraphQL User', () => {
         describe('Create', () => {
             let userA;
             beforeEach('create user', async function() {
-                userA = transacUser(pool, { name: 'a' });
+                userA = th.transacUser(pool, { name: 'a' });
             });
-            afterEach(cleanTable(pool, 'user'));
+            afterEach(th.cleanTable(pool, 'user'));
 
             it('should create user with "user.create"', async () => {
                 const result = await pool.transaction(async db => {
@@ -251,10 +244,10 @@ describe('GraphQL User', () => {
             let users;
 
             beforeEach('Create users', async () => {
-                users = await transacUsersAB(pool);
+                users = await th.transacUsersAB(pool);
             });
 
-            afterEach(cleanTable(pool, 'user'));
+            afterEach(th.cleanTable(pool, 'user'));
 
             const bob: UserInput = {
                 name: 'bob',
@@ -318,7 +311,7 @@ describe('GraphQL User', () => {
 
             it('should self-update user', async () => {
                 const result = await pool.transaction(async db => {
-                    await userDao.updateRoles(db, users.a.id, ['manager']);
+                    await dao.user.updateRoles(db, users.a.id, ['manager']);
                     const { mutate } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
                     return mutate({
                         mutation: gql`
@@ -346,7 +339,7 @@ describe('GraphQL User', () => {
 
             it('should not self-update user with role change', async () => {
                 const result = await pool.transaction(async db => {
-                    await userDao.updateRoles(db, users.a.id, ['user']);
+                    await dao.user.updateRoles(db, users.a.id, ['user']);
                     const { mutate } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
                     return mutate({
                         mutation: gql`

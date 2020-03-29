@@ -1,19 +1,12 @@
 import { Document, DocumentRevision, DocumentRevisionInput, User } from '@engspace/core';
-import { Db, documentDao, documentRevisionDao, userDao } from '@engspace/server-db';
-import {
-    cleanTable,
-    createDoc,
-    createDocRev,
-    createUsersAB,
-} from '@engspace/server-db/dist/test-helpers';
+import { Db } from '@engspace/server-db';
 import { expect, request } from 'chai';
 import fs from 'fs';
 import gql from 'graphql-tag';
 import path from 'path';
-import { api, buildGqlServer, config, pool } from '.';
+import { api, buildGqlServer, config, dao, pool, th } from '.';
 import { bufferSha1sum } from '../src/util';
 import { bearerToken, permsAuth } from './auth';
-import { transacUsers } from '@engspace/server-db/src/test-helpers';
 
 const { storePath, serverPort } = config;
 
@@ -24,15 +17,15 @@ async function createDocRevWithContent(
     input: Partial<DocumentRevisionInput>,
     content: Buffer
 ): Promise<DocumentRevision> {
-    const rev = await createDocRev(db, document, user, {
+    const rev = await th.createDocRev(db, document, user, {
         ...input,
         filesize: content.length,
     });
 
     const sum = bufferSha1sum(content);
     await fs.promises.writeFile(path.join(storePath, sum), content);
-    await documentRevisionDao.updateAddProgress(db, rev.id, content.length);
-    return documentRevisionDao.updateSha1(db, rev.id, sum);
+    await dao.documentRevision.updateAddProgress(db, rev.id, content.length);
+    return dao.documentRevision.updateSha1(db, rev.id, sum);
 }
 
 function binaryParser(res, cb): void {
@@ -58,13 +51,13 @@ describe('HTTP /api/document', function() {
     let users;
 
     before('Create users', async function() {
-        users = await transacUsers(pool, {
+        users = await th.transacUsers(pool, {
             a: { name: 'a', roles: ['user'] },
             b: { name: 'b', roles: ['user'] },
         });
     });
 
-    after('Delete users', cleanTable(pool, 'user'));
+    after('Delete users', th.cleanTable(pool, 'user'));
 
     let server;
 
@@ -78,7 +71,7 @@ describe('HTTP /api/document', function() {
         let revision;
         before('create doc, revision and file', async function() {
             await pool.transaction(async db => {
-                document = await createDoc(db, users.a, {
+                document = await th.createDoc(db, users.a, {
                     name: 'abcd',
                     description: 'doc ABCD',
                     initialCheckout: true,
@@ -99,8 +92,8 @@ describe('HTTP /api/document', function() {
         after('delete doc, revision and file', async function() {
             await pool.transaction(async db => {
                 await fs.promises.unlink(path.join(storePath, revision.sha1));
-                await documentRevisionDao.deleteAll(db);
-                await documentDao.deleteAll(db);
+                await dao.documentRevision.deleteAll(db);
+                await dao.document.deleteAll(db);
             });
         });
 
@@ -225,7 +218,7 @@ describe('HTTP /api/document', function() {
         let document;
         before('create doc', async function() {
             await pool.transaction(async db => {
-                document = await createDoc(db, users.a, {
+                document = await th.createDoc(db, users.a, {
                     name: 'abcd',
                     description: 'doc ABCD',
                     initialCheckout: true,
@@ -234,19 +227,19 @@ describe('HTTP /api/document', function() {
         });
         after('delete doc', async function() {
             await pool.transaction(async db => {
-                await documentDao.deleteAll(db);
+                await dao.document.deleteAll(db);
             });
         });
         afterEach('delete revisions', async function() {
             await pool.transaction(async db => {
-                await documentRevisionDao.deleteAll(db);
+                await dao.documentRevision.deleteAll(db);
             });
         });
 
         it('should perform full upload process', async function() {
             const auth = permsAuth(users.a, ['document.revise']);
             const rev = await pool.transaction(async db => {
-                return createDocRev(db, document, users.a, {
+                return th.createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
                     retainCheckout: false,
@@ -293,7 +286,7 @@ describe('HTTP /api/document', function() {
         it('should error if sha1 is false', async function() {
             const auth = permsAuth(users.a, ['document.revise']);
             const rev = await pool.transaction(async db => {
-                return createDocRev(db, document, users.a, {
+                return th.createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
                     retainCheckout: false,
@@ -334,7 +327,7 @@ describe('HTTP /api/document', function() {
             expect(fs.existsSync(path.join(storePath, sha1)), 'final upload file exists').to.be
                 .false;
             const r = await pool.connect(async db => {
-                return documentRevisionDao.byId(db, rev.id);
+                return dao.documentRevision.byId(db, rev.id);
             });
             expect(r, 'revision has been cleaned-up').to.be.null;
         });
@@ -360,7 +353,7 @@ describe('HTTP /api/document', function() {
 
         it('should return 403 without "document.revise"', async function() {
             const rev = await pool.transaction(async db => {
-                return createDocRev(db, document, users.a, {
+                return th.createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
                     retainCheckout: false,
@@ -386,7 +379,7 @@ describe('HTTP /api/document', function() {
 
         it('should return 401 without authorization', async function() {
             const rev = await pool.transaction(async db => {
-                return createDocRev(db, document, users.a, {
+                return th.createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
                     retainCheckout: false,
@@ -409,7 +402,7 @@ describe('HTTP /api/document', function() {
 
         it('should return 400 if ill-formed query', async function() {
             const rev = await pool.transaction(async db => {
-                return createDocRev(db, document, users.a, {
+                return th.createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
                     retainCheckout: false,

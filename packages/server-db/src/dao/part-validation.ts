@@ -37,7 +37,14 @@ export interface PartValidationDaoInput {
     userId: Id;
 }
 
-class PartValidationDao extends DaoRowMap<PartValidation, Row> {
+export class PartValidationDao extends DaoRowMap<PartValidation, Row> {
+    constructor() {
+        super({
+            rowToken,
+            mapRow,
+            table: 'part_validation',
+        });
+    }
     async create(db: Db, { partRevId, userId }: PartValidationDaoInput): Promise<PartValidation> {
         const row: Row = await db.one(sql`
             INSERT INTO part_validation (
@@ -53,9 +60,3 @@ class PartValidationDao extends DaoRowMap<PartValidation, Row> {
         return mapRow(row);
     }
 }
-
-export const partValidationDao = new PartValidationDao({
-    table: 'part_validation',
-    rowToken,
-    mapRow,
-});

@@ -1,27 +1,26 @@
 import { Document } from '@engspace/core';
 import { expect } from 'chai';
-import { pool } from '.';
-import { documentDao } from '../src';
-import { cleanTable, createDoc, Dict, transacUsersAB } from '../src/test-helpers';
+import { dao, pool, th } from '.';
+import { Dict } from '../src/test-helpers';
 
-describe('documentDao', function() {
+describe('dao.document', function() {
     let users;
     before('create users', async function() {
-        users = await transacUsersAB(pool);
+        users = await th.transacUsersAB(pool);
     });
 
-    after('delete users', cleanTable(pool, 'user'));
+    after('delete users', th.cleanTable(pool, 'user'));
 
     describe('Create', function() {
         const msBefore = Date.now();
 
         afterEach('delete documents', async function() {
-            await pool.transaction(async db => documentDao.deleteAll(db));
+            await pool.transaction(async db => dao.document.deleteAll(db));
         });
 
         it('should create a document with checkout', async function() {
             const result = await pool.transaction(async db => {
-                return documentDao.create(
+                return dao.document.create(
                     db,
                     {
                         name: 'docname',
@@ -45,7 +44,7 @@ describe('documentDao', function() {
 
         it('should create a document without checkout', async function() {
             const result = await pool.transaction(async db => {
-                return documentDao.create(
+                return dao.document.create(
                     db,
                     {
                         name: 'docname',
@@ -74,10 +73,10 @@ describe('documentDao', function() {
         before('create documents', async function() {
             docs = await pool.transaction(async db => {
                 return {
-                    a: await createDoc(db, users.a, {
+                    a: await th.createDoc(db, users.a, {
                         name: 'a',
                     }),
-                    b: await createDoc(db, users.a, {
+                    b: await th.createDoc(db, users.a, {
                         name: 'b',
                     }),
                 };
@@ -85,33 +84,33 @@ describe('documentDao', function() {
         });
 
         after('delete documents', async function() {
-            return pool.transaction(async db => documentDao.deleteAll(db));
+            return pool.transaction(async db => dao.document.deleteAll(db));
         });
 
         it('should read a document by id', async function() {
             const result = await pool.connect(async db => {
-                return documentDao.byId(db, docs.a.id);
+                return dao.document.byId(db, docs.a.id);
             });
             expect(result).to.deep.include(docs.a);
         });
 
         it('should read a checkout id by document id', async function() {
             const result = await pool.connect(async db => {
-                return documentDao.checkoutIdById(db, docs.a.id);
+                return dao.document.checkoutIdById(db, docs.a.id);
             });
             expect(result).to.equal(docs.a.checkout.id);
         });
 
         it('should read a document batch by ids', async function() {
             const result = await pool.connect(async db => {
-                return documentDao.batchByIds(db, [docs.b.id, docs.a.id]);
+                return dao.document.batchByIds(db, [docs.b.id, docs.a.id]);
             });
             expect(result).to.eql([docs.b, docs.a]);
         });
 
         it('should search for documents', async function() {
             const result = await pool.connect(async db => {
-                return documentDao.search(db, 'b', 0, 5);
+                return dao.document.search(db, 'b', 0, 5);
             });
             expect(result).to.eql({
                 count: 1,
@@ -121,8 +120,8 @@ describe('documentDao', function() {
 
         it('should paginate document search', async function() {
             const { res1, res2 } = await pool.connect(async db => {
-                const res1 = await documentDao.search(db, '', 0, 1);
-                const res2 = await documentDao.search(db, '', 1, 1);
+                const res1 = await dao.document.search(db, '', 0, 1);
+                const res2 = await dao.document.search(db, '', 1, 1);
                 return { res1, res2 };
             });
             expect([res1.count, res2.count]).to.eql([2, 2]);
@@ -140,12 +139,12 @@ describe('documentDao', function() {
 
     describe('Checkout', function() {
         afterEach('delete documents', async function() {
-            return pool.transaction(async db => documentDao.deleteAll(db));
+            return pool.transaction(async db => dao.document.deleteAll(db));
         });
 
         it('should checkout a free document', async function() {
             const doc = await pool.transaction(async db => {
-                const doc = await documentDao.create(
+                const doc = await dao.document.create(
                     db,
                     {
                         name: 'docname',
@@ -155,7 +154,7 @@ describe('documentDao', function() {
                     users.a.id
                 );
 
-                return documentDao.checkout(db, doc.id, users.b.id);
+                return dao.document.checkout(db, doc.id, users.b.id);
             });
             expect(doc).to.deep.include({
                 checkout: { id: users.b.id },
@@ -164,7 +163,7 @@ describe('documentDao', function() {
 
         it('shouldnt checkout a busy document', async function() {
             const doc = await pool.transaction(async db => {
-                const doc = await documentDao.create(
+                const doc = await dao.document.create(
                     db,
                     {
                         name: 'docname',
@@ -174,7 +173,7 @@ describe('documentDao', function() {
                     users.a.id
                 );
 
-                return documentDao.checkout(db, doc.id, users.b.id);
+                return dao.document.checkout(db, doc.id, users.b.id);
             });
             expect(doc).to.deep.include({
                 checkout: { id: users.a.id },
@@ -183,7 +182,7 @@ describe('documentDao', function() {
 
         it('should discard checkout a busy document', async function() {
             const doc = await pool.transaction(async db => {
-                const doc = await documentDao.create(
+                const doc = await dao.document.create(
                     db,
                     {
                         name: 'docname',
@@ -193,7 +192,7 @@ describe('documentDao', function() {
                     users.a.id
                 );
 
-                return documentDao.discardCheckout(db, doc.id, users.a.id);
+                return dao.document.discardCheckout(db, doc.id, users.a.id);
             });
             expect(doc).to.deep.include({
                 checkout: null,
@@ -202,7 +201,7 @@ describe('documentDao', function() {
 
         it('shouldnt discard checkout with wrong user', async function() {
             const doc = await pool.transaction(async db => {
-                const doc = await documentDao.create(
+                const doc = await dao.document.create(
                     db,
                     {
                         name: 'docname',
@@ -212,7 +211,7 @@ describe('documentDao', function() {
                     users.a.id
                 );
 
-                return documentDao.discardCheckout(db, doc.id, users.b.id);
+                return dao.document.discardCheckout(db, doc.id, users.b.id);
             });
             expect(doc).to.deep.include({
                 checkout: { id: users.a.id },

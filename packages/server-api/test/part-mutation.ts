@@ -1,20 +1,8 @@
 import { CycleState } from '@engspace/core';
-import { partBaseDao, partDao, partFamilyDao, partRevisionDao } from '@engspace/server-db';
-import {
-    cleanTables,
-    createPartFamily,
-    resetFamilyCounters,
-    trackedBy,
-} from '@engspace/server-db/dist/test-helpers';
-import {
-    createPart,
-    createPartBase,
-    createPartRev,
-    createUsersAB,
-} from '@engspace/server-db/src/test-helpers';
+import { trackedBy } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool } from '.';
+import { buildGqlServer, dao, pool, th } from '.';
 import { permsAuth } from './auth';
 import { TRACKED_FIELDS } from './helpers';
 
@@ -90,14 +78,14 @@ describe('GraphQL Part - Mutations', function() {
     let family;
     before('create res', async function() {
         return pool.transaction(async db => {
-            users = await createUsersAB(db);
-            family = await createPartFamily(db, { code: 'P' });
+            users = await th.createUsersAB(db);
+            family = await th.createPartFamily(db, { code: 'P' });
         });
     });
-    after('delete res', cleanTables(pool, ['part_base', 'part_family', 'user']));
+    after('delete res', th.cleanTables(pool, ['part_base', 'part_family', 'user']));
 
-    afterEach(cleanTables(pool, ['part_revision', 'part', 'part_base']));
-    afterEach(resetFamilyCounters(pool));
+    afterEach(th.cleanTables(pool, ['part_revision', 'part', 'part_base']));
+    afterEach(th.resetFamilyCounters(pool));
 
     describe('partCreateNew', function() {
         it('should create a new Part', async function() {
@@ -158,10 +146,10 @@ describe('GraphQL Part - Mutations', function() {
             expect(data).to.be.null;
             const counts = await pool.transaction(async db => {
                 return [
-                    await partBaseDao.rowCount(db),
-                    await partDao.rowCount(db),
-                    await partRevisionDao.rowCount(db),
-                    (await partFamilyDao.byId(db, family.id)).counter,
+                    await dao.partBase.rowCount(db),
+                    await dao.part.rowCount(db),
+                    await dao.partRevision.rowCount(db),
+                    (await dao.partFamily.byId(db, family.id)).counter,
                 ];
             });
             expect(counts).to.eql([0, 0, 0, 0]);
@@ -174,16 +162,16 @@ describe('GraphQL Part - Mutations', function() {
         let partRev;
         beforeEach(function() {
             return pool.transaction(async db => {
-                partBase = await createPartBase(db, family, users.a, 'P001');
-                part = await createPart(db, partBase, users.a, 'P001.01', {
+                partBase = await th.createPartBase(db, family, users.a, 'P001');
+                part = await th.createPart(db, partBase, users.a, 'P001.01', {
                     designation: 'SOME EXISTING PART',
                 });
-                partRev = await createPartRev(db, part, users.a);
-                await partFamilyDao.bumpCounterById(db, family.id);
+                partRev = await th.createPartRev(db, part, users.a);
+                await dao.partFamily.bumpCounterById(db, family.id);
             });
         });
-        this.afterEach(cleanTables(pool, ['part_revision', 'part', 'part_base']));
-        this.afterEach(resetFamilyCounters(pool));
+        this.afterEach(th.cleanTables(pool, ['part_revision', 'part', 'part_base']));
+        this.afterEach(th.resetFamilyCounters(pool));
 
         it('should create a fork of a part', async function() {
             const { errors, data } = await pool.transaction(async db => {
@@ -335,16 +323,16 @@ describe('GraphQL Part - Mutations', function() {
         let partRev;
         beforeEach(function() {
             return pool.transaction(async db => {
-                partBase = await createPartBase(db, family, users.a, 'P001');
-                part = await createPart(db, partBase, users.a, 'P001.01', {
+                partBase = await th.createPartBase(db, family, users.a, 'P001');
+                part = await th.createPart(db, partBase, users.a, 'P001.01', {
                     designation: 'SOME EXISTING PART',
                 });
-                partRev = await createPartRev(db, part, users.a);
-                await partFamilyDao.bumpCounterById(db, family.id);
+                partRev = await th.createPartRev(db, part, users.a);
+                await dao.partFamily.bumpCounterById(db, family.id);
             });
         });
-        this.afterEach(cleanTables(pool, ['part_revision', 'part', 'part_base']));
-        this.afterEach(resetFamilyCounters(pool));
+        this.afterEach(th.cleanTables(pool, ['part_revision', 'part', 'part_base']));
+        this.afterEach(th.resetFamilyCounters(pool));
 
         it('should revise a part', async function() {
             const { errors, data } = await pool.transaction(async db => {
@@ -452,15 +440,15 @@ describe('GraphQL Part - Mutations', function() {
         let part;
         beforeEach(function() {
             return pool.transaction(async db => {
-                partBase = await createPartBase(db, family, users.a, 'P001');
-                part = await createPart(db, partBase, users.a, 'P001.01', {
+                partBase = await th.createPartBase(db, family, users.a, 'P001');
+                part = await th.createPart(db, partBase, users.a, 'P001.01', {
                     designation: 'SOME EXISTING PART',
                 });
-                await partFamilyDao.bumpCounterById(db, family.id);
+                await dao.partFamily.bumpCounterById(db, family.id);
             });
         });
-        this.afterEach(cleanTables(pool, ['part', 'part_base']));
-        this.afterEach(resetFamilyCounters(pool));
+        this.afterEach(th.cleanTables(pool, ['part', 'part_base']));
+        this.afterEach(th.resetFamilyCounters(pool));
 
         it('should update a Part', async function() {
             const bef2 = Date.now();
