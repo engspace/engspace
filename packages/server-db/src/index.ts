@@ -32,6 +32,7 @@ export {
     UserDao,
 } from './dao';
 export { initSchema } from './schema';
+export * from './test-helpers';
 
 export type Db = DatabaseTransactionConnectionType;
 export type DbPool = DatabasePoolType;

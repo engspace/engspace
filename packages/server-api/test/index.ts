@@ -11,8 +11,8 @@ import {
     initSchema,
     prepareDb,
     ServerConnConfig,
+    TestHelpers,
 } from '@engspace/server-db';
-import { TestHelpers } from '@engspace/server-db/dist/test-helpers';
 import { ApolloServerTestClient, createTestClient } from 'apollo-server-testing';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
