@@ -26,6 +26,7 @@ import {
     UserInput,
     PartValidationInput,
     PartApprovalUpdateInput,
+    PartValidationCloseInput,
 } from '@engspace/core';
 import { IResolvers, UserInputError } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
@@ -399,6 +400,13 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 ctx: GqlContext
             ): Promise<PartApproval> {
                 return control.part.updateApproval(ctx, id, input);
+            },
+            partCloseValidation(
+                parent,
+                { id, input }: { id: Id; input: PartValidationCloseInput },
+                ctx: GqlContext
+            ): Promise<PartValidation> {
+                return control.part.closeValidation(ctx, id, input);
             },
 
             documentCreate(

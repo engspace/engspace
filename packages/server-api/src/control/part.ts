@@ -1,4 +1,5 @@
 import {
+    ApprovalDecision,
     CycleState,
     Id,
     Part,
@@ -12,13 +13,14 @@ import {
     PartRevisionInput,
     PartUpdateInput,
     PartValidation,
+    PartValidationCloseInput,
     PartValidationInput,
-    ApprovalDecision,
+    ValidationResult,
 } from '@engspace/core';
 import { DaoSet } from '@engspace/server-db';
+import { ForbiddenError, UserInputError } from 'apollo-server-koa';
 import { ApiContext } from '.';
 import { assertUserPerm } from './helpers';
-import { UserInputError, ForbiddenError } from 'apollo-server-koa';
 
 export class PartControl {
     constructor(private dao: DaoSet) {}
@@ -128,6 +130,10 @@ export class PartControl {
     ): Promise<PartValidation> {
         assertUserPerm(ctx, 'partval.create');
         const { userId } = ctx.auth;
+        const partRev = await this.dao.partRevision.byId(ctx.db, partRevId);
+        if (partRev.cycleState !== CycleState.Edition) {
+            throw new UserInputError('cannot validate a part that is not in edition mode');
+        }
         const val = await this.dao.partValidation.create(ctx.db, {
             partRevId: partRevId,
             userId,
@@ -143,6 +149,8 @@ export class PartControl {
                 })
             )
         );
+
+        await this.dao.partRevision.updateCycleState(ctx.db, partRevId, CycleState.Validation);
 
         return {
             ...val,
@@ -166,6 +174,60 @@ export class PartControl {
             comments,
             userId,
         });
+    }
+
+    async closeValidation(
+        ctx: ApiContext,
+        validationId: Id,
+        { result, comments }: PartValidationCloseInput
+    ): Promise<PartValidation> {
+        const { createdBy, state, partRev } = await this.dao.partValidation.byId(
+            ctx.db,
+            validationId
+        );
+        if (createdBy.id !== ctx.auth.userId) {
+            throw new ForbiddenError("Cannot close someone else's validation");
+        }
+        if (
+            result === ValidationResult.Release &&
+            state !== ApprovalDecision.Approved &&
+            state !== ApprovalDecision.Reserved
+        ) {
+            throw new UserInputError(
+                `Cannot release with a validation that is in "${state}" state`
+            );
+        }
+        const val = await this.dao.partValidation.update(ctx.db, validationId, {
+            result,
+            comments,
+            userId: ctx.auth.userId,
+        });
+
+        switch (result) {
+            case ValidationResult.Release:
+                await this.dao.partRevision.updateCycleState(
+                    ctx.db,
+                    partRev.id,
+                    CycleState.Release
+                );
+                break;
+            case ValidationResult.Cancel:
+                await this.dao.partRevision.updateCycleState(
+                    ctx.db,
+                    partRev.id,
+                    CycleState.Cancelled
+                );
+                break;
+            case ValidationResult.TryAgain:
+                await this.dao.partRevision.updateCycleState(
+                    ctx.db,
+                    partRev.id,
+                    CycleState.Edition
+                );
+                break;
+        }
+
+        return val;
     }
 
     validationById(ctx: ApiContext, validationId: Id): Promise<PartValidation> {

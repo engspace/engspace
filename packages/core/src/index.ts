@@ -159,6 +159,11 @@ export interface PartApprovalUpdateInput {
     comments?: string;
 }
 
+export interface PartValidationCloseInput {
+    result: ValidationResult;
+    comments?: string;
+}
+
 export interface PartApproval extends Tracked {
     id: Id;
     validation: IdOr<PartValidation>;

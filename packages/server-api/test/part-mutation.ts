@@ -1,5 +1,5 @@
-import { CycleState, User, ApprovalDecision } from '@engspace/core';
-import { trackedBy, Dict } from '@engspace/server-db/dist/test-helpers';
+import { ApprovalDecision, CycleState, User, ValidationResult } from '@engspace/core';
+import { Dict, trackedBy } from '@engspace/server-db/dist/test-helpers';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, dao, pool, th } from '.';
@@ -865,6 +865,229 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partApprovalUpdate).to.deep.include({
                 validation: {
                     state: ApprovalDecision.Approved,
+                },
+            });
+        });
+    });
+
+    describe('partCloseValidation', function() {
+        const PARTVAL_CLOSE = gql`
+            mutation ClosePartVal($id: ID!, $input: PartValidationCloseInput!) {
+                partCloseValidation(id: $id, input: $input) {
+                    result
+                    comments
+                    ...TrackedFields
+                    partRev {
+                        cycleState
+                    }
+                }
+            }
+            ${TRACKED_FIELDS}
+        `;
+
+        let partBase;
+        let part;
+        let partRev;
+        let partVal;
+        let partApprs;
+        beforeEach(function() {
+            return pool.transaction(async db => {
+                partBase = await th.createPartBase(db, family, users.a, 'P001');
+                part = await th.createPart(db, partBase, users.a, 'P001.01', {
+                    designation: 'SOME EXISTING PART',
+                });
+                partRev = await th.createPartRev(db, part, users.a);
+                partVal = await th.createPartVal(db, partRev, users.a);
+                partApprs = await th.createPartApprovals(db, partVal, users, users.a);
+                await dao.partFamily.bumpCounterById(db, family.id);
+            });
+        });
+        this.afterEach(
+            th.cleanTables([
+                'part_approval',
+                'part_validation',
+                'part_revision',
+                'part',
+                'part_base',
+            ])
+        );
+        this.afterEach(th.resetFamilyCounters());
+
+        async function setApprovals(apprs: ApprovalDecision[]): Promise<void> {
+            await pool.transaction(async db => {
+                return Promise.all([
+                    dao.partApproval.update(db, partApprs.a.id, {
+                        decision: apprs[0],
+                        userId: users.a.id,
+                    }),
+                    dao.partApproval.update(db, partApprs.b.id, {
+                        decision: apprs[1],
+                        userId: users.b.id,
+                    }),
+                    dao.partApproval.update(db, partApprs.c.id, {
+                        decision: apprs[2],
+                        userId: users.c.id,
+                    }),
+                    dao.partApproval.update(db, partApprs.d.id, {
+                        decision: apprs[3],
+                        userId: users.d.id,
+                    }),
+                    dao.partApproval.update(db, partApprs.e.id, {
+                        decision: apprs[4],
+                        userId: users.e.id,
+                    }),
+                ]);
+            });
+        }
+
+        it('should release a part if validation is approved', async function() {
+            await setApprovals(new Array(5).fill(ApprovalDecision.Approved));
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['partval.update', 'partval.read', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PARTVAL_CLOSE,
+                    variables: {
+                        id: partVal.id,
+                        input: {
+                            result: ValidationResult.Release,
+                        },
+                    },
+                });
+            });
+            expect(errors).to.be.undefined;
+            expect(data.partCloseValidation).to.deep.include({
+                result: ValidationResult.Release,
+                comments: null,
+                ...trackedBy(users.a),
+                partRev: {
+                    cycleState: CycleState.Release,
+                },
+            });
+        });
+
+        it('should not release with a pending validation', async function() {
+            await setApprovals([
+                ApprovalDecision.Approved,
+                ApprovalDecision.Pending,
+                ApprovalDecision.Approved,
+                ApprovalDecision.Approved,
+                ApprovalDecision.Approved,
+            ]);
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['partval.update', 'partval.read', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PARTVAL_CLOSE,
+                    variables: {
+                        id: partVal.id,
+                        input: {
+                            result: ValidationResult.Release,
+                        },
+                    },
+                });
+            });
+            expect(errors).to.not.be.empty;
+            expect(errors[0].message).to.contain('PENDING');
+            expect(data).to.be.null;
+        });
+
+        it('should not release with a rejected validation', async function() {
+            await setApprovals([
+                ApprovalDecision.Approved,
+                ApprovalDecision.Rejected,
+                ApprovalDecision.Approved,
+                ApprovalDecision.Approved,
+                ApprovalDecision.Approved,
+            ]);
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['partval.update', 'partval.read', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PARTVAL_CLOSE,
+                    variables: {
+                        id: partVal.id,
+                        input: {
+                            result: ValidationResult.Release,
+                        },
+                    },
+                });
+            });
+            expect(errors).to.not.be.empty;
+            expect(errors[0].message).to.contain('REJECTED');
+            expect(data).to.be.null;
+        });
+
+        it('should try-again whatever the status', async function() {
+            await setApprovals([
+                ApprovalDecision.Approved,
+                ApprovalDecision.Rejected,
+                ApprovalDecision.Pending,
+                ApprovalDecision.Approved,
+                ApprovalDecision.Approved,
+            ]);
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['partval.update', 'partval.read', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PARTVAL_CLOSE,
+                    variables: {
+                        id: partVal.id,
+                        input: {
+                            result: ValidationResult.TryAgain,
+                        },
+                    },
+                });
+            });
+            expect(errors).to.be.undefined;
+            expect(data.partCloseValidation).to.deep.include({
+                result: ValidationResult.TryAgain,
+                comments: null,
+                ...trackedBy(users.a),
+                partRev: {
+                    cycleState: CycleState.Edition,
+                },
+            });
+        });
+
+        it('should cancel whatever the status', async function() {
+            await setApprovals([
+                ApprovalDecision.Approved,
+                ApprovalDecision.Rejected,
+                ApprovalDecision.Pending,
+                ApprovalDecision.Approved,
+                ApprovalDecision.Approved,
+            ]);
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['partval.update', 'partval.read', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PARTVAL_CLOSE,
+                    variables: {
+                        id: partVal.id,
+                        input: {
+                            result: ValidationResult.Cancel,
+                        },
+                    },
+                });
+            });
+            expect(errors).to.be.undefined;
+            expect(data.partCloseValidation).to.deep.include({
+                result: ValidationResult.Cancel,
+                comments: null,
+                ...trackedBy(users.a),
+                partRev: {
+                    cycleState: CycleState.Cancelled,
                 },
             });
         });

@@ -156,6 +156,14 @@ export const typeDefs = gql`
         comments: String
     }
 
+    """
+    An input that concludes a validation
+    """
+    input PartValidationCloseInput {
+        result: ValidationResult!
+        comments: String
+    }
+
     type PartBase implements Tracked {
         id: ID!
         family: PartFamily!
@@ -303,6 +311,7 @@ export const typeDefs = gql`
         partRevise(input: PartRevisionInput!): PartRevision!
         partStartValidation(input: PartValidationInput!): PartValidation!
         partApprovalUpdate(id: ID!, input: PartApprovalUpdateInput!): PartApproval!
+        partCloseValidation(id: ID!, input: PartValidationCloseInput!): PartValidation!
 
         documentCreate(input: DocumentInput!): Document!
         documentCheckout(id: ID!, revision: Int!): Document!
