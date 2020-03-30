@@ -614,7 +614,7 @@ describe('GraphQL Part - Mutations', function() {
                 partRev: {
                     id: partRev.id,
                     revision: partRev.revision,
-                    cycleState: partRev.cycleState,
+                    cycleState: CycleState.Validation,
                 },
                 state: ApprovalDecision.Pending,
                 result: null,
