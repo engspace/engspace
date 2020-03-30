@@ -1,6 +1,7 @@
-import { ApprovalDecision } from '@engspace/core';
+import { ApprovalDecision, ValidationResult } from '@engspace/core';
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
+import { trackedBy } from '../dist';
 
 describe('PartValidationDao', function() {
     let users;
@@ -27,7 +28,7 @@ describe('PartValidationDao', function() {
         'clean deps',
         th.cleanTables(['part_revision', 'part', 'part_base', 'part_family', 'user'])
     );
-    describe('Create', function() {
+    describe('create', function() {
         afterEach(th.cleanTable('part_validation'));
 
         it('should create part validation', async function() {
@@ -44,7 +45,7 @@ describe('PartValidationDao', function() {
         });
     });
 
-    describe('State', function() {
+    describe('byId - state', function() {
         let partVal;
         beforeEach(async function() {
             partVal = await pool.transaction(async db => {
@@ -127,6 +128,47 @@ describe('PartValidationDao', function() {
                 return dao.partValidation.byId(db, partVal.id);
             });
             expect(val.state).to.eql(ApprovalDecision.Approved);
+        });
+    });
+
+    describe('update', function() {
+        let partVal;
+        beforeEach(async function() {
+            partVal = await pool.transaction(async db => {
+                return th.createPartVal(db, partRev, users.a);
+            });
+        });
+        afterEach(th.cleanTables(['part_approval', 'part_validation']));
+
+        it('should update a validation result', async function() {
+            const val = await pool.transaction(async db => {
+                return dao.partValidation.update(db, partVal.id, {
+                    result: ValidationResult.Release,
+                    userId: users.b.id,
+                });
+            });
+            expect(val).to.deep.include({
+                id: partVal.id,
+                result: ValidationResult.Release,
+                comments: null,
+                ...trackedBy(users.a, users.b),
+            });
+        });
+
+        it('should update a validation result with comment', async function() {
+            const val = await pool.transaction(async db => {
+                return dao.partValidation.update(db, partVal.id, {
+                    result: ValidationResult.Release,
+                    userId: users.b.id,
+                    comments: "C'est top!",
+                });
+            });
+            expect(val).to.deep.include({
+                id: partVal.id,
+                result: ValidationResult.Release,
+                comments: "C'est top!",
+                ...trackedBy(users.a, users.b),
+            });
         });
     });
 });

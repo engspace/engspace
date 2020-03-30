@@ -37,6 +37,12 @@ export interface PartValidationDaoInput {
     userId: Id;
 }
 
+export interface PartValidationUpdateDaoInput {
+    result: ValidationResult;
+    comments?: string;
+    userId: Id;
+}
+
 export class PartValidationDao extends DaoRowMap<PartValidation, Row> {
     constructor() {
         super({
@@ -55,6 +61,21 @@ export class PartValidationDao extends DaoRowMap<PartValidation, Row> {
                 ${partRevId},
                 ${tracked.insertValToken(userId)}
             )
+            RETURNING ${rowToken}
+        `);
+        return mapRow(row);
+    }
+    async update(
+        db: Db,
+        id: Id,
+        { result, comments, userId }: PartValidationUpdateDaoInput
+    ): Promise<PartValidation> {
+        const row: Row = await db.one(sql`
+            UPDATE part_validation SET
+                result = ${result},
+                comments = ${comments ?? null},
+                ${tracked.updateAssignmentsToken(userId)}
+            WHERE id = ${id}
             RETURNING ${rowToken}
         `);
         return mapRow(row);
