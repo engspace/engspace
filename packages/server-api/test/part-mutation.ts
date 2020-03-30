@@ -668,10 +668,10 @@ describe('GraphQL Part - Mutations', function() {
         });
     });
 
-    describe('partApprovalUpdate', async function() {
+    describe('partUpdateApproval', async function() {
         const PARTAPPR_UPDATE = gql`
             mutation UpdatePartAppr($id: ID!, $input: PartApprovalUpdateInput!) {
-                partApprovalUpdate(id: $id, input: $input) {
+                partUpdateApproval(id: $id, input: $input) {
                     id
                     assignee {
                         id
@@ -730,7 +730,7 @@ describe('GraphQL Part - Mutations', function() {
                 });
             });
             expect(errors).to.be.undefined;
-            expect(data.partApprovalUpdate).to.deep.include({
+            expect(data.partUpdateApproval).to.deep.include({
                 id: partApprs.b.id,
                 decision: ApprovalDecision.Approved,
                 assignee: {
@@ -761,7 +761,7 @@ describe('GraphQL Part - Mutations', function() {
                 });
             });
             expect(errors).to.be.undefined;
-            expect(data.partApprovalUpdate).to.deep.include({
+            expect(data.partUpdateApproval).to.deep.include({
                 id: partApprs.b.id,
                 decision: ApprovalDecision.Approved,
                 assignee: {
@@ -812,7 +812,7 @@ describe('GraphQL Part - Mutations', function() {
                 });
             });
             expect(errors).to.be.undefined;
-            expect(data.partApprovalUpdate).to.deep.include({
+            expect(data.partUpdateApproval).to.deep.include({
                 id: partApprs.b.id,
                 decision: ApprovalDecision.Rejected,
                 assignee: {
@@ -862,7 +862,7 @@ describe('GraphQL Part - Mutations', function() {
                 });
             });
             expect(errors).to.be.undefined;
-            expect(data.partApprovalUpdate).to.deep.include({
+            expect(data.partUpdateApproval).to.deep.include({
                 validation: {
                     state: ApprovalDecision.Approved,
                 },

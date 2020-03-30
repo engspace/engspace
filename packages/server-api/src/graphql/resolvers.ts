@@ -394,7 +394,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             ): Promise<PartValidation> {
                 return control.part.startValidation(ctx, input);
             },
-            partApprovalUpdate(
+            partUpdateApproval(
                 parent,
                 { id, input }: { id: Id; input: PartApprovalUpdateInput },
                 ctx: GqlContext

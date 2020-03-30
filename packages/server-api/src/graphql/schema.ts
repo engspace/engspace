@@ -310,7 +310,7 @@ export const typeDefs = gql`
         partUpdate(id: ID!, input: PartUpdateInput!): Part!
         partRevise(input: PartRevisionInput!): PartRevision!
         partStartValidation(input: PartValidationInput!): PartValidation!
-        partApprovalUpdate(id: ID!, input: PartApprovalUpdateInput!): PartApproval!
+        partUpdateApproval(id: ID!, input: PartApprovalUpdateInput!): PartApproval!
         partCloseValidation(id: ID!, input: PartValidationCloseInput!): PartValidation!
 
         documentCreate(input: DocumentInput!): Document!
