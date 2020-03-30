@@ -167,7 +167,10 @@ export class PartControl {
         const { userId } = auth;
         const { assignee } = await this.dao.partApproval.byId(db, approvalId);
         if (assignee.id !== userId) {
-            throw new ForbiddenError("Cannot update someone else's approval");
+            const { fullName, email } = await this.dao.user.byId(db, assignee.id);
+            throw new ForbiddenError(
+                `Only ${fullName} (${email}) is allowed to set this approval decision`
+            );
         }
         return this.dao.partApproval.update(db, approvalId, {
             decision: decision,
@@ -186,7 +189,10 @@ export class PartControl {
             validationId
         );
         if (createdBy.id !== ctx.auth.userId) {
-            throw new ForbiddenError("Cannot close someone else's validation");
+            const { fullName, email } = await this.dao.user.byId(ctx.db, createdBy.id);
+            throw new ForbiddenError(
+                `Only ${fullName} (${email}) is allowed to close this validation`
+            );
         }
         if (
             result === ValidationResult.Release &&

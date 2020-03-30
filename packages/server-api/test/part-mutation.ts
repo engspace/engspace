@@ -666,6 +666,32 @@ describe('GraphQL Part - Mutations', function() {
             expect(errors[0].message).to.contain('partval.create');
             expect(data).to.be.null;
         });
+
+        it('should not start a validation of a part that is not in edition mode', async function() {
+            await pool.transaction(async db => {
+                return dao.partRevision.updateCycleState(db, partRev.id, CycleState.Release);
+            });
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['partval.create', 'partval.read', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PART_STARTVAL,
+                    variables: {
+                        input: {
+                            partRevId: partRev.id,
+                            requiredApprovals: Object.values(users).map(u => ({
+                                assigneeId: u.id,
+                            })),
+                        },
+                    },
+                });
+            });
+            expect(errors).to.not.be.empty;
+            expect(errors[0].message).to.contain('edition');
+            expect(data).to.be.null;
+        });
     });
 
     describe('partUpdateApproval', async function() {
@@ -791,7 +817,7 @@ describe('GraphQL Part - Mutations', function() {
                 });
             });
             expect(errors).to.not.be.empty;
-            expect(errors[0].message).to.contain('someone else');
+            expect(errors[0].message).to.contain(users.b.email);
             expect(data).to.be.null;
         });
 
@@ -1021,6 +1047,34 @@ describe('GraphQL Part - Mutations', function() {
             });
             expect(errors).to.not.be.empty;
             expect(errors[0].message).to.contain('REJECTED');
+            expect(data).to.be.null;
+        });
+
+        it('should not close someone else validation', async function() {
+            await setApprovals([
+                ApprovalDecision.Approved,
+                ApprovalDecision.Approved,
+                ApprovalDecision.Approved,
+                ApprovalDecision.Approved,
+                ApprovalDecision.Approved,
+            ]);
+            const { errors, data } = await pool.transaction(async db => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.b, ['partval.update', 'partval.read', 'part.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: PARTVAL_CLOSE,
+                    variables: {
+                        id: partVal.id,
+                        input: {
+                            result: ValidationResult.Release,
+                        },
+                    },
+                });
+            });
+            expect(errors).to.not.be.empty;
+            expect(errors[0].message).to.contain(users.a.email);
             expect(data).to.be.null;
         });
 
