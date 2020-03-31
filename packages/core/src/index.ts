@@ -103,7 +103,7 @@ export interface PartFamily extends PartFamilyInput {
     counter: number;
 }
 
-export interface PartCreateNewInput {
+export interface PartCreateInput {
     familyId: Id;
     designation: string;
     initialVersion: string;

@@ -77,10 +77,10 @@ describe('GraphQL Part - Mutations', function() {
     afterEach(th.cleanTables(['part_revision', 'part', 'part_base']));
     afterEach(th.resetFamilyCounters());
 
-    describe('partCreateNew', function() {
+    describe('partCreate', function() {
         const PART_CREATENEW = gql`
-            mutation CreateNewPart($input: PartCreateNewInput!) {
-                partCreateNew(input: $input) {
+            mutation CreateNewPart($input: PartCreateInput!) {
+                partCreate(input: $input) {
                     ...PartRevDeepFields
                 }
             }
@@ -105,18 +105,18 @@ describe('GraphQL Part - Mutations', function() {
                 });
             });
             expect(errors).to.be.undefined;
-            expect(data.partCreateNew).to.deep.include({
+            expect(data.partCreate).to.deep.include({
                 revision: 1,
                 designation: 'SOME NEW PART',
                 cycleState: CycleState.Edition,
                 ...trackedBy(users.a),
             });
-            expect(data.partCreateNew.part).to.deep.include({
+            expect(data.partCreate.part).to.deep.include({
                 ref: 'P001.01',
                 designation: 'SOME NEW PART',
                 ...trackedBy(users.a),
             });
-            expect(data.partCreateNew.part.base).to.deep.include({
+            expect(data.partCreate.part.base).to.deep.include({
                 baseRef: 'P001',
                 ...trackedBy(users.a),
                 family: { id: family.id },

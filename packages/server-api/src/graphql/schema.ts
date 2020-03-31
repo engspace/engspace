@@ -97,7 +97,7 @@ export const typeDefs = gql`
      - new Part (with initial version)
      - new PartRevision (1)
     """
-    input PartCreateNewInput {
+    input PartCreateInput {
         familyId: ID!
         initialVersion: String!
         designation: String!
@@ -305,7 +305,7 @@ export const typeDefs = gql`
         partFamilyCreate(input: PartFamilyInput!): PartFamily!
         partFamilyUpdate(id: ID!, input: PartFamilyInput!): PartFamily!
 
-        partCreateNew(input: PartCreateNewInput!): PartRevision!
+        partCreate(input: PartCreateInput!): PartRevision!
         partFork(input: PartForkInput!): PartRevision!
         partUpdate(id: ID!, input: PartUpdateInput!): Part!
         partRevise(input: PartRevisionInput!): PartRevision!

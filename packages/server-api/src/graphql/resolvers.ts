@@ -9,7 +9,7 @@ import {
     Part,
     PartApproval,
     PartBase,
-    PartCreateNewInput,
+    PartCreateInput,
     PartFamily,
     PartFamilyInput,
     PartForkInput,
@@ -359,12 +359,12 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.partFamily.update(ctx, id, input);
             },
 
-            partCreateNew(
+            partCreate(
                 parent,
-                { input }: { input: PartCreateNewInput },
+                { input }: { input: PartCreateInput },
                 ctx: GqlContext
             ): Promise<PartRevision> {
-                return control.part.createNew(ctx, input);
+                return control.part.create(ctx, input);
             },
             partFork(
                 parent,

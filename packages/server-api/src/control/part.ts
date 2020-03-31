@@ -7,7 +7,7 @@ import {
     PartApprovalInput,
     PartApprovalUpdateInput,
     PartBase,
-    PartCreateNewInput,
+    PartCreateInput,
     PartForkInput,
     PartRevision,
     PartRevisionInput,
@@ -25,7 +25,7 @@ import { assertUserPerm } from './helpers';
 export class PartControl {
     constructor(private dao: DaoSet) {}
 
-    async createNew(ctx: ApiContext, input: PartCreateNewInput): Promise<PartRevision> {
+    async create(ctx: ApiContext, input: PartCreateInput): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.create');
 
         const { userId } = ctx.auth;
