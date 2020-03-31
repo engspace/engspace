@@ -79,7 +79,6 @@ describe('Pool and Schema', async () => {
                 'project_member',
                 'project_member_role',
                 'part_family',
-                'part_base',
                 'part',
                 'part_revision',
                 'part_validation',

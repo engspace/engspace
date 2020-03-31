@@ -6,17 +6,15 @@ import { trackedBy } from '../src/test-helpers';
 describe('PartRevisionDao', function() {
     let users;
     let fam;
-    let partBase;
     let part;
     before('create deps', async function() {
         return pool.transaction(async db => {
             users = await th.createUsersAB(db);
-            fam = await th.createPartFamily(db, { code: 'P' });
-            partBase = await th.createPartBase(db, fam, users.a, 'P01');
-            part = await th.createPart(db, partBase, users.a, 'P01.A');
+            fam = await th.createPartFamily(db);
+            part = await th.createPart(db, fam, users.a);
         });
     });
-    after('clean deps', th.cleanTables(['part', 'part_base', 'part_family', 'user']));
+    after('clean deps', th.cleanTables(['part', 'part_family', 'user']));
 
     describe('Create', function() {
         afterEach(th.cleanTable('part_revision'));

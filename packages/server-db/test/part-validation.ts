@@ -6,7 +6,6 @@ import { trackedBy } from '../dist';
 describe('PartValidationDao', function() {
     let users;
     let fam;
-    let partBase;
     let part;
     let partRev;
     before('create deps', async function() {
@@ -19,15 +18,11 @@ describe('PartValidationDao', function() {
                 e: { name: 'e' },
             });
             fam = await th.createPartFamily(db, { code: 'P' });
-            partBase = await th.createPartBase(db, fam, users.a, 'P01');
-            part = await th.createPart(db, partBase, users.a, 'P01.A');
+            part = await th.createPart(db, fam, users.a);
             partRev = await th.createPartRev(db, part, users.a);
         });
     });
-    after(
-        'clean deps',
-        th.cleanTables(['part_revision', 'part', 'part_base', 'part_family', 'user'])
-    );
+    after('clean deps', th.cleanTables(['part_revision', 'part', 'part_family', 'user']));
     describe('create', function() {
         afterEach(th.cleanTable('part_validation'));
 

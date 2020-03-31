@@ -7,24 +7,13 @@ import { buildGqlServer, pool, th } from '.';
 import { permsAuth } from './auth';
 import { TRACKED_FIELDS } from './helpers';
 
-const PARTBASE_FIELDS = gql`
-    fragment PartBaseFields on PartBase {
-        id
-        baseRef
-        family {
-            id
-        }
-        ...TrackedFields
-    }
-    ${TRACKED_FIELDS}
-`;
-
 const PART_FIELDS = gql`
     fragment PartFields on Part {
         id
-        base {
+        family {
             id
         }
+        baseRef
         ref
         designation
         ...TrackedFields
@@ -79,15 +68,6 @@ const PARTAPPR_FIELDS = gql`
     ${TRACKED_FIELDS}
 `;
 
-const PARTBASE_READ = gql`
-    query ReadPartBase($id: ID!) {
-        partBase(id: $id) {
-            ...PartBaseFields
-        }
-    }
-    ${PARTBASE_FIELDS}
-`;
-
 const PART_READ = gql`
     query ReadPart($id: ID!) {
         part(id: $id) {
@@ -127,7 +107,6 @@ const PARTAPPR_READ = gql`
 describe('GraphQL Part - Queries', function() {
     let users;
     let family;
-    let partBase;
     let part;
     let partRev;
     let bef, aft;
@@ -142,72 +121,19 @@ describe('GraphQL Part - Queries', function() {
                 e: { name: 'e' },
             });
             family = await th.createPartFamily(db, { code: 'P' });
-            partBase = await th.createPartBase(db, family, users.a, 'P001');
-            part = await th.createPart(db, partBase, users.a, 'P001.01');
+            part = await th.createPart(db, family, users.a);
             partRev = await th.createPartRev(db, part, users.a);
         });
         aft = Date.now();
     });
-    after(
-        'delete res',
-        th.cleanTables(['part_revision', 'part', 'part_base', 'part_family', 'user'])
-    );
-
-    describe('PartBase', function() {
-        it('should query a part base', async function() {
-            const { errors, data } = await pool.connect(async db => {
-                const { query } = buildGqlServer(
-                    db,
-                    permsAuth(users.a, ['partfamily.read', 'user.read', 'part.read'])
-                );
-                return query({
-                    query: PARTBASE_READ,
-                    variables: {
-                        id: partBase.id,
-                    },
-                });
-            });
-            expect(errors).to.be.undefined;
-            expect(data).to.be.an('object');
-            expect(data.partBase).to.deep.include({
-                id: partBase.id,
-                baseRef: 'P001',
-                family: { id: family.id },
-                ...trackedBy(users.a),
-            });
-            expect(data.partBase.createdAt)
-                .to.be.gte(bef)
-                .and.lte(aft);
-            expect(data.partBase.updatedAt)
-                .to.be.gte(bef)
-                .and.lte(aft);
-        });
-
-        it('should not query a part base without "part.read"', async function() {
-            const { errors, data } = await pool.connect(async db => {
-                const { query } = buildGqlServer(
-                    db,
-                    permsAuth(users.a, ['partfamily.read', 'user.read'])
-                );
-                return query({
-                    query: PARTBASE_READ,
-                    variables: {
-                        id: partBase.id,
-                    },
-                });
-            });
-            expect(errors).to.be.an('array').not.empty;
-            expect(errors[0].message).to.contain('part.read');
-            expect(data.partBase).to.be.null;
-        });
-    });
+    after('delete res', th.cleanTables(['part_revision', 'part', 'part_family', 'user']));
 
     describe('Part', function() {
         it('should query a Part', async function() {
             const { errors, data } = await pool.connect(async db => {
                 const { query } = buildGqlServer(
                     db,
-                    permsAuth(users.a, ['part.read', 'user.read'])
+                    permsAuth(users.a, ['part.read', 'partfamily.read', 'user.read'])
                 );
                 return query({
                     query: PART_READ,
@@ -219,8 +145,8 @@ describe('GraphQL Part - Queries', function() {
             expect(errors).to.be.undefined;
             expect(data.part).to.deep.include({
                 id: part.id,
-                base: { id: partBase.id },
-                ref: 'P001.01',
+                family: { id: family.id },
+                ref: 'P001.A',
                 createdBy: { id: users.a.id },
                 updatedBy: { id: users.a.id },
             });

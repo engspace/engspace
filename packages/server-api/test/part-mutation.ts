@@ -16,15 +16,11 @@ const PARTREV_DEEPFIELDS = gql`
         part {
             id
             designation
+            baseRef
             ref
             ...TrackedFields
-            base {
+            family {
                 id
-                baseRef
-                family {
-                    id
-                }
-                ...TrackedFields
             }
         }
     }
@@ -72,9 +68,9 @@ describe('GraphQL Part - Mutations', function() {
             family = await th.createPartFamily(db, { code: 'P' });
         });
     });
-    after('delete res', th.cleanTables(['part_base', 'part_family', 'user']));
+    after('delete res', th.cleanTables(['part_family', 'user']));
 
-    afterEach(th.cleanTables(['part_revision', 'part', 'part_base']));
+    afterEach(th.cleanTables(['part_revision', 'part']));
     afterEach(th.resetFamilyCounters());
 
     describe('partCreate', function() {
@@ -98,7 +94,7 @@ describe('GraphQL Part - Mutations', function() {
                     variables: {
                         input: {
                             familyId: family.id,
-                            initialVersion: '01',
+                            initialVersion: 'A',
                             designation: 'SOME NEW PART',
                         },
                     },
@@ -112,12 +108,9 @@ describe('GraphQL Part - Mutations', function() {
                 ...trackedBy(users.a),
             });
             expect(data.partCreate.part).to.deep.include({
-                ref: 'P001.01',
-                designation: 'SOME NEW PART',
-                ...trackedBy(users.a),
-            });
-            expect(data.partCreate.part.base).to.deep.include({
+                ref: 'P001.A',
                 baseRef: 'P001',
+                designation: 'SOME NEW PART',
                 ...trackedBy(users.a),
                 family: { id: family.id },
             });
@@ -134,7 +127,7 @@ describe('GraphQL Part - Mutations', function() {
                     variables: {
                         input: {
                             familyId: family.id,
-                            initialVersion: '01',
+                            initialVersion: 'A',
                             designation: 'SOME NEW PART',
                         },
                     },
@@ -145,13 +138,12 @@ describe('GraphQL Part - Mutations', function() {
             expect(data).to.be.null;
             const counts = await pool.transaction(async db => {
                 return [
-                    await dao.partBase.rowCount(db),
                     await dao.part.rowCount(db),
                     await dao.partRevision.rowCount(db),
                     (await dao.partFamily.byId(db, family.id)).counter,
                 ];
             });
-            expect(counts).to.eql([0, 0, 0, 0]);
+            expect(counts).to.eql([0, 0, 0]);
         });
     });
 
@@ -165,20 +157,18 @@ describe('GraphQL Part - Mutations', function() {
             ${PARTREV_DEEPFIELDS}
         `;
 
-        let partBase;
         let part;
         let partRev;
         beforeEach(function() {
             return pool.transaction(async db => {
-                partBase = await th.createPartBase(db, family, users.a, 'P001');
-                part = await th.createPart(db, partBase, users.a, 'P001.01', {
+                part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
                 partRev = await th.createPartRev(db, part, users.a);
                 await dao.partFamily.bumpCounterById(db, family.id);
             });
         });
-        this.afterEach(th.cleanTables(['part_revision', 'part', 'part_base']));
+        this.afterEach(th.cleanTables(['part_revision', 'part']));
         this.afterEach(th.resetFamilyCounters());
 
         it('should create a fork of a part', async function() {
@@ -207,18 +197,14 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partFork.id).to.be.uuid();
             expect(data.partFork.id).to.not.equal(partRev.id);
             expect(data.partFork.part).to.deep.include({
-                ref: 'P001.02',
+                ref: 'P001.B',
+                baseRef: 'P001',
                 designation: 'SOME EXISTING PART',
                 ...trackedBy(users.b),
+                family: { id: family.id },
             });
             expect(data.partFork.part.id).to.be.uuid();
             expect(data.partFork.part.id).to.not.equal(part.id);
-            expect(data.partFork.part.base).to.deep.include({
-                id: partBase.id,
-                baseRef: 'P001',
-                ...trackedBy(users.a),
-                family: { id: family.id },
-            });
         });
 
         it('should create a fork of a part with new designation', async function() {
@@ -248,18 +234,14 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partFork.id).to.be.uuid();
             expect(data.partFork.id).to.not.equal(partRev.id);
             expect(data.partFork.part).to.deep.include({
-                ref: 'P001.02',
+                ref: 'P001.B',
+                baseRef: 'P001',
+                family: { id: family.id },
                 designation: 'NEW EXISTING PART',
                 ...trackedBy(users.b),
             });
             expect(data.partFork.part.id).to.be.uuid();
             expect(data.partFork.part.id).to.not.equal(part.id);
-            expect(data.partFork.part.base).to.deep.include({
-                id: partBase.id,
-                baseRef: 'P001',
-                ...trackedBy(users.a),
-                family: { id: family.id },
-            });
         });
 
         it('should create a fork of a part with specified version', async function() {
@@ -273,7 +255,7 @@ describe('GraphQL Part - Mutations', function() {
                     variables: {
                         input: {
                             partId: part.id,
-                            version: '52',
+                            version: 'K',
                         },
                     },
                 });
@@ -289,18 +271,14 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partFork.id).to.be.uuid();
             expect(data.partFork.id).to.not.equal(partRev.id);
             expect(data.partFork.part).to.deep.include({
-                ref: 'P001.52',
+                ref: 'P001.K',
+                baseRef: 'P001',
                 designation: 'SOME EXISTING PART',
                 ...trackedBy(users.b),
+                family: { id: family.id },
             });
             expect(data.partFork.part.id).to.be.uuid();
             expect(data.partFork.part.id).to.not.equal(part.id);
-            expect(data.partFork.part.base).to.deep.include({
-                id: partBase.id,
-                baseRef: 'P001',
-                ...trackedBy(users.a),
-                family: { id: family.id },
-            });
         });
 
         it('should not create a fork without "part.create"', async function() {
@@ -330,10 +308,11 @@ describe('GraphQL Part - Mutations', function() {
             mutation UpdatePart($id: ID!, $input: PartUpdateInput!) {
                 partUpdate(id: $id, input: $input) {
                     id
-                    base {
+                    family {
                         id
                     }
                     ref
+                    baseRef
                     designation
                     ...TrackedFields
                 }
@@ -341,18 +320,16 @@ describe('GraphQL Part - Mutations', function() {
             ${TRACKED_FIELDS}
         `;
 
-        let partBase;
         let part;
         beforeEach(function() {
             return pool.transaction(async db => {
-                partBase = await th.createPartBase(db, family, users.a, 'P001');
-                part = await th.createPart(db, partBase, users.a, 'P001.01', {
+                part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
                 await dao.partFamily.bumpCounterById(db, family.id);
             });
         });
-        this.afterEach(th.cleanTables(['part', 'part_base']));
+        this.afterEach(th.cleanTables(['part']));
         this.afterEach(th.resetFamilyCounters());
 
         it('should update a Part', async function() {
@@ -360,7 +337,7 @@ describe('GraphQL Part - Mutations', function() {
             const { errors, data } = await pool.transaction(async db => {
                 const { mutate } = buildGqlServer(
                     db,
-                    permsAuth(users.b, ['part.update', 'part.read', 'user.read'])
+                    permsAuth(users.b, ['part.update', 'part.read', 'partfamily.read', 'user.read'])
                 );
                 return mutate({
                     mutation: PART_UPDATE,
@@ -373,10 +350,12 @@ describe('GraphQL Part - Mutations', function() {
                 });
             });
             const aft2 = Date.now();
+            console.log(errors);
             expect(errors).to.be.undefined;
             expect(data.partUpdate).to.deep.include({
-                base: { id: partBase.id },
-                ref: 'P001.01',
+                family: { id: family.id },
+                ref: 'P001.A',
+                baseRef: 'P001',
                 designation: 'NEW DESIGNATION',
                 ...trackedBy(users.a, users.b),
                 createdAt: part.createdAt,
@@ -391,7 +370,7 @@ describe('GraphQL Part - Mutations', function() {
             const { errors, data } = await pool.transaction(async db => {
                 const { mutate } = buildGqlServer(
                     db,
-                    permsAuth(users.b, ['part.read', 'user.read'])
+                    permsAuth(users.b, ['part.read', 'partfamily.read', 'user.read'])
                 );
                 return mutate({
                     mutation: PART_UPDATE,
@@ -419,13 +398,11 @@ describe('GraphQL Part - Mutations', function() {
             ${PARTREV_DEEPFIELDS}
         `;
 
-        let partBase;
         let part;
         let partRev;
         beforeEach(function() {
             return pool.transaction(async db => {
-                partBase = await th.createPartBase(db, family, users.a, 'P001');
-                part = await th.createPart(db, partBase, users.a, 'P001.01', {
+                part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
                 const pr = await th.createPartRev(db, part, users.a);
@@ -433,7 +410,7 @@ describe('GraphQL Part - Mutations', function() {
                 partRev = await dao.partRevision.updateCycleState(db, pr.id, CycleState.Release);
             });
         });
-        this.afterEach(th.cleanTables(['part_revision', 'part', 'part_base']));
+        this.afterEach(th.cleanTables(['part_revision', 'part']));
         this.afterEach(th.resetFamilyCounters());
 
         it('should revise a part', async function() {
@@ -463,13 +440,9 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partRevise.id).to.not.equal(partRev.id);
             expect(data.partRevise.part).to.deep.include({
                 id: part.id,
-                ref: 'P001.01',
-                designation: 'SOME EXISTING PART',
-                ...trackedBy(users.a),
-            });
-            expect(data.partRevise.part.base).to.deep.include({
-                id: partBase.id,
+                ref: 'P001.A',
                 baseRef: 'P001',
+                designation: 'SOME EXISTING PART',
                 ...trackedBy(users.a),
                 family: { id: family.id },
             });
@@ -503,13 +476,9 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partRevise.id).to.not.equal(partRev.id);
             expect(data.partRevise.part).to.deep.include({
                 id: part.id,
-                ref: 'P001.01',
-                designation: 'SOME EXISTING PART',
-                ...trackedBy(users.a),
-            });
-            expect(data.partRevise.part.base).to.deep.include({
-                id: partBase.id,
+                ref: 'P001.A',
                 baseRef: 'P001',
+                designation: 'SOME EXISTING PART',
                 ...trackedBy(users.a),
                 family: { id: family.id },
             });
@@ -567,13 +536,11 @@ describe('GraphQL Part - Mutations', function() {
             }
             ${PARTVAL_DEEPFIELDS}
         `;
-        let partBase;
         let part;
         let partRev;
         beforeEach(function() {
             return pool.transaction(async db => {
-                partBase = await th.createPartBase(db, family, users.a, 'P001');
-                part = await th.createPart(db, partBase, users.a, 'P001.01', {
+                part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
                 partRev = await th.createPartRev(db, part, users.a);
@@ -581,13 +548,7 @@ describe('GraphQL Part - Mutations', function() {
             });
         });
         this.afterEach(
-            th.cleanTables([
-                'part_approval',
-                'part_validation',
-                'part_revision',
-                'part',
-                'part_base',
-            ])
+            th.cleanTables(['part_approval', 'part_validation', 'part_revision', 'part'])
         );
         this.afterEach(th.resetFamilyCounters());
 
@@ -711,15 +672,13 @@ describe('GraphQL Part - Mutations', function() {
             }
         `;
 
-        let partBase;
         let part;
         let partRev;
         let partVal;
         let partApprs;
         beforeEach(function() {
             return pool.transaction(async db => {
-                partBase = await th.createPartBase(db, family, users.a, 'P001');
-                part = await th.createPart(db, partBase, users.a, 'P001.01', {
+                part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
                 partRev = await th.createPartRev(db, part, users.a);
@@ -729,13 +688,7 @@ describe('GraphQL Part - Mutations', function() {
             });
         });
         this.afterEach(
-            th.cleanTables([
-                'part_approval',
-                'part_validation',
-                'part_revision',
-                'part',
-                'part_base',
-            ])
+            th.cleanTables(['part_approval', 'part_validation', 'part_revision', 'part'])
         );
         this.afterEach(th.resetFamilyCounters());
 
@@ -911,15 +864,13 @@ describe('GraphQL Part - Mutations', function() {
             ${TRACKED_FIELDS}
         `;
 
-        let partBase;
         let part;
         let partRev;
         let partVal;
         let partApprs;
         beforeEach(function() {
             return pool.transaction(async db => {
-                partBase = await th.createPartBase(db, family, users.a, 'P001');
-                part = await th.createPart(db, partBase, users.a, 'P001.01', {
+                part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
                 partRev = await th.createPartRev(db, part, users.a);
@@ -929,13 +880,7 @@ describe('GraphQL Part - Mutations', function() {
             });
         });
         this.afterEach(
-            th.cleanTables([
-                'part_approval',
-                'part_validation',
-                'part_revision',
-                'part',
-                'part_base',
-            ])
+            th.cleanTables(['part_approval', 'part_validation', 'part_revision', 'part'])
         );
         this.afterEach(th.resetFamilyCounters());
 

@@ -124,15 +124,10 @@ export interface PartUpdateInput {
     designation: string;
 }
 
-export interface PartBase extends Tracked {
+export interface Part extends Tracked {
     id: Id;
     family: IdOr<PartFamily>;
     baseRef: string;
-}
-
-export interface Part extends Tracked {
-    id: Id;
-    base: IdOr<PartBase>;
     ref: string;
     designation: string;
 }

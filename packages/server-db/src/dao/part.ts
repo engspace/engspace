@@ -4,24 +4,32 @@ import { Db } from '..';
 import { DaoRowMap, foreignKey, tracked, TrackedRow } from './base';
 
 export interface PartDaoInput {
-    baseId: Id;
+    familyId: Id;
+    baseRef: string;
     ref: string;
+    designation: string;
+    userId: Id;
+}
+
+export interface PartUpdateDaoInput {
     designation: string;
     userId: Id;
 }
 
 interface Row extends HasId, TrackedRow {
     id: Id;
-    baseId: Id;
+    familyId: Id;
+    baseRef: string;
     ref: string;
     designation: string;
 }
 
 function mapRow(row: Row): Part {
-    const { id, baseId, ref, designation } = row;
+    const { id, familyId, baseRef, ref, designation } = row;
     return {
         id,
-        base: foreignKey(baseId),
+        family: foreignKey(familyId),
+        baseRef,
         ref,
         designation,
         ...tracked.mapRow(row),
@@ -29,7 +37,7 @@ function mapRow(row: Row): Part {
 }
 
 const rowToken = sql`
-    id, base_id, ref, designation, ${tracked.selectToken}
+    id, family_id, base_ref, ref, designation, ${tracked.selectToken}
 `;
 
 export class PartDao extends DaoRowMap<Part, Row> {
@@ -40,20 +48,23 @@ export class PartDao extends DaoRowMap<Part, Row> {
             table: 'part',
         });
     }
-    async create(db: Db, { baseId, ref, designation, userId }: PartDaoInput): Promise<Part> {
+    async create(
+        db: Db,
+        { familyId, baseRef, ref, designation, userId }: PartDaoInput
+    ): Promise<Part> {
         const row: Row = await db.one(sql`
             INSERT INTO part (
-                base_id, ref, designation, ${tracked.insertListToken}
+                family_id, base_ref, ref, designation, ${tracked.insertListToken}
             )
             VALUES (
-                ${baseId}, ${ref}, ${designation}, ${tracked.insertValToken(userId)}
+                ${familyId}, ${baseRef}, ${ref}, ${designation}, ${tracked.insertValToken(userId)}
             )
             RETURNING ${rowToken}
         `);
         return mapRow(row);
     }
 
-    async updateById(db: Db, id: Id, { designation }: PartUpdateInput, userId: Id): Promise<Part> {
+    async updateById(db: Db, id: Id, { designation, userId }: PartUpdateDaoInput): Promise<Part> {
         const row: Row = await db.maybeOne(sql`
             UPDATE part SET
                 designation = ${designation},

@@ -8,7 +8,6 @@ import {
     Id,
     Part,
     PartApproval,
-    PartBase,
     PartCreateInput,
     PartFamily,
     PartFamilyInput,
@@ -106,17 +105,9 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             },
         },
 
-        PartBase: {
-            family({ family }: PartBase, args, ctx: GqlContext): Promise<PartFamily> {
-                return control.partFamily.byId(ctx, family.id);
-            },
-
-            ...resolveTracked,
-        },
-
         Part: {
-            base({ base }: Part, args, ctx: GqlContext): Promise<PartBase> {
-                return control.part.baseById(ctx, base.id);
+            family({ family }: Part, args, ctx: GqlContext): Promise<PartFamily> {
+                return control.partFamily.byId(ctx, family.id);
             },
 
             ...resolveTracked,
@@ -238,10 +229,6 @@ export function buildResolvers(control: ControllerSet): IResolvers {
 
             partFamily(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartFamily | null> {
                 return control.partFamily.byId(ctx, id);
-            },
-
-            partBase(parent, { id }: { id: Id }, ctx: GqlContext): Promise<PartBase | null> {
-                return control.part.baseById(ctx, id);
             },
 
             part(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Part | null> {

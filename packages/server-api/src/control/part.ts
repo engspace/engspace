@@ -6,7 +6,6 @@ import {
     PartApproval,
     PartApprovalInput,
     PartApprovalUpdateInput,
-    PartBase,
     PartCreateInput,
     PartForkInput,
     PartRevision,
@@ -35,16 +34,11 @@ export class PartControl {
             return ctx.config.refNaming.partBase.getBaseRef(fam);
         });
 
-        const base = await this.dao.partBase.create(ctx.db, {
-            familyId: input.familyId,
-            baseRef,
-            userId,
-        });
-
-        const ref = ctx.config.refNaming.part.getRef(base, input.initialVersion);
+        const ref = ctx.config.refNaming.part.getRef({ baseRef }, input.initialVersion);
 
         const part = await this.dao.part.create(ctx.db, {
-            baseId: base.id,
+            familyId: input.familyId,
+            baseRef,
             ref,
             designation: input.designation,
             userId,
@@ -65,13 +59,13 @@ export class PartControl {
         assertUserPerm(ctx, 'part.create');
         const { userId } = ctx.auth;
         const part = await this.dao.part.byId(ctx.db, partId);
-        const base = await this.dao.partBase.byId(ctx.db, part.base.id);
         const prn = ctx.config.refNaming.part;
         const ref = version
-            ? prn.getRef(base, version)
-            : prn.getNext(base, prn.extractVersion(base, part.ref));
+            ? prn.getRef(part, version)
+            : prn.getNext(part, prn.extractVersion(part, part.ref));
         const fork = await this.dao.part.create(ctx.db, {
-            baseId: base.id,
+            familyId: part.family.id,
+            baseRef: part.baseRef,
             ref,
             designation: designation ?? part.designation,
             userId,
@@ -107,11 +101,6 @@ export class PartControl {
             cycleState: CycleState.Edition,
             userId: ctx.auth.userId,
         });
-    }
-
-    baseById(ctx: ApiContext, baseId: Id): Promise<PartBase> {
-        assertUserPerm(ctx, 'part.read');
-        return this.dao.partBase.byId(ctx.db, baseId);
     }
 
     partById(ctx: ApiContext, partId: Id): Promise<Part> {
@@ -253,6 +242,9 @@ export class PartControl {
 
     updatePart(ctx: ApiContext, id: Id, input: PartUpdateInput): Promise<Part> {
         assertUserPerm(ctx, 'part.update');
-        return this.dao.part.updateById(ctx.db, id, input, ctx.auth.userId);
+        return this.dao.part.updateById(ctx.db, id, {
+            ...input,
+            userId: ctx.auth.userId,
+        });
     }
 }

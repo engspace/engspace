@@ -58,27 +58,10 @@ CREATE TABLE part_family (
     counter integer NOT NULL DEFAULT 0
 );
 
-CREATE TABLE part_base (
+CREATE TABLE part (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
     family_id uuid NOT NULL,
     base_ref text NOT NULL,
-
-    created_by uuid NOT NULL,
-    created_at timestamptz NOT NULL,
-    updated_by uuid NOT NULL,
-    updated_at timestamptz NOT NULL,
-
-    UNIQUE(base_ref),
-    CHECK(LENGTH(base_ref) > 0),
-
-    FOREIGN KEY(family_id) REFERENCES part_family(id),
-    FOREIGN KEY(created_by) REFERENCES "user"(id),
-    FOREIGN KEY(updated_by) REFERENCES "user"(id)
-);
-
-CREATE TABLE part (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
-    base_id uuid NOT NULL,
     ref text NOT NULL,
     designation text NOT NULL,
     created_by uuid NOT NULL,
@@ -86,11 +69,12 @@ CREATE TABLE part (
     updated_by uuid NOT NULL,
     updated_at timestamptz NOT NULL,
 
+    CHECK(LENGTH(base_ref) > 0),
     UNIQUE(ref),
     CHECK(LENGTH(ref) > 0),
     CHECK(LENGTH(designation) > 0),
 
-    FOREIGN KEY(base_id) REFERENCES part_base(id),
+    FOREIGN KEY(family_id) REFERENCES part_family(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id),
     FOREIGN KEY(updated_by) REFERENCES "user"(id)
 );

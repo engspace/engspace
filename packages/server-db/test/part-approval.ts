@@ -6,7 +6,6 @@ import { expTrackedTime, trackedBy } from '../src/test-helpers';
 describe('PartApprovalDao', function() {
     let users;
     let fam;
-    let partBase;
     let part;
     let partRev;
     let partVal;
@@ -19,23 +18,15 @@ describe('PartApprovalDao', function() {
                 d: { name: 'd' },
                 e: { name: 'e' },
             });
-            fam = await th.createPartFamily(db, { code: 'P' });
-            partBase = await th.createPartBase(db, fam, users.a, 'P01');
-            part = await th.createPart(db, partBase, users.a, 'P01.A');
+            fam = await th.createPartFamily(db);
+            part = await th.createPart(db, fam, users.a);
             partRev = await th.createPartRev(db, part, users.a);
             partVal = await th.createPartVal(db, partRev, users.a);
         });
     });
     after(
         'clean deps',
-        th.cleanTables([
-            'part_validation',
-            'part_revision',
-            'part',
-            'part_base',
-            'part_family',
-            'user',
-        ])
+        th.cleanTables(['part_validation', 'part_revision', 'part', 'part_family', 'user'])
     );
     describe('Create', function() {
         afterEach(th.cleanTable('part_approval'));

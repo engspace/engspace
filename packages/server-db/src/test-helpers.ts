@@ -6,7 +6,6 @@ import {
     DocumentRevisionInput,
     Part,
     PartApproval,
-    PartBase,
     PartFamily,
     PartFamilyInput,
     PartRevision,
@@ -210,26 +209,18 @@ export class TestHelpers {
         };
     }
 
-    createPartBase(db: Db, family: PartFamily, user: User, baseRef: string): Promise<PartBase> {
-        return this.dao.partBase.create(db, {
-            familyId: family.id,
-            baseRef,
-            userId: user.id,
-        });
-    }
-
     createPart(
         db: Db,
-        base: PartBase,
+        family: PartFamily,
         user: User,
-        ref: string = null,
         input: Partial<PartDaoInput> = {}
     ): Promise<Part> {
         return this.dao.part.create(db, {
             designation: 'Part',
+            baseRef: 'P001',
+            ref: 'P001.A',
             ...input,
-            ref: ref ?? `${base.baseRef}.A`,
-            baseId: base.id,
+            familyId: family.id,
             userId: user.id,
         });
     }

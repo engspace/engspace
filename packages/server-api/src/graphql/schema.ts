@@ -164,20 +164,10 @@ export const typeDefs = gql`
         comments: String
     }
 
-    type PartBase implements Tracked {
+    type Part implements Tracked {
         id: ID!
         family: PartFamily!
         baseRef: String!
-        designation: String!
-        createdBy: User!
-        createdAt: DateTime!
-        updatedBy: User!
-        updatedAt: DateTime!
-    }
-
-    type Part implements Tracked {
-        id: ID!
-        base: PartBase!
         ref: String!
         designation: String!
         createdBy: User!
@@ -279,7 +269,6 @@ export const typeDefs = gql`
 
         partFamily(id: ID!): PartFamily
 
-        partBase(id: ID!): PartBase
         part(id: ID!): Part
         partRevision(id: ID!): PartRevision
         partValidation(id: ID!): PartValidation
