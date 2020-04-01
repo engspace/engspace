@@ -1,7 +1,7 @@
 import { ApprovalDecision, Id, PartValidation, ValidationResult } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap, foreignKey, nullable, tracked, TrackedRow } from './base';
+import { DaoRowMap, foreignKey, tracked, TrackedRow } from './base';
 
 interface Row extends TrackedRow {
     id: Id;
@@ -17,8 +17,8 @@ function mapRow(row: Row): PartValidation {
         id,
         partRev: foreignKey(partRevId),
         state: state as ApprovalDecision,
-        result: nullable(result),
-        comments: nullable(comments),
+        result,
+        comments,
         ...tracked.mapRow(row),
     };
 }

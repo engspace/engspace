@@ -1,4 +1,6 @@
 import {
+    ChangeRequest,
+    ChangeRequestInput,
     CycleState,
     Document,
     DocumentInput,
@@ -282,6 +284,61 @@ export class TestHelpers {
         return asyncDictMap(assignees, assignee =>
             this.createPartApproval(db, partVal, assignee, user, input)
         );
+    }
+
+    // Change
+
+    async createChangeRequest(
+        db: Db,
+        user: User,
+        input: Partial<ChangeRequestInput> = {}
+    ): Promise<ChangeRequest> {
+        const req = await this.dao.changeRequest.create(db, {
+            description: input.description ?? null,
+            userId: user.id,
+        });
+        if (input.partCreations) {
+            req.partCreations = await Promise.all(
+                input.partCreations.map(inp =>
+                    this.dao.changePartCreate.create(db, {
+                        requestId: req.id,
+                        ...inp,
+                    })
+                )
+            );
+        }
+        if (input.partChanges) {
+            req.partChanges = await Promise.all(
+                input.partChanges.map(inp =>
+                    this.dao.changePartChange.create(db, {
+                        requestId: req.id,
+                        ...inp,
+                    })
+                )
+            );
+        }
+        if (input.partRevisions) {
+            req.partRevisions = await Promise.all(
+                input.partRevisions.map(inp =>
+                    this.dao.changePartRevision.create(db, {
+                        requestId: req.id,
+                        ...inp,
+                    })
+                )
+            );
+        }
+        if (input.reviewers) {
+            req.reviews = await Promise.all(
+                input.reviewers.map(inp =>
+                    this.dao.changeReview.create(db, {
+                        requestId: req.id,
+                        assigneeId: inp,
+                        userId: user.id,
+                    })
+                )
+            );
+        }
+        return req;
     }
 
     // Documents

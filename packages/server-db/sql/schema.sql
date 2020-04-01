@@ -64,6 +64,7 @@ CREATE TABLE part (
     base_ref text NOT NULL,
     ref text NOT NULL,
     designation text NOT NULL,
+
     created_by uuid NOT NULL,
     created_at timestamptz NOT NULL,
     updated_by uuid NOT NULL,
@@ -134,6 +135,75 @@ CREATE TABLE part_approval (
     FOREIGN KEY(assignee_id) REFERENCES "user"(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id),
     FOREIGN KEY(updated_by) REFERENCES "user"(id)
+);
+
+CREATE TABLE change_request (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    description text,
+
+    created_by uuid NOT NULL,
+    created_at timestamptz NOT NULL,
+    updated_by uuid NOT NULL,
+    updated_at timestamptz NOT NULL,
+
+    FOREIGN KEY(created_by) REFERENCES "user"(id),
+    FOREIGN KEY(updated_by) REFERENCES "user"(id)
+);
+
+CREATE TABLE change_part_create (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    request_id uuid NOT NULL,
+    family_id uuid NOT NULL,
+    version text NOT NULL,
+    designation text NOT NULL,
+    comments text,
+
+    CHECK(LENGTH(version) > 0),
+    CHECK(LENGTH(designation) > 0),
+
+    FOREIGN KEY(request_id) REFERENCES change_request(id),
+    FOREIGN KEY(family_id) REFERENCES part_family(id)
+);
+
+CREATE TABLE change_part_change (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    request_id uuid NOT NULL,
+    part_id uuid NOT NULL,
+    version text NOT NULL,
+    designation text,
+    comments text,
+
+    CHECK(LENGTH(version) > 0),
+
+    FOREIGN KEY(request_id) REFERENCES change_request(id),
+    FOREIGN KEY(part_id) REFERENCES part(id)
+);
+
+CREATE TABLE change_part_revision (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    request_id uuid NOT NULL,
+    part_id uuid NOT NULL,
+    designation text,
+    comments text,
+
+    FOREIGN KEY(request_id) REFERENCES change_request(id),
+    FOREIGN KEY(part_id) REFERENCES part(id)
+);
+
+CREATE TABLE change_review (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+    request_id uuid NOT NULL,
+    assignee_id uuid NOT NULL,
+    decision approval_decision_enum NOT NULL,
+    comments text,
+
+    created_by uuid NOT NULL,
+    created_at timestamptz NOT NULL,
+    updated_by uuid NOT NULL,
+    updated_at timestamptz NOT NULL,
+
+    FOREIGN KEY(request_id) REFERENCES change_request(id),
+    FOREIGN KEY(assignee_id) REFERENCES "user"(id)
 );
 
 CREATE TABLE document (

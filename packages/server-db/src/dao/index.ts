@@ -1,4 +1,4 @@
-import { HasId, Id } from '@engspace/core';
+import { HasId, Id, ChangePartRevisionInput, ChangeReview } from '@engspace/core';
 import { Db } from '..';
 import { DocumentDao } from './document';
 import { DocumentRevisionDao } from './document-revision';
@@ -11,11 +11,20 @@ import { PartValidationDao } from './part-validation';
 import { ProjectDao } from './project';
 import { ProjectMemberDao } from './project-member';
 import { UserDao } from './user';
+import { ChangeRequestDao } from './change-request';
+import { ChangePartCreateDao } from './change-part-create';
+import { ChangePartChangeDao } from './change-part-change';
+import { ChangePartRevisionDao } from './change-part-revision';
+import { ChangeReviewDao } from './change-review';
 
 export { PartDaoInput, PartUpdateDaoInput } from './part';
 export { PartApprovalDaoInput, PartApprovalUpdateDaoInput } from './part-approval';
 export { PartRevisionDaoInput } from './part-revision';
 export { PartValidationDaoInput } from './part-validation';
+export { ChangePartCreateDaoInput } from './change-part-create';
+export { ChangePartChangeDaoInput } from './change-part-change';
+export { ChangePartRevisionDaoInput } from './change-part-revision';
+export { ChangeReviewDaoInput } from './change-review';
 export {
     DocumentDao,
     DocumentRevisionDao,
@@ -55,6 +64,11 @@ export interface DaoSet {
     partRevision: PartRevisionDao;
     partValidation: PartValidationDao;
     partApproval: PartApprovalDao;
+    changeRequest: ChangeRequestDao;
+    changePartCreate: ChangePartCreateDao;
+    changePartChange: ChangePartChangeDao;
+    changePartRevision: ChangePartRevisionDao;
+    changeReview: ChangeReviewDao;
     document: DocumentDao;
     documentRevision: DocumentRevisionDao;
 }
@@ -70,6 +84,11 @@ export function buildDaoSet(custom: Partial<DaoSet> = {}): DaoSet {
         partRevision: custom.partRevision ?? new PartRevisionDao(),
         partValidation: custom.partValidation ?? new PartValidationDao(),
         partApproval: custom.partApproval ?? new PartApprovalDao(),
+        changeRequest: custom.changeRequest ?? new ChangeRequestDao(),
+        changePartCreate: custom.changePartCreate ?? new ChangePartCreateDao(),
+        changePartChange: custom.changePartChange ?? new ChangePartChangeDao(),
+        changePartRevision: custom.changePartRevision ?? new ChangePartRevisionDao(),
+        changeReview: custom.changeReview ?? new ChangeReviewDao(),
         document: custom.document ?? new DocumentDao(),
         documentRevision: custom.documentRevision ?? new DocumentRevisionDao(),
     };

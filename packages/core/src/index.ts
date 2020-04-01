@@ -176,6 +176,77 @@ export interface PartValidation extends Tracked {
     comments?: string;
 }
 
+export interface ChangePartCreateInput {
+    familyId: Id;
+    version: string;
+    designation: string;
+    comments?: string;
+}
+
+export interface ChangePartChangeInput {
+    partId: Id;
+    version: string;
+    designation?: string;
+    comments?: string;
+}
+
+export interface ChangePartRevisionInput {
+    partId: Id;
+    designation?: string;
+    comments?: string;
+}
+
+export interface ChangeRequestInput {
+    description?: string;
+    partCreations: ChangePartCreateInput[];
+    partChanges: ChangePartChangeInput[];
+    partRevisions: ChangePartRevisionInput[];
+    reviewers: Id[];
+}
+
+export interface ChangePartCreate {
+    id: Id;
+    request: IdOr<ChangeRequest>;
+    family: IdOr<PartFamily>;
+    version: string;
+    designation: string;
+    comments?: string;
+}
+
+export interface ChangePartChange {
+    id: Id;
+    request: IdOr<ChangeRequest>;
+    part: IdOr<Part>;
+    version: string;
+    designation?: string;
+    comments?: string;
+}
+
+export interface ChangePartRevision {
+    id: Id;
+    request: IdOr<ChangeRequest>;
+    part: IdOr<Part>;
+    designation?: string;
+    comments?: string;
+}
+
+export interface ChangeReview extends Tracked {
+    id: Id;
+    request: IdOr<ChangeRequest>;
+    assignee: IdOr<User>;
+    decision: ApprovalDecision;
+    comments?: string;
+}
+
+export interface ChangeRequest {
+    id: Id;
+    description?: string;
+    partCreations?: ChangePartCreate[];
+    partChanges?: ChangePartChange[];
+    partRevisions?: ChangePartRevision[];
+    reviews?: ChangeReview[];
+}
+
 export interface DocumentInput {
     name: string;
     description: string;

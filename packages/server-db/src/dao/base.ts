@@ -11,8 +11,8 @@ export function timestamp(ts: number | null): DateTime | null {
     return ts ? ts * 1000 : null;
 }
 
-export function nullable<T>(val: null | T): T | null {
-    return val;
+export function nullable<T>(val: undefined | T): null | T {
+    return val ?? null;
 }
 
 export interface TrackedRow {
