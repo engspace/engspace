@@ -9,7 +9,7 @@ export {
     UnknownRoleError,
 } from './permissions';
 
-/** A database Id type, always unique, even across types and tables */
+/** A database Id type, unique only for a given type */
 export type Id = string;
 
 /** A resource that has a unique id */

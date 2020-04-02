@@ -1,4 +1,5 @@
 import { UserInput } from '@engspace/core';
+import { idType } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, dao, pool, th } from '.';
@@ -176,7 +177,7 @@ describe('GraphQL User', () => {
                     fullName: 'User B',
                     roles: ['role1', 'role2'],
                 });
-                expect(result.data.userCreate.id).to.be.uuid();
+                expect(result.data.userCreate.id).to.be.a(idType);
             });
 
             it('should reject create user without "user.create"', async () => {

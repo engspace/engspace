@@ -3,7 +3,7 @@ import { print } from 'graphql/language/printer';
 import { api, config, dao, pool, th } from '.';
 import { signJwt } from '../src/crypto';
 import { bearerToken, permsAuth } from './auth';
-import { MEMBER_DELETE } from './member';
+import { MEMBER_DELETE } from './project-member';
 import { PROJECT_CREATE, PROJECT_READ, PROJECT_UPDATE } from './project';
 
 const { serverPort } = config;

@@ -2,7 +2,7 @@ import { Id, Project, ProjectInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
 import { partialAssignmentList } from '../util';
-import { DaoIdent } from './base';
+import { DaoBase, RowId, toRowId, toId } from './base';
 
 export interface ProjectSearch {
     phrase?: string;
@@ -11,18 +11,35 @@ export interface ProjectSearch {
     offset?: number;
 }
 
+interface Row {
+    id: RowId;
+    name: string;
+    code: string;
+    description: string;
+}
+
+function mapRow({ id, name, code, description }: Row): Project {
+    return {
+        id: toId(id),
+        name,
+        code,
+        description,
+    };
+}
+
 const rowToken = sql`id, code, name, description`;
 
-export class ProjectDao extends DaoIdent<Project> {
+export class ProjectDao extends DaoBase<Project, Row> {
     constructor() {
         super({
-            rowToken,
             table: 'project',
+            rowToken,
+            mapRow,
         });
     }
     async create(db: Db, proj: ProjectInput): Promise<Project> {
         const { code, name, description } = proj;
-        return db.one(sql`
+        const row: Row = await db.one(sql`
             INSERT INTO project (
                 code, name, description
             ) VALUES (
@@ -30,13 +47,15 @@ export class ProjectDao extends DaoIdent<Project> {
             ) RETURNING
                 ${rowToken}
         `);
+        return mapRow(row);
     }
 
     async byCode(db: Db, code: string): Promise<Project> {
-        return db.maybeOne(sql`
+        const row: Row = await db.maybeOne(sql`
             SELECT ${rowToken} FROM project
             WHERE code = ${code}
         `);
+        return mapRow(row);
     }
 
     async search(db: Db, search: ProjectSearch): Promise<{ count: number; projects: Project[] }> {
@@ -65,15 +84,15 @@ export class ProjectDao extends DaoIdent<Project> {
         const limitToken = sql`${search.limit ? search.limit : 1000}`;
         const offset = search.offset ? search.offset : 0;
         const offsetToken = sql`${offset}`;
-        const projects: Project[] = await db.any(sql`
+        const rows: Row[] = await db.any(sql`
             SELECT p.id, p.name, p.code, p.description FROM project AS p
             ${joinToken}
             WHERE ${whereToken}
             LIMIT ${limitToken}
             OFFSET ${offsetToken}
         `);
-        let count = projects.length + offset;
-        if (search.limit && projects.length === search.limit) {
+        let count = rows.length + offset;
+        if (search.limit && rows.length === search.limit) {
             count = (await db.oneFirst(sql`
                 SELECT COUNT(p.id) FROM project AS p
                 LEFT OUTER JOIN project_member AS pm ON pm.project_id = p.id
@@ -81,24 +100,26 @@ export class ProjectDao extends DaoIdent<Project> {
                 WHERE ${whereToken}
             `)) as number;
         }
-        return { count, projects };
+        return { count, projects: rows.map(r => mapRow(r)) };
     }
 
     async patch(db: Db, id: Id, project: Partial<Project>): Promise<Project> {
         const assignments = partialAssignmentList(project, ['name', 'code', 'description']);
-        return db.maybeOne(sql`
+        const row: Row = await db.maybeOne(sql`
             UPDATE project SET ${sql.join(assignments, sql`, `)}
-            WHERE id = ${id}
+            WHERE id = ${toRowId(id)}
             RETURNING ${rowToken}
         `);
+        return mapRow(row);
     }
 
     async updateById(db: Db, id: Id, project: ProjectInput): Promise<Project> {
         const { code, name, description } = project;
-        return db.maybeOne(sql`
+        const row: Row = await db.maybeOne(sql`
             UPDATE project SET code=${code}, name=${name}, description=${description}
-            WHERE id=${id}
+            WHERE id=${toRowId(id)}
             RETURNING ${rowToken}
         `);
+        return mapRow(row);
     }
 }

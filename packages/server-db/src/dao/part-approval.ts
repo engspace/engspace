@@ -1,12 +1,12 @@
 import { ApprovalDecision, Id, PartApproval } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap, foreignKey, tracked, TrackedRow } from './base';
+import { DaoBase, foreignKey, tracked, TrackedRow, RowId, toId, toRowId } from './base';
 
 interface Row extends TrackedRow {
-    id: Id;
-    validationId: Id;
-    assigneeId: Id;
+    id: RowId;
+    validationId: RowId;
+    assigneeId: RowId;
     decision: string;
     comments?: string;
 }
@@ -14,7 +14,7 @@ interface Row extends TrackedRow {
 function mapRow(row: Row): PartApproval {
     const { id, validationId, assigneeId, decision, comments } = row;
     return {
-        id,
+        id: toId(id),
         validation: foreignKey(validationId),
         assignee: foreignKey(assigneeId),
         decision: decision as ApprovalDecision,
@@ -46,7 +46,7 @@ export interface PartApprovalUpdateDaoInput {
     userId: Id;
 }
 
-export class PartApprovalDao extends DaoRowMap<PartApproval, Row> {
+export class PartApprovalDao extends DaoBase<PartApproval, Row> {
     constructor() {
         super({
             rowToken,
@@ -67,8 +67,8 @@ export class PartApprovalDao extends DaoRowMap<PartApproval, Row> {
                 ${tracked.insertListToken}
             )
             VALUES (
-                ${validationId},
-                ${assigneeId},
+                ${toRowId(validationId)},
+                ${toRowId(assigneeId)},
                 ${decision ?? ApprovalDecision.Pending},
                 ${comments ?? null},
                 ${tracked.insertValToken(userId)}
@@ -81,7 +81,7 @@ export class PartApprovalDao extends DaoRowMap<PartApproval, Row> {
     async byValidationId(db: Db, validationId: Id): Promise<PartApproval[]> {
         const rows: Row[] = await db.any(sql`
             SELECT ${rowToken} FROM part_approval
-            WHERE validation_id = ${validationId}
+            WHERE validation_id = ${toRowId(validationId)}
         `);
         return rows.map(r => mapRow(r));
     }
@@ -96,7 +96,7 @@ export class PartApprovalDao extends DaoRowMap<PartApproval, Row> {
                 decision = ${decision},
                 comments = ${comments ?? null},
                 ${tracked.updateAssignmentsToken(userId)}
-            WHERE id = ${id}
+            WHERE id = ${toRowId(id)}
             RETURNING ${rowToken}
         `);
         return mapRow(row);

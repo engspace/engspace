@@ -1,3 +1,4 @@
+import { idType } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, dao, pool, th } from '.';
@@ -129,7 +130,7 @@ describe('GraphQL PartFamily', function() {
                 name: 'pf',
                 code: '111',
             });
-            expect(data.partFamilyCreate.id).to.be.uuid();
+            expect(data.partFamilyCreate.id).to.be.a(idType);
         });
 
         it('should not create part family without "partfamily.create"', async function() {

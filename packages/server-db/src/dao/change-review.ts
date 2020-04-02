@@ -1,12 +1,12 @@
 import { Id, ChangeReview, ApprovalDecision } from '@engspace/core';
-import { foreignKey, tracked, TrackedRow, DaoRowMap, nullable } from './base';
+import { foreignKey, tracked, TrackedRow, DaoBase, nullable, RowId, toId, toRowId } from './base';
 import { sql } from 'slonik';
 import { Db } from '..';
 
 interface Row extends TrackedRow {
-    id: Id;
-    requestId: Id;
-    assigneeId: Id;
+    id: RowId;
+    requestId: RowId;
+    assigneeId: RowId;
     decision: string;
     comments?: string;
 }
@@ -14,7 +14,7 @@ interface Row extends TrackedRow {
 function mapRow(row: Row): ChangeReview {
     const { id, requestId, assigneeId, decision, comments } = row;
     return {
-        id,
+        id: toId(id),
         request: foreignKey(requestId),
         assignee: foreignKey(assigneeId),
         decision: decision as ApprovalDecision,
@@ -33,7 +33,7 @@ export interface ChangeReviewDaoInput {
     userId: Id;
 }
 
-export class ChangeReviewDao extends DaoRowMap<ChangeReview, Row> {
+export class ChangeReviewDao extends DaoBase<ChangeReview, Row> {
     constructor() {
         super({
             table: 'change_review',
@@ -55,8 +55,8 @@ export class ChangeReviewDao extends DaoRowMap<ChangeReview, Row> {
                 ${tracked.insertListToken}
             )
             VALUES (
-                ${requestId},
-                ${assigneeId},
+                ${toRowId(requestId)},
+                ${toRowId(assigneeId)},
                 ${decision ?? ApprovalDecision.Pending},
                 ${nullable(comments)},
                 ${tracked.insertValToken(userId)}

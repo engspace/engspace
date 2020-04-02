@@ -155,10 +155,22 @@ describe('HTTP /api/document', function() {
                 .get('/api/document/download_token')
                 .set('Authorization', `Bearer ${token}`)
                 .query({
-                    documentId: 'not-uuid',
+                    documentId: 'not-an-id',
                     revision: 1,
                 });
             expect(resp).to.have.status(400);
+        });
+
+        it('should get 404 with wrong document id', async function() {
+            const token = await bearerToken(permsAuth(users.a, ['document.read']));
+            const resp = await request(server)
+                .get('/api/document/download_token')
+                .set('Authorization', `Bearer ${token}`)
+                .query({
+                    documentId: -5,
+                    revision: 1,
+                });
+            expect(resp).to.have.status(404);
         });
 
         it('should get 400 with ill-formed revision', async function() {
@@ -171,18 +183,6 @@ describe('HTTP /api/document', function() {
                     revision: 'not-integer',
                 });
             expect(resp).to.have.status(400);
-        });
-
-        it('should get 404 with wrong document', async function() {
-            const token = await bearerToken(permsAuth(users.a, ['document.read']));
-            const resp = await request(server)
-                .get('/api/document/download_token')
-                .set('Authorization', `Bearer ${token}`)
-                .query({
-                    documentId: users.a.id,
-                    revision: 1,
-                });
-            expect(resp).to.have.status(404);
         });
 
         it('should get 404 with wrong revision', async function() {
@@ -203,7 +203,7 @@ describe('HTTP /api/document', function() {
                 .get('/api/document/download_token')
                 .set('Authorization', `Bearer ${token}`)
                 .query({
-                    documentId: 'not-uuid',
+                    documentId: 'not-an-id',
                     revision: 1,
                 });
             expect(resp).to.have.status(403);
@@ -260,8 +260,10 @@ describe('HTTP /api/document', function() {
                 })
                 .send(fileContent);
             expect(resp).to.have.status(200);
-            expect(fs.existsSync(path.join(storePath, 'upload', rev.id)), 'temp upload file exists')
-                .to.be.true;
+            expect(
+                fs.existsSync(path.join(storePath, 'upload', rev.id.toString())),
+                'temp upload file exists'
+            ).to.be.true;
             const { errors, data } = await pool.transaction(async db => {
                 const { mutate } = buildGqlServer(db, auth);
                 return mutate({
@@ -276,8 +278,10 @@ describe('HTTP /api/document', function() {
             expect(data.documentRevisionCheck).to.deep.include({
                 sha1,
             });
-            expect(fs.existsSync(path.join(storePath, 'upload', rev.id)), 'temp upload file exists')
-                .to.be.false;
+            expect(
+                fs.existsSync(path.join(storePath, 'upload', rev.id.toString())),
+                'temp upload file exists'
+            ).to.be.false;
             expect(fs.existsSync(path.join(storePath, sha1)), 'final upload file exists').to.be
                 .true;
             await fs.promises.unlink(path.join(storePath, sha1));
@@ -307,8 +311,10 @@ describe('HTTP /api/document', function() {
                 })
                 .send(fileContent);
             expect(resp).to.have.status(200);
-            expect(fs.existsSync(path.join(storePath, 'upload', rev.id)), 'temp upload file exists')
-                .to.be.true;
+            expect(
+                fs.existsSync(path.join(storePath, 'upload', rev.id.toString())),
+                'temp upload file exists'
+            ).to.be.true;
             const { errors, data } = await pool.transaction(async db => {
                 const { mutate } = buildGqlServer(db, auth);
                 return mutate({
@@ -322,8 +328,10 @@ describe('HTTP /api/document', function() {
             expect(errors).to.be.an('array').not.empty;
             expect(errors[0].message).to.contain('wrongsha1');
             expect(data).to.be.null;
-            expect(fs.existsSync(path.join(storePath, 'upload', rev.id)), 'temp upload file exists')
-                .to.be.false;
+            expect(
+                fs.existsSync(path.join(storePath, 'upload', rev.id.toString())),
+                'temp upload file exists'
+            ).to.be.false;
             expect(fs.existsSync(path.join(storePath, sha1)), 'final upload file exists').to.be
                 .false;
             const r = await pool.connect(async db => {

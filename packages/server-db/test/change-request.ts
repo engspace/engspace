@@ -1,6 +1,6 @@
 import { dao, pool, th } from '.';
 import { expect } from 'chai';
-import { trackedBy } from '../src';
+import { trackedBy, idType } from '../src';
 
 describe('ChangeRequestDao', function() {
     let users;
@@ -24,7 +24,7 @@ describe('ChangeRequestDao', function() {
                 description: null,
                 ...trackedBy(users.a),
             });
-            // expect(cr.id).to.be.be.a('uuid');
+            // expect(cr.id).to.be.be.a(idType);
         });
 
         it('should create a ChangeRequest with description', async function() {
@@ -38,7 +38,7 @@ describe('ChangeRequestDao', function() {
                 ...trackedBy(users.a),
                 description: 'SUPER CHANGE',
             });
-            // expect(cr.id).to.be.a('uuid');
+            // expect(cr.id).to.be.a(idType);
         });
     });
 });

@@ -1,5 +1,10 @@
-import { HasId, Id, ChangePartRevisionInput, ChangeReview } from '@engspace/core';
+import { HasId, Id } from '@engspace/core';
 import { Db } from '..';
+import { ChangePartChangeDao } from './change-part-change';
+import { ChangePartCreateDao } from './change-part-create';
+import { ChangePartRevisionDao } from './change-part-revision';
+import { ChangeRequestDao } from './change-request';
+import { ChangeReviewDao } from './change-review';
 import { DocumentDao } from './document';
 import { DocumentRevisionDao } from './document-revision';
 import { LoginDao } from './login';
@@ -11,20 +16,15 @@ import { PartValidationDao } from './part-validation';
 import { ProjectDao } from './project';
 import { ProjectMemberDao } from './project-member';
 import { UserDao } from './user';
-import { ChangeRequestDao } from './change-request';
-import { ChangePartCreateDao } from './change-part-create';
-import { ChangePartChangeDao } from './change-part-change';
-import { ChangePartRevisionDao } from './change-part-revision';
-import { ChangeReviewDao } from './change-review';
 
+export { ChangePartChangeDaoInput } from './change-part-change';
+export { ChangePartCreateDaoInput } from './change-part-create';
+export { ChangePartRevisionDaoInput } from './change-part-revision';
+export { ChangeReviewDaoInput } from './change-review';
 export { PartDaoInput, PartUpdateDaoInput } from './part';
 export { PartApprovalDaoInput, PartApprovalUpdateDaoInput } from './part-approval';
 export { PartRevisionDaoInput } from './part-revision';
 export { PartValidationDaoInput } from './part-validation';
-export { ChangePartCreateDaoInput } from './change-part-create';
-export { ChangePartChangeDaoInput } from './change-part-change';
-export { ChangePartRevisionDaoInput } from './change-part-revision';
-export { ChangeReviewDaoInput } from './change-review';
 export {
     DocumentDao,
     DocumentRevisionDao,

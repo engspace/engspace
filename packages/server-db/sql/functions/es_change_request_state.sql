@@ -1,4 +1,4 @@
-CREATE FUNCTION es_change_request_state (request_id uuid)
+CREATE FUNCTION es_change_request_state (request_id integer)
 RETURNS approval_decision_enum AS
 $$
 DECLARE

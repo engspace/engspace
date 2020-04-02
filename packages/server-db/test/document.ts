@@ -1,7 +1,7 @@
 import { Document } from '@engspace/core';
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
-import { Dict } from '../src/test-helpers';
+import { Dict, idType } from '../src/test-helpers';
 
 describe('DocumentDao', function() {
     let users;
@@ -30,7 +30,7 @@ describe('DocumentDao', function() {
                     users.a.id
                 );
             });
-            expect(result.id).to.be.uuid();
+            expect(result.id).to.be.a(idType);
             expect(result).to.deep.include({
                 name: 'docname',
                 description: 'doc description',
@@ -54,7 +54,7 @@ describe('DocumentDao', function() {
                     users.a.id
                 );
             });
-            expect(result.id).to.be.uuid();
+            expect(result.id).to.be.a(idType);
             expect(result).to.deep.include({
                 name: 'docname',
                 description: 'doc description',

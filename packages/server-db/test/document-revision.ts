@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
+import { idType } from '../src';
 
 describe('DocumentRevisionDao', function() {
     let users;
@@ -30,7 +31,7 @@ describe('DocumentRevisionDao', function() {
                 );
                 return { doc: await dao.document.byId(db, doc.id), rev1 };
             });
-            expect(rev1.id).to.be.uuid();
+            expect(rev1.id).to.be.a(idType);
             expect(rev1.createdAt).to.be.a('number');
             expect(rev1).to.deep.include({
                 document: { id: doc.id },
@@ -63,7 +64,7 @@ describe('DocumentRevisionDao', function() {
                 );
                 return { doc: await dao.document.byId(db, doc.id), rev1 };
             });
-            expect(rev1.id).to.be.uuid();
+            expect(rev1.id).to.be.a(idType);
             expect(rev1.createdAt).to.be.a('number');
             expect(rev1).to.deep.include({
                 document: { id: doc.id },
@@ -154,7 +155,7 @@ describe('DocumentRevisionDao', function() {
                 });
                 return { doc: await dao.document.byId(db, doc.id), rev1, rev2 };
             });
-            expect(rev2.id).to.be.uuid();
+            expect(rev2.id).to.be.a(idType);
             expect(rev2.id).to.not.eql(rev1.id);
             expect(rev2.createdAt).to.be.a('number');
             expect(rev2).to.deep.include({

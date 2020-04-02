@@ -1,11 +1,11 @@
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
 
-// fake v4 uuid
-export const wrongUuid = '01234567-89ab-4000-8fff-cdef01234567';
+// fake database id
+export const wrongId = '-5';
 
 describe('Dao Base', function() {
-    describe('DaoIdent (with dao.project)', function() {
+    describe('DaoBase (with dao.project)', function() {
         afterEach('Delete projects', th.cleanTable('project'));
 
         it('should get a row by id', async function() {
@@ -29,7 +29,7 @@ describe('Dao Base', function() {
 
         it('should get null with unknown uuid', async function() {
             const proj = await pool.connect(async db => {
-                return dao.project.byId(db, wrongUuid);
+                return dao.project.byId(db, wrongId);
             });
             expect(proj).to.be.null;
         });
@@ -72,7 +72,7 @@ describe('Dao Base', function() {
 
         it('should check that an id does not exist', async function() {
             const has = await pool.connect(async db => {
-                return dao.project.checkId(db, wrongUuid);
+                return dao.project.checkId(db, wrongId);
             });
             expect(has).to.be.false;
         });
@@ -135,7 +135,7 @@ describe('Dao Base', function() {
 
         it('should get null if deleting wrong id', async function() {
             const doc = await pool.transaction(async db => {
-                return dao.project.deleteById(db, wrongUuid);
+                return dao.project.deleteById(db, wrongId);
             });
             expect(doc).to.be.null;
         });
@@ -165,7 +165,7 @@ describe('Dao Base', function() {
         });
     });
 
-    describe('DaoRowMap (with dao.document)', function() {
+    describe('DaoBase (with dao.document)', function() {
         let users;
         before('create users', async function() {
             users = await th.transacUsersAB();
@@ -200,7 +200,7 @@ describe('Dao Base', function() {
 
         it('should get null if unknown id', async function() {
             const doc = await pool.connect(async db => {
-                return dao.document.byId(db, wrongUuid);
+                return dao.document.byId(db, wrongId);
             });
             expect(doc).to.be.null;
         });
@@ -251,7 +251,7 @@ describe('Dao Base', function() {
 
         it('should check that a row does not exist', async function() {
             const has = await pool.connect(async db => {
-                return dao.document.checkId(db, wrongUuid);
+                return dao.document.checkId(db, wrongId);
             });
             expect(has).to.be.false;
         });
@@ -330,7 +330,7 @@ describe('Dao Base', function() {
 
         it('should get null if deleting wrong id', async function() {
             const doc = await pool.transaction(async db => {
-                return dao.document.deleteById(db, wrongUuid);
+                return dao.document.deleteById(db, wrongId);
             });
             expect(doc).to.be.null;
         });

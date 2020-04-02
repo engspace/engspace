@@ -1,3 +1,4 @@
+import { idType } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, dao, pool, th } from '.';
@@ -319,7 +320,7 @@ describe('GraphQL Document Revision', function() {
                     });
                 });
                 expect(errors).to.be.undefined;
-                expect(data.documentRevise.id).to.be.uuid();
+                expect(data.documentRevise.id).to.be.a(idType);
                 expect(data.documentRevise).to.deep.include({
                     document: {
                         id: document.id,

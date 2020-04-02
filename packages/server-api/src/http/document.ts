@@ -72,7 +72,7 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
         if (!auth.userPerms.includes('document.read')) {
             ctx.throw(HttpStatus.FORBIDDEN, 'missing permission: "document.read"');
         }
-        if (!validator.isUUID(documentId) || !validator.isInt(revision)) {
+        if (!validator.isInt(documentId) || !validator.isInt(revision)) {
             ctx.throw(HttpStatus.BAD_REQUEST, 'wrong document or revision');
         }
         const documentRevisionId = await pool.connect(async db => {

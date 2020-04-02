@@ -1,5 +1,5 @@
 import { ApprovalDecision, CycleState, User, ValidationResult } from '@engspace/core';
-import { Dict, trackedBy } from '@engspace/server-db/dist/test-helpers';
+import { Dict, idType, trackedBy } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, dao, pool, th } from '.';
@@ -194,7 +194,7 @@ describe('GraphQL Part - Mutations', function() {
                 cycleState: CycleState.Edition,
                 ...trackedBy(users.b),
             });
-            expect(data.partFork.id).to.be.uuid();
+            expect(data.partFork.id).to.be.a(idType);
             expect(data.partFork.id).to.not.equal(partRev.id);
             expect(data.partFork.part).to.deep.include({
                 ref: 'P001.B',
@@ -203,7 +203,7 @@ describe('GraphQL Part - Mutations', function() {
                 ...trackedBy(users.b),
                 family: { id: family.id },
             });
-            expect(data.partFork.part.id).to.be.uuid();
+            expect(data.partFork.part.id).to.be.a(idType);
             expect(data.partFork.part.id).to.not.equal(part.id);
         });
 
@@ -231,7 +231,7 @@ describe('GraphQL Part - Mutations', function() {
                 cycleState: CycleState.Edition,
                 ...trackedBy(users.b),
             });
-            expect(data.partFork.id).to.be.uuid();
+            expect(data.partFork.id).to.be.a(idType);
             expect(data.partFork.id).to.not.equal(partRev.id);
             expect(data.partFork.part).to.deep.include({
                 ref: 'P001.B',
@@ -240,7 +240,7 @@ describe('GraphQL Part - Mutations', function() {
                 designation: 'NEW EXISTING PART',
                 ...trackedBy(users.b),
             });
-            expect(data.partFork.part.id).to.be.uuid();
+            expect(data.partFork.part.id).to.be.a(idType);
             expect(data.partFork.part.id).to.not.equal(part.id);
         });
 
@@ -268,7 +268,7 @@ describe('GraphQL Part - Mutations', function() {
                 cycleState: CycleState.Edition,
                 ...trackedBy(users.b),
             });
-            expect(data.partFork.id).to.be.uuid();
+            expect(data.partFork.id).to.be.a(idType);
             expect(data.partFork.id).to.not.equal(partRev.id);
             expect(data.partFork.part).to.deep.include({
                 ref: 'P001.K',
@@ -277,7 +277,7 @@ describe('GraphQL Part - Mutations', function() {
                 ...trackedBy(users.b),
                 family: { id: family.id },
             });
-            expect(data.partFork.part.id).to.be.uuid();
+            expect(data.partFork.part.id).to.be.a(idType);
             expect(data.partFork.part.id).to.not.equal(part.id);
         });
 
@@ -436,7 +436,7 @@ describe('GraphQL Part - Mutations', function() {
                 cycleState: CycleState.Edition,
                 ...trackedBy(users.b),
             });
-            expect(data.partRevise.id).to.be.uuid();
+            expect(data.partRevise.id).to.be.a(idType);
             expect(data.partRevise.id).to.not.equal(partRev.id);
             expect(data.partRevise.part).to.deep.include({
                 id: part.id,
@@ -472,7 +472,7 @@ describe('GraphQL Part - Mutations', function() {
                 cycleState: CycleState.Edition,
                 ...trackedBy(users.b),
             });
-            expect(data.partRevise.id).to.be.uuid();
+            expect(data.partRevise.id).to.be.a(idType);
             expect(data.partRevise.id).to.not.equal(partRev.id);
             expect(data.partRevise.part).to.deep.include({
                 id: part.id,
@@ -582,7 +582,7 @@ describe('GraphQL Part - Mutations', function() {
                 comments: null,
                 ...trackedBy(users.a),
             });
-            expect(data.partStartValidation.id).to.be.uuid();
+            expect(data.partStartValidation.id).to.be.a(idType);
             expect(data.partStartValidation.approvals)
                 .to.be.an('array')
                 .with.lengthOf(5);
@@ -601,7 +601,7 @@ describe('GraphQL Part - Mutations', function() {
                     comments: null,
                     ...trackedBy(users.a),
                 });
-                expect(approvals[i].id).to.be.uuid();
+                expect(approvals[i].id).to.be.a(idType);
             }
         });
 

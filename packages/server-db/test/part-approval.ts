@@ -1,7 +1,7 @@
 import { ApprovalDecision } from '@engspace/core';
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
-import { expTrackedTime, trackedBy } from '../src/test-helpers';
+import { expTrackedTime, trackedBy, idType } from '../src/test-helpers';
 
 describe('PartApprovalDao', function() {
     let users;
@@ -38,7 +38,7 @@ describe('PartApprovalDao', function() {
                     userId: users.a.id,
                 });
             });
-            expect(partAppr.id).to.be.uuid();
+            expect(partAppr.id).to.be.a(idType);
             expect(partAppr).to.deep.include({
                 validation: { id: partVal.id },
                 assignee: { id: users.b.id },

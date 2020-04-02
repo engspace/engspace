@@ -24,6 +24,9 @@ import { Db, DbPool } from '.';
 import { DaoSet, PartApprovalDaoInput, PartDaoInput, PartRevisionDaoInput } from './dao';
 import { RoleOptions } from './dao/user';
 
+// for ID assertions
+export const idType = 'string';
+
 export interface Dict<T> {
     [prop: string]: T;
 }

@@ -1,4 +1,4 @@
-CREATE FUNCTION es_validation_state (part_val_id uuid)
+CREATE FUNCTION es_validation_state (part_val_id integer)
 RETURNS approval_decision_enum AS
 $$
 DECLARE

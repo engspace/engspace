@@ -1,9 +1,14 @@
 import { CharIterator } from './util';
-import { PartFamily } from '@engspace/core';
 import { VersionFormat } from './version-format';
 
 interface HasBaseRef {
     baseRef: string;
+}
+
+interface PartFamilyLike {
+    code: string;
+    name: string;
+    counter: number;
 }
 
 enum Tok {
@@ -131,7 +136,7 @@ export class PartBaseRefNaming extends RefNaming {
         super(input, ['fam_code', 'fam_count']);
     }
 
-    getBaseRef(fam: PartFamily): string {
+    getBaseRef(fam: PartFamilyLike): string {
         const parts = [];
         for (const tok of this.tokens) {
             if (tok.tok === Tok.Var) {

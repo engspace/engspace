@@ -1,11 +1,11 @@
 import { ApprovalDecision, Id, PartValidation, ValidationResult } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap, foreignKey, tracked, TrackedRow } from './base';
+import { DaoBase, foreignKey, tracked, TrackedRow, RowId, toId, toRowId } from './base';
 
 interface Row extends TrackedRow {
-    id: Id;
-    partRevId: Id;
+    id: RowId;
+    partRevId: RowId;
     state: string;
     result?: ValidationResult;
     comments?: string;
@@ -14,7 +14,7 @@ interface Row extends TrackedRow {
 function mapRow(row: Row): PartValidation {
     const { id, partRevId, state, result, comments } = row;
     return {
-        id,
+        id: toId(id),
         partRev: foreignKey(partRevId),
         state: state as ApprovalDecision,
         result,
@@ -43,7 +43,7 @@ export interface PartValidationUpdateDaoInput {
     userId: Id;
 }
 
-export class PartValidationDao extends DaoRowMap<PartValidation, Row> {
+export class PartValidationDao extends DaoBase<PartValidation, Row> {
     constructor() {
         super({
             rowToken,
@@ -58,7 +58,7 @@ export class PartValidationDao extends DaoRowMap<PartValidation, Row> {
                 ${tracked.insertListToken}
             )
             VALUES (
-                ${partRevId},
+                ${toRowId(partRevId)},
                 ${tracked.insertValToken(userId)}
             )
             RETURNING ${rowToken}
@@ -75,7 +75,7 @@ export class PartValidationDao extends DaoRowMap<PartValidation, Row> {
                 result = ${result},
                 comments = ${comments ?? null},
                 ${tracked.updateAssignmentsToken(userId)}
-            WHERE id = ${id}
+            WHERE id = ${toRowId(id)}
             RETURNING ${rowToken}
         `);
         return mapRow(row);

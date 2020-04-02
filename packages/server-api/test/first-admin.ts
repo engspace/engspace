@@ -1,3 +1,4 @@
+import { idType } from '@engspace/server-db';
 import { expect, request } from 'chai';
 import { api, config, dao, pool, th } from '.';
 
@@ -52,7 +53,7 @@ describe('HTTP /api/first_admin', function() {
                 roles: ['admin'],
             });
             expect(resp.body).to.have.property('id');
-            expect(resp.body.id).to.be.uuid();
+            expect(resp.body.id).to.be.a(idType);
         });
         it('should not create first admin if admin exists', async function() {
             await th.transacUser({ name: 'a', roles: ['admin'] });

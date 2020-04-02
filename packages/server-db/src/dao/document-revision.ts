@@ -1,15 +1,15 @@
-import { DocumentRevision, DocumentRevisionInput, HasId, Id } from '@engspace/core';
+import { DocumentRevision, DocumentRevisionInput, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap } from './base';
+import { DaoBase, foreignKey, RowId, timestamp, toId, toRowId } from './base';
 
-interface Row extends HasId {
-    id: Id;
-    documentId: Id;
+interface Row {
+    id: RowId;
+    documentId: RowId;
     revision: number;
     filename: string;
     filesize: number;
-    createdBy: Id;
+    createdBy: RowId;
     createdAt: number;
     changeDescription: string;
     uploaded: number;
@@ -30,13 +30,13 @@ function mapRow({
 }: Row): DocumentRevision {
     if (!id) return null;
     return {
-        id,
-        document: { id: documentId },
+        id: toId(id),
+        document: foreignKey(documentId),
         revision,
         filename,
         filesize,
-        createdBy: { id: createdBy },
-        createdAt: createdAt * 1000,
+        createdBy: foreignKey(createdBy),
+        createdAt: timestamp(createdAt),
         changeDescription,
         uploaded,
         sha1: sha1 ? sha1 : null,
@@ -49,7 +49,7 @@ const rowToken = sql`
         ENCODE(sha1, 'hex') as sha1
     `;
 
-export class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
+export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
     constructor() {
         super({
             rowToken,
@@ -68,14 +68,16 @@ export class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
             INSERT INTO document_revision (
                 document_id, revision, filename, filesize, created_by, created_at, change_description
             ) VALUES (
-                ${documentId},
+                ${toRowId(documentId)},
                 COALESCE(
-                    (SELECT MAX(revision) FROM document_revision WHERE document_id = ${documentId}),
+                    (SELECT MAX(revision) FROM document_revision WHERE document_id = ${toRowId(
+                        documentId
+                    )}),
                     0
                 ) + 1,
                 ${filename},
                 ${filesize},
-                ${userId},
+                ${toRowId(userId)},
                 NOW(),
                 ${changeDescription}
             )
@@ -85,7 +87,7 @@ export class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
         if (!documentRev.retainCheckout) {
             await db.query(sql`
                 UPDATE document SET checkout = NULL
-                WHERE id = ${documentId}
+                WHERE id = ${toRowId(documentId)}
             `);
         }
         return mapRow(row);
@@ -94,7 +96,7 @@ export class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
     async byDocumentId(db: Db, documentId: Id): Promise<DocumentRevision[]> {
         const rows: Row[] = await db.any(sql`
             SELECT ${rowToken} FROM document_revision
-            WHERE document_id = ${documentId}
+            WHERE document_id = ${toRowId(documentId)}
             ORDER BY revision
         `);
         return rows.map(r => mapRow(r));
@@ -104,9 +106,10 @@ export class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
         const row: Row = await db.maybeOne(sql`
             SELECT ${rowToken} FROM document_revision
             WHERE
-                document_id = ${documentId} AND
+                document_id = ${toRowId(documentId)} AND
                 revision = (
-                    SELECT MAX(revision) FROM document_revision WHERE document_id = ${documentId}
+                    SELECT MAX(revision) FROM document_revision
+                    WHERE document_id = ${toRowId(documentId)}
                 )
         `);
         if (!row) return null;
@@ -116,35 +119,34 @@ export class DocumentRevisionDao extends DaoRowMap<DocumentRevision, Row> {
     async byDocumentIdAndRev(db: Db, documentId: Id, revision: number): Promise<DocumentRevision> {
         const row: Row = await db.maybeOne(sql`
             SELECT ${rowToken} FROM document_revision
-            WHERE document_id = ${documentId} AND revision = ${revision}
+            WHERE document_id = ${toRowId(documentId)} AND revision = ${revision}
         `);
-        if (!row) return null;
-        return mapRow(row);
+        return row ? mapRow(row) : null;
     }
 
-    async idByDocumentIdAndRev(db: Db, documentId: Id, revision: number): Promise<string> {
+    async idByDocumentIdAndRev(db: Db, documentId: Id, revision: number): Promise<Id> {
         const id = await db.maybeOneFirst(sql`
             SELECT id FROM document_revision
-            WHERE document_id = ${documentId} AND revision = ${revision}
+            WHERE document_id = ${toRowId(documentId)} AND revision = ${revision}
         `);
-        return id as string;
+        return id ? toId(id as RowId) : null;
     }
 
     async updateAddProgress(db: Db, revisionId: Id, addUploaded: number): Promise<number> {
         const uploaded = await db.oneFirst(sql`
             UPDATE document_revision SET uploaded = uploaded + ${addUploaded}
-            WHERE id = ${revisionId}
+            WHERE id = ${toRowId(revisionId)}
             RETURNING uploaded
         `);
-        return uploaded as number;
+        return uploaded ? (uploaded as number) : null;
     }
 
     async updateSha1(db: Db, revisionId: Id, sha1: string): Promise<DocumentRevision> {
         const row: Row = await db.maybeOne(sql`
             UPDATE document_revision SET uploaded = filesize, sha1=DECODE(${sha1}, 'hex')
-            WHERE id = ${revisionId}
+            WHERE id = ${toRowId(revisionId)}
             RETURNING ${rowToken}
         `);
-        return mapRow(row);
+        return row ? mapRow(row) : null;
     }
 }

@@ -1,17 +1,17 @@
 import { ChangeRequest, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap, tracked, TrackedRow, nullable } from './base';
+import { DaoBase, tracked, TrackedRow, nullable, RowId, toId } from './base';
 
 interface Row extends TrackedRow {
-    id: Id;
+    id: RowId;
     description?: string;
 }
 
 function mapRow(row: Row): ChangeRequest {
     const { id, description } = row;
     return {
-        id,
+        id: toId(id),
         description,
         ...tracked.mapRow(row),
     };
@@ -24,7 +24,7 @@ export interface ChangeRequestDaoInput {
     userId: Id;
 }
 
-export class ChangeRequestDao extends DaoRowMap<ChangeRequest, Row> {
+export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
     constructor() {
         super({
             table: 'change_request',

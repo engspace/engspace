@@ -1,6 +1,7 @@
 import { Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
+import { RowId, toId, toRowId } from './base';
 
 export interface LoginResult {
     id: Id;
@@ -20,17 +21,17 @@ export class LoginDao {
     async create(db: Db, userId: Id, password: string): Promise<void> {
         await db.query(sql`
             INSERT INTO user_login(user_id, password)
-            VALUES(${userId}, crypt(${password}, gen_salt('bf')))
+            VALUES(${toRowId(userId)}, crypt(${password}, gen_salt('bf')))
         `);
     }
 
     async login(db: Db, nameOrEmail: string, password: string): Promise<LoginResult | null> {
-        interface Result {
-            id: Id;
+        interface Row {
+            id: RowId;
             name: string;
             ok: boolean;
         }
-        const result: Result = await db.maybeOne(sql`
+        const result: Row = await db.maybeOne(sql`
             SELECT u.id, u.name, (ul.password = crypt(${password}, ul.password)) AS ok
             FROM "user" AS u
             LEFT OUTER JOIN user_login AS ul ON u.id = ul.user_id
@@ -40,7 +41,7 @@ export class LoginDao {
         // ok = false: wrong password
         if (result && result.ok) {
             return {
-                id: result.id,
+                id: toId(result.id),
                 name: result.name,
                 roles: (await db.anyFirst(sql`
                     SELECT role FROM user_role
@@ -55,7 +56,7 @@ export class LoginDao {
     async checkById(db: Db, userId: Id, password: string): Promise<boolean> {
         const ok = await db.maybeOneFirst(sql`
             SELECT (password = crypt(${password}, password)) as ok
-            FROM user_login WHERE user_id = ${userId}
+            FROM user_login WHERE user_id = ${toRowId(userId)}
         `);
         return (ok || false) as boolean;
     }
@@ -65,13 +66,13 @@ export class LoginDao {
             UPDATE user_login SET
                 password = crypt(${password}, gen_salt('bf'))
             WHERE
-                user_id = ${userId}
+                user_id = ${toRowId(userId)}
         `);
     }
 
     async deleteById(db: Db, userId: Id): Promise<void> {
         await db.query(sql`
-            DELETE FROM user_login WHERE user_id = ${userId}
+            DELETE FROM user_login WHERE user_id = ${toRowId(userId)}
         `);
     }
 

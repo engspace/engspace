@@ -1,5 +1,6 @@
 import { expect } from 'chai';
-import { pool, dao } from '.';
+import { dao, pool } from '.';
+import { idType } from '../src/test-helpers';
 
 describe('PartFamilyDao', function() {
     describe('create', function() {
@@ -21,7 +22,7 @@ describe('PartFamilyDao', function() {
                 code: 'a',
                 counter: 0,
             });
-            expect(famA.id).to.be.uuid();
+            expect(famA.id).to.be.a(idType);
         });
     });
     describe('read', function() {
@@ -47,7 +48,7 @@ describe('PartFamilyDao', function() {
                 code: 'a',
                 counter: 0,
             });
-            expect(result.id).to.be.uuid();
+            expect(result.id).to.be.a(idType);
         });
     });
     describe('update', function() {

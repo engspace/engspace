@@ -1,7 +1,7 @@
 import { CycleState, PartRevision } from '@engspace/core';
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
-import { trackedBy } from '../src/test-helpers';
+import { idType, trackedBy } from '../src/test-helpers';
 
 describe('PartRevisionDao', function() {
     let users;
@@ -28,7 +28,7 @@ describe('PartRevisionDao', function() {
                     userId: users.a.id,
                 });
             });
-            expect(pr.id).to.be.uuid();
+            expect(pr.id).to.be.a(idType);
             expect(pr).to.deep.include({
                 part: { id: part.id },
                 revision: 1,

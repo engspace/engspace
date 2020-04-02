@@ -1,3 +1,4 @@
+import { idType } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, dao, pool, th } from '.';
@@ -256,6 +257,7 @@ describe('GraphQL ProjectMember', function() {
                 });
             });
             expect(errors).to.be.undefined;
+            console.log(data);
             expect(data.user).to.be.an('object');
             const u = data.user;
             expect(u.membership).to.be.an('array');
@@ -312,7 +314,7 @@ describe('GraphQL ProjectMember', function() {
                 });
                 expect(errors).to.be.undefined;
                 expect(data).to.be.an('object');
-                expect(data.projectAddMember.id).to.be.uuid();
+                expect(data.projectAddMember.id).to.be.a(idType);
                 expect(data.projectAddMember).to.deep.include({
                     project: { id: projects.a.id },
                     user: { id: users.a.id },
@@ -350,7 +352,7 @@ describe('GraphQL ProjectMember', function() {
                 });
                 expect(errors).to.be.undefined;
                 expect(data).to.be.an('object');
-                expect(data.projectAddMember.id).to.be.uuid();
+                expect(data.projectAddMember.id).to.be.a(idType);
                 expect(data.projectAddMember).to.deep.include({
                     project: { id: projects.b.id },
                     user: { id: users.a.id },

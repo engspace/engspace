@@ -1,7 +1,7 @@
-import { HasId, Id, Part, PartUpdateInput } from '@engspace/core';
+import { Id, Part } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap, foreignKey, tracked, TrackedRow } from './base';
+import { DaoBase, foreignKey, RowId, toId, toRowId, tracked, TrackedRow } from './base';
 
 export interface PartDaoInput {
     familyId: Id;
@@ -16,9 +16,9 @@ export interface PartUpdateDaoInput {
     userId: Id;
 }
 
-interface Row extends HasId, TrackedRow {
-    id: Id;
-    familyId: Id;
+interface Row extends TrackedRow {
+    id: RowId;
+    familyId: RowId;
     baseRef: string;
     ref: string;
     designation: string;
@@ -27,7 +27,7 @@ interface Row extends HasId, TrackedRow {
 function mapRow(row: Row): Part {
     const { id, familyId, baseRef, ref, designation } = row;
     return {
-        id,
+        id: toId(id),
         family: foreignKey(familyId),
         baseRef,
         ref,
@@ -40,7 +40,7 @@ const rowToken = sql`
     id, family_id, base_ref, ref, designation, ${tracked.selectToken}
 `;
 
-export class PartDao extends DaoRowMap<Part, Row> {
+export class PartDao extends DaoBase<Part, Row> {
     constructor() {
         super({
             rowToken,
@@ -54,10 +54,18 @@ export class PartDao extends DaoRowMap<Part, Row> {
     ): Promise<Part> {
         const row: Row = await db.one(sql`
             INSERT INTO part (
-                family_id, base_ref, ref, designation, ${tracked.insertListToken}
+                family_id,
+                base_ref,
+                ref,
+                designation,
+                ${tracked.insertListToken}
             )
             VALUES (
-                ${familyId}, ${baseRef}, ${ref}, ${designation}, ${tracked.insertValToken(userId)}
+                ${toRowId(familyId)},
+                ${baseRef},
+                ${ref},
+                ${designation},
+                ${tracked.insertValToken(userId)}
             )
             RETURNING ${rowToken}
         `);
@@ -69,7 +77,7 @@ export class PartDao extends DaoRowMap<Part, Row> {
             UPDATE part SET
                 designation = ${designation},
                 ${tracked.updateAssignmentsToken(userId)}
-            WHERE id = ${id}
+            WHERE id = ${toRowId(id)}
             RETURNING ${rowToken}
         `);
         return row ? mapRow(row) : null;

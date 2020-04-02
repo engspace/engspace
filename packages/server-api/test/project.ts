@@ -1,3 +1,4 @@
+import { idType } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool, th } from '.';
@@ -202,7 +203,7 @@ describe('GraphQL Project', () => {
                 expect(errors).to.be.undefined;
                 expect(data).to.be.an('object');
                 expect(data.projectCreate).to.deep.include(input);
-                expect(data.projectCreate.id).to.be.uuid();
+                expect(data.projectCreate.id).to.be.a(idType);
             });
             it('should not create project without "project.create"', async function() {
                 const { errors, data } = await pool.transaction(async db => {

@@ -7,7 +7,6 @@ describe('Ref naming', function() {
             const rn = new PartBaseRefNaming('${fam_code}${fam_count:5}');
             expect(
                 rn.getBaseRef({
-                    id: '',
                     code: 'FAM',
                     name: '',
                     counter: 452,
@@ -18,7 +17,6 @@ describe('Ref naming', function() {
             const rn = new PartBaseRefNaming('${fam_code}.${fam_count:5}');
             expect(
                 rn.getBaseRef({
-                    id: '',
                     code: 'FAM',
                     name: '',
                     counter: 452,
@@ -59,7 +57,6 @@ describe('Ref naming', function() {
             const rn = new PartBaseRefNaming('${fam_code}${fam_count:5}');
             function bad(): string {
                 return rn.getBaseRef({
-                    id: '',
                     code: 'FAM',
                     name: 'this_family',
                     counter: 100000,

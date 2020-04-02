@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
-import { trackedBy } from '../src';
+import { idType, trackedBy } from '../src/test-helpers';
 
 describe('PartDao', function() {
     let users;
@@ -35,7 +35,7 @@ describe('PartDao', function() {
                 ref: 'P001.A',
                 ...trackedBy(users.a),
             });
-            expect(part.id).to.be.uuid();
+            expect(part.id).to.be.a(idType);
             expect(part.createdAt)
                 .to.be.gt(bef)
                 .and.lt(aft);

@@ -1,12 +1,12 @@
 import { ChangePartCreate, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap, foreignKey, nullable } from './base';
+import { DaoBase, foreignKey, nullable, RowId, toId, toRowId } from './base';
 
 interface Row {
-    id: Id;
-    requestId: Id;
-    familyId: Id;
+    id: RowId;
+    requestId: RowId;
+    familyId: RowId;
     version: string;
     designation?: string;
     comments?: string;
@@ -21,7 +21,7 @@ function mapRow({
     comments,
 }: Row): ChangePartCreate {
     return {
-        id,
+        id: toId(id),
         request: foreignKey(requestId),
         family: foreignKey(familyId),
         version,
@@ -42,7 +42,7 @@ export interface ChangePartCreateDaoInput {
     comments?: string;
 }
 
-export class ChangePartCreateDao extends DaoRowMap<ChangePartCreate, Row> {
+export class ChangePartCreateDao extends DaoBase<ChangePartCreate, Row> {
     constructor() {
         super({
             table: 'change_part_create',
@@ -64,8 +64,8 @@ export class ChangePartCreateDao extends DaoRowMap<ChangePartCreate, Row> {
                 comments
             )
             VALUES (
-                ${requestId},
-                ${familyId},
+                ${toRowId(requestId)},
+                ${toRowId(familyId)},
                 ${version},
                 ${designation},
                 ${nullable(comments)}

@@ -1,7 +1,7 @@
 import { Project, User } from '@engspace/core';
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
-import { Dict } from '../src/test-helpers';
+import { Dict, idType } from '../src/test-helpers';
 
 describe('ProjectMemberDao', () => {
     let users: Dict<User>;
@@ -45,7 +45,7 @@ describe('ProjectMemberDao', () => {
                     roles: ['role1'],
                 })
             );
-            expect(mem.id).to.be.uuid();
+            expect(mem.id).to.be.a(idType);
             expect(mem).to.deep.include({
                 project: { id: projects.a.id },
                 user: { id: users.b.id },
@@ -73,7 +73,7 @@ describe('ProjectMemberDao', () => {
                 dao.projectMember.byProjectAndUserId(db, projects.a.id, users.a.id)
             );
             expect(aa).to.not.be.null;
-            expect(aa.id).to.be.uuid();
+            expect(aa.id).to.be.a(idType);
             expect(aa.roles).to.be.undefined;
         });
 
@@ -82,7 +82,7 @@ describe('ProjectMemberDao', () => {
                 dao.projectMember.byProjectAndUserId(db, projects.a.id, users.a.id, true)
             );
             expect(aa).to.not.be.null;
-            expect(aa.id).to.be.uuid();
+            expect(aa.id).to.be.a(idType);
             expect(aa.roles).to.have.members(['role1']);
         });
 
@@ -98,7 +98,7 @@ describe('ProjectMemberDao', () => {
                 dao.projectMember.byProjectAndUserId(db, projects.a.id, users.b.id, true)
             );
             expect(ab).to.not.be.null;
-            expect(ab.id).to.be.uuid();
+            expect(ab.id).to.be.a(idType);
             expect(ab.roles).to.have.members(['role3', 'role4']);
         });
 

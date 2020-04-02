@@ -1,26 +1,26 @@
-import { Document, DocumentInput, DocumentSearch, HasId, Id } from '@engspace/core';
+import { Document, DocumentInput, DocumentSearch, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap } from './base';
+import { DaoBase, foreignKey, RowId, timestamp, toId, toRowId } from './base';
 
-interface Row extends HasId {
-    id: Id;
+interface Row {
+    id: RowId;
     name: string;
     description: string;
-    createdBy: Id;
+    createdBy: RowId;
     createdAt: number;
-    checkout: Id;
+    checkout: RowId;
 }
 
 function mapRow({ id, name, description, createdBy, createdAt, checkout }: Row): Document {
     if (!id) return null;
     return {
-        id,
+        id: toId(id),
         name,
         description,
-        createdBy: { id: createdBy },
-        createdAt: createdAt * 1000,
-        checkout: checkout ? { id: checkout } : null,
+        createdBy: foreignKey(createdBy),
+        createdAt: timestamp(createdAt),
+        checkout: foreignKey(checkout),
     };
 }
 
@@ -29,7 +29,7 @@ const rowToken = sql`
         EXTRACT(EPOCH FROM created_at) AS created_at, checkout
     `;
 
-export class DocumentDao extends DaoRowMap<Document, Row> {
+export class DocumentDao extends DaoBase<Document, Row> {
     constructor() {
         super({
             rowToken,
@@ -40,8 +40,20 @@ export class DocumentDao extends DaoRowMap<Document, Row> {
     async create(db: Db, document: DocumentInput, userId: Id): Promise<Document> {
         const { name, description, initialCheckout } = document;
         const row: Row = await db.one(sql`
-            INSERT INTO document (name, description, created_by, created_at, checkout)
-            VALUES (${name}, ${description}, ${userId}, NOW(), ${initialCheckout ? userId : null})
+            INSERT INTO document (
+                name,
+                description,
+                created_by,
+                created_at,
+                checkout
+            )
+            VALUES (
+                ${name},
+                ${description},
+                ${toRowId(userId)},
+                NOW(),
+                ${initialCheckout ? toRowId(userId) : null}
+            )
             RETURNING ${rowToken}
         `);
         return mapRow(row);
@@ -50,9 +62,9 @@ export class DocumentDao extends DaoRowMap<Document, Row> {
     async checkoutIdById(db: Db, id: Id): Promise<Id> {
         const checkoutId = await db.maybeOneFirst(sql`
             SELECT checkout FROM document
-            WHERE id = ${id}
+            WHERE id = ${toRowId(id)}
         `);
-        return checkoutId as Id;
+        return toId(checkoutId as RowId);
     }
 
     async search(db: Db, search: string, offset: number, limit: number): Promise<DocumentSearch> {
@@ -85,8 +97,8 @@ export class DocumentDao extends DaoRowMap<Document, Row> {
 
     async checkout(db: Db, id: Id, userId: Id): Promise<Document | null> {
         const row: Row = await db.maybeOne(sql`
-            UPDATE document SET checkout = COALESCE(checkout, ${userId})
-            WHERE id = ${id}
+            UPDATE document SET checkout = COALESCE(checkout, ${toRowId(userId)})
+            WHERE id = ${toRowId(id)}
             RETURNING ${rowToken}
         `);
         if (!row) return null;
@@ -94,11 +106,13 @@ export class DocumentDao extends DaoRowMap<Document, Row> {
     }
 
     async discardCheckout(db: Db, id: Id, userId: Id): Promise<Document | null> {
+        const _id = toRowId(id);
         const row: Row = await db.maybeOne(sql`
             UPDATE document SET checkout = (
-                SELECT checkout FROM document WHERE id = ${id} AND checkout <> ${userId}
+                SELECT checkout FROM document
+                WHERE id = ${_id} AND checkout <> ${toRowId(userId)}
             )
-            WHERE id = ${id}
+            WHERE id = ${_id}
             RETURNING ${rowToken}
         `);
         if (!row) return null;

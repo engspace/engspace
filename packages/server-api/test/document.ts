@@ -1,3 +1,4 @@
+import { idType } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, dao, pool, th } from '.';
@@ -227,7 +228,7 @@ describe('GraphQL documents', function() {
                     createdBy: { id: users.a.id },
                     checkout: { id: users.a.id },
                 });
-                expect(data.documentCreate.id).to.be.uuid();
+                expect(data.documentCreate.id).to.be.a(idType);
                 expect(data.documentCreate.createdAt)
                     .to.be.at.least(msBefore)
                     .and.at.most(Date.now());
@@ -257,7 +258,7 @@ describe('GraphQL documents', function() {
                     createdBy: { id: users.a.id },
                     checkout: null,
                 });
-                expect(data.documentCreate.id).to.be.uuid();
+                expect(data.documentCreate.id).to.be.a(idType);
                 expect(data.documentCreate.createdAt)
                     .to.be.at.least(msBefore)
                     .and.at.most(Date.now());

@@ -1,7 +1,7 @@
-import { HasId, Id, PartRevision, CycleState } from '@engspace/core';
-import { TrackedRow, foreignKey, tracked, DaoRowMap } from './base';
+import { CycleState, Id, PartRevision } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
+import { DaoBase, foreignKey, RowId, toId, toRowId, tracked, TrackedRow } from './base';
 
 export interface PartRevisionDaoInput {
     partId: Id;
@@ -10,8 +10,9 @@ export interface PartRevisionDaoInput {
     userId: Id;
 }
 
-interface Row extends HasId, TrackedRow {
-    partId: Id;
+interface Row extends TrackedRow {
+    id: RowId;
+    partId: RowId;
     revision: number;
     designation: string;
     cycleState: string;
@@ -20,7 +21,7 @@ interface Row extends HasId, TrackedRow {
 function mapRow(row: Row): PartRevision {
     const { id, partId, revision, designation, cycleState } = row;
     return {
-        id,
+        id: toId(id),
         part: foreignKey(partId),
         revision,
         designation,
@@ -33,7 +34,7 @@ const rowToken = sql`
     id, part_id, revision, designation, cycle_state, ${tracked.selectToken}
 `;
 
-export class PartRevisionDao extends DaoRowMap<PartRevision, Row> {
+export class PartRevisionDao extends DaoBase<PartRevision, Row> {
     constructor() {
         super({
             rowToken,
@@ -50,9 +51,9 @@ export class PartRevisionDao extends DaoRowMap<PartRevision, Row> {
                 part_id, revision, designation, cycle_state, ${tracked.insertListToken}
             )
             VALUES (
-                ${partId},
+                ${toRowId(partId)},
                 COALESCE(
-                    (SELECT MAX(revision) FROM part_revision WHERE part_id = ${partId}),
+                    (SELECT MAX(revision) FROM part_revision WHERE part_id = ${toRowId(partId)}),
                     0
                 ) + 1,
                 ${designation},
@@ -67,7 +68,7 @@ export class PartRevisionDao extends DaoRowMap<PartRevision, Row> {
     async byPartId(db: Db, partId: Id): Promise<PartRevision[]> {
         const rows: Row[] = await db.any(sql`
             SELECT ${rowToken} FROM part_revision
-            WHERE part_id = ${partId}
+            WHERE part_id = ${toRowId(partId)}
         `);
         return rows.map(row => mapRow(row));
     }
@@ -76,9 +77,9 @@ export class PartRevisionDao extends DaoRowMap<PartRevision, Row> {
         const row: Row = await db.maybeOne(sql`
             SELECT ${rowToken} FROM part_revision
             WHERE
-                part_id = ${partId} AND
+                part_id = ${toRowId(partId)} AND
                 revision = (
-                    SELECT MAX(revision) FROM part_revision WHERE part_id = ${partId}
+                    SELECT MAX(revision) FROM part_revision WHERE part_id = ${toRowId(partId)}
                 )
         `);
         if (!row) return null;
@@ -89,7 +90,7 @@ export class PartRevisionDao extends DaoRowMap<PartRevision, Row> {
         const row: Row = await db.one(sql`
             UPDATE part_revision SET
                 cycle_state = ${cycleState}
-            WHERE id = ${id}
+            WHERE id = ${toRowId(id)}
             RETURNING ${rowToken}
         `);
         return mapRow(row);

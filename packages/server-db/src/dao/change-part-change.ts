@@ -1,12 +1,12 @@
 import { ChangePartChange, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoRowMap, foreignKey, nullable } from './base';
+import { DaoBase, foreignKey, nullable, RowId, toRowId, toId } from './base';
 
 interface Row {
-    id: Id;
-    requestId: Id;
-    partId: Id;
+    id: RowId;
+    requestId: RowId;
+    partId: RowId;
     version: string;
     designation?: string;
     comments?: string;
@@ -14,7 +14,7 @@ interface Row {
 
 function mapRow({ id, requestId, partId, version, designation, comments }: Row): ChangePartChange {
     return {
-        id,
+        id: toId(id),
         request: foreignKey(requestId),
         part: foreignKey(partId),
         version,
@@ -24,7 +24,12 @@ function mapRow({ id, requestId, partId, version, designation, comments }: Row):
 }
 
 const rowToken = sql`
-    id, request_id, part_id, version, designation, comments
+    id,
+    request_id,
+    part_id,
+    version,
+    designation,
+    comments
 `;
 
 export interface ChangePartChangeDaoInput {
@@ -35,7 +40,7 @@ export interface ChangePartChangeDaoInput {
     comments?: string;
 }
 
-export class ChangePartChangeDao extends DaoRowMap<ChangePartChange, Row> {
+export class ChangePartChangeDao extends DaoBase<ChangePartChange, Row> {
     constructor() {
         super({
             table: 'change_part_change',
@@ -57,8 +62,8 @@ export class ChangePartChangeDao extends DaoRowMap<ChangePartChange, Row> {
                 comments
             )
             VALUES (
-                ${requestId},
-                ${partId},
+                ${toRowId(requestId)},
+                ${toRowId(partId)},
                 ${version},
                 ${nullable(designation)},
                 ${nullable(comments)}
@@ -66,5 +71,14 @@ export class ChangePartChangeDao extends DaoRowMap<ChangePartChange, Row> {
             RETURNING ${rowToken}
         `);
         return mapRow(row);
+    }
+
+    async byRequestId(db: Db, requestId: Id): Promise<ChangePartChange[]> {
+        const rows: Row[] = await db.any(sql`
+            SELECT ${rowToken}
+            FROM change_part_change
+            WHERE request_id = ${toRowId(requestId)}
+        `);
+        return rows?.map(r => mapRow(r));
     }
 }

@@ -1,7 +1,7 @@
 import { ApprovalDecision, ValidationResult } from '@engspace/core';
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
-import { trackedBy } from '../dist';
+import { idType, trackedBy } from '../src/test-helpers';
 
 describe('PartValidationDao', function() {
     let users;
@@ -30,7 +30,7 @@ describe('PartValidationDao', function() {
             const val = await pool.transaction(async db => {
                 return dao.partValidation.create(db, { partRevId: partRev.id, userId: users.a.id });
             });
-            expect(val.id).to.be.uuid();
+            expect(val.id).to.be.a(idType);
             expect(val).to.deep.include({
                 partRev: { id: partRev.id },
                 state: ApprovalDecision.Approved,

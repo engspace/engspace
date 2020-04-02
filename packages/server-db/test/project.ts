@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
+import { idType } from '../src/test-helpers';
 
 describe('ProjectDao', () => {
     describe('create', () => {
@@ -18,7 +19,7 @@ describe('ProjectDao', () => {
                 name: 'A',
                 description: 'a desc',
             });
-            expect(proj.id).to.be.uuid();
+            expect(proj.id).to.be.a(idType);
         });
     });
 
