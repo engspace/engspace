@@ -1,7 +1,7 @@
 import { Document, DocumentInput, DocumentSearch, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, timestamp, toId, toRowId } from './base';
+import { DaoBase, foreignKey, RowId, timestamp, toId } from './base';
 
 interface Row {
     id: RowId;
@@ -50,9 +50,9 @@ export class DocumentDao extends DaoBase<Document, Row> {
             VALUES (
                 ${name},
                 ${description},
-                ${toRowId(userId)},
+                ${userId},
                 NOW(),
-                ${initialCheckout ? toRowId(userId) : null}
+                ${initialCheckout ? userId : null}
             )
             RETURNING ${rowToken}
         `);
@@ -62,7 +62,7 @@ export class DocumentDao extends DaoBase<Document, Row> {
     async checkoutIdById(db: Db, id: Id): Promise<Id> {
         const checkoutId = await db.maybeOneFirst(sql`
             SELECT checkout FROM document
-            WHERE id = ${toRowId(id)}
+            WHERE id = ${id}
         `);
         return toId(checkoutId as RowId);
     }
@@ -97,8 +97,8 @@ export class DocumentDao extends DaoBase<Document, Row> {
 
     async checkout(db: Db, id: Id, userId: Id): Promise<Document | null> {
         const row: Row = await db.maybeOne(sql`
-            UPDATE document SET checkout = COALESCE(checkout, ${toRowId(userId)})
-            WHERE id = ${toRowId(id)}
+            UPDATE document SET checkout = COALESCE(checkout, ${userId})
+            WHERE id = ${id}
             RETURNING ${rowToken}
         `);
         if (!row) return null;
@@ -106,11 +106,11 @@ export class DocumentDao extends DaoBase<Document, Row> {
     }
 
     async discardCheckout(db: Db, id: Id, userId: Id): Promise<Document | null> {
-        const _id = toRowId(id);
+        const _id = id;
         const row: Row = await db.maybeOne(sql`
             UPDATE document SET checkout = (
                 SELECT checkout FROM document
-                WHERE id = ${_id} AND checkout <> ${toRowId(userId)}
+                WHERE id = ${_id} AND checkout <> ${userId}
             )
             WHERE id = ${_id}
             RETURNING ${rowToken}

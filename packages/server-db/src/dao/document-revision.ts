@@ -1,7 +1,7 @@
 import { DocumentRevision, DocumentRevisionInput, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, timestamp, toId, toRowId } from './base';
+import { DaoBase, foreignKey, RowId, timestamp, toId } from './base';
 
 interface Row {
     id: RowId;
@@ -68,16 +68,15 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
             INSERT INTO document_revision (
                 document_id, revision, filename, filesize, created_by, created_at, change_description
             ) VALUES (
-                ${toRowId(documentId)},
+                ${documentId},
                 COALESCE(
-                    (SELECT MAX(revision) FROM document_revision WHERE document_id = ${toRowId(
-                        documentId
-                    )}),
+                    (SELECT MAX(revision) FROM document_revision
+                    WHERE document_id = ${documentId}),
                     0
                 ) + 1,
                 ${filename},
                 ${filesize},
-                ${toRowId(userId)},
+                ${userId},
                 NOW(),
                 ${changeDescription}
             )
@@ -87,7 +86,7 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
         if (!documentRev.retainCheckout) {
             await db.query(sql`
                 UPDATE document SET checkout = NULL
-                WHERE id = ${toRowId(documentId)}
+                WHERE id = ${documentId}
             `);
         }
         return mapRow(row);
@@ -96,7 +95,7 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
     async byDocumentId(db: Db, documentId: Id): Promise<DocumentRevision[]> {
         const rows: Row[] = await db.any(sql`
             SELECT ${rowToken} FROM document_revision
-            WHERE document_id = ${toRowId(documentId)}
+            WHERE document_id = ${documentId}
             ORDER BY revision
         `);
         return rows.map(r => mapRow(r));
@@ -106,10 +105,10 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
         const row: Row = await db.maybeOne(sql`
             SELECT ${rowToken} FROM document_revision
             WHERE
-                document_id = ${toRowId(documentId)} AND
+                document_id = ${documentId} AND
                 revision = (
                     SELECT MAX(revision) FROM document_revision
-                    WHERE document_id = ${toRowId(documentId)}
+                    WHERE document_id = ${documentId}
                 )
         `);
         if (!row) return null;
@@ -119,7 +118,7 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
     async byDocumentIdAndRev(db: Db, documentId: Id, revision: number): Promise<DocumentRevision> {
         const row: Row = await db.maybeOne(sql`
             SELECT ${rowToken} FROM document_revision
-            WHERE document_id = ${toRowId(documentId)} AND revision = ${revision}
+            WHERE document_id = ${documentId} AND revision = ${revision}
         `);
         return row ? mapRow(row) : null;
     }
@@ -127,7 +126,7 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
     async idByDocumentIdAndRev(db: Db, documentId: Id, revision: number): Promise<Id> {
         const id = await db.maybeOneFirst(sql`
             SELECT id FROM document_revision
-            WHERE document_id = ${toRowId(documentId)} AND revision = ${revision}
+            WHERE document_id = ${documentId} AND revision = ${revision}
         `);
         return id ? toId(id as RowId) : null;
     }
@@ -135,7 +134,7 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
     async updateAddProgress(db: Db, revisionId: Id, addUploaded: number): Promise<number> {
         const uploaded = await db.oneFirst(sql`
             UPDATE document_revision SET uploaded = uploaded + ${addUploaded}
-            WHERE id = ${toRowId(revisionId)}
+            WHERE id = ${revisionId}
             RETURNING uploaded
         `);
         return uploaded ? (uploaded as number) : null;
@@ -144,7 +143,7 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
     async updateSha1(db: Db, revisionId: Id, sha1: string): Promise<DocumentRevision> {
         const row: Row = await db.maybeOne(sql`
             UPDATE document_revision SET uploaded = filesize, sha1=DECODE(${sha1}, 'hex')
-            WHERE id = ${toRowId(revisionId)}
+            WHERE id = ${revisionId}
             RETURNING ${rowToken}
         `);
         return row ? mapRow(row) : null;

@@ -1,7 +1,7 @@
-import { PartFamily, PartFamilyInput, Id } from '@engspace/core';
+import { Id, PartFamily, PartFamilyInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, RowId, toId, toRowId } from './base';
+import { DaoBase, RowId, toId } from './base';
 
 interface Row {
     id: RowId;
@@ -42,7 +42,7 @@ export class PartFamilyDao extends DaoBase<PartFamily, Row> {
         const { name, code } = partFamily;
         const row: Row = await db.maybeOne(sql`
             UPDATE part_family SET name=${name}, code=${code}
-            WHERE id = ${toRowId(id)}
+            WHERE id = ${id}
             RETURNING ${rowToken}
         `);
         return mapRow(row);
@@ -51,7 +51,7 @@ export class PartFamilyDao extends DaoBase<PartFamily, Row> {
     async bumpCounterById(db: Db, id: Id): Promise<PartFamily> {
         const row: Row = await db.maybeOne(sql`
             UPDATE part_family SET counter = counter+1
-            WHERE id = ${toRowId(id)}
+            WHERE id = ${id}
             RETURNING ${rowToken}
         `);
         return mapRow(row);

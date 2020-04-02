@@ -5,7 +5,6 @@ import { Db } from '..';
 
 export type RowId = number;
 
-export const toRowId = (id: Id): RowId => parseInt(id);
 export const toId = (id: RowId): Id => id.toString();
 
 export interface HasRowId {
@@ -49,11 +48,11 @@ export const tracked = {
     insertListToken: sql`created_by, created_at, updated_by, updated_at`,
 
     insertValToken(userId: Id): SqlTokenType {
-        return sql`${toRowId(userId)}, NOW(), ${toRowId(userId)}, NOW()`;
+        return sql`${userId}, NOW(), ${userId}, NOW()`;
     },
 
     updateAssignmentsToken(userId: Id): SqlTokenType {
-        return sql`updated_by = ${toRowId(userId)}, updated_at = NOW()`;
+        return sql`updated_by = ${userId}, updated_at = NOW()`;
     },
 };
 
@@ -85,7 +84,7 @@ export class DaoBase<T extends HasId, R extends HasRowId> implements Dao<T> {
     async byId(db: Db, id: Id): Promise<T> {
         const row: R = await db.maybeOne(sql`
             SELECT ${this.rowToken} FROM ${sql.identifier([this.table])}
-            WHERE id = ${toRowId(id)}
+            WHERE id = ${id}
         `);
         return row ? this.mapRow(row) : null;
     }
@@ -100,7 +99,7 @@ export class DaoBase<T extends HasId, R extends HasRowId> implements Dao<T> {
     async checkId(db: Db, id: Id): Promise<boolean> {
         const res = await db.maybeOneFirst(sql`
             SELECT id FROM ${sql.identifier([this.table])}
-            WHERE id=${toRowId(id)}
+            WHERE id=${id}
         `);
         return !!res;
     }
@@ -116,7 +115,7 @@ export class DaoBase<T extends HasId, R extends HasRowId> implements Dao<T> {
     async deleteById(db: Db, id: Id): Promise<T> {
         const row: R = await db.maybeOne(sql`
             DELETE FROM ${sql.identifier([this.table])}
-            WHERE id = ${toRowId(id)}
+            WHERE id = ${id}
             RETURNING ${this.rowToken}
         `);
         return row ? this.mapRow(row) : null;

@@ -1,7 +1,7 @@
 import { Id, Part } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, toId, toRowId, tracked, TrackedRow } from './base';
+import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
 
 export interface PartDaoInput {
     familyId: Id;
@@ -61,7 +61,7 @@ export class PartDao extends DaoBase<Part, Row> {
                 ${tracked.insertListToken}
             )
             VALUES (
-                ${toRowId(familyId)},
+                ${familyId},
                 ${baseRef},
                 ${ref},
                 ${designation},
@@ -77,7 +77,7 @@ export class PartDao extends DaoBase<Part, Row> {
             UPDATE part SET
                 designation = ${designation},
                 ${tracked.updateAssignmentsToken(userId)}
-            WHERE id = ${toRowId(id)}
+            WHERE id = ${id}
             RETURNING ${rowToken}
         `);
         return row ? mapRow(row) : null;

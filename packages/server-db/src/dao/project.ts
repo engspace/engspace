@@ -2,7 +2,7 @@ import { Id, Project, ProjectInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
 import { partialAssignmentList } from '../util';
-import { DaoBase, RowId, toRowId, toId } from './base';
+import { DaoBase, RowId, toId } from './base';
 
 export interface ProjectSearch {
     phrase?: string;
@@ -107,7 +107,7 @@ export class ProjectDao extends DaoBase<Project, Row> {
         const assignments = partialAssignmentList(project, ['name', 'code', 'description']);
         const row: Row = await db.maybeOne(sql`
             UPDATE project SET ${sql.join(assignments, sql`, `)}
-            WHERE id = ${toRowId(id)}
+            WHERE id = ${id}
             RETURNING ${rowToken}
         `);
         return mapRow(row);
@@ -117,7 +117,7 @@ export class ProjectDao extends DaoBase<Project, Row> {
         const { code, name, description } = project;
         const row: Row = await db.maybeOne(sql`
             UPDATE project SET code=${code}, name=${name}, description=${description}
-            WHERE id=${toRowId(id)}
+            WHERE id=${id}
             RETURNING ${rowToken}
         `);
         return mapRow(row);

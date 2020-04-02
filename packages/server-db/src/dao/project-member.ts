@@ -1,7 +1,7 @@
 import { Id, ProjectMember, ProjectMemberInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, toId, toRowId } from './base';
+import { DaoBase, foreignKey, RowId, toId } from './base';
 
 interface Row {
     id: RowId;
@@ -40,7 +40,7 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
             INSERT INTO project_member(
                 project_id, user_id
             ) VALUES (
-                ${toRowId(projectId)}, ${toRowId(userId)}
+                ${projectId}, ${userId}
             )
             RETURNING ${rowToken}
         `);
@@ -57,7 +57,7 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
     async byProjectId(db: Db, projectId: Id): Promise<ProjectMember[]> {
         const rows = await db.any<Row>(sql`
             SELECT ${rowToken} FROM project_member
-            WHERE project_id = ${toRowId(projectId)}
+            WHERE project_id = ${projectId}
         `);
         return rows.map(r => mapRow(r));
     }
@@ -69,7 +69,7 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
     async byUserId(db: Db, userId: Id): Promise<ProjectMember[]> {
         const rows = await db.any<Row>(sql`
             SELECT ${rowToken} FROM project_member
-            WHERE user_id = ${toRowId(userId)}
+            WHERE user_id = ${userId}
         `);
         return rows.map(r => mapRow(r));
     }
@@ -93,7 +93,7 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
     ): Promise<ProjectMember | null> {
         const row = await db.maybeOne<Row>(sql`
             SELECT ${rowToken} FROM project_member
-            WHERE project_id=${toRowId(projectId)} AND user_id=${toRowId(userId)}
+            WHERE project_id=${projectId} AND user_id=${userId}
         `);
         if (!row) return null;
         const res = mapRow(row);
@@ -112,7 +112,7 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
     async rolesById(db: Db, id: Id): Promise<string[]> {
         const rows = await db.anyFirst(sql`
             SELECT role FROM project_member_role
-            WHERE member_id = ${toRowId(id)}
+            WHERE member_id = ${id}
         `);
         return rows as string[];
     }
@@ -120,7 +120,7 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
     async updateRolesById(db: Db, id: Id, roles: string[]): Promise<ProjectMember> {
         await db.query(sql`
             DELETE FROM project_member_role
-            WHERE member_id = ${toRowId(id)}
+            WHERE member_id = ${id}
         `);
 
         const inserted = roles ? await insertRoles(db, id, roles) : [];
@@ -135,7 +135,7 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
     async deleteByProjId(db: Db, projectId: Id): Promise<void> {
         await db.query(sql`
             DELETE FROM project_member
-            WHERE project_id = ${toRowId(projectId)}
+            WHERE project_id = ${projectId}
         `);
     }
 
@@ -145,7 +145,7 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
     async deleteByUserId(db: Db, userId: Id): Promise<void> {
         await db.query(sql`
             DELETE FROM project_member
-            WHERE user_id = ${toRowId(userId)}
+            WHERE user_id = ${userId}
         `);
     }
 
@@ -155,7 +155,7 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
     async deleteByProjectAndUserId(db: Db, projectId: Id, userId: Id): Promise<void> {
         await db.query(sql`
             DELETE FROM project_member
-            WHERE project_id=${toRowId(projectId)} AND user_id=${toRowId(userId)}
+            WHERE project_id=${projectId} AND user_id=${userId}
         `);
     }
 }
@@ -165,7 +165,7 @@ async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
         INSERT INTO project_member_role(
             member_id, role
         ) VALUES ${sql.join(
-            roles.map(role => sql`(${toRowId(id)}, ${role})`),
+            roles.map(role => sql`(${id}, ${role})`),
             sql`, `
         )}
         RETURNING role

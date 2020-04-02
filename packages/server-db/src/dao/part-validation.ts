@@ -1,7 +1,7 @@
 import { ApprovalDecision, Id, PartValidation, ValidationResult } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, foreignKey, tracked, TrackedRow, RowId, toId, toRowId } from './base';
+import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
 
 interface Row extends TrackedRow {
     id: RowId;
@@ -58,7 +58,7 @@ export class PartValidationDao extends DaoBase<PartValidation, Row> {
                 ${tracked.insertListToken}
             )
             VALUES (
-                ${toRowId(partRevId)},
+                ${partRevId},
                 ${tracked.insertValToken(userId)}
             )
             RETURNING ${rowToken}
@@ -75,7 +75,7 @@ export class PartValidationDao extends DaoBase<PartValidation, Row> {
                 result = ${result},
                 comments = ${comments ?? null},
                 ${tracked.updateAssignmentsToken(userId)}
-            WHERE id = ${toRowId(id)}
+            WHERE id = ${id}
             RETURNING ${rowToken}
         `);
         return mapRow(row);

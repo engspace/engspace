@@ -1,7 +1,7 @@
 import { CycleState, Id, PartRevision } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, toId, toRowId, tracked, TrackedRow } from './base';
+import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
 
 export interface PartRevisionDaoInput {
     partId: Id;
@@ -51,9 +51,9 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
                 part_id, revision, designation, cycle_state, ${tracked.insertListToken}
             )
             VALUES (
-                ${toRowId(partId)},
+                ${partId},
                 COALESCE(
-                    (SELECT MAX(revision) FROM part_revision WHERE part_id = ${toRowId(partId)}),
+                    (SELECT MAX(revision) FROM part_revision WHERE part_id = ${partId}),
                     0
                 ) + 1,
                 ${designation},
@@ -68,7 +68,7 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
     async byPartId(db: Db, partId: Id): Promise<PartRevision[]> {
         const rows: Row[] = await db.any(sql`
             SELECT ${rowToken} FROM part_revision
-            WHERE part_id = ${toRowId(partId)}
+            WHERE part_id = ${partId}
         `);
         return rows.map(row => mapRow(row));
     }
@@ -77,9 +77,9 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
         const row: Row = await db.maybeOne(sql`
             SELECT ${rowToken} FROM part_revision
             WHERE
-                part_id = ${toRowId(partId)} AND
+                part_id = ${partId} AND
                 revision = (
-                    SELECT MAX(revision) FROM part_revision WHERE part_id = ${toRowId(partId)}
+                    SELECT MAX(revision) FROM part_revision WHERE part_id = ${partId}
                 )
         `);
         if (!row) return null;
@@ -90,7 +90,7 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
         const row: Row = await db.one(sql`
             UPDATE part_revision SET
                 cycle_state = ${cycleState}
-            WHERE id = ${toRowId(id)}
+            WHERE id = ${id}
             RETURNING ${rowToken}
         `);
         return mapRow(row);

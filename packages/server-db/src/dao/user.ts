@@ -1,7 +1,7 @@
 import { Id, User, UserInput } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, toRowId, RowId, toId } from './base';
+import { DaoBase, RowId, toId } from './base';
 
 export interface UserSearch {
     phrase?: string;
@@ -33,7 +33,7 @@ async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
             INSERT INTO user_role(
                 user_id, role
             ) VALUES ${sql.join(
-                roles.map(role => sql`(${toRowId(id)}, ${role})`),
+                roles.map(role => sql`(${id}, ${role})`),
                 sql`, `
             )}
             RETURNING role
@@ -75,7 +75,7 @@ export class UserDao extends DaoBase<User, Row> {
         const row: Row = await db.maybeOne(sql`
             SELECT ${rowToken}
             FROM "user"
-            WHERE id = ${toRowId(id)}
+            WHERE id = ${id}
         `);
         const user = row ? mapRow(row) : null;
         if (user && withRoles) {
@@ -160,7 +160,7 @@ export class UserDao extends DaoBase<User, Row> {
     async rolesById(db: Db, id: Id): Promise<string[]> {
         const roles = await db.anyFirst(sql`
             SELECT role FROM user_role
-            WHERE user_id = ${toRowId(id)}
+            WHERE user_id = ${id}
         `);
         return roles as string[];
     }
@@ -173,7 +173,7 @@ export class UserDao extends DaoBase<User, Row> {
     ): Promise<User> {
         const row: Row = await db.maybeOne(sql`
             UPDATE "user" SET name=${name}, email=${email}, full_name=${fullName}
-            WHERE id=${toRowId(id)}
+            WHERE id=${id}
             RETURNING ${rowToken}
         `);
         const user = row ? mapRow(row) : null;
@@ -185,7 +185,7 @@ export class UserDao extends DaoBase<User, Row> {
 
     async updateRoles(db: Db, userId: Id, roles: string[]): Promise<string[]> {
         await db.query(sql`
-            DELETE FROM user_role WHERE user_id = ${toRowId(userId)}
+            DELETE FROM user_role WHERE user_id = ${userId}
         `);
 
         if (roles.length) {

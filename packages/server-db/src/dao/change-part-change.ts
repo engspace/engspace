@@ -1,7 +1,7 @@
 import { ChangePartChange, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, foreignKey, nullable, RowId, toRowId, toId } from './base';
+import { DaoBase, foreignKey, nullable, RowId, toId } from './base';
 
 interface Row {
     id: RowId;
@@ -62,8 +62,8 @@ export class ChangePartChangeDao extends DaoBase<ChangePartChange, Row> {
                 comments
             )
             VALUES (
-                ${toRowId(requestId)},
-                ${toRowId(partId)},
+                ${requestId},
+                ${partId},
                 ${version},
                 ${nullable(designation)},
                 ${nullable(comments)}
@@ -77,7 +77,7 @@ export class ChangePartChangeDao extends DaoBase<ChangePartChange, Row> {
         const rows: Row[] = await db.any(sql`
             SELECT ${rowToken}
             FROM change_part_change
-            WHERE request_id = ${toRowId(requestId)}
+            WHERE request_id = ${requestId}
         `);
         return rows?.map(r => mapRow(r));
     }

@@ -1,7 +1,7 @@
 import { ApprovalDecision, Id, PartApproval } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, foreignKey, tracked, TrackedRow, RowId, toId, toRowId } from './base';
+import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
 
 interface Row extends TrackedRow {
     id: RowId;
@@ -67,8 +67,8 @@ export class PartApprovalDao extends DaoBase<PartApproval, Row> {
                 ${tracked.insertListToken}
             )
             VALUES (
-                ${toRowId(validationId)},
-                ${toRowId(assigneeId)},
+                ${validationId},
+                ${assigneeId},
                 ${decision ?? ApprovalDecision.Pending},
                 ${comments ?? null},
                 ${tracked.insertValToken(userId)}
@@ -81,7 +81,7 @@ export class PartApprovalDao extends DaoBase<PartApproval, Row> {
     async byValidationId(db: Db, validationId: Id): Promise<PartApproval[]> {
         const rows: Row[] = await db.any(sql`
             SELECT ${rowToken} FROM part_approval
-            WHERE validation_id = ${toRowId(validationId)}
+            WHERE validation_id = ${validationId}
         `);
         return rows.map(r => mapRow(r));
     }
@@ -96,7 +96,7 @@ export class PartApprovalDao extends DaoBase<PartApproval, Row> {
                 decision = ${decision},
                 comments = ${comments ?? null},
                 ${tracked.updateAssignmentsToken(userId)}
-            WHERE id = ${toRowId(id)}
+            WHERE id = ${id}
             RETURNING ${rowToken}
         `);
         return mapRow(row);

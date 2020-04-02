@@ -1,7 +1,7 @@
 import { ChangeRequest, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, tracked, TrackedRow, nullable, RowId, toId } from './base';
+import { DaoBase, nullable, RowId, toId, tracked, TrackedRow } from './base';
 
 interface Row extends TrackedRow {
     id: RowId;

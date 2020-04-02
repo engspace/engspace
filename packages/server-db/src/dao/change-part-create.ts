@@ -1,7 +1,7 @@
 import { ChangePartCreate, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, foreignKey, nullable, RowId, toId, toRowId } from './base';
+import { DaoBase, foreignKey, nullable, RowId, toId } from './base';
 
 interface Row {
     id: RowId;
@@ -64,8 +64,8 @@ export class ChangePartCreateDao extends DaoBase<ChangePartCreate, Row> {
                 comments
             )
             VALUES (
-                ${toRowId(requestId)},
-                ${toRowId(familyId)},
+                ${requestId},
+                ${familyId},
                 ${version},
                 ${designation},
                 ${nullable(comments)}

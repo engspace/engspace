@@ -1,7 +1,7 @@
 import { Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { RowId, toId, toRowId } from './base';
+import { RowId, toId } from './base';
 
 export interface LoginResult {
     id: Id;
@@ -21,7 +21,7 @@ export class LoginDao {
     async create(db: Db, userId: Id, password: string): Promise<void> {
         await db.query(sql`
             INSERT INTO user_login(user_id, password)
-            VALUES(${toRowId(userId)}, crypt(${password}, gen_salt('bf')))
+            VALUES(${userId}, crypt(${password}, gen_salt('bf')))
         `);
     }
 
@@ -56,7 +56,7 @@ export class LoginDao {
     async checkById(db: Db, userId: Id, password: string): Promise<boolean> {
         const ok = await db.maybeOneFirst(sql`
             SELECT (password = crypt(${password}, password)) as ok
-            FROM user_login WHERE user_id = ${toRowId(userId)}
+            FROM user_login WHERE user_id = ${userId}
         `);
         return (ok || false) as boolean;
     }
@@ -66,13 +66,13 @@ export class LoginDao {
             UPDATE user_login SET
                 password = crypt(${password}, gen_salt('bf'))
             WHERE
-                user_id = ${toRowId(userId)}
+                user_id = ${userId}
         `);
     }
 
     async deleteById(db: Db, userId: Id): Promise<void> {
         await db.query(sql`
-            DELETE FROM user_login WHERE user_id = ${toRowId(userId)}
+            DELETE FROM user_login WHERE user_id = ${userId}
         `);
     }
 

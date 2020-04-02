@@ -1,7 +1,7 @@
-import { Id, ChangeReview, ApprovalDecision } from '@engspace/core';
-import { foreignKey, tracked, TrackedRow, DaoBase, nullable, RowId, toId, toRowId } from './base';
+import { ApprovalDecision, ChangeReview, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
+import { DaoBase, foreignKey, nullable, RowId, toId, tracked, TrackedRow } from './base';
 
 interface Row extends TrackedRow {
     id: RowId;
@@ -55,8 +55,8 @@ export class ChangeReviewDao extends DaoBase<ChangeReview, Row> {
                 ${tracked.insertListToken}
             )
             VALUES (
-                ${toRowId(requestId)},
-                ${toRowId(assigneeId)},
+                ${requestId},
+                ${assigneeId},
                 ${decision ?? ApprovalDecision.Pending},
                 ${nullable(comments)},
                 ${tracked.insertValToken(userId)}
