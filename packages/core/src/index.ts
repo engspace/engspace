@@ -201,7 +201,7 @@ export interface ChangeRequestInput {
     partCreations: ChangePartCreateInput[];
     partChanges: ChangePartChangeInput[];
     partRevisions: ChangePartRevisionInput[];
-    reviewers: Id[];
+    reviewerIds: Id[];
 }
 
 export interface ChangePartCreate {

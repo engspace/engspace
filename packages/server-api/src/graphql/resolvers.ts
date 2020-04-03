@@ -26,6 +26,11 @@ import {
     PartValidationInput,
     PartApprovalUpdateInput,
     PartValidationCloseInput,
+    ChangeRequest,
+    ChangePartCreate,
+    ChangePartChange,
+    ChangePartRevision,
+    ChangeReview,
 } from '@engspace/core';
 import { IResolvers, UserInputError } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
@@ -149,6 +154,31 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             ...resolveTracked,
         },
 
+        ChangeRequest: {
+            partCreations(
+                { id }: ChangeRequest,
+                args,
+                ctx: GqlContext
+            ): Promise<ChangePartCreate[]> {
+                return control.change.requestPartCreations(ctx, id);
+            },
+            partChanges({ id }: ChangeRequest, args, ctx: GqlContext): Promise<ChangePartChange[]> {
+                return control.change.requestPartChanges(ctx, id);
+            },
+            partRevisions(
+                { id }: ChangeRequest,
+                args,
+                ctx: GqlContext
+            ): Promise<ChangePartRevision[]> {
+                return control.change.requestPartRevisions(ctx, id);
+            },
+            reviews({ id }: ChangeRequest, args, ctx: GqlContext): Promise<ChangeReview[]> {
+                return control.change.requestReviews(ctx, id);
+            },
+
+            ...resolveTracked,
+        },
+
         Document: {
             createdBy({ createdBy }: Document, args, ctx: GqlContext): Promise<User> {
                 return ctx.loaders.user.load(createdBy.id);
@@ -257,6 +287,10 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 ctx: GqlContext
             ): Promise<PartApproval | null> {
                 return control.part.approvalById(ctx, id);
+            },
+
+            changeRequest(parent, { id }: { id: Id }, ctx: GqlContext): Promise<ChangeRequest> {
+                return control.change.request(ctx, id);
             },
 
             document(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Document | null> {

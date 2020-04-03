@@ -213,6 +213,102 @@ export const typeDefs = gql`
         updatedAt: DateTime!
     }
 
+    """
+    An input to describe a part creation in a ChangeRequest
+    """
+    input ChangePartCreateInput {
+        familyId: ID!
+        version: String!
+        designation: String!
+        comments: String
+    }
+
+    """
+    An input to describe a part change in a ChangeRequest
+    """
+    input ChangePartChangeInput {
+        partId: ID!
+        version: String!
+        designation: String
+        comments: String
+    }
+
+    """
+    An input to describe a part revision in a ChangeRequest
+    """
+    input ChangePartRevisionInput {
+        partId: ID!
+        designation: String
+        comments: String
+    }
+
+    """
+    An input to create ChangeRequest
+    """
+    input ChangeRequestInput {
+        description: String
+        partCreations: [PartCreateInput!]
+        partChanges: [PartForkInput!]
+        partRevisions: [PartRevisionInput!]
+        reviewers: [ID!]
+    }
+
+    type ChangePartCreate {
+        id: ID!
+        request: ChangeRequest!
+        family: PartFamily!
+        version: String!
+        designation: String!
+        comments: String
+    }
+
+    type ChangePartChange {
+        id: ID!
+        request: ChangeRequest!
+        part: Part!
+        version: String!
+        designation: String
+        comments: String
+    }
+
+    type ChangePartRevision {
+        id: ID!
+        request: ChangeRequest!
+        part: Part!
+        designation: String
+        comments: String
+    }
+
+    type ChangeReview implements Tracked {
+        id: ID!
+        assignee: User!
+        decision: ApprovalDecision!
+        comments: String
+        createdBy: User!
+        createdAt: DateTime!
+        updatedBy: User!
+        updatedAt: DateTime!
+    }
+
+    """
+    A ChangeRequest gathers all informations about a requeste change.
+    It helps to inform and gather approval of the involved persons.
+    """
+    type ChangeRequest implements Tracked {
+        id: ID!
+        description: String
+
+        partCreations: [ChangePartCreate!]
+        partChanges: [ChangePartChange!]
+        partRevisions: [ChangePartRevision!]
+        reviews: [ChangeReview!]
+
+        createdBy: User!
+        createdAt: DateTime!
+        updatedBy: User!
+        updatedAt: DateTime!
+    }
+
     input DocumentInput {
         name: String!
         description: String
@@ -273,6 +369,8 @@ export const typeDefs = gql`
         partRevision(id: ID!): PartRevision
         partValidation(id: ID!): PartValidation
         partApproval(id: ID!): PartApproval
+
+        changeRequest(id: ID!): ChangeRequest
 
         document(id: ID!): Document
         documentSearch(search: String, offset: Int = 0, limit: Int = 1000): DocumentSearch!

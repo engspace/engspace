@@ -6,6 +6,7 @@ import { PartControl } from './part';
 import { PartFamilyControl } from './part-family';
 import { ProjectControl } from './project';
 import { UserControl } from './user';
+import { ChangeControl } from './change';
 
 export interface ApiContext {
     db: Db;
@@ -23,6 +24,7 @@ export interface ControllerSet {
     project: ProjectControl;
     partFamily: PartFamilyControl;
     part: PartControl;
+    change: ChangeControl;
     document: DocumentControl;
     documentRevision: DocumentRevisionControl;
 }
@@ -36,6 +38,7 @@ export function buildControllerSet(
         project: custom.project ?? new ProjectControl(dao),
         partFamily: custom.partFamily ?? new PartFamilyControl(dao),
         part: custom.part ?? new PartControl(dao),
+        change: custom.change ?? new ChangeControl(dao),
         document: custom.document ?? new DocumentControl(dao),
         documentRevision: custom.documentRevision ?? new DocumentRevisionControl(dao),
     };
