@@ -47,7 +47,7 @@ describe('PartDao', function() {
         let part;
         beforeEach('create part', async function() {
             return pool.transaction(async db => {
-                part = await th.createPart(db, family, users.a);
+                part = await th.createPart(db, family, users.a, {});
             });
         });
         afterEach('delete part', th.cleanTable('part'));

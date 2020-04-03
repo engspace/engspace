@@ -18,7 +18,7 @@ describe('PartValidationDao', function() {
                 e: { name: 'e' },
             });
             fam = await th.createPartFamily(db, { code: 'P' });
-            part = await th.createPart(db, fam, users.a);
+            part = await th.createPart(db, fam, users.a, {});
             partRev = await th.createPartRev(db, part, users.a);
         });
     });

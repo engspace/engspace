@@ -1,6 +1,5 @@
-import { dao, pool, th } from '.';
 import { expect } from 'chai';
-import { trackedBy } from '../src';
+import { dao, pool, th } from '.';
 
 describe('ChangePartCreateDao', function() {
     let users;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import {
     ChangeRequest,
     ChangeRequestInput,
@@ -66,25 +67,68 @@ export function expTrackedTime(expect: any, obj: Partial<Tracked>, maxAge = 100)
         .and.gte(now - maxAge);
 }
 
+interface WithDeps {
+    withDeps: boolean;
+}
+
+const tableDeps = {
+    user: [],
+    user_login: ['user'],
+    project: [],
+    project_member: ['user', 'project'],
+    project_member_role: ['project_member'],
+    part_family: [],
+    part: ['part_family', 'user'],
+    part_revision: ['part', 'user'],
+    part_validation: ['part_revision', 'user'],
+    part_approval: ['part_validation', 'user'],
+    change_request: ['user'],
+    change_part_create: ['change_request', 'part_family'],
+    change_part_change: ['change_request', 'part'],
+    change_part_revision: ['change_request', 'part'],
+    change_review: ['change_request', 'user'],
+    document: ['user'],
+    document_revision: ['document', 'user'],
+};
+
 /**
  * Set of helpers that makes testing easier
  */
 export class TestHelpers {
     constructor(private pool: DbPool, private dao: DaoSet) {}
 
-    cleanTable(tableName: string) {
-        return async (): Promise<void> => {
-            return this.pool.transaction(async db => {
-                await db.query(sql`DELETE FROM ${sql.identifier([tableName])}`);
-            });
-        };
+    cleanTable(tableName: string, withDeps: WithDeps = { withDeps: false }): () => Promise<void> {
+        return this.cleanTables([tableName], withDeps);
     }
 
-    cleanTables(tableNames: string[]) {
+    cleanTables(
+        tableNames: string[],
+        { withDeps }: WithDeps = { withDeps: false }
+    ): () => Promise<void> {
         return async (): Promise<void> => {
             return this.pool.transaction(async db => {
-                for (const tableName of tableNames) {
-                    await db.query(sql`DELETE FROM ${sql.identifier([tableName])}`);
+                if (!withDeps) {
+                    for (const t of tableNames) {
+                        await db.query(sql`DELETE FROM ${sql.identifier([t])}`);
+                    }
+                    return;
+                }
+
+                const counts = {};
+                function traverse(t: string): void {
+                    if (!counts[t]) counts[t] = 1;
+                    else counts[t] += 1;
+                    for (const td of tableDeps[t]) {
+                        traverse(td);
+                    }
+                }
+                for (const t of tableNames) {
+                    traverse(t);
+                }
+
+                const tables = Object.keys(counts).sort((a, b) => counts[a] - counts[b]);
+                for (const t of tables) {
+                    await db.query(sql`DELETE FROM ${sql.identifier([t])}`);
                 }
             });
         };
@@ -214,20 +258,37 @@ export class TestHelpers {
         };
     }
 
-    createPart(
+    async createPart(
         db: Db,
         family: PartFamily,
         user: User,
-        input: Partial<PartDaoInput> = {}
+        input: Partial<PartDaoInput>,
+        { withRev1, bumpFamCounter }: { withRev1: boolean; bumpFamCounter: boolean } = {
+            withRev1: false,
+            bumpFamCounter: false,
+        }
     ): Promise<Part> {
-        return this.dao.part.create(db, {
-            designation: 'Part',
-            baseRef: 'P001',
-            ref: 'P001.A',
-            ...input,
+        const baseRef = input.baseRef ?? (input.ref ? input.ref.substr(0, 4) : 'P001');
+        const ref = input.ref ?? `${baseRef}.A`;
+        const part = await this.dao.part.create(db, {
             familyId: family.id,
+            baseRef,
+            ref,
+            designation: input.designation ?? 'Part',
             userId: user.id,
         });
+        if (withRev1) {
+            await this.dao.partRevision.create(db, {
+                partId: part.id,
+                cycleState: CycleState.Edition,
+                userId: user.id,
+                designation: part.designation,
+            });
+        }
+        if (bumpFamCounter) {
+            await this.dao.partFamily.bumpCounterById(db, family.id);
+        }
+        return part;
     }
 
     createPartRev(
@@ -330,9 +391,9 @@ export class TestHelpers {
                 )
             );
         }
-        if (input.reviewers) {
+        if (input.reviewerIds) {
             req.reviews = await Promise.all(
-                input.reviewers.map(inp =>
+                input.reviewerIds.map(inp =>
                     this.dao.changeReview.create(db, {
                         requestId: req.id,
                         assigneeId: inp,

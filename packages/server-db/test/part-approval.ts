@@ -19,7 +19,7 @@ describe('PartApprovalDao', function() {
                 e: { name: 'e' },
             });
             fam = await th.createPartFamily(db);
-            part = await th.createPart(db, fam, users.a);
+            part = await th.createPart(db, fam, users.a, {});
             partRev = await th.createPartRev(db, part, users.a);
             partVal = await th.createPartVal(db, partRev, users.a);
         });

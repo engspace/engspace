@@ -11,7 +11,7 @@ describe('PartRevisionDao', function() {
         return pool.transaction(async db => {
             users = await th.createUsersAB(db);
             fam = await th.createPartFamily(db);
-            part = await th.createPart(db, fam, users.a);
+            part = await th.createPart(db, fam, users.a, {});
         });
     });
     after('clean deps', th.cleanTables(['part', 'part_family', 'user']));

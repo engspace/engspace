@@ -1,6 +1,5 @@
-import { dao, pool, th } from '.';
 import { expect } from 'chai';
-import { trackedBy } from '../src';
+import { dao, pool, th } from '.';
 
 describe('ChangePartRevisionDao', function() {
     let users;
@@ -12,7 +11,7 @@ describe('ChangePartRevisionDao', function() {
             users = await th.createUsersAB(db);
             req = await th.createChangeRequest(db, users.a);
             fam = await th.createPartFamily(db);
-            part = await th.createPart(db, fam, users.a);
+            part = await th.createPart(db, fam, users.a, {});
         });
     });
     after(th.cleanTables(['part', 'part_family', 'change_request', 'user']));

@@ -121,7 +121,7 @@ describe('GraphQL Part - Queries', function() {
                 e: { name: 'e' },
             });
             family = await th.createPartFamily(db, { code: 'P' });
-            part = await th.createPart(db, family, users.a);
+            part = await th.createPart(db, family, users.a, {});
             partRev = await th.createPartRev(db, part, users.a);
         });
         aft = Date.now();
