@@ -73,6 +73,7 @@ CREATE TABLE part (
     CHECK(LENGTH(base_ref) > 0),
     UNIQUE(ref),
     CHECK(LENGTH(ref) > 0),
+    CHECK(ref LIKE '%' || base_ref || '%'),
     CHECK(LENGTH(designation) > 0),
 
     FOREIGN KEY(family_id) REFERENCES part_family(id),
