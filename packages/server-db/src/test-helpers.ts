@@ -19,10 +19,23 @@ import {
     Tracked,
     User,
     UserInput,
+    ChangePartChangeInput,
+    ChangePartChange,
+    ChangePartCreateInput,
+    ChangePartCreate,
+    ChangePartRevision,
+    ChangePartRevisionInput,
+    ChangeReview,
 } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db, DbPool } from '.';
-import { DaoSet, PartApprovalDaoInput, PartDaoInput, PartRevisionDaoInput } from './dao';
+import {
+    DaoSet,
+    PartApprovalDaoInput,
+    PartDaoInput,
+    PartRevisionDaoInput,
+    ChangeReviewDaoInput,
+} from './dao';
 import { RoleOptions } from './dao/user';
 
 // for ID assertions
@@ -403,6 +416,65 @@ export class TestHelpers {
             );
         }
         return req;
+    }
+
+    async createChangePartCreate(
+        db: Db,
+        request: ChangeRequest,
+        family: PartFamily,
+        input: Partial<ChangePartCreateInput> = {}
+    ): Promise<ChangePartCreate> {
+        return this.dao.changePartCreate.create(db, {
+            designation: 'PART',
+            version: 'A',
+            ...input,
+            requestId: request.id,
+            familyId: family.id,
+        });
+    }
+
+    async createChangePartChange(
+        db: Db,
+        request: ChangeRequest,
+        part: Part,
+        input: Partial<ChangePartChangeInput> = {}
+    ): Promise<ChangePartChange> {
+        return this.dao.changePartChange.create(db, {
+            designation: 'PART',
+            version: 'A',
+            ...input,
+            requestId: request.id,
+            partId: part.id,
+        });
+    }
+
+    async createChangePartRevision(
+        db: Db,
+        request: ChangeRequest,
+        part: Part,
+        input: Partial<ChangePartRevisionInput> = {}
+    ): Promise<ChangePartRevision> {
+        return this.dao.changePartRevision.create(db, {
+            designation: 'PART',
+            ...input,
+            requestId: request.id,
+            partId: part.id,
+        });
+    }
+
+    async createChangeReview(
+        db: Db,
+        request: ChangeRequest,
+        assignee: User,
+        user: User,
+        input: Partial<ChangeReviewDaoInput> = {}
+    ): Promise<ChangeReview> {
+        return this.dao.changeReview.create(db, {
+            ...input,
+            requestId: request.id,
+            assigneeId: assignee.id,
+            userId: user.id,
+        });
     }
 
     // Documents
