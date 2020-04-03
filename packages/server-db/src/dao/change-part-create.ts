@@ -74,4 +74,12 @@ export class ChangePartCreateDao extends DaoBase<ChangePartCreate, Row> {
         `);
         return mapRow(row);
     }
+
+    async byRequestId(db: Db, requestId: Id): Promise<ChangePartCreate[]> {
+        const rows: Row[] = await db.any(sql`
+            SELECT ${rowToken} from change_part_create
+            WHERE request_id = ${requestId}
+        `);
+        return rows?.map(r => mapRow(r));
+    }
 }

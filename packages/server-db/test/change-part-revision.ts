@@ -48,4 +48,33 @@ describe('ChangePartRevisionDao', function() {
             });
         });
     });
+
+    describe('byRequestId', function() {
+        let partRevisions;
+        before(async function() {
+            return pool.transaction(async db => {
+                partRevisions = [
+                    await th.createChangePartRevision(db, req, part, {
+                        designation: 'PART A',
+                    }),
+                ];
+            });
+        });
+
+        after(th.cleanTable('change_part_revision'));
+
+        it('should read ChangePartRevision by request id', async function() {
+            const cpr = await pool.connect(async db => {
+                return dao.changePartRevision.byRequestId(db, req.id);
+            });
+            expect(cpr).to.have.same.deep.members(partRevisions);
+        });
+
+        it('should return empty if no ChangePartRevision', async function() {
+            const cpr = await pool.connect(async db => {
+                return dao.changePartRevision.byRequestId(db, '-1');
+            });
+            expect(cpr).to.be.empty;
+        });
+    });
 });

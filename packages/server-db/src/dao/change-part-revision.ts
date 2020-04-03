@@ -62,4 +62,12 @@ export class ChangePartRevisionDao extends DaoBase<ChangePartRevision, Row> {
         `);
         return mapRow(row);
     }
+
+    async byRequestId(db: Db, requestId: Id): Promise<ChangePartRevision[]> {
+        const rows: Row[] = await db.any(sql`
+            SELECT ${rowToken} from change_part_revision
+            WHERE request_id = ${requestId}
+        `);
+        return rows?.map(r => mapRow(r));
+    }
 }

@@ -65,4 +65,12 @@ export class ChangeReviewDao extends DaoBase<ChangeReview, Row> {
         `);
         return mapRow(row);
     }
+
+    async byRequestId(db: Db, requestId: Id): Promise<ChangeReview[]> {
+        const rows: Row[] = await db.any(sql`
+            SELECT ${rowToken} from change_review
+            WHERE request_id = ${requestId}
+        `);
+        return rows?.map(r => mapRow(r));
+    }
 }
