@@ -350,7 +350,6 @@ describe('GraphQL Part - Mutations', function() {
                 });
             });
             const aft2 = Date.now();
-            console.log(errors);
             expect(errors).to.be.undefined;
             expect(data.partUpdate).to.deep.include({
                 family: { id: family.id },

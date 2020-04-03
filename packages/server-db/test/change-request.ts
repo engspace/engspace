@@ -24,7 +24,7 @@ describe('ChangeRequestDao', function() {
                 description: null,
                 ...trackedBy(users.a),
             });
-            // expect(cr.id).to.be.be.a(idType);
+            expect(cr.id).to.be.a(idType);
         });
 
         it('should create a ChangeRequest with description', async function() {
@@ -38,7 +38,7 @@ describe('ChangeRequestDao', function() {
                 ...trackedBy(users.a),
                 description: 'SUPER CHANGE',
             });
-            // expect(cr.id).to.be.a(idType);
+            expect(cr.id).to.be.a(idType);
         });
     });
 });
