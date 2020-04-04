@@ -1,7 +1,7 @@
 import { replaceAt } from './util';
 
 export function isVersionFormatSpec(spec: string): boolean {
-    return /[0-9A-Za-z]+/.test(spec);
+    return /^[0-9A-Za-z]+$/.test(spec);
 }
 
 export class BadVersionFormatError extends Error {
@@ -33,7 +33,7 @@ interface Token {
     lastChar: number;
 }
 
-function getKind(c: string): Kind {
+function getKind(c: string): Kind | null {
     if (/[0-9]/.test(c)) {
         return Kind.Dig;
     } else if (/[A-Z]/.test(c)) {
@@ -41,10 +41,7 @@ function getKind(c: string): Kind {
     } else if (/[a-z]/.test(c)) {
         return Kind.Low;
     }
-    throw new BadVersionFormatError(
-        `"${c}" is not a correct version character specifier.` +
-            ' Version names must be specified with /[0-9A-Za-z]+/.'
-    );
+    return null;
 }
 
 function getInterval(kind: Kind): { firstChar: number; lastChar: number } {

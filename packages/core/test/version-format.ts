@@ -64,6 +64,6 @@ describe('VersionFormat', function() {
         function bad(): string {
             return vf.getNext('__');
         }
-        expect(bad).to.throw(BadVersionFormatError);
+        expect(bad).to.throw(MismatchVersionFormatError);
     });
 });
