@@ -22,7 +22,6 @@ describe('PartDao', function() {
             const part = await pool.transaction(async db => {
                 return dao.part.create(db, {
                     familyId: family.id,
-                    baseRef: 'P001',
                     ref: 'P001.A',
                     designation: 'Part 1',
                     userId: users.a.id,
@@ -31,7 +30,6 @@ describe('PartDao', function() {
             const aft = Date.now();
             expect(part).to.deep.include({
                 family: { id: family.id },
-                baseRef: 'P001',
                 ref: 'P001.A',
                 ...trackedBy(users.a),
             });

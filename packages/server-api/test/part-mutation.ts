@@ -16,7 +16,6 @@ const PARTREV_DEEPFIELDS = gql`
         part {
             id
             designation
-            baseRef
             ref
             ...TrackedFields
             family {
@@ -109,7 +108,6 @@ describe('GraphQL Part - Mutations', function() {
             });
             expect(data.partCreate.part).to.deep.include({
                 ref: 'P001.A',
-                baseRef: 'P001',
                 designation: 'SOME NEW PART',
                 ...trackedBy(users.a),
                 family: { id: family.id },
@@ -198,7 +196,6 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partFork.id).to.not.equal(partRev.id);
             expect(data.partFork.part).to.deep.include({
                 ref: 'P001.B',
-                baseRef: 'P001',
                 designation: 'SOME EXISTING PART',
                 ...trackedBy(users.b),
                 family: { id: family.id },
@@ -235,7 +232,6 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partFork.id).to.not.equal(partRev.id);
             expect(data.partFork.part).to.deep.include({
                 ref: 'P001.B',
-                baseRef: 'P001',
                 family: { id: family.id },
                 designation: 'NEW EXISTING PART',
                 ...trackedBy(users.b),
@@ -272,7 +268,6 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partFork.id).to.not.equal(partRev.id);
             expect(data.partFork.part).to.deep.include({
                 ref: 'P001.K',
-                baseRef: 'P001',
                 designation: 'SOME EXISTING PART',
                 ...trackedBy(users.b),
                 family: { id: family.id },
@@ -312,7 +307,6 @@ describe('GraphQL Part - Mutations', function() {
                         id
                     }
                     ref
-                    baseRef
                     designation
                     ...TrackedFields
                 }
@@ -354,7 +348,6 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partUpdate).to.deep.include({
                 family: { id: family.id },
                 ref: 'P001.A',
-                baseRef: 'P001',
                 designation: 'NEW DESIGNATION',
                 ...trackedBy(users.a, users.b),
                 createdAt: part.createdAt,
@@ -440,7 +433,6 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partRevise.part).to.deep.include({
                 id: part.id,
                 ref: 'P001.A',
-                baseRef: 'P001',
                 designation: 'SOME EXISTING PART',
                 ...trackedBy(users.a),
                 family: { id: family.id },
@@ -476,7 +468,6 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partRevise.part).to.deep.include({
                 id: part.id,
                 ref: 'P001.A',
-                baseRef: 'P001',
                 designation: 'SOME EXISTING PART',
                 ...trackedBy(users.a),
                 family: { id: family.id },

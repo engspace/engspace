@@ -167,7 +167,6 @@ export const typeDefs = gql`
     type Part implements Tracked {
         id: ID!
         family: PartFamily!
-        baseRef: String!
         ref: String!
         designation: String!
         createdBy: User!

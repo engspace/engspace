@@ -1,4 +1,4 @@
-import { AppRolePolicies, AuthToken } from '@engspace/core';
+import { AppRolePolicies, AuthToken, PartRefNaming } from '@engspace/core';
 import { DaoSet, Db, DbPool } from '@engspace/server-db';
 import cors from '@koa/cors';
 import Router from '@koa/router';
@@ -18,9 +18,7 @@ import { setupPostAuthDocRoutes, setupPreAuthDocRoutes } from './http/document';
 import { setupFirstAdminRoutes } from './http/first-admin';
 import { setupLoginRoute } from './http/login';
 import { attachDb, authJwtSecret, setAuthToken } from './internal';
-import { AppRefNaming } from './ref-naming';
 
-export { AppRefNaming, PartBaseRefNaming, PartRefNaming } from './ref-naming';
 export { ControllerSet, buildControllerSet };
 
 export interface EsServerConfig {
@@ -30,7 +28,7 @@ export interface EsServerConfig {
     dao: DaoSet;
     control: ControllerSet;
     cors: boolean;
-    refNaming: AppRefNaming;
+    refNaming: PartRefNaming;
     // this is for playground only
     sessionKeys?: string[];
 }

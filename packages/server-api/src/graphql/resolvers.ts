@@ -76,7 +76,6 @@ export function buildResolvers(control: ControllerSet): IResolvers {
 
         Tracked: {
             __resolveType(tracked): string {
-                if (tracked.baseRef) return 'PartBase';
                 if (tracked.ref) return 'Part';
                 return null;
             },

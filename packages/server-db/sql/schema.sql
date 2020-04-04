@@ -61,7 +61,6 @@ CREATE TABLE part_family (
 CREATE TABLE part (
     id serial PRIMARY KEY,
     family_id integer NOT NULL,
-    base_ref text NOT NULL,
     ref text NOT NULL,
     designation text NOT NULL,
 
@@ -70,10 +69,8 @@ CREATE TABLE part (
     updated_by integer NOT NULL,
     updated_at timestamptz NOT NULL,
 
-    CHECK(LENGTH(base_ref) > 0),
     UNIQUE(ref),
     CHECK(LENGTH(ref) > 0),
-    CHECK(ref LIKE '%' || base_ref || '%'),
     CHECK(LENGTH(designation) > 0),
 
     FOREIGN KEY(family_id) REFERENCES part_family(id),

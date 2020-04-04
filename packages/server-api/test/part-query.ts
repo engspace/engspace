@@ -13,7 +13,6 @@ const PART_FIELDS = gql`
         family {
             id
         }
-        baseRef
         ref
         designation
         ...TrackedFields

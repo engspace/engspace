@@ -1,4 +1,9 @@
-import { AppRolePolicies, AuthToken, buildDefaultAppRolePolicies } from '@engspace/core';
+import {
+    AppRolePolicies,
+    AuthToken,
+    buildDefaultAppRolePolicies,
+    PartRefNaming,
+} from '@engspace/core';
 import {
     buildDaoSet,
     connectionString,
@@ -24,7 +29,6 @@ import Koa from 'koa';
 import path from 'path';
 import { EsServerApi } from '../src';
 import { buildControllerSet } from '../src/control';
-import { PartBaseRefNaming, PartRefNaming } from '../src/ref-naming';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -81,10 +85,7 @@ export const api = new EsServerApi(new Koa(), {
     control,
     dao,
     cors: true,
-    refNaming: {
-        partBase: new PartBaseRefNaming('${fam_code}${fam_count:3}'),
-        part: new PartRefNaming('${part_base_ref}.${part_version:A}'),
-    },
+    refNaming: new PartRefNaming('${fam_code}${fam_count:3}.${part_version:A}'),
 });
 
 api.setupAuthAndHttpRoutes('/api');

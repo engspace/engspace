@@ -1,10 +1,5 @@
-import { buildDefaultAppRolePolicies } from '@engspace/core';
-import {
-    buildControllerSet,
-    EsServerApi,
-    PartBaseRefNaming,
-    PartRefNaming,
-} from '@engspace/server-api';
+import { buildDefaultAppRolePolicies, PartRefNaming } from '@engspace/core';
+import { buildControllerSet, EsServerApi } from '@engspace/server-api';
 import {
     buildDaoSet,
     connectionString,
@@ -87,10 +82,7 @@ function buildServerApi(pool: DbPool): EsServerApi {
         control,
         dao,
         cors: true,
-        refNaming: {
-            partBase: new PartBaseRefNaming('${fam_code}${fam_count:4}'),
-            part: new PartRefNaming('${part_base_ref}${part_version:AA}'),
-        },
+        refNaming: new PartRefNaming('${fam_code}${fam_count:4}${part_version:AA}'),
     });
     api.koa.use(logger());
 

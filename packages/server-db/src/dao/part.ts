@@ -5,7 +5,6 @@ import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
 
 export interface PartDaoInput {
     familyId: Id;
-    baseRef: string;
     ref: string;
     designation: string;
     userId: Id;
@@ -19,17 +18,15 @@ export interface PartUpdateDaoInput {
 interface Row extends TrackedRow {
     id: RowId;
     familyId: RowId;
-    baseRef: string;
     ref: string;
     designation: string;
 }
 
 function mapRow(row: Row): Part {
-    const { id, familyId, baseRef, ref, designation } = row;
+    const { id, familyId, ref, designation } = row;
     return {
         id: toId(id),
         family: foreignKey(familyId),
-        baseRef,
         ref,
         designation,
         ...tracked.mapRow(row),
@@ -37,7 +34,7 @@ function mapRow(row: Row): Part {
 }
 
 const rowToken = sql`
-    id, family_id, base_ref, ref, designation, ${tracked.selectToken}
+    id, family_id, ref, designation, ${tracked.selectToken}
 `;
 
 export class PartDao extends DaoBase<Part, Row> {
@@ -48,21 +45,16 @@ export class PartDao extends DaoBase<Part, Row> {
             table: 'part',
         });
     }
-    async create(
-        db: Db,
-        { familyId, baseRef, ref, designation, userId }: PartDaoInput
-    ): Promise<Part> {
+    async create(db: Db, { familyId, ref, designation, userId }: PartDaoInput): Promise<Part> {
         const row: Row = await db.one(sql`
             INSERT INTO part (
                 family_id,
-                base_ref,
                 ref,
                 designation,
                 ${tracked.insertListToken}
             )
             VALUES (
                 ${familyId},
-                ${baseRef},
                 ${ref},
                 ${designation},
                 ${tracked.insertValToken(userId)}

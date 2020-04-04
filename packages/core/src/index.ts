@@ -8,6 +8,13 @@ export {
     RolePolicy,
     UnknownRoleError,
 } from './permissions';
+export {
+    BadRefNamingFormatError,
+    FamilyCounterLimitError,
+    PartRefNaming,
+    PartRefParts,
+    RefNameFormatMismatchError,
+} from './ref-naming';
 export { arraysHaveSameMembers, arraysHaveSameMembersMut, CharIterator } from './util';
 export {
     BadVersionFormatError,
@@ -134,7 +141,6 @@ export interface PartUpdateInput {
 export interface Part extends Tracked {
     id: Id;
     family: IdOr<PartFamily>;
-    baseRef: string;
     ref: string;
     designation: string;
 }

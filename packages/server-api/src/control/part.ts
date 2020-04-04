@@ -29,16 +29,16 @@ export class PartControl {
 
         const { userId } = ctx.auth;
 
-        const baseRef = await ctx.db.transaction(async db => {
+        const ref = await ctx.db.transaction(async db => {
             const fam = await this.dao.partFamily.bumpCounterById(db, input.familyId);
-            return ctx.config.refNaming.partBase.getBaseRef(fam);
+            return ctx.config.refNaming.buildRef({
+                familyCode: fam.code,
+                familyCount: fam.counter,
+                partVersion: input.initialVersion,
+            });
         });
-
-        const ref = ctx.config.refNaming.part.getRef({ baseRef }, input.initialVersion);
-
         const part = await this.dao.part.create(ctx.db, {
             familyId: input.familyId,
-            baseRef,
             ref,
             designation: input.designation,
             userId,
@@ -59,13 +59,15 @@ export class PartControl {
         assertUserPerm(ctx, 'part.create');
         const { userId } = ctx.auth;
         const part = await this.dao.part.byId(ctx.db, partId);
-        const prn = ctx.config.refNaming.part;
-        const ref = version
-            ? prn.getRef(part, version)
-            : prn.getNext(part, prn.extractVersion(part, part.ref));
+        const prn = ctx.config.refNaming;
+        const { familyCode, familyCount, partVersion } = prn.extractParts(part.ref);
+        const ref = prn.buildRef({
+            familyCode,
+            familyCount,
+            partVersion: version ?? prn.versionFormat.getNext(partVersion),
+        });
         const fork = await this.dao.part.create(ctx.db, {
             familyId: part.family.id,
-            baseRef: part.baseRef,
             ref,
             designation: designation ?? part.designation,
             userId,

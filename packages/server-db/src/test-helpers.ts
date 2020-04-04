@@ -281,11 +281,9 @@ export class TestHelpers {
             bumpFamCounter: false,
         }
     ): Promise<Part> {
-        const baseRef = input.baseRef ?? (input.ref ? input.ref.substr(0, 4) : 'P001');
-        const ref = input.ref ?? `${baseRef}.A`;
+        const ref = input.ref ?? `P001.A`;
         const part = await this.dao.part.create(db, {
             familyId: family.id,
-            baseRef,
             ref,
             designation: input.designation ?? 'Part',
             userId: user.id,
