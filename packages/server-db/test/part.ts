@@ -41,6 +41,57 @@ describe('PartDao', function() {
         });
     });
 
+    describe('byRef', function() {
+        let part;
+        before(function() {
+            return pool.transaction(async db => {
+                part = await th.createPart(db, family, users.a, {
+                    ref: 'P001.A',
+                });
+            });
+        });
+        after(th.cleanTable('part'));
+
+        it('should get a part byRef', async function() {
+            const p = await pool.connect(async db => {
+                return dao.part.byRef(db, 'P001.A');
+            });
+            expect(p).to.deep.include(part);
+        });
+
+        it('should get null if part does not exits', async function() {
+            const p = await pool.connect(async db => {
+                return dao.part.byRef(db, 'P002.A');
+            });
+            expect(p).to.be.null;
+        });
+    });
+
+    describe('checkRef', function() {
+        before(function() {
+            return pool.transaction(async db => {
+                await th.createPart(db, family, users.a, {
+                    ref: 'P001.A',
+                });
+            });
+        });
+        after(th.cleanTable('part'));
+
+        it('should check that a ref exists', async function() {
+            const has = await pool.connect(async db => {
+                return dao.part.checkRef(db, 'P001.A');
+            });
+            expect(has).to.be.true;
+        });
+
+        it('should check that a ref does not exist', async function() {
+            const has = await pool.connect(async db => {
+                return dao.part.checkRef(db, 'P002.A');
+            });
+            expect(has).to.be.false;
+        });
+    });
+
     describe('update', function() {
         let part;
         beforeEach('create part', async function() {

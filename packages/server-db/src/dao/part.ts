@@ -64,6 +64,22 @@ export class PartDao extends DaoBase<Part, Row> {
         return mapRow(row);
     }
 
+    async byRef(db: Db, ref: string): Promise<Part> {
+        const row: Row = await db.maybeOne(sql`
+            SELECT ${rowToken} FROM part
+            WHERE ref = ${ref}
+        `);
+        return row ? mapRow(row) : null;
+    }
+
+    async checkRef(db: Db, ref: string): Promise<boolean> {
+        const row = await db.maybeOne(sql`
+            SELECT id FROM part
+            WHERE ref = ${ref}
+        `);
+        return !!row;
+    }
+
     async updateById(db: Db, id: Id, { designation, userId }: PartUpdateDaoInput): Promise<Part> {
         const row: Row = await db.maybeOne(sql`
             UPDATE part SET
