@@ -1,6 +1,5 @@
 import { ApprovalDecision, PartApproval } from '@engspace/core';
-import { trackedBy } from '@engspace/server-db/dist/test-helpers';
-import { Dict } from '@engspace/server-db/src/test-helpers';
+import { Dict, trackedBy } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool, th } from '.';

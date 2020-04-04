@@ -246,10 +246,10 @@ export const typeDefs = gql`
     """
     input ChangeRequestInput {
         description: String
-        partCreations: [PartCreateInput!]
-        partChanges: [PartForkInput!]
-        partRevisions: [PartRevisionInput!]
-        reviewers: [ID!]
+        partCreations: [ChangePartCreateInput!]
+        partChanges: [ChangePartChangeInput!]
+        partRevisions: [ChangePartRevisionInput!]
+        reviewerIds: [ID!]
     }
 
     type ChangePartCreate {
@@ -398,6 +398,8 @@ export const typeDefs = gql`
         partStartValidation(input: PartValidationInput!): PartValidation!
         partUpdateApproval(id: ID!, input: PartApprovalUpdateInput!): PartApproval!
         partCloseValidation(id: ID!, input: PartValidationCloseInput!): PartValidation!
+
+        changeRequestCreate(input: ChangeRequestInput!): ChangeRequest!
 
         documentCreate(input: DocumentInput!): Document!
         documentCheckout(id: ID!, revision: Int!): Document!

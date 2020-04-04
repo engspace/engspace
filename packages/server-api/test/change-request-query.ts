@@ -1,45 +1,9 @@
-import { pool, th, buildGqlServer } from '.';
-import { permsAuth } from './auth';
-import gql from 'graphql-tag';
-import { expect } from 'chai';
 import { ApprovalDecision } from '@engspace/core';
-
-const CHANGEREQ_DEEPFIELDS = gql`
-    fragment ChangeReqDeepFields on ChangeRequest {
-        id
-        description
-        partCreations {
-            family {
-                id
-            }
-            version
-            designation
-            comments
-        }
-        partChanges {
-            part {
-                id
-            }
-            version
-            designation
-            comments
-        }
-        partRevisions {
-            part {
-                id
-            }
-            designation
-            comments
-        }
-        reviews {
-            assignee {
-                id
-            }
-            decision
-            comments
-        }
-    }
-`;
+import { expect } from 'chai';
+import gql from 'graphql-tag';
+import { buildGqlServer, pool, th } from '.';
+import { permsAuth } from './auth';
+import { CHANGEREQ_DEEPFIELDS } from './helpers';
 
 describe('GraphQL ChangeRequest - Queries', function() {
     let users;
@@ -177,6 +141,24 @@ describe('GraphQL ChangeRequest - Queries', function() {
                     },
                 ],
             });
+        });
+
+        it('should not read a ChangeRequest without "change.read"', async function() {
+            const { errors, data } = await pool.connect(async db => {
+                const { query } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['part.read', 'partfamily.read', 'user.read'])
+                );
+                return query({
+                    query: CHANGEREQ_READ,
+                    variables: {
+                        id: req.id,
+                    },
+                });
+            });
+            expect(errors).to.not.be.empty;
+            expect(errors[0].message).to.contain('change.read');
+            expect(data.changeRequest).to.be.null;
         });
     });
 });

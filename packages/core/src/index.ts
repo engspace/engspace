@@ -251,7 +251,7 @@ export interface ChangeReview extends Tracked {
     comments?: string;
 }
 
-export interface ChangeRequest {
+export interface ChangeRequest extends Tracked {
     id: Id;
     description?: string;
     partCreations?: ChangePartCreate[];
