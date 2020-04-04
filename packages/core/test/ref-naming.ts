@@ -28,6 +28,24 @@ describe('Ref naming', function() {
                 }
                 expect(bad).to.throw(BadRefNamingFormatError, /fam_count.+width/);
             });
+            it('should throw if wrong ${fam_count} width', function() {
+                function bad(): PartRefNaming {
+                    return new PartRefNaming('${fam_code}${fam_count:gerard}${part_version:AA}');
+                }
+                expect(bad).to.throw(BadRefNamingFormatError, /fam_count.+width/);
+            });
+            it('should throw if negative ${fam_count} width', function() {
+                function bad(): PartRefNaming {
+                    return new PartRefNaming('${fam_code}${fam_count:-4}${part_version:AA}');
+                }
+                expect(bad).to.throw(BadRefNamingFormatError, /fam_count.+width/);
+            });
+            it('should throw if zero ${fam_count} width', function() {
+                function bad(): PartRefNaming {
+                    return new PartRefNaming('${fam_code}${fam_count:0}${part_version:AA}');
+                }
+                expect(bad).to.throw(BadRefNamingFormatError, /fam_count.+width/);
+            });
             it('should throw if missing ${part_version}', function() {
                 function bad(): PartRefNaming {
                     return new PartRefNaming('${fam_code}${fam_count:5}');
@@ -45,6 +63,18 @@ describe('Ref naming', function() {
                     return new PartRefNaming('${fam_code}${fam_count:5}${part_version:*?}');
                 }
                 expect(bad).to.throw(BadVersionFormatError, '*?');
+            });
+            it('should throw if unknown var', function() {
+                function bad(): PartRefNaming {
+                    return new PartRefNaming('${fam_cool}${fam_count:5}${part_version:*?}');
+                }
+                expect(bad).to.throw(BadRefNamingFormatError, 'fam_cool');
+            });
+            it('should throw if fam_code with arg', function() {
+                function bad(): PartRefNaming {
+                    return new PartRefNaming('${fam_code:AA}${fam_count:5}${part_version:*?}');
+                }
+                expect(bad).to.throw(BadRefNamingFormatError, /fam_code.+arg/);
             });
         });
 
