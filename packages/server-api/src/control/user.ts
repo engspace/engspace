@@ -1,9 +1,8 @@
-import { Id, User, UserInput } from '@engspace/core';
+import { arraysHaveSameMembers, Id, User, UserInput } from '@engspace/core';
 import { DaoSet } from '@engspace/server-db';
 import { ForbiddenError, UserInputError } from 'apollo-server-koa';
 import validator from 'validator';
 import { ApiContext, Pagination } from '.';
-import { arraysHaveSameMembers } from '../util';
 import { assertUserPerm, hasUserPerm } from './helpers';
 
 export class UserControl {

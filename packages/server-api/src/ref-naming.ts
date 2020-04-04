@@ -1,5 +1,4 @@
-import { CharIterator } from './util';
-import { VersionFormat } from './version-format';
+import { CharIterator, VersionFormat } from '@engspace/core';
 
 interface HasBaseRef {
     baseRef: string;

@@ -8,6 +8,13 @@ export {
     RolePolicy,
     UnknownRoleError,
 } from './permissions';
+export { arraysHaveSameMembers, arraysHaveSameMembersMut, CharIterator } from './util';
+export {
+    BadVersionFormatError,
+    isVersionFormatSpec,
+    MismatchVersionFormatError,
+    VersionFormat,
+} from './version-format';
 
 /** A database Id type, unique only for a given type */
 export type Id = string;
