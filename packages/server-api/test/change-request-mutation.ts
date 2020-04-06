@@ -1,4 +1,4 @@
-import { ApprovalDecision, PartCycle } from '@engspace/core';
+import { ApprovalDecision, PartCycle, ChangeRequestCycle } from '@engspace/core';
 import { idType, trackedBy } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
@@ -92,6 +92,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             expect(errors).to.be.undefined;
             expect(data.changeRequestCreate).to.deep.include({
                 description: null,
+                cycle: ChangeRequestCycle.Edition,
+                state: null,
                 partCreations: [],
                 partChanges: [],
                 partRevisions: [],
@@ -125,6 +127,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             expect(errors).to.be.undefined;
             expect(data.changeRequestCreate).to.deep.include({
                 description: 'a revolution',
+                cycle: ChangeRequestCycle.Edition,
+                state: null,
                 partCreations: [],
                 partChanges: [],
                 partRevisions: [],
@@ -170,6 +174,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             expect(errors).to.be.undefined;
             expect(data.changeRequestCreate).to.deep.include({
                 description: null,
+                cycle: ChangeRequestCycle.Edition,
+                state: null,
                 partCreations: [
                     {
                         family: { id: fam.id },
@@ -227,6 +233,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             expect(errors).to.be.undefined;
             expect(data.changeRequestCreate).to.deep.include({
                 description: null,
+                cycle: ChangeRequestCycle.Edition,
+                state: null,
                 partCreations: [],
                 partRevisions: [],
                 reviews: [],
@@ -282,6 +290,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             expect(errors).to.be.undefined;
             expect(data.changeRequestCreate).to.deep.include({
                 description: null,
+                cycle: ChangeRequestCycle.Edition,
+                state: null,
                 partCreations: [],
                 partChanges: [],
                 reviews: [],
@@ -326,6 +336,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             expect(errors).to.be.undefined;
             expect(data.changeRequestCreate).to.deep.include({
                 description: null,
+                cycle: ChangeRequestCycle.Edition,
+                state: null,
                 partCreations: [],
                 partChanges: [],
                 partRevisions: [],

@@ -1,4 +1,4 @@
-import { ApprovalDecision } from '@engspace/core';
+import { ApprovalDecision, ChangeRequestCycle } from '@engspace/core';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { buildGqlServer, pool, th } from '.';
@@ -99,6 +99,8 @@ describe('GraphQL ChangeRequest - Queries', function() {
             expect(data.changeRequest).to.deep.include({
                 id: req.id,
                 description: 'A change request',
+                cycle: ChangeRequestCycle.Edition,
+                state: null,
                 partCreations: [
                     {
                         family: { id: fam.id },

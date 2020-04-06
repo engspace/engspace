@@ -24,6 +24,13 @@ export const typeDefs = gql`
         CANCEL
     }
 
+    enum ChangeRequestCycle {
+        EDITION
+        VALIDATION
+        APPROVED
+        CANCELLED
+    }
+
     interface Tracked {
         createdBy: User!
         createdAt: DateTime!
@@ -296,6 +303,8 @@ export const typeDefs = gql`
     type ChangeRequest implements Tracked {
         id: ID!
         description: String
+        cycle: ChangeRequestCycle!
+        state: ApprovalDecision
 
         partCreations: [ChangePartCreate!]
         partChanges: [ChangePartChange!]

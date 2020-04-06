@@ -70,6 +70,7 @@ describe('Pool and Schema', async () => {
             expect(tables).to.have.same.members([
                 'part_cycle_enum',
                 'validation_result_enum',
+                'change_request_cycle_enum',
 
                 'metadata',
                 'user',

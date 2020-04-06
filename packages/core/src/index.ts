@@ -58,6 +58,13 @@ export enum ValidationResult {
     Cancel = 'CANCEL',
 }
 
+export enum ChangeRequestCycle {
+    Edition = 'EDITION',
+    Validation = 'VALIDATION',
+    Approved = 'APPROVED',
+    Canceled = 'CANCELLED',
+}
+
 export interface UserInput {
     name: string;
     email: string;
@@ -254,6 +261,8 @@ export interface ChangeReview extends Tracked {
 export interface ChangeRequest extends Tracked {
     id: Id;
     description?: string;
+    cycle: ChangeRequestCycle;
+    state?: ApprovalDecision;
     partCreations?: ChangePartCreate[];
     partChanges?: ChangePartChange[];
     partRevisions?: ChangePartRevision[];

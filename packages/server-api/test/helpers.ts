@@ -17,6 +17,8 @@ export const CHANGEREQ_DEEPFIELDS = gql`
     fragment ChangeReqDeepFields on ChangeRequest {
         id
         description
+        cycle
+        state
         partCreations {
             family {
                 id

@@ -138,12 +138,14 @@ CREATE TABLE part_approval (
 CREATE TABLE change_request (
     id serial PRIMARY KEY,
     description text,
+    cycle text NOT NULL,
 
     created_by integer NOT NULL,
     created_at timestamptz NOT NULL,
     updated_by integer NOT NULL,
     updated_at timestamptz NOT NULL,
 
+    FOREIGN KEY(cycle) REFERENCES change_request_cycle_enum(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id),
     FOREIGN KEY(updated_by) REFERENCES "user"(id)
 );

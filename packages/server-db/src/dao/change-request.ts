@@ -1,4 +1,4 @@
-import { ChangeRequest, Id } from '@engspace/core';
+import { ChangeRequest, Id, ApprovalDecision, ChangeRequestCycle } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
 import { DaoBase, nullable, RowId, toId, tracked, TrackedRow } from './base';
@@ -6,21 +6,32 @@ import { DaoBase, nullable, RowId, toId, tracked, TrackedRow } from './base';
 interface Row extends TrackedRow {
     id: RowId;
     description?: string;
+    cycle: string;
+    state?: ApprovalDecision;
 }
 
 function mapRow(row: Row): ChangeRequest {
-    const { id, description } = row;
+    const { id, description, cycle, state } = row;
     return {
         id: toId(id),
         description,
+        cycle: cycle as ChangeRequestCycle,
+        state: state as ApprovalDecision,
         ...tracked.mapRow(row),
     };
 }
 
-const rowToken = sql`id, description, ${tracked.selectToken}`;
+const rowToken = sql`
+    id,
+    description,
+    cycle,
+    es_change_request_state(id, cycle) AS state,
+    ${tracked.selectToken}
+`;
 
 export interface ChangeRequestDaoInput {
     description?: string;
+    cycle?: ChangeRequestCycle;
     userId: Id;
 }
 
@@ -33,14 +44,19 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
         });
     }
 
-    async create(db: Db, { description, userId }: ChangeRequestDaoInput): Promise<ChangeRequest> {
+    async create(
+        db: Db,
+        { description, cycle, userId }: ChangeRequestDaoInput
+    ): Promise<ChangeRequest> {
         const row: Row = await db.one(sql`
             INSERT INTO change_request (
                 description,
+                cycle,
                 ${tracked.insertListToken}
             )
             VALUES (
                 ${nullable(description)},
+                ${cycle ?? ChangeRequestCycle.Edition},
                 ${tracked.insertValToken(userId)}
             )
             RETURNING ${rowToken}
