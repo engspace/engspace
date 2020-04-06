@@ -5,7 +5,7 @@ import { sql } from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
 import { Db } from '.';
 
-// import metadata from '../sql/metadata.json';
+// const currentVersion = 1;
 
 function sqlPath(relPath: string): string {
     return path.join(__dirname, '../sql', relPath);
@@ -121,6 +121,6 @@ export async function initSchema(db: Db): Promise<void> {
         //     if (application != 'engspace') {
         //         throw new Error("Database has a metadata table, but not from 'Engineering space'");
         //     }
-        //     await upgradeSchema(db, dbVersion, metadata.currentVersion);
+        //     await upgradeSchema(db, dbVersion, currentVersion);
     }
 }
