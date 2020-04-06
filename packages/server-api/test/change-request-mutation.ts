@@ -1,10 +1,10 @@
+import { ApprovalDecision, PartCycle } from '@engspace/core';
 import { idType, trackedBy } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool, th, dao } from '.';
+import { buildGqlServer, dao, pool, th } from '.';
 import { permsAuth } from './auth';
 import { CHANGEREQ_DEEPFIELDS } from './helpers';
-import { CycleState, ApprovalDecision } from '@engspace/core';
 
 describe('GraphQL ChangeRequest - Mutations', function() {
     let users;
@@ -50,10 +50,10 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             return pool.transaction(async db => {
                 rev1s = {
                     p1: await th.createPartRev(db, parts.p1, users.a, {
-                        cycleState: CycleState.Release,
+                        cycle: PartCycle.Release,
                     }),
                     p2: await th.createPartRev(db, parts.p2, users.a, {
-                        cycleState: CycleState.Release,
+                        cycle: PartCycle.Release,
                     }),
                 };
             });
@@ -379,7 +379,7 @@ describe('GraphQL ChangeRequest - Mutations', function() {
 
         it('should not allow a revision of part in edition', async function() {
             await pool.transaction(async db => {
-                return dao.partRevision.updateCycleState(db, rev1s.p1.id, CycleState.Edition);
+                return dao.partRevision.updateCycleState(db, rev1s.p1.id, PartCycle.Edition);
             });
             const { errors, data } = await pool.transaction(async db => {
                 const { mutate } = buildGqlServer(

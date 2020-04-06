@@ -1,4 +1,4 @@
-import { CycleState, ValidationResult } from '@engspace/core';
+import { PartCycle, ValidationResult } from '@engspace/core';
 import fs from 'fs';
 import path from 'path';
 import { sql } from 'slonik';
@@ -85,8 +85,8 @@ export async function insertEnum(db: Db, en: string[], table: EnumTable): Promis
 // }
 
 async function insertCoreEnums(db: Db): Promise<void> {
-    await insertEnum(db, Object.values(CycleState), {
-        table: 'cycle_state_enum',
+    await insertEnum(db, Object.values(PartCycle), {
+        table: 'part_cycle_enum',
     });
     await insertEnum(db, Object.values(ValidationResult), {
         table: 'validation_result_enum',

@@ -1,4 +1,4 @@
-import { ApprovalDecision, CycleState, User, ValidationResult } from '@engspace/core';
+import { ApprovalDecision, PartCycle, User, ValidationResult } from '@engspace/core';
 import { Dict, idType, trackedBy } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
@@ -10,7 +10,7 @@ const PARTREV_DEEPFIELDS = gql`
     fragment PartRevDeepFields on PartRevision {
         id
         revision
-        cycleState
+        cycle
         designation
         ...TrackedFields
         part {
@@ -32,7 +32,7 @@ const PARTVAL_DEEPFIELDS = gql`
         partRev {
             id
             revision
-            cycleState
+            cycle
         }
         approvals {
             id
@@ -103,7 +103,7 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partCreate).to.deep.include({
                 revision: 1,
                 designation: 'SOME NEW PART',
-                cycleState: CycleState.Edition,
+                cycle: PartCycle.Edition,
                 ...trackedBy(users.a),
             });
             expect(data.partCreate.part).to.deep.include({
@@ -189,7 +189,7 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partFork).to.deep.include({
                 revision: 1,
                 designation: 'SOME EXISTING PART',
-                cycleState: CycleState.Edition,
+                cycle: PartCycle.Edition,
                 ...trackedBy(users.b),
             });
             expect(data.partFork.id).to.be.a(idType);
@@ -225,7 +225,7 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partFork).to.deep.include({
                 revision: 1,
                 designation: 'NEW EXISTING PART',
-                cycleState: CycleState.Edition,
+                cycle: PartCycle.Edition,
                 ...trackedBy(users.b),
             });
             expect(data.partFork.id).to.be.a(idType);
@@ -261,7 +261,7 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partFork).to.deep.include({
                 revision: 1,
                 designation: 'SOME EXISTING PART',
-                cycleState: CycleState.Edition,
+                cycle: PartCycle.Edition,
                 ...trackedBy(users.b),
             });
             expect(data.partFork.id).to.be.a(idType);
@@ -399,7 +399,7 @@ describe('GraphQL Part - Mutations', function() {
                 });
                 const pr = await th.createPartRev(db, part, users.a);
                 await dao.partFamily.bumpCounterById(db, family.id);
-                partRev = await dao.partRevision.updateCycleState(db, pr.id, CycleState.Release);
+                partRev = await dao.partRevision.updateCycleState(db, pr.id, PartCycle.Release);
             });
         });
         this.afterEach(th.cleanTables(['part_revision', 'part']));
@@ -425,7 +425,7 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partRevise).to.deep.include({
                 revision: 2,
                 designation: 'SOME EXISTING PART',
-                cycleState: CycleState.Edition,
+                cycle: PartCycle.Edition,
                 ...trackedBy(users.b),
             });
             expect(data.partRevise.id).to.be.a(idType);
@@ -460,7 +460,7 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partRevise).to.deep.include({
                 revision: 2,
                 designation: 'NEW EXISTING PART',
-                cycleState: CycleState.Edition,
+                cycle: PartCycle.Edition,
                 ...trackedBy(users.b),
             });
             expect(data.partRevise.id).to.be.a(idType);
@@ -497,7 +497,7 @@ describe('GraphQL Part - Mutations', function() {
 
         it('should not revise a part if previous is edition', async function() {
             await pool.transaction(async db => {
-                return dao.partRevision.updateCycleState(db, partRev.id, CycleState.Edition);
+                return dao.partRevision.updateCycleState(db, partRev.id, PartCycle.Edition);
             });
             const { errors, data } = await pool.transaction(async db => {
                 const { mutate } = buildGqlServer(
@@ -565,7 +565,7 @@ describe('GraphQL Part - Mutations', function() {
                 partRev: {
                     id: partRev.id,
                     revision: partRev.revision,
-                    cycleState: CycleState.Validation,
+                    cycle: PartCycle.Validation,
                 },
                 state: ApprovalDecision.Pending,
                 result: null,
@@ -620,7 +620,7 @@ describe('GraphQL Part - Mutations', function() {
 
         it('should not start a validation of a part that is not in edition mode', async function() {
             await pool.transaction(async db => {
-                return dao.partRevision.updateCycleState(db, partRev.id, CycleState.Release);
+                return dao.partRevision.updateCycleState(db, partRev.id, PartCycle.Release);
             });
             const { errors, data } = await pool.transaction(async db => {
                 const { mutate } = buildGqlServer(
@@ -847,7 +847,7 @@ describe('GraphQL Part - Mutations', function() {
                     comments
                     ...TrackedFields
                     partRev {
-                        cycleState
+                        cycle
                     }
                 }
             }
@@ -924,7 +924,7 @@ describe('GraphQL Part - Mutations', function() {
                 comments: null,
                 ...trackedBy(users.a),
                 partRev: {
-                    cycleState: CycleState.Release,
+                    cycle: PartCycle.Release,
                 },
             });
         });
@@ -1042,7 +1042,7 @@ describe('GraphQL Part - Mutations', function() {
                 comments: null,
                 ...trackedBy(users.a),
                 partRev: {
-                    cycleState: CycleState.Edition,
+                    cycle: PartCycle.Edition,
                 },
             });
         });
@@ -1076,7 +1076,7 @@ describe('GraphQL Part - Mutations', function() {
                 comments: null,
                 ...trackedBy(users.a),
                 partRev: {
-                    cycleState: CycleState.Cancelled,
+                    cycle: PartCycle.Cancelled,
                 },
             });
         });

@@ -1,4 +1,4 @@
-import { ApprovalDecision, CycleState, ValidationResult } from '@engspace/core';
+import { ApprovalDecision, PartCycle, ValidationResult } from '@engspace/core';
 import { expect } from 'chai';
 import { sql } from 'slonik';
 import { serverConnConfig } from '.';
@@ -68,7 +68,7 @@ describe('Pool and Schema', async () => {
                 `)
             );
             expect(tables).to.have.same.members([
-                'cycle_state_enum',
+                'part_cycle_enum',
                 'validation_result_enum',
 
                 'metadata',
@@ -94,13 +94,13 @@ describe('Pool and Schema', async () => {
         });
 
         it('should have created core enums tables', async function() {
-            const cycleStates = await pool.connect(async db => {
-                return db.manyFirst(sql`SELECT id FROM cycle_state_enum`);
+            const cycles = await pool.connect(async db => {
+                return db.manyFirst(sql`SELECT id FROM part_cycle_enum`);
             });
             const valResults = await pool.connect(async db => {
                 return db.manyFirst(sql`SELECT id FROM validation_result_enum`);
             });
-            expect(cycleStates).to.have.same.members(Object.values(CycleState));
+            expect(cycles).to.have.same.members(Object.values(PartCycle));
             expect(valResults).to.have.same.members(Object.values(ValidationResult));
         });
 

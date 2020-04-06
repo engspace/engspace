@@ -27,7 +27,7 @@ const PARTREV_FIELDS = gql`
         }
         revision
         designation
-        cycleState
+        cycle
         ...TrackedFields
     }
     ${TRACKED_FIELDS}

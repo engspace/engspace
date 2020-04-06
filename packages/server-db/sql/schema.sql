@@ -84,7 +84,7 @@ CREATE TABLE part_revision (
     revision integer NOT NULL,
     designation text NOT NULL,
 
-    cycle_state text NOT NULL,
+    cycle text NOT NULL,
 
     created_by integer NOT NULL,
     created_at timestamptz NOT NULL,
@@ -95,7 +95,7 @@ CREATE TABLE part_revision (
     CHECK(LENGTH(designation) > 0),
 
     FOREIGN KEY(part_id) REFERENCES part(id),
-    FOREIGN KEY(cycle_state) REFERENCES cycle_state_enum(id),
+    FOREIGN KEY(cycle) REFERENCES part_cycle_enum(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id),
     FOREIGN KEY(updated_by) REFERENCES "user"(id)
 );

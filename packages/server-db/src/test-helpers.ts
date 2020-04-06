@@ -1,14 +1,21 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import {
+    ChangePartChange,
+    ChangePartChangeInput,
+    ChangePartCreate,
+    ChangePartCreateInput,
+    ChangePartRevision,
+    ChangePartRevisionInput,
     ChangeRequest,
     ChangeRequestInput,
-    CycleState,
+    ChangeReview,
     Document,
     DocumentInput,
     DocumentRevision,
     DocumentRevisionInput,
     Part,
     PartApproval,
+    PartCycle,
     PartFamily,
     PartFamilyInput,
     PartRevision,
@@ -19,22 +26,15 @@ import {
     Tracked,
     User,
     UserInput,
-    ChangePartChangeInput,
-    ChangePartChange,
-    ChangePartCreateInput,
-    ChangePartCreate,
-    ChangePartRevision,
-    ChangePartRevisionInput,
-    ChangeReview,
 } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db, DbPool } from '.';
 import {
+    ChangeReviewDaoInput,
     DaoSet,
     PartApprovalDaoInput,
     PartDaoInput,
     PartRevisionDaoInput,
-    ChangeReviewDaoInput,
 } from './dao';
 import { RoleOptions } from './dao/user';
 
@@ -291,7 +291,7 @@ export class TestHelpers {
         if (withRev1) {
             await this.dao.partRevision.create(db, {
                 partId: part.id,
-                cycleState: CycleState.Edition,
+                cycle: PartCycle.Edition,
                 userId: user.id,
                 designation: part.designation,
             });
@@ -310,7 +310,7 @@ export class TestHelpers {
     ): Promise<PartRevision> {
         return this.dao.partRevision.create(db, {
             designation: part.designation ?? 'Part',
-            cycleState: CycleState.Edition,
+            cycle: PartCycle.Edition,
             ...input,
             partId: part.id,
             userId: user.id,

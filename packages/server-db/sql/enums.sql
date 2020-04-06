@@ -1,5 +1,5 @@
 
-CREATE TABLE cycle_state_enum (
+CREATE TABLE part_cycle_enum (
     id text PRIMARY KEY,
     description text
 );

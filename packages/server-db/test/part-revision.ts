@@ -1,4 +1,4 @@
-import { CycleState, PartRevision } from '@engspace/core';
+import { PartCycle, PartRevision } from '@engspace/core';
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
 import { idType, trackedBy } from '../src/test-helpers';
@@ -24,7 +24,7 @@ describe('PartRevisionDao', function() {
                 return dao.partRevision.create(db, {
                     partId: part.id,
                     designation: 'Part 1',
-                    cycleState: CycleState.Edition,
+                    cycle: PartCycle.Edition,
                     userId: users.a.id,
                 });
             });
@@ -33,7 +33,7 @@ describe('PartRevisionDao', function() {
                 part: { id: part.id },
                 revision: 1,
                 designation: 'Part 1',
-                cycleState: CycleState.Edition,
+                cycle: PartCycle.Edition,
                 ...trackedBy(users.a),
             });
         });
@@ -45,13 +45,13 @@ describe('PartRevisionDao', function() {
             return pool.transaction(async db => {
                 partRevs = [];
                 partRevs.push(
-                    await th.createPartRev(db, part, users.a, { cycleState: CycleState.Obsolete })
+                    await th.createPartRev(db, part, users.a, { cycle: PartCycle.Obsolete })
                 );
                 partRevs.push(
-                    await th.createPartRev(db, part, users.a, { cycleState: CycleState.Cancelled })
+                    await th.createPartRev(db, part, users.a, { cycle: PartCycle.Cancelled })
                 );
                 partRevs.push(
-                    await th.createPartRev(db, part, users.a, { cycleState: CycleState.Release })
+                    await th.createPartRev(db, part, users.a, { cycle: PartCycle.Release })
                 );
             });
         });
@@ -76,17 +76,17 @@ describe('PartRevisionDao', function() {
         let partRev;
         beforeEach(async function() {
             partRev = await th.transacPartRev(part, users.a, {
-                cycleState: CycleState.Edition,
+                cycle: PartCycle.Edition,
             });
         });
         afterEach(th.cleanTable('part_revision'));
         it('should update cycle state', async function() {
             const pr = await pool.transaction(async db => {
-                return dao.partRevision.updateCycleState(db, partRev.id, CycleState.Release);
+                return dao.partRevision.updateCycleState(db, partRev.id, PartCycle.Release);
             });
             expect(pr).to.eql({
                 ...partRev,
-                cycleState: CycleState.Release,
+                cycle: PartCycle.Release,
             });
         });
     });

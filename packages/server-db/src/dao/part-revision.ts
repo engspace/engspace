@@ -1,4 +1,4 @@
-import { CycleState, Id, PartRevision } from '@engspace/core';
+import { Id, PartCycle, PartRevision } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
 import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
@@ -6,7 +6,7 @@ import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
 export interface PartRevisionDaoInput {
     partId: Id;
     designation: string;
-    cycleState: CycleState;
+    cycle: PartCycle;
     userId: Id;
 }
 
@@ -15,23 +15,23 @@ interface Row extends TrackedRow {
     partId: RowId;
     revision: number;
     designation: string;
-    cycleState: string;
+    cycle: string;
 }
 
 function mapRow(row: Row): PartRevision {
-    const { id, partId, revision, designation, cycleState } = row;
+    const { id, partId, revision, designation, cycle } = row;
     return {
         id: toId(id),
         part: foreignKey(partId),
         revision,
         designation,
-        cycleState: cycleState as CycleState,
+        cycle: cycle as PartCycle,
         ...tracked.mapRow(row),
     };
 }
 
 const rowToken = sql`
-    id, part_id, revision, designation, cycle_state, ${tracked.selectToken}
+    id, part_id, revision, designation, cycle, ${tracked.selectToken}
 `;
 
 export class PartRevisionDao extends DaoBase<PartRevision, Row> {
@@ -44,11 +44,11 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
     }
     async create(
         db: Db,
-        { partId, designation, cycleState, userId }: PartRevisionDaoInput
+        { partId, designation, cycle, userId }: PartRevisionDaoInput
     ): Promise<PartRevision> {
         const row: Row = await db.one(sql`
             INSERT INTO part_revision (
-                part_id, revision, designation, cycle_state, ${tracked.insertListToken}
+                part_id, revision, designation, cycle, ${tracked.insertListToken}
             )
             VALUES (
                 ${partId},
@@ -57,7 +57,7 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
                     0
                 ) + 1,
                 ${designation},
-                ${cycleState},
+                ${cycle},
                 ${tracked.insertValToken(userId)}
             )
             RETURNING ${rowToken}
@@ -86,10 +86,10 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
         return mapRow(row);
     }
 
-    async updateCycleState(db: Db, id: Id, cycleState: CycleState): Promise<PartRevision> {
+    async updateCycleState(db: Db, id: Id, cycle: PartCycle): Promise<PartRevision> {
         const row: Row = await db.one(sql`
             UPDATE part_revision SET
-                cycle_state = ${cycleState}
+                cycle = ${cycle}
             WHERE id = ${id}
             RETURNING ${rowToken}
         `);

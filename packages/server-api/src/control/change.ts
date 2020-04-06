@@ -6,7 +6,7 @@ import {
     Id,
     ChangeReview,
     ChangeRequestInput,
-    CycleState,
+    PartCycle,
     ApprovalDecision,
 } from '@engspace/core';
 import { DaoSet } from '@engspace/server-db';
@@ -44,7 +44,7 @@ export class ChangeControl {
                 input.partRevisions.map(pr => this.dao.partRevision.lastByPartId(db, pr.partId))
             );
             for (const pr of partRevs) {
-                if (pr.cycleState === CycleState.Edition) {
+                if (pr.cycle === PartCycle.Edition) {
                     const part = await this.dao.part.byId(db, pr.part.id);
                     throw new UserInputError(
                         `Part "${part.ref}" has its last revision in "Edition" mode and be currently revised`

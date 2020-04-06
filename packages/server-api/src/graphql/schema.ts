@@ -3,7 +3,7 @@ import { gql } from 'apollo-server-koa';
 export const typeDefs = gql`
     scalar DateTime
 
-    enum CycleState {
+    enum PartCycle {
         EDITION
         VALIDATION
         RELEASE
@@ -180,7 +180,7 @@ export const typeDefs = gql`
         part: Part!
         revision: Int!
         designation: String!
-        cycleState: CycleState!
+        cycle: PartCycle!
         createdBy: User!
         createdAt: DateTime!
         updatedBy: User!

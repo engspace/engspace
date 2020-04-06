@@ -1,12 +1,12 @@
 import {
     ApprovalDecision,
-    CycleState,
     Id,
     Part,
     PartApproval,
     PartApprovalInput,
     PartApprovalUpdateInput,
     PartCreateInput,
+    PartCycle,
     PartForkInput,
     PartRevision,
     PartRevisionInput,
@@ -47,7 +47,7 @@ export class PartControl {
         return this.dao.partRevision.create(ctx.db, {
             partId: part.id,
             designation: input.designation,
-            cycleState: CycleState.Edition,
+            cycle: PartCycle.Edition,
             userId,
         });
     }
@@ -75,7 +75,7 @@ export class PartControl {
         return this.dao.partRevision.create(ctx.db, {
             partId: fork.id,
             designation: fork.designation,
-            cycleState: CycleState.Edition,
+            cycle: PartCycle.Edition,
             userId,
         });
     }
@@ -87,7 +87,7 @@ export class PartControl {
         assertUserPerm(ctx, 'part.create');
 
         const last = await this.dao.partRevision.lastByPartId(ctx.db, partId);
-        if (last && last.cycleState === CycleState.Edition) {
+        if (last && last.cycle === PartCycle.Edition) {
             throw new UserInputError('Cannot revise a part that is in edition mode!');
         }
 
@@ -100,7 +100,7 @@ export class PartControl {
         return this.dao.partRevision.create(ctx.db, {
             partId,
             designation: des,
-            cycleState: CycleState.Edition,
+            cycle: PartCycle.Edition,
             userId: ctx.auth.userId,
         });
     }
@@ -122,7 +122,7 @@ export class PartControl {
         assertUserPerm(ctx, 'partval.create');
         const { userId } = ctx.auth;
         const partRev = await this.dao.partRevision.byId(ctx.db, partRevId);
-        if (partRev.cycleState !== CycleState.Edition) {
+        if (partRev.cycle !== PartCycle.Edition) {
             throw new UserInputError('cannot validate a part that is not in edition mode');
         }
         const val = await this.dao.partValidation.create(ctx.db, {
@@ -141,7 +141,7 @@ export class PartControl {
             )
         );
 
-        await this.dao.partRevision.updateCycleState(ctx.db, partRevId, CycleState.Validation);
+        await this.dao.partRevision.updateCycleState(ctx.db, partRevId, PartCycle.Validation);
 
         return {
             ...val,
@@ -202,25 +202,17 @@ export class PartControl {
 
         switch (result) {
             case ValidationResult.Release:
-                await this.dao.partRevision.updateCycleState(
-                    ctx.db,
-                    partRev.id,
-                    CycleState.Release
-                );
+                await this.dao.partRevision.updateCycleState(ctx.db, partRev.id, PartCycle.Release);
                 break;
             case ValidationResult.Cancel:
                 await this.dao.partRevision.updateCycleState(
                     ctx.db,
                     partRev.id,
-                    CycleState.Cancelled
+                    PartCycle.Cancelled
                 );
                 break;
             case ValidationResult.TryAgain:
-                await this.dao.partRevision.updateCycleState(
-                    ctx.db,
-                    partRev.id,
-                    CycleState.Edition
-                );
+                await this.dao.partRevision.updateCycleState(ctx.db, partRev.id, PartCycle.Edition);
                 break;
         }
 
