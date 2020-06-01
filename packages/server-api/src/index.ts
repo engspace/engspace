@@ -110,7 +110,10 @@ export class EsServerApi {
         this.koa.use(attachDb(this.config.pool, prefix));
         /* istanbul ignore next */
         const extensions = enableLogging
-            ? [(): ApolloLogExtension => new ApolloLogExtension()]
+            ? [
+                  (): ApolloLogExtension =>
+                      new ApolloLogExtension({ prefix: 'Engspace API test', timestamp: true }),
+              ]
             : [];
         /* istanbul ignore next */
         const formatError = enableLogging
