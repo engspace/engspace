@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
 
-describe('ChangePartRevisionDao', function() {
+describe('ChangePartRevisionDao', function () {
     let users;
     let req;
     let fam;
     let part;
-    before(async function() {
-        await pool.transaction(async db => {
+    before(async function () {
+        await pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
             req = await th.createChangeRequest(db, users.a);
             fam = await th.createPartFamily(db);
@@ -16,11 +16,11 @@ describe('ChangePartRevisionDao', function() {
     });
     after(th.cleanTables(['part', 'part_family', 'change_request', 'user']));
 
-    describe('create', function() {
+    describe('create', function () {
         this.afterEach(th.cleanTable('change_part_revision'));
 
-        it('should create a ChangePartRevision', async function() {
-            const cpr = await pool.transaction(async db => {
+        it('should create a ChangePartRevision', async function () {
+            const cpr = await pool.transaction(async (db) => {
                 return dao.changePartRevision.create(db, {
                     requestId: req.id,
                     partId: part.id,
@@ -33,8 +33,8 @@ describe('ChangePartRevisionDao', function() {
             });
         });
 
-        it('should create a ChangePartRevision with designation', async function() {
-            const cpr = await pool.transaction(async db => {
+        it('should create a ChangePartRevision with designation', async function () {
+            const cpr = await pool.transaction(async (db) => {
                 return dao.changePartRevision.create(db, {
                     requestId: req.id,
                     partId: part.id,
@@ -49,10 +49,10 @@ describe('ChangePartRevisionDao', function() {
         });
     });
 
-    describe('byRequestId', function() {
+    describe('byRequestId', function () {
         let partRevisions;
-        before(async function() {
-            return pool.transaction(async db => {
+        before(async function () {
+            return pool.transaction(async (db) => {
                 partRevisions = [
                     await th.createChangePartRevision(db, req, part, {
                         designation: 'PART A',
@@ -63,15 +63,15 @@ describe('ChangePartRevisionDao', function() {
 
         after(th.cleanTable('change_part_revision'));
 
-        it('should read ChangePartRevision by request id', async function() {
-            const cpr = await pool.connect(async db => {
+        it('should read ChangePartRevision by request id', async function () {
+            const cpr = await pool.connect(async (db) => {
                 return dao.changePartRevision.byRequestId(db, req.id);
             });
             expect(cpr).to.have.same.deep.members(partRevisions);
         });
 
-        it('should return empty if no ChangePartRevision', async function() {
-            const cpr = await pool.connect(async db => {
+        it('should return empty if no ChangePartRevision', async function () {
+            const cpr = await pool.connect(async (db) => {
                 return dao.changePartRevision.byRequestId(db, '-1');
             });
             expect(cpr).to.be.empty;

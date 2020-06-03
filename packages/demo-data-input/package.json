@@ -9,8 +9,8 @@
     "license": "MIT",
     "private": true,
     "scripts": {
-        "lint": "eslint --ext .js,.ts .",
-        "lint:fix": "eslint --fix --ext .js,.ts .",
+        "lint": "eslint --ext .ts src",
+        "lint:fix": "eslint --fix --ext .ts src",
         "build": "tsc -b .",
         "clean": "rimraf ./dist/ ../../.build-cache/demo-data-input.tsbuildinfo"
     },

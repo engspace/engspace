@@ -9,8 +9,8 @@
     "license": "MIT",
     "private": true,
     "scripts": {
-        "lint": "eslint --ext .js,.ts .",
-        "lint:fix": "eslint --fix --ext .js,.ts .",
+        "lint": "eslint --ext .ts src test",
+        "lint:fix": "eslint --fix --ext .ts src test",
         "build": "tsc -b .",
         "test": "cross-env NODE_ENV=test mocha",
         "test:cov": "cross-env NODE_ENV=test nyc mocha",

@@ -9,8 +9,8 @@
     "license": "MIT",
     "private": true,
     "scripts": {
-        "lint": "eslint --ext .js,.ts .",
-        "lint:fix": "eslint --fix --ext .js,.ts .",
+        "lint": "eslint --ext .ts src",
+        "lint:fix": "eslint --fix --ext .ts src",
         "build": "tsc -b .",
         "serve:dist": "tsc -b . && node -r dotenv/config .",
         "serve": "tsc -b && nodemon --exec npm-run-all serve:dist",

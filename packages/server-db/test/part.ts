@@ -2,11 +2,11 @@ import { expect } from 'chai';
 import { dao, pool, th } from '.';
 import { idType, trackedBy } from '../src/test-helpers';
 
-describe('PartDao', function() {
+describe('PartDao', function () {
     let users;
     let family;
-    before('create res', async function() {
-        return pool.transaction(async db => {
+    before('create res', async function () {
+        return pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
             family = await th.createPartFamily(db);
         });
@@ -14,12 +14,12 @@ describe('PartDao', function() {
 
     after('delete res', th.cleanTables(['part_family', 'user']));
 
-    describe('create', function() {
+    describe('create', function () {
         afterEach('delete res', th.cleanTable('part'));
 
-        it('should create a part', async function() {
+        it('should create a part', async function () {
             const bef = Date.now();
-            const part = await pool.transaction(async db => {
+            const part = await pool.transaction(async (db) => {
                 return dao.part.create(db, {
                     familyId: family.id,
                     ref: 'P001.A',
@@ -34,17 +34,15 @@ describe('PartDao', function() {
                 ...trackedBy(users.a),
             });
             expect(part.id).to.be.a(idType);
-            expect(part.createdAt)
-                .to.be.gt(bef)
-                .and.lt(aft);
+            expect(part.createdAt).to.be.gt(bef).and.lt(aft);
             expect(part.updatedAt).to.equal(part.createdAt);
         });
     });
 
-    describe('byRef', function() {
+    describe('byRef', function () {
         let part;
-        before(function() {
-            return pool.transaction(async db => {
+        before(function () {
+            return pool.transaction(async (db) => {
                 part = await th.createPart(db, family, users.a, {
                     ref: 'P001.A',
                 });
@@ -52,24 +50,24 @@ describe('PartDao', function() {
         });
         after(th.cleanTable('part'));
 
-        it('should get a part byRef', async function() {
-            const p = await pool.connect(async db => {
+        it('should get a part byRef', async function () {
+            const p = await pool.connect(async (db) => {
                 return dao.part.byRef(db, 'P001.A');
             });
             expect(p).to.deep.include(part);
         });
 
-        it('should get null if part does not exits', async function() {
-            const p = await pool.connect(async db => {
+        it('should get null if part does not exits', async function () {
+            const p = await pool.connect(async (db) => {
                 return dao.part.byRef(db, 'P002.A');
             });
             expect(p).to.be.null;
         });
     });
 
-    describe('checkRef', function() {
-        before(function() {
-            return pool.transaction(async db => {
+    describe('checkRef', function () {
+        before(function () {
+            return pool.transaction(async (db) => {
                 await th.createPart(db, family, users.a, {
                     ref: 'P001.A',
                 });
@@ -77,33 +75,33 @@ describe('PartDao', function() {
         });
         after(th.cleanTable('part'));
 
-        it('should check that a ref exists', async function() {
-            const has = await pool.connect(async db => {
+        it('should check that a ref exists', async function () {
+            const has = await pool.connect(async (db) => {
                 return dao.part.checkRef(db, 'P001.A');
             });
             expect(has).to.be.true;
         });
 
-        it('should check that a ref does not exist', async function() {
-            const has = await pool.connect(async db => {
+        it('should check that a ref does not exist', async function () {
+            const has = await pool.connect(async (db) => {
                 return dao.part.checkRef(db, 'P002.A');
             });
             expect(has).to.be.false;
         });
     });
 
-    describe('update', function() {
+    describe('update', function () {
         let part;
-        beforeEach('create part', async function() {
-            return pool.transaction(async db => {
+        beforeEach('create part', async function () {
+            return pool.transaction(async (db) => {
                 part = await th.createPart(db, family, users.a, {});
             });
         });
         afterEach('delete part', th.cleanTable('part'));
 
-        it('should update a part', async function() {
+        it('should update a part', async function () {
             const bef = Date.now();
-            const updated = await pool.transaction(async db => {
+            const updated = await pool.transaction(async (db) => {
                 return dao.part.updateById(db, part.id, {
                     designation: 'Updated part',
                     userId: users.b.id,
@@ -117,9 +115,7 @@ describe('PartDao', function() {
                 ...trackedBy(users.a, users.b),
                 createdAt: part.createdAt,
             });
-            expect(updated.updatedAt)
-                .to.be.gt(bef)
-                .and.lt(aft);
+            expect(updated.updatedAt).to.be.gt(bef).and.lt(aft);
         });
     });
 });

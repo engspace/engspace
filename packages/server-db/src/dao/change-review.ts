@@ -71,6 +71,6 @@ export class ChangeReviewDao extends DaoBase<ChangeReview, Row> {
             SELECT ${rowToken} from change_review
             WHERE request_id = ${requestId}
         `);
-        return rows?.map(r => mapRow(r));
+        return rows?.map((r) => mapRow(r));
     }
 }

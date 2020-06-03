@@ -3,13 +3,13 @@ import { expect } from 'chai';
 import { dao, pool, th } from '.';
 import { idType, trackedBy } from '../src/test-helpers';
 
-describe('PartValidationDao', function() {
+describe('PartValidationDao', function () {
     let users;
     let fam;
     let part;
     let partRev;
-    before('create deps', async function() {
-        return pool.transaction(async db => {
+    before('create deps', async function () {
+        return pool.transaction(async (db) => {
             users = await th.createUsers(db, {
                 a: { name: 'a' },
                 b: { name: 'b' },
@@ -23,11 +23,11 @@ describe('PartValidationDao', function() {
         });
     });
     after('clean deps', th.cleanTables(['part_revision', 'part', 'part_family', 'user']));
-    describe('create', function() {
+    describe('create', function () {
         afterEach(th.cleanTable('part_validation'));
 
-        it('should create part validation', async function() {
-            const val = await pool.transaction(async db => {
+        it('should create part validation', async function () {
+            const val = await pool.transaction(async (db) => {
                 return dao.partValidation.create(db, { partRevId: partRev.id, userId: users.a.id });
             });
             expect(val.id).to.be.a(idType);
@@ -40,17 +40,17 @@ describe('PartValidationDao', function() {
         });
     });
 
-    describe('byId - state', function() {
+    describe('byId - state', function () {
         let partVal;
-        beforeEach(async function() {
-            partVal = await pool.transaction(async db => {
+        beforeEach(async function () {
+            partVal = await pool.transaction(async (db) => {
                 return th.createPartVal(db, partRev, users.a);
             });
         });
         afterEach(th.cleanTables(['part_approval', 'part_validation']));
 
-        it('should be rejected if one is rejected', async function() {
-            const val = await pool.transaction(async db => {
+        it('should be rejected if one is rejected', async function () {
+            const val = await pool.transaction(async (db) => {
                 await th.createPartApproval(db, partVal, users.a, users.b, {
                     decision: ApprovalDecision.Approved,
                 });
@@ -68,8 +68,8 @@ describe('PartValidationDao', function() {
             expect(val.state).to.eql(ApprovalDecision.Rejected);
         });
 
-        it('should be pending if one is pending', async function() {
-            const val = await pool.transaction(async db => {
+        it('should be pending if one is pending', async function () {
+            const val = await pool.transaction(async (db) => {
                 await th.createPartApproval(db, partVal, users.a, users.b, {
                     decision: ApprovalDecision.Approved,
                 });
@@ -87,8 +87,8 @@ describe('PartValidationDao', function() {
             expect(val.state).to.eql(ApprovalDecision.Pending);
         });
 
-        it('should be reserved if one is reserved', async function() {
-            const val = await pool.transaction(async db => {
+        it('should be reserved if one is reserved', async function () {
+            const val = await pool.transaction(async (db) => {
                 await th.createPartApproval(db, partVal, users.a, users.b, {
                     decision: ApprovalDecision.Approved,
                 });
@@ -106,8 +106,8 @@ describe('PartValidationDao', function() {
             expect(val.state).to.eql(ApprovalDecision.Reserved);
         });
 
-        it('should be approved if all are approved', async function() {
-            const val = await pool.transaction(async db => {
+        it('should be approved if all are approved', async function () {
+            const val = await pool.transaction(async (db) => {
                 await th.createPartApproval(db, partVal, users.a, users.b, {
                     decision: ApprovalDecision.Approved,
                 });
@@ -126,17 +126,17 @@ describe('PartValidationDao', function() {
         });
     });
 
-    describe('update', function() {
+    describe('update', function () {
         let partVal;
-        beforeEach(async function() {
-            partVal = await pool.transaction(async db => {
+        beforeEach(async function () {
+            partVal = await pool.transaction(async (db) => {
                 return th.createPartVal(db, partRev, users.a);
             });
         });
         afterEach(th.cleanTables(['part_approval', 'part_validation']));
 
-        it('should update a validation result', async function() {
-            const val = await pool.transaction(async db => {
+        it('should update a validation result', async function () {
+            const val = await pool.transaction(async (db) => {
                 return dao.partValidation.update(db, partVal.id, {
                     result: ValidationResult.Release,
                     userId: users.b.id,
@@ -150,8 +150,8 @@ describe('PartValidationDao', function() {
             });
         });
 
-        it('should update a validation result with comment', async function() {
-            const val = await pool.transaction(async db => {
+        it('should update a validation result with comment', async function () {
+            const val = await pool.transaction(async (db) => {
                 return dao.partValidation.update(db, partVal.id, {
                     result: ValidationResult.Release,
                     userId: users.b.id,

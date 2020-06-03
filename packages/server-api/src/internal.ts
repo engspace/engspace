@@ -15,7 +15,7 @@ export function attachDb(pool: DbPool, path: string) {
             return next();
         }
         if (ctx.method === 'GET' || ctx.method === 'POST') {
-            return pool.connect(async db => {
+            return pool.connect(async (db) => {
                 (ctx.state as any)[DB_SYMBOL] = db;
                 await next();
                 delete (ctx.state as any)[DB_SYMBOL];

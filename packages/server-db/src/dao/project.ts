@@ -100,7 +100,7 @@ export class ProjectDao extends DaoBase<Project, Row> {
                 WHERE ${whereToken}
             `)) as number;
         }
-        return { count, projects: rows.map(r => mapRow(r)) };
+        return { count, projects: rows.map((r) => mapRow(r)) };
     }
 
     async patch(db: Db, id: Id, project: Partial<Project>): Promise<Project> {

@@ -6,8 +6,8 @@ import { EsServerConfig } from '..';
 export function setupFirstAdminRoutes(router: Router, config: EsServerConfig): void {
     const { pool, dao } = config;
 
-    router.get('/first_admin', async ctx => {
-        const result = await pool.connect(db =>
+    router.get('/first_admin', async (ctx) => {
+        const result = await pool.connect((db) =>
             dao.user.search(db, {
                 role: 'admin',
             })
@@ -17,8 +17,8 @@ export function setupFirstAdminRoutes(router: Router, config: EsServerConfig): v
         };
     });
 
-    router.post('/first_admin', async ctx => {
-        await pool.transaction(async db => {
+    router.post('/first_admin', async (ctx) => {
+        await pool.transaction(async (db) => {
             const adminSearch = await dao.user.search(db, {
                 role: 'admin',
             });

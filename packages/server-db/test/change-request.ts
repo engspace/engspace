@@ -3,20 +3,20 @@ import { dao, pool, th } from '.';
 import { expect } from 'chai';
 import { trackedBy, idType } from '../src';
 
-describe('ChangeRequestDao', function() {
+describe('ChangeRequestDao', function () {
     let users;
-    before(async function() {
-        await pool.transaction(async db => {
+    before(async function () {
+        await pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
         });
     });
     after(th.cleanTable('user'));
 
-    describe('create', function() {
+    describe('create', function () {
         this.afterEach(th.cleanTable('change_request'));
 
-        it('should create a ChangeRequest', async function() {
-            const cr = await pool.transaction(async db => {
+        it('should create a ChangeRequest', async function () {
+            const cr = await pool.transaction(async (db) => {
                 return dao.changeRequest.create(db, {
                     userId: users.a.id,
                 });
@@ -30,8 +30,8 @@ describe('ChangeRequestDao', function() {
             expect(cr.id).to.be.a(idType);
         });
 
-        it('should create a ChangeRequest with description', async function() {
-            const cr = await pool.transaction(async db => {
+        it('should create a ChangeRequest with description', async function () {
+            const cr = await pool.transaction(async (db) => {
                 return dao.changeRequest.create(db, {
                     userId: users.a.id,
                     description: 'SUPER CHANGE',
@@ -46,8 +46,8 @@ describe('ChangeRequestDao', function() {
             expect(cr.id).to.be.a(idType);
         });
 
-        it('should create a ChangeRequest with initial cycle', async function() {
-            const cr = await pool.transaction(async db => {
+        it('should create a ChangeRequest with initial cycle', async function () {
+            const cr = await pool.transaction(async (db) => {
                 return dao.changeRequest.create(db, {
                     userId: users.a.id,
                     cycle: ChangeRequestCycle.Validation,

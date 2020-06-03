@@ -31,10 +31,10 @@ async function createDocRevWithContent(
 function binaryParser(res, cb): void {
     res.setEncoding('binary');
     res.data = [];
-    res.on('data', function(chunk) {
+    res.on('data', function (chunk) {
         res.data.push(chunk);
     });
-    res.on('end', function() {
+    res.on('end', function () {
         cb(null, Buffer.from(res.data.join(), 'binary'));
     });
 }
@@ -47,10 +47,10 @@ const DOCREV_CHECK = gql`
     }
 `;
 
-describe('HTTP /api/document', function() {
+describe('HTTP /api/document', function () {
     let users;
 
-    before('Create users', async function() {
+    before('Create users', async function () {
         users = await th.transacUsers({
             a: { name: 'a', roles: ['user'] },
             b: { name: 'b', roles: ['user'] },
@@ -61,16 +61,16 @@ describe('HTTP /api/document', function() {
 
     let server;
 
-    before('Start server', function(done) {
+    before('Start server', function (done) {
         server = api.koa.listen(serverPort, done);
     });
 
-    describe('Download', function() {
+    describe('Download', function () {
         const fileContent = Buffer.from('abcd'.repeat(100), 'binary');
         let document;
         let revision;
-        before('create doc, revision and file', async function() {
-            await pool.transaction(async db => {
+        before('create doc, revision and file', async function () {
+            await pool.transaction(async (db) => {
                 document = await th.createDoc(db, users.a, {
                     name: 'abcd',
                     description: 'doc ABCD',
@@ -89,15 +89,15 @@ describe('HTTP /api/document', function() {
                 );
             });
         });
-        after('delete doc, revision and file', async function() {
-            await pool.transaction(async db => {
+        after('delete doc, revision and file', async function () {
+            await pool.transaction(async (db) => {
                 await fs.promises.unlink(path.join(storePath, revision.sha1));
                 await dao.documentRevision.deleteAll(db);
                 await dao.document.deleteAll(db);
             });
         });
 
-        it('should get a token and download a document revision with "document.read"', async function() {
+        it('should get a token and download a document revision with "document.read"', async function () {
             const token = await bearerToken(permsAuth(users.a, ['document.read']));
             const resp = await request(server)
                 .get('/api/document/download_token')
@@ -125,7 +125,7 @@ describe('HTTP /api/document', function() {
             expect(resp2.body.equals(fileContent)).to.be.true;
         });
 
-        it('should not get a download token without "document.read"', async function() {
+        it('should not get a download token without "document.read"', async function () {
             const token = await bearerToken(permsAuth(users.a, []));
             const resp = await request(server)
                 .get('/api/document/download_token')
@@ -139,17 +139,15 @@ describe('HTTP /api/document', function() {
             expect(resp.text).to.contain('document.read');
         });
 
-        it('should not get a download token without auth', async function() {
-            const resp = await request(server)
-                .get('/api/document/download_token')
-                .query({
-                    documentId: document.id,
-                    revision: revision.revision,
-                });
+        it('should not get a download token without auth', async function () {
+            const resp = await request(server).get('/api/document/download_token').query({
+                documentId: document.id,
+                revision: revision.revision,
+            });
             expect(resp).to.have.status(401);
         });
 
-        it('should get 400 with ill-formed document id', async function() {
+        it('should get 400 with ill-formed document id', async function () {
             const token = await bearerToken(permsAuth(users.a, ['document.read']));
             const resp = await request(server)
                 .get('/api/document/download_token')
@@ -161,7 +159,7 @@ describe('HTTP /api/document', function() {
             expect(resp).to.have.status(400);
         });
 
-        it('should get 404 with wrong document id', async function() {
+        it('should get 404 with wrong document id', async function () {
             const token = await bearerToken(permsAuth(users.a, ['document.read']));
             const resp = await request(server)
                 .get('/api/document/download_token')
@@ -173,7 +171,7 @@ describe('HTTP /api/document', function() {
             expect(resp).to.have.status(404);
         });
 
-        it('should get 400 with ill-formed revision', async function() {
+        it('should get 400 with ill-formed revision', async function () {
             const token = await bearerToken(permsAuth(users.a, ['document.read']));
             const resp = await request(server)
                 .get('/api/document/download_token')
@@ -185,7 +183,7 @@ describe('HTTP /api/document', function() {
             expect(resp).to.have.status(400);
         });
 
-        it('should get 404 with wrong revision', async function() {
+        it('should get 404 with wrong revision', async function () {
             const token = await bearerToken(permsAuth(users.a, ['document.read']));
             const resp = await request(server)
                 .get('/api/document/download_token')
@@ -197,7 +195,7 @@ describe('HTTP /api/document', function() {
             expect(resp).to.have.status(404);
         });
 
-        it('should not get 404 with wrong document and wrong perms', async function() {
+        it('should not get 404 with wrong document and wrong perms', async function () {
             const token = await bearerToken(permsAuth(users.a, []));
             const resp = await request(server)
                 .get('/api/document/download_token')
@@ -212,12 +210,12 @@ describe('HTTP /api/document', function() {
         });
     });
 
-    describe('Upload', function() {
+    describe('Upload', function () {
         const fileContent = Buffer.from('abcd'.repeat(100), 'binary');
         const sha1 = bufferSha1sum(fileContent);
         let document;
-        before('create doc', async function() {
-            await pool.transaction(async db => {
+        before('create doc', async function () {
+            await pool.transaction(async (db) => {
                 document = await th.createDoc(db, users.a, {
                     name: 'abcd',
                     description: 'doc ABCD',
@@ -225,20 +223,20 @@ describe('HTTP /api/document', function() {
                 });
             });
         });
-        after('delete doc', async function() {
-            await pool.transaction(async db => {
+        after('delete doc', async function () {
+            await pool.transaction(async (db) => {
                 await dao.document.deleteAll(db);
             });
         });
-        afterEach('delete revisions', async function() {
-            await pool.transaction(async db => {
+        afterEach('delete revisions', async function () {
+            await pool.transaction(async (db) => {
                 await dao.documentRevision.deleteAll(db);
             });
         });
 
-        it('should perform full upload process', async function() {
+        it('should perform full upload process', async function () {
             const auth = permsAuth(users.a, ['document.revise']);
-            const rev = await pool.transaction(async db => {
+            const rev = await pool.transaction(async (db) => {
                 return th.createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
@@ -255,7 +253,7 @@ describe('HTTP /api/document', function() {
                     'x-upload-length': fileContent.length,
                 })
                 .query({
-                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     rev_id: rev.id,
                 })
                 .send(fileContent);
@@ -264,7 +262,7 @@ describe('HTTP /api/document', function() {
                 fs.existsSync(path.join(storePath, 'upload', rev.id.toString())),
                 'temp upload file exists'
             ).to.be.true;
-            const { errors, data } = await pool.transaction(async db => {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(db, auth);
                 return mutate({
                     mutation: DOCREV_CHECK,
@@ -287,9 +285,9 @@ describe('HTTP /api/document', function() {
             await fs.promises.unlink(path.join(storePath, sha1));
         });
 
-        it('should error if sha1 is false', async function() {
+        it('should error if sha1 is false', async function () {
             const auth = permsAuth(users.a, ['document.revise']);
-            const rev = await pool.transaction(async db => {
+            const rev = await pool.transaction(async (db) => {
                 return th.createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
@@ -306,7 +304,7 @@ describe('HTTP /api/document', function() {
                     'x-upload-length': fileContent.length,
                 })
                 .query({
-                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     rev_id: rev.id,
                 })
                 .send(fileContent);
@@ -315,7 +313,7 @@ describe('HTTP /api/document', function() {
                 fs.existsSync(path.join(storePath, 'upload', rev.id.toString())),
                 'temp upload file exists'
             ).to.be.true;
-            const { errors, data } = await pool.transaction(async db => {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(db, auth);
                 return mutate({
                     mutation: DOCREV_CHECK,
@@ -334,13 +332,13 @@ describe('HTTP /api/document', function() {
             ).to.be.false;
             expect(fs.existsSync(path.join(storePath, sha1)), 'final upload file exists').to.be
                 .false;
-            const r = await pool.connect(async db => {
+            const r = await pool.connect(async (db) => {
                 return dao.documentRevision.byId(db, rev.id);
             });
             expect(r, 'revision has been cleaned-up').to.be.null;
         });
 
-        it('should return 404 if revision does not exist', async function() {
+        it('should return 404 if revision does not exist', async function () {
             const auth = permsAuth(users.a, ['document.revise']);
             const token = await bearerToken(auth);
             const resp = await request(server)
@@ -352,15 +350,15 @@ describe('HTTP /api/document', function() {
                     'x-upload-length': fileContent.length,
                 })
                 .query({
-                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     rev_id: users.a.id,
                 })
                 .send(fileContent);
             expect(resp).to.have.status(404);
         });
 
-        it('should return 403 without "document.revise"', async function() {
-            const rev = await pool.transaction(async db => {
+        it('should return 403 without "document.revise"', async function () {
+            const rev = await pool.transaction(async (db) => {
                 return th.createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
@@ -378,15 +376,15 @@ describe('HTTP /api/document', function() {
                     'x-upload-length': fileContent.length,
                 })
                 .query({
-                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     rev_id: rev.id,
                 })
                 .send(fileContent);
             expect(resp).to.have.status(403);
         });
 
-        it('should return 401 without authorization', async function() {
-            const rev = await pool.transaction(async db => {
+        it('should return 401 without authorization', async function () {
+            const rev = await pool.transaction(async (db) => {
                 return th.createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,
@@ -401,15 +399,15 @@ describe('HTTP /api/document', function() {
                     'x-upload-length': fileContent.length,
                 })
                 .query({
-                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     rev_id: rev.id,
                 })
                 .send(fileContent);
             expect(resp).to.have.status(401);
         });
 
-        it('should return 400 if ill-formed query', async function() {
-            const rev = await pool.transaction(async db => {
+        it('should return 400 if ill-formed query', async function () {
+            const rev = await pool.transaction(async (db) => {
                 return th.createDocRev(db, document, users.a, {
                     filename: 'abcd.ext',
                     filesize: fileContent.length,

@@ -26,7 +26,7 @@ export class ChangeControl {
         if (input.partChanges) {
             const parts = await this.dao.part.batchByIds(
                 db,
-                input.partChanges.map(pc => pc.partId)
+                input.partChanges.map((pc) => pc.partId)
             );
             for (let i = 0; i < parts.length; ++i) {
                 const refParts = ctx.config.refNaming.extractParts(parts[i].ref);
@@ -41,7 +41,7 @@ export class ChangeControl {
         }
         if (input.partRevisions) {
             const partRevs = await Promise.all(
-                input.partRevisions.map(pr => this.dao.partRevision.lastByPartId(db, pr.partId))
+                input.partRevisions.map((pr) => this.dao.partRevision.lastByPartId(db, pr.partId))
             );
             for (const pr of partRevs) {
                 if (pr.cycle === PartCycle.Edition) {
@@ -58,25 +58,25 @@ export class ChangeControl {
         });
         if (input.partCreations)
             req.partCreations = await Promise.all(
-                input.partCreations?.map(inp =>
+                input.partCreations?.map((inp) =>
                     this.dao.changePartCreate.create(db, { requestId: req.id, ...inp })
                 )
             );
         if (input.partChanges)
             req.partChanges = await Promise.all(
-                input.partChanges?.map(inp =>
+                input.partChanges?.map((inp) =>
                     this.dao.changePartChange.create(db, { requestId: req.id, ...inp })
                 )
             );
         if (input.partRevisions)
             req.partRevisions = await Promise.all(
-                input.partRevisions?.map(inp =>
+                input.partRevisions?.map((inp) =>
                     this.dao.changePartRevision.create(db, { requestId: req.id, ...inp })
                 )
             );
         if (input.reviewerIds) {
             req.reviews = await Promise.all(
-                input.reviewerIds.map(id =>
+                input.reviewerIds.map((id) =>
                     this.dao.changeReview.create(db, {
                         requestId: req.id,
                         assigneeId: id,

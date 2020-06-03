@@ -59,14 +59,14 @@ export const dao = buildDaoSet();
 
 prepareDb(dbPreparationConfig)
     .then(async () => {
-        await pool.transaction(db => initSchema(db));
+        await pool.transaction((db) => initSchema(db));
         await populateData(pool, config.storePath);
         const api = buildServerApi(pool);
         api.koa.listen(config.serverPort, () => {
             console.log(`Demo API listening to port ${config.serverPort}`);
         });
     })
-    .catch(err => {
+    .catch((err) => {
         console.error('error during the demo app');
         console.error(err);
     });

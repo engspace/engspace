@@ -80,6 +80,6 @@ export class ChangePartCreateDao extends DaoBase<ChangePartCreate, Row> {
             SELECT ${rowToken} from change_part_create
             WHERE request_id = ${requestId}
         `);
-        return rows?.map(r => mapRow(r));
+        return rows?.map((r) => mapRow(r));
     }
 }

@@ -8,11 +8,9 @@ module.exports = {
         tsconfigRootDir: '../..',
         ecmaVersion: 2018,
         sourceType: 'module',
-        extraFileExtensions: ['.json']
+        extraFileExtensions: ['.json'],
     },
-    plugins: [
-        '@typescript-eslint',
-    ],
+    plugins: ['@typescript-eslint'],
     extends: [
         'eslint:recommended',
         'plugin:@typescript-eslint/recommended',
@@ -22,11 +20,14 @@ module.exports = {
     ],
     rules: {
         '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/no-use-before-define': ['error', {
-            functions: false,
-            classes: false,
-            variables: true,
-        }],
+        '@typescript-eslint/no-use-before-define': [
+            'error',
+            {
+                functions: false,
+                classes: false,
+                variables: true,
+            },
+        ],
     },
     settings: {
         'import/resolver': {

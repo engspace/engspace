@@ -69,33 +69,33 @@ export const pool: DbPool = createDbPool(dbPoolConfig);
 export const dao = buildDaoSet();
 export const th = new TestHelpers(pool, dao);
 
-before('db setup', async function() {
+before('db setup', async function () {
     this.timeout(5000);
 
     await prepareDb(dbPreparationConfig);
-    await pool.transaction(async db => {
+    await pool.transaction(async (db) => {
         await initSchema(db);
     });
 });
 
-describe('#connectionString', function() {
-    it('should build default connection string', function() {
+describe('#connectionString', function () {
+    it('should build default connection string', function () {
         expect(connectionString({})).to.equal('postgresql://localhost');
     });
-    it('should create connection string with location', function() {
+    it('should create connection string with location', function () {
         expect(connectionString({ host: 'location.net' })).to.equal('postgresql://location.net');
     });
-    it('should create connection string with user and location', function() {
+    it('should create connection string with user and location', function () {
         expect(connectionString({ user: 'user.name', host: 'location.net' })).to.equal(
             'postgresql://user.name@location.net'
         );
     });
-    it('should create connection string with user, password and location', function() {
+    it('should create connection string with user, password and location', function () {
         expect(
             connectionString({ user: 'user.name', pass: 'password', host: 'location.net' })
         ).to.equal('postgresql://user.name:password@location.net');
     });
-    it('should create connection string with user, password, location and port', function() {
+    it('should create connection string with user, password, location and port', function () {
         expect(
             connectionString({
                 user: 'user.name',
@@ -113,7 +113,7 @@ describe('#connectionString', function() {
             })
         ).to.equal('postgresql://user.name:password@location.net:5555');
     });
-    it('should create full connection', function() {
+    it('should create full connection', function () {
         expect(
             connectionString({
                 user: 'user.name',
@@ -124,7 +124,7 @@ describe('#connectionString', function() {
             })
         ).to.equal('postgresql://user.name:password@location.net:5555/db_name');
     });
-    it('should throw if supplying password without username', function() {
+    it('should throw if supplying password without username', function () {
         function bad(): string {
             return connectionString({
                 pass: 'secret',

@@ -12,24 +12,22 @@ describe('Login', () => {
     let server: http.Server;
 
     before('Create users', async () => {
-        return pool.transaction(async db => {
+        return pool.transaction(async (db) => {
             userA = await th.createUser(db, { name: 'a', roles: ['user'] });
             await dao.login.create(db, userA.id, 'a');
         });
     });
-    before('Start server', done => {
+    before('Start server', (done) => {
         server = api.koa.listen(serverPort, done);
     });
 
     after(th.cleanTable('user'));
 
     it('should return bearer token', async () => {
-        const resp = await request(server)
-            .post('/api/login')
-            .send({
-                nameOrEmail: 'a',
-                password: 'a',
-            });
+        const resp = await request(server).post('/api/login').send({
+            nameOrEmail: 'a',
+            password: 'a',
+        });
         expect(resp).to.have.status(200);
         expect(resp.body).to.be.an('object');
         expect(resp.body.token).to.be.a('string');
@@ -38,22 +36,18 @@ describe('Login', () => {
     });
 
     it('should reject invalid password', async () => {
-        const resp = await request(server)
-            .post('/api/login')
-            .send({
-                nameOrEmail: 'a',
-                password: 'b',
-            });
+        const resp = await request(server).post('/api/login').send({
+            nameOrEmail: 'a',
+            password: 'b',
+        });
         expect(resp).to.have.status(403);
     });
 
     it('should reject invalid username', async () => {
-        const resp = await request(server)
-            .post('/api/login')
-            .send({
-                nameOrEmail: 'c',
-                password: 'a',
-            });
+        const resp = await request(server).post('/api/login').send({
+            nameOrEmail: 'c',
+            password: 'a',
+        });
         expect(resp).to.have.status(403);
     });
 });

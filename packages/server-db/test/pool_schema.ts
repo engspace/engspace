@@ -29,16 +29,16 @@ function poolConf(dbName: string): DbPoolConfig {
 }
 
 describe('Pool and Schema', async () => {
-    describe('Virgin pool', function() {
+    describe('Virgin pool', function () {
         const name = 'engspace_db_test_virgin';
-        before(async function() {
+        before(async function () {
             this.timeout(5000);
             await prepareDb(preparationConf(name));
         });
 
-        it('should create a virgin pool', async function() {
+        it('should create a virgin pool', async function () {
             const pool = createDbPool(poolConf(name));
-            const tables = await pool.connect(db =>
+            const tables = await pool.connect((db) =>
                 db.anyFirst(sql`
                 SELECT table_name FROM information_schema.tables
                 WHERE table_schema = 'public'
@@ -48,20 +48,20 @@ describe('Pool and Schema', async () => {
         });
     });
 
-    describe('Schema', function() {
+    describe('Schema', function () {
         const name = 'engspace_db_test_schema';
         let pool;
-        before(async function() {
+        before(async function () {
             this.timeout(5000);
             await prepareDb(preparationConf(name));
             pool = createDbPool(poolConf(name));
-            await pool.transaction(async db => {
+            await pool.transaction(async (db) => {
                 await initSchema(db);
             });
         });
 
-        it('should have created all tables', async function() {
-            const tables = await pool.connect(db =>
+        it('should have created all tables', async function () {
+            const tables = await pool.connect((db) =>
                 db.anyFirst(sql`
                     SELECT table_name FROM information_schema.tables
                     WHERE table_schema = 'public'
@@ -94,19 +94,19 @@ describe('Pool and Schema', async () => {
             ]);
         });
 
-        it('should have created core enums tables', async function() {
-            const cycles = await pool.connect(async db => {
+        it('should have created core enums tables', async function () {
+            const cycles = await pool.connect(async (db) => {
                 return db.manyFirst(sql`SELECT id FROM part_cycle_enum`);
             });
-            const valResults = await pool.connect(async db => {
+            const valResults = await pool.connect(async (db) => {
                 return db.manyFirst(sql`SELECT id FROM validation_result_enum`);
             });
             expect(cycles).to.have.same.members(Object.values(PartCycle));
             expect(valResults).to.have.same.members(Object.values(ValidationResult));
         });
 
-        it('should have created core pg enums', async function() {
-            const apprStates = await pool.connect(async db => {
+        it('should have created core pg enums', async function () {
+            const apprStates = await pool.connect(async (db) => {
                 return db.manyFirst(sql`
                     SELECT enumlabel
                     FROM pg_type JOIN pg_enum

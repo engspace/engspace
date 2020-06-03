@@ -84,11 +84,11 @@ export const MEMBER_DELETE = gql`
     ${MEMBER_FIELDS}
 `;
 
-describe('GraphQL ProjectMember', function() {
+describe('GraphQL ProjectMember', function () {
     let users;
     let projects;
-    before('Create users and projects', async function() {
-        return pool.transaction(async db => {
+    before('Create users and projects', async function () {
+        return pool.transaction(async (db) => {
             users = await th.createUsers(db, {
                 a: { name: 'a' },
                 b: { name: 'b' },
@@ -101,18 +101,18 @@ describe('GraphQL ProjectMember', function() {
         });
     });
 
-    after('Delete users and projects', async function() {
-        return pool.transaction(async db => {
+    after('Delete users and projects', async function () {
+        return pool.transaction(async (db) => {
             await dao.project.deleteAll(db);
             await dao.user.deleteAll(db);
         });
     });
 
-    describe('Query', function() {
+    describe('Query', function () {
         let members;
 
-        before('Create members', async function() {
-            members = await pool.transaction(async db => {
+        before('Create members', async function () {
+            members = await pool.transaction(async (db) => {
                 return {
                     aa: await th.createMember(db, projects.a, users.a, ['role1']),
                     bb: await th.createMember(db, projects.b, users.b, ['role2']),
@@ -122,14 +122,14 @@ describe('GraphQL ProjectMember', function() {
             });
         });
 
-        after('Delete members', async function() {
-            return pool.transaction(async db => {
+        after('Delete members', async function () {
+            return pool.transaction(async (db) => {
                 await dao.projectMember.deleteAll(db);
             });
         });
 
-        it('should read a single member', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should read a single member', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['member.read', 'user.read', 'project.read'])
@@ -144,8 +144,8 @@ describe('GraphQL ProjectMember', function() {
             expect(data.projectMember).to.eql(members.aa);
         });
 
-        it('should not read a single member without "member.read"', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should not read a single member without "member.read"', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['user.read', 'project.read'])
@@ -155,14 +155,12 @@ describe('GraphQL ProjectMember', function() {
                     variables: { id: members.aa.id },
                 });
             });
-            expect(errors)
-                .to.be.an('array')
-                .with.lengthOf.at.least(1);
+            expect(errors).to.be.an('array').with.lengthOf.at.least(1);
             expect(data.projectMember).to.be.null;
         });
 
-        it('should read by user and project', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should read by user and project', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['member.read', 'user.read', 'project.read'])
@@ -178,8 +176,8 @@ describe('GraphQL ProjectMember', function() {
             expect(data.projectMemberByProjectAndUserId.roles).to.have.members(['role3', 'role4']);
         });
 
-        it('should not read by user and project without "member.read"', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should not read by user and project without "member.read"', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['user.read', 'project.read'])
@@ -189,15 +187,13 @@ describe('GraphQL ProjectMember', function() {
                     variables: { projectId: projects.a.id, userId: users.b.id },
                 });
             });
-            expect(errors)
-                .to.be.an('array')
-                .with.lengthOf.at.least(1);
+            expect(errors).to.be.an('array').with.lengthOf.at.least(1);
             expect(errors[0].message).to.contain('member.read');
             expect(data.projectMemberByProjectAndUserId).to.be.null;
         });
 
-        it('should read project members', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should read project members', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['member.read', 'user.read', 'project.read'])
@@ -228,8 +224,8 @@ describe('GraphQL ProjectMember', function() {
             ]);
         });
 
-        it('should not read project members without "member.read"', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should not read project members without "member.read"', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['user.read', 'project.read'])
@@ -239,14 +235,12 @@ describe('GraphQL ProjectMember', function() {
                     variables: { projectId: projects.b.id },
                 });
             });
-            expect(errors)
-                .to.be.an('array')
-                .with.lengthOf.at.least(1);
+            expect(errors).to.be.an('array').with.lengthOf.at.least(1);
             expect(data.project).to.be.null;
         });
 
-        it('should read user membership', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should read user membership', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['member.read', 'user.read', 'project.read'])
@@ -263,8 +257,8 @@ describe('GraphQL ProjectMember', function() {
             expect(u.membership).to.have.deep.members([members.bb, members.ab]);
         });
 
-        it('should not read user membership without "member.read"', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should not read user membership without "member.read"', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['user.read', 'project.read'])
@@ -274,23 +268,21 @@ describe('GraphQL ProjectMember', function() {
                     variables: { userId: users.b.id },
                 });
             });
-            expect(errors)
-                .to.be.an('array')
-                .with.lengthOf.at.least(1);
+            expect(errors).to.be.an('array').with.lengthOf.at.least(1);
             expect(data.user).to.be.null;
         });
     });
 
-    describe('Mutation', function() {
-        afterEach('Delete members', async function() {
-            return pool.transaction(async db => {
+    describe('Mutation', function () {
+        afterEach('Delete members', async function () {
+            return pool.transaction(async (db) => {
                 await dao.projectMember.deleteAll(db);
             });
         });
 
-        describe('Create', function() {
-            it('should create a member', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+        describe('Create', function () {
+            it('should create a member', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -324,16 +316,16 @@ describe('GraphQL ProjectMember', function() {
                     'designer',
                 ]);
             });
-            it('should create a member using project perms', async function() {
+            it('should create a member using project perms', async function () {
                 // give to c leader role on b project
-                await pool.transaction(async db => {
+                await pool.transaction(async (db) => {
                     return dao.projectMember.create(db, {
                         projectId: projects.b.id,
                         userId: users.c.id,
                         roles: ['leader'],
                     });
                 });
-                const { errors, data } = await pool.transaction(async db => {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.c, ['member.read', 'project.read', 'user.read'])
@@ -363,8 +355,8 @@ describe('GraphQL ProjectMember', function() {
                 ]);
             });
 
-            it('should not create a member without "member.create"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should not create a member without "member.create"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, ['member.read', 'project.read', 'user.read'])
@@ -380,17 +372,15 @@ describe('GraphQL ProjectMember', function() {
                         },
                     });
                 });
-                expect(errors)
-                    .to.be.an('array')
-                    .with.lengthOf.at.least(1);
+                expect(errors).to.be.an('array').with.lengthOf.at.least(1);
                 expect(errors[0].message).to.contain('member.create');
                 expect(data).to.be.null;
             });
         });
 
-        describe('Update', function() {
-            it('should update member roles with "member.update"', async function() {
-                const { memId, errors, data } = await pool.transaction(async db => {
+        describe('Update', function () {
+            it('should update member roles with "member.update"', async function () {
+                const { memId, errors, data } = await pool.transaction(async (db) => {
                     const m = await dao.projectMember.create(db, {
                         projectId: projects.a.id,
                         userId: users.a.id,
@@ -416,8 +406,8 @@ describe('GraphQL ProjectMember', function() {
                 expect(data.projectUpdateMemberRoles.roles).to.have.members(['designer', 'leader']);
             });
 
-            it('should not update member roles without "member.update"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should not update member roles without "member.update"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const m = await dao.projectMember.create(db, {
                         projectId: projects.a.id,
                         userId: users.a.id,
@@ -432,16 +422,14 @@ describe('GraphQL ProjectMember', function() {
                         variables: { id: m.id, roles: ['leader', 'designer'] },
                     });
                 });
-                expect(errors)
-                    .to.be.an('array')
-                    .with.lengthOf.at.least(1);
+                expect(errors).to.be.an('array').with.lengthOf.at.least(1);
                 expect(data).to.be.null;
             });
         });
 
-        describe('Delete', function() {
-            it('should delete a member with "member.delete"', async function() {
-                const { mem, errors, data } = await pool.transaction(async db => {
+        describe('Delete', function () {
+            it('should delete a member with "member.delete"', async function () {
+                const { mem, errors, data } = await pool.transaction(async (db) => {
                     const m = await dao.projectMember.create(db, {
                         projectId: projects.a.id,
                         userId: users.a.id,
@@ -468,8 +456,8 @@ describe('GraphQL ProjectMember', function() {
                 expect(mem).to.be.null;
             });
 
-            it('should not delete a member without "member.delete"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should not delete a member without "member.delete"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const m = await dao.projectMember.create(db, {
                         projectId: projects.a.id,
                         userId: users.a.id,
@@ -484,9 +472,7 @@ describe('GraphQL ProjectMember', function() {
                         variables: { id: m.id },
                     });
                 });
-                expect(errors)
-                    .to.be.an('array')
-                    .with.lengthOf.at.least(1);
+                expect(errors).to.be.an('array').with.lengthOf.at.least(1);
                 expect(data).to.be.null;
             });
         });

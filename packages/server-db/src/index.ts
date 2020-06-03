@@ -80,7 +80,7 @@ export async function prepareDb({
     const pool = createPool(serverConnString, {
         maximumPoolSize: 1,
     });
-    await pool.connect(async db => {
+    await pool.connect(async (db) => {
         /* istanbul ignore else */
         if (formatDb) {
             console.log(`deleting database "${name}"`);

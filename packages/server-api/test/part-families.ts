@@ -39,17 +39,17 @@ const PARTFAM_UPDATE = gql`
     ${PARTFAM_FIELDS}
 `;
 
-describe('GraphQL PartFamily', function() {
+describe('GraphQL PartFamily', function () {
     let users;
-    before('Create users', async function() {
+    before('Create users', async function () {
         users = await th.transacUsersAB();
     });
     after('Delete users', th.cleanTable('user'));
 
-    describe('Query', function() {
+    describe('Query', function () {
         let families;
-        before('Create part families', async function() {
-            families = await pool.transaction(async db => {
+        before('Create part families', async function () {
+            families = await pool.transaction(async (db) => {
                 return th.createPartFamilies(db, {
                     fam1: {
                         name: 'family 1',
@@ -66,12 +66,12 @@ describe('GraphQL PartFamily', function() {
                 });
             });
         });
-        after('Delete part families', async function() {
-            await pool.transaction(async db => dao.partFamily.deleteAll(db));
+        after('Delete part families', async function () {
+            await pool.transaction(async (db) => dao.partFamily.deleteAll(db));
         });
 
-        it('should read part families', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should read part families', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, ['partfamily.read']));
                 return query({
                     query: PARTFAM_READ,
@@ -88,8 +88,8 @@ describe('GraphQL PartFamily', function() {
             });
         });
 
-        it('should not read part families without "partfamily.read"', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should not read part families without "partfamily.read"', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: PARTFAM_READ,
@@ -104,13 +104,13 @@ describe('GraphQL PartFamily', function() {
         });
     });
 
-    describe('Mutate', function() {
-        afterEach('Delete part families', async function() {
-            await pool.transaction(async db => dao.partFamily.deleteAll(db));
+    describe('Mutate', function () {
+        afterEach('Delete part families', async function () {
+            await pool.transaction(async (db) => dao.partFamily.deleteAll(db));
         });
 
-        it('should create part family', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should create part family', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['partfamily.create', 'partfamily.read'])
@@ -133,8 +133,8 @@ describe('GraphQL PartFamily', function() {
             expect(data.partFamilyCreate.id).to.be.a(idType);
         });
 
-        it('should not create part family without "partfamily.create"', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should not create part family without "partfamily.create"', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { mutate } = buildGqlServer(db, permsAuth(users.a, ['partfamily.read']));
                 return mutate({
                     mutation: PARTFAM_CREATE,
@@ -151,14 +151,14 @@ describe('GraphQL PartFamily', function() {
             expect(data).to.be.null;
         });
 
-        it('should update part family', async function() {
-            const fam = await pool.transaction(async db => {
+        it('should update part family', async function () {
+            const fam = await pool.transaction(async (db) => {
                 return dao.partFamily.create(db, {
                     name: 'pf',
                     code: '111',
                 });
             });
-            const { errors, data } = await pool.connect(async db => {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['partfamily.update', 'partfamily.read'])
@@ -182,14 +182,14 @@ describe('GraphQL PartFamily', function() {
             });
         });
 
-        it('should not update part family without "partfamily.update"', async function() {
-            const fam = await pool.transaction(async db => {
+        it('should not update part family without "partfamily.update"', async function () {
+            const fam = await pool.transaction(async (db) => {
                 return dao.partFamily.create(db, {
                     name: 'pf',
                     code: '111',
                 });
             });
-            const { errors, data } = await pool.connect(async db => {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { mutate } = buildGqlServer(db, permsAuth(users.a, ['partfamily.read']));
                 return mutate({
                     mutation: PARTFAM_UPDATE,

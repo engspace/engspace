@@ -61,7 +61,7 @@ function reorderWithIdsAndMap<Row extends HasRowId, OutT extends HasId>(
     ids: readonly Id[],
     func: (inp: Row) => OutT
 ): OutT[] {
-    return ids.map(id => func(rows.find(o => toId(o.id) === id)));
+    return ids.map((id) => func(rows.find((o) => toId(o.id) === id)));
 }
 
 export interface DaoBaseConfig<T extends HasId, R extends HasRowId> {

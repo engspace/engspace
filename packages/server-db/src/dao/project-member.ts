@@ -59,7 +59,7 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
             SELECT ${rowToken} FROM project_member
             WHERE project_id = ${projectId}
         `);
-        return rows.map(r => mapRow(r));
+        return rows.map((r) => mapRow(r));
     }
 
     /**
@@ -71,7 +71,7 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
             SELECT ${rowToken} FROM project_member
             WHERE user_id = ${userId}
         `);
-        return rows.map(r => mapRow(r));
+        return rows.map((r) => mapRow(r));
     }
 
     /**
@@ -165,7 +165,7 @@ async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
         INSERT INTO project_member_role(
             member_id, role
         ) VALUES ${sql.join(
-            roles.map(role => sql`(${id}, ${role})`),
+            roles.map((role) => sql`(${id}, ${role})`),
             sql`, `
         )}
         RETURNING role

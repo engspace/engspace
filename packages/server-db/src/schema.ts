@@ -25,8 +25,8 @@ async function executeSqlFile(db: Db, sqlFile: string): Promise<void> {
     const commands = sqlContent
         .toString()
         .split(';')
-        .map(c => c.trim())
-        .filter(c => c.length > 0);
+        .map((c) => c.trim())
+        .filter((c) => c.length > 0);
     for (const c of commands) {
         await executeSql(db, c);
     }
@@ -34,8 +34,8 @@ async function executeSqlFile(db: Db, sqlFile: string): Promise<void> {
 
 async function executeSqlFolder(db: Db, sqlFolder: string): Promise<void> {
     const sqlFiles = (await fs.promises.readdir(sqlFolder))
-        .filter(p => p.toLowerCase().endsWith('.sql'))
-        .map(p => path.join(sqlFolder, p));
+        .filter((p) => p.toLowerCase().endsWith('.sql'))
+        .map((p) => path.join(sqlFolder, p));
     for (const sqlFile of sqlFiles) {
         const sqlContent = await fs.promises.readFile(sqlFile);
         await executeSql(db, sqlContent.toString());
@@ -61,7 +61,7 @@ export async function insertEnum(db: Db, en: string[], table: EnumTable): Promis
             ${sql.identifier([table.key ?? 'id'])}
         )
         VALUES ${sql.join(
-            en.map(e => sql`(${e})`),
+            en.map((e) => sql`(${e})`),
             sql`, `
         )}
     `);

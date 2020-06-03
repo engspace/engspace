@@ -20,7 +20,7 @@ import { Db, DbPool } from '@engspace/server-db';
 import { dao } from '.';
 
 export async function createDemoUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
-    return asyncKeyMap(users, async u => dao.user.create(db, u));
+    return asyncKeyMap(users, async (u) => dao.user.create(db, u));
 }
 
 export async function createDemoLogins(db: Db, users: Promise<DemoUserSet>): Promise<void> {
@@ -34,7 +34,7 @@ export async function createDemoProjects(
     db: Db,
     projs: DemoProjectInputSet
 ): Promise<DemoProjectSet> {
-    return asyncKeyMap(projs, async p => dao.project.create(db, p));
+    return asyncKeyMap(projs, async (p) => dao.project.create(db, p));
 }
 
 export async function createDemoMembers(
@@ -44,7 +44,7 @@ export async function createDemoMembers(
 ): Promise<ProjectMember[]> {
     const [projs, usrs] = await Promise.all([projects, users]);
     return Promise.all(
-        membersInput.map(m =>
+        membersInput.map((m) =>
             dao.projectMember.create(db, {
                 projectId: projs[m.project].id,
                 userId: usrs[m.user].id,
@@ -58,7 +58,7 @@ export async function createDemoPartFamilies(
     db: Db,
     input: DemoPartFamilyInputSet
 ): Promise<DemoPartFamilySet> {
-    return asyncKeyMap(input, async pf => dao.partFamily.create(db, pf));
+    return asyncKeyMap(input, async (pf) => dao.partFamily.create(db, pf));
 }
 
 async function createDocument(
@@ -88,12 +88,12 @@ export async function createDemoDocuments(
     storePath: string
 ): Promise<Document[]> {
     await prepareStore(storePath);
-    return Promise.all(documentInput.map(di => createDocument(db, di, users, storePath)));
+    return Promise.all(documentInput.map((di) => createDocument(db, di, users, storePath)));
 }
 
 export async function populateData(pool: DbPool, storePath: string): Promise<void> {
     try {
-        await pool.connect(async db => {
+        await pool.connect(async (db) => {
             const users = createDemoUsers(db, prepareUsers());
             const projects = createDemoProjects(db, prepareProjects());
             await Promise.all([

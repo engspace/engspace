@@ -5,13 +5,13 @@ import { buildGqlServer, pool, th } from '.';
 import { permsAuth } from './auth';
 import { CHANGEREQ_DEEPFIELDS } from './helpers';
 
-describe('GraphQL ChangeRequest - Queries', function() {
+describe('GraphQL ChangeRequest - Queries', function () {
     let users;
     let fam;
     let parts;
     let req;
-    before(async function() {
-        return pool.transaction(async db => {
+    before(async function () {
+        return pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
             fam = await th.createPartFamily(db);
             parts = {
@@ -72,7 +72,7 @@ describe('GraphQL ChangeRequest - Queries', function() {
             { withDeps: true }
         )
     );
-    describe('changeRequest', function() {
+    describe('changeRequest', function () {
         const CHANGEREQ_READ = gql`
             query ReadChangeReq($id: ID!) {
                 changeRequest(id: $id) {
@@ -82,8 +82,8 @@ describe('GraphQL ChangeRequest - Queries', function() {
             ${CHANGEREQ_DEEPFIELDS}
         `;
 
-        it('should read a ChangeRequest', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should read a ChangeRequest', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['change.read', 'part.read', 'partfamily.read', 'user.read'])
@@ -145,8 +145,8 @@ describe('GraphQL ChangeRequest - Queries', function() {
             });
         });
 
-        it('should not read a ChangeRequest without "change.read"', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should not read a ChangeRequest without "change.read"', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['part.read', 'partfamily.read', 'user.read'])

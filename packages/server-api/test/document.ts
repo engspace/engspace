@@ -67,9 +67,9 @@ const DOC_DISCARD_CHECKOUT = gql`
     ${DOC_FIELDS}
 `;
 
-describe('GraphQL documents', function() {
+describe('GraphQL documents', function () {
     let users;
-    before('Create users', async function() {
+    before('Create users', async function () {
         users = await th.transacUsers({
             a: { name: 'a' },
             b: { name: 'b' },
@@ -80,10 +80,10 @@ describe('GraphQL documents', function() {
 
     after('Delete users', th.cleanTable('user'));
 
-    describe('Query', function() {
+    describe('Query', function () {
         let docs;
-        before('Create documents', async function() {
-            docs = await pool.transaction(async db => {
+        before('Create documents', async function () {
+            docs = await pool.transaction(async (db) => {
                 return {
                     a: await th.createDoc(db, users.a, {
                         name: 'a',
@@ -106,8 +106,8 @@ describe('GraphQL documents', function() {
         });
         after('Delete documents', th.cleanTable('document'));
 
-        it('should read a document with "document.read"', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should read a document with "document.read"', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['document.read', 'user.read'])
@@ -123,8 +123,8 @@ describe('GraphQL documents', function() {
             expect(data).to.be.an('object');
             expect(data.document).to.deep.include(docs.b);
         });
-        it('should not read a document without "document.read"', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should not read a document without "document.read"', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
                 return query({
                     query: DOC_READ,
@@ -137,8 +137,8 @@ describe('GraphQL documents', function() {
             expect(data).to.be.an('object');
             expect(data.document).to.be.null;
         });
-        it('should search documents with "document.read"', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should search documents with "document.read"', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['document.read', 'user.read'])
@@ -157,8 +157,8 @@ describe('GraphQL documents', function() {
                 documents: [docs.b],
             });
         });
-        it('should search documents with pagination', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should search documents with pagination', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['document.read', 'user.read'])
@@ -177,12 +177,10 @@ describe('GraphQL documents', function() {
             expect(data.documentSearch).to.deep.include({
                 count: 4,
             });
-            expect(data.documentSearch.documents)
-                .to.be.an('array')
-                .with.lengthOf(2);
+            expect(data.documentSearch.documents).to.be.an('array').with.lengthOf(2);
         });
-        it('should not search documents without "document.read"', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should not search documents without "document.read"', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
                 return query({
                     query: DOC_SEARCH,
@@ -195,16 +193,16 @@ describe('GraphQL documents', function() {
             expect(data).to.be.null;
         });
     });
-    describe('Mutation', function() {
+    describe('Mutation', function () {
         const msBefore = Date.now();
 
-        afterEach('Delete documents', async function() {
-            await pool.transaction(async db => dao.document.deleteAll(db));
+        afterEach('Delete documents', async function () {
+            await pool.transaction(async (db) => dao.document.deleteAll(db));
         });
 
-        describe('Create', function() {
-            it('should create a document with "document.create"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+        describe('Create', function () {
+            it('should create a document with "document.create"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, ['document.create', 'document.read', 'user.read'])
@@ -233,8 +231,8 @@ describe('GraphQL documents', function() {
                     .to.be.at.least(msBefore)
                     .and.at.most(Date.now());
             });
-            it('should create a document without initial checkout', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should create a document without initial checkout', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, ['document.create', 'document.read', 'user.read'])
@@ -263,8 +261,8 @@ describe('GraphQL documents', function() {
                     .to.be.at.least(msBefore)
                     .and.at.most(Date.now());
             });
-            it('should not create a document without "document.create"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should not create a document without "document.create"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, ['document.read', 'user.read'])
@@ -286,9 +284,9 @@ describe('GraphQL documents', function() {
             });
         });
 
-        describe('Checkout', function() {
-            it('should checkout a free document with "document.revise"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+        describe('Checkout', function () {
+            it('should checkout a free document with "document.revise"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
@@ -315,8 +313,8 @@ describe('GraphQL documents', function() {
                     checkout: { id: users.b.id },
                 });
             });
-            it('should not checkout a free document without "document.revise"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should not checkout a free document without "document.revise"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
@@ -337,8 +335,8 @@ describe('GraphQL documents', function() {
                 expect(errors).to.be.an('array').not.empty;
                 expect(data).to.be.null;
             });
-            it('should not checkout a busy document', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should not checkout a busy document', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
@@ -360,8 +358,8 @@ describe('GraphQL documents', function() {
                 expect(errors[0].message).to.contain(users.a.fullName);
                 expect(data).to.be.null;
             });
-            it('should not checkout with wrong revision', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should not checkout with wrong revision', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
@@ -384,9 +382,9 @@ describe('GraphQL documents', function() {
             });
         });
 
-        describe('Discard checkout', function() {
-            it('should discard a used document with "document.revise"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+        describe('Discard checkout', function () {
+            it('should discard a used document with "document.revise"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
@@ -413,8 +411,8 @@ describe('GraphQL documents', function() {
                 });
             });
 
-            it('should not discard a used document without "document.revise"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should not discard a used document without "document.revise"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',
@@ -435,8 +433,8 @@ describe('GraphQL documents', function() {
                 expect(data).to.be.null;
             });
 
-            it('should not discard a document used by another user', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should not discard a document used by another user', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const doc = await th.createDoc(db, users.a, {
                         name: 'a',
                         description: 'doc A',

@@ -79,6 +79,6 @@ export class ChangePartChangeDao extends DaoBase<ChangePartChange, Row> {
             FROM change_part_change
             WHERE request_id = ${requestId}
         `);
-        return rows?.map(r => mapRow(r));
+        return rows?.map((r) => mapRow(r));
     }
 }

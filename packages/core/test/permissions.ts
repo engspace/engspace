@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { buildDefaultAppRolePolicies, buildRolePolicy, UnknownRoleError } from '../src';
 
-describe('Permissions', function() {
-    describe('RolePolicy', function() {
+describe('Permissions', function () {
+    describe('RolePolicy', function () {
         const policies = buildRolePolicy({
             role1: {
                 permissions: ['perm1.1', 'perm1.2', 'perm1.3'],
@@ -15,22 +15,22 @@ describe('Permissions', function() {
                 permissions: ['perm3.1', 'perm3.2', 'perm3.3'],
             },
         });
-        it('should return all roles', function() {
+        it('should return all roles', function () {
             const roles = policies.allRoles();
             expect(roles).to.have.members(['role1', 'role2', 'role3']);
         });
 
-        it('should return empty perms if no role', function() {
+        it('should return empty perms if no role', function () {
             const perms = policies.permissions([]);
             expect(perms).to.have.members([]);
         });
 
-        it('should return simple perms', function() {
+        it('should return simple perms', function () {
             const perms = policies.permissions(['role1']);
             expect(perms).to.have.members(['perm1.1', 'perm1.2', 'perm1.3']);
         });
 
-        it('should return compound perms', function() {
+        it('should return compound perms', function () {
             const perms = policies.permissions(['role1', 'role2']);
             expect(perms).to.have.members([
                 'perm1.1',
@@ -42,7 +42,7 @@ describe('Permissions', function() {
             ]);
         });
 
-        it('should return inherited perms', function() {
+        it('should return inherited perms', function () {
             const perms = policies.permissions(['role3']);
             expect(perms).to.have.members([
                 'perm1.1',
@@ -54,7 +54,7 @@ describe('Permissions', function() {
             ]);
         });
 
-        it('should return compound and inherited perms', function() {
+        it('should return compound and inherited perms', function () {
             const perms = policies.permissions(['role2', 'role3']);
             expect(perms).to.have.members([
                 'perm1.1',
@@ -69,7 +69,7 @@ describe('Permissions', function() {
             ]);
         });
 
-        it('should not return doubled inherited perms', function() {
+        it('should not return doubled inherited perms', function () {
             const perms = policies.permissions(['role1', 'role2', 'role3']);
             expect(perms).to.have.members([
                 'perm1.1',
@@ -84,19 +84,19 @@ describe('Permissions', function() {
             ]);
         });
 
-        it('should not return doubled perms if doubled roles', function() {
+        it('should not return doubled perms if doubled roles', function () {
             const perms = policies.permissions(['role1', 'role1']);
             expect(perms).to.have.members(['perm1.1', 'perm1.2', 'perm1.3']);
         });
 
-        it('should throw if unknown role', function() {
+        it('should throw if unknown role', function () {
             function bad(): string[] {
                 return policies.permissions(['unknown']);
             }
             expect(bad).to.throw(UnknownRoleError);
         });
 
-        it('should throw if unknown role in list', function() {
+        it('should throw if unknown role in list', function () {
             function bad(): string[] {
                 return policies.permissions(['role1', 'unknown']);
             }

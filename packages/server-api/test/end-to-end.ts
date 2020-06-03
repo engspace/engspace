@@ -8,10 +8,10 @@ import { PROJECT_CREATE, PROJECT_READ, PROJECT_UPDATE } from './project';
 
 const { serverPort } = config;
 
-describe('End to end GraphQL', function() {
+describe('End to end GraphQL', function () {
     let userA;
 
-    before('Create users', async function() {
+    before('Create users', async function () {
         userA = await th.transacUser({ name: 'a' });
     });
 
@@ -19,14 +19,14 @@ describe('End to end GraphQL', function() {
 
     let server;
 
-    before('Start server', done => {
+    before('Start server', (done) => {
         server = api.koa.listen(serverPort, done);
     });
 
-    describe('General', function() {
+    describe('General', function () {
         afterEach(th.cleanTable('project'));
 
-        it('should return 404 if unmatched resource', async function() {
+        it('should return 404 if unmatched resource', async function () {
             const token = await bearerToken(permsAuth(userA, ['project.read']));
             const resp = await request(server)
                 .get('/not_a_resource')
@@ -34,12 +34,12 @@ describe('End to end GraphQL', function() {
             expect(resp).to.have.status(404);
         });
 
-        it('should return 401 if unmatched resource without auth', async function() {
+        it('should return 401 if unmatched resource without auth', async function () {
             const resp = await request(server).get('/not_a_resource');
             expect(resp).to.have.status(401);
         });
 
-        it('confirms token', async function() {
+        it('confirms token', async function () {
             const token = await bearerToken(permsAuth(userA, []));
             const resp = await request(server)
                 .get('/api/check_token')
@@ -47,8 +47,8 @@ describe('End to end GraphQL', function() {
             expect(resp).to.have.status(200);
         });
 
-        it('GraphQL may not use PATCH and get 405', async function() {
-            const proj = await pool.transaction(async db => {
+        it('GraphQL may not use PATCH and get 405', async function () {
+            const proj = await pool.transaction(async (db) => {
                 return dao.project.create(db, {
                     name: 'a',
                     code: 'b',
@@ -73,8 +73,8 @@ describe('End to end GraphQL', function() {
             expect(resp).to.have.status(405);
         });
 
-        it('GraphQL may not use PUT and get 405', async function() {
-            const proj = await pool.transaction(async db => {
+        it('GraphQL may not use PUT and get 405', async function () {
+            const proj = await pool.transaction(async (db) => {
                 return dao.project.create(db, {
                     name: 'a',
                     code: 'b',
@@ -99,8 +99,8 @@ describe('End to end GraphQL', function() {
             expect(resp).to.have.status(405);
         });
 
-        it('GraphQL may not use DELETE and get 405', async function() {
-            const mem = await pool.transaction(async db => {
+        it('GraphQL may not use DELETE and get 405', async function () {
+            const mem = await pool.transaction(async (db) => {
                 const proj = await dao.project.create(db, {
                     name: 'a',
                     code: 'b',
@@ -128,16 +128,16 @@ describe('End to end GraphQL', function() {
         });
     });
 
-    describe('Query / GET', function() {
+    describe('Query / GET', function () {
         let projectA;
 
-        before('Create projects', async function() {
+        before('Create projects', async function () {
             projectA = await th.transacProject({ code: 'a' });
         });
 
         after(th.cleanTable('project'));
 
-        it('read project values with GET', async function() {
+        it('read project values with GET', async function () {
             const token = await bearerToken(permsAuth(userA, ['project.read']));
             const resp = await request(server)
                 .get('/api/graphql')
@@ -158,7 +158,7 @@ describe('End to end GraphQL', function() {
             });
         });
 
-        it('also works without "Bearer" keyword"', async function() {
+        it('also works without "Bearer" keyword"', async function () {
             const token = await bearerToken(permsAuth(userA, ['project.read']));
             const resp = await request(server)
                 .get('/api/graphql')
@@ -179,7 +179,7 @@ describe('End to end GraphQL', function() {
             });
         });
 
-        it('returns 400 in case of wrong query', async function() {
+        it('returns 400 in case of wrong query', async function () {
             const token = await bearerToken(permsAuth(userA, ['project.read']));
             const resp = await request(server)
                 .get('/api/graphql')
@@ -190,7 +190,7 @@ describe('End to end GraphQL', function() {
             expect(resp).to.have.status(400);
         });
 
-        it('returns 200 and error if missing permission', async function() {
+        it('returns 200 and error if missing permission', async function () {
             const token = await bearerToken(permsAuth(userA, []));
             const resp = await request(server)
                 .get('/api/graphql')
@@ -210,7 +210,7 @@ describe('End to end GraphQL', function() {
             expect(data.project).to.be.null;
         });
 
-        it('returns 401 if no auth', async function() {
+        it('returns 401 if no auth', async function () {
             const resp = await request(server)
                 .get('/api/graphql')
                 .query({
@@ -222,7 +222,7 @@ describe('End to end GraphQL', function() {
             expect(resp).to.have.status(401);
         });
 
-        it('returns 403 if false token', async function() {
+        it('returns 403 if false token', async function () {
             const auth = permsAuth(userA, ['project.read']);
             const token = signJwt(auth, 'false secret', { expiresIn: '12H' });
             const resp = await request(server)
@@ -238,8 +238,8 @@ describe('End to end GraphQL', function() {
         });
     });
 
-    describe('Mutation / POST', function() {
-        it('should create a project', async function() {
+    describe('Mutation / POST', function () {
+        it('should create a project', async function () {
             const token = await bearerToken(permsAuth(userA, ['project.read', 'project.create']));
             const resp = await request(server)
                 .post('/api/graphql')
@@ -266,7 +266,7 @@ describe('End to end GraphQL', function() {
             });
         });
 
-        it('should return 400 if wrong query', async function() {
+        it('should return 400 if wrong query', async function () {
             const token = await bearerToken(permsAuth(userA, ['project.read', 'project.create']));
             const resp = await request(server)
                 .post('/api/graphql')
@@ -277,7 +277,7 @@ describe('End to end GraphQL', function() {
             expect(resp).to.have.status(400);
         });
 
-        it('should return 200 and error if missing permission', async function() {
+        it('should return 200 and error if missing permission', async function () {
             const token = await bearerToken(permsAuth(userA, []));
             const resp = await request(server)
                 .post('/api/graphql')
@@ -300,7 +300,7 @@ describe('End to end GraphQL', function() {
             expect(data).to.be.null;
         });
 
-        it('should return 401 if no auth', async function() {
+        it('should return 401 if no auth', async function () {
             const resp = await request(server)
                 .post('/api/graphql')
                 .send({

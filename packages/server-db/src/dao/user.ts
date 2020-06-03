@@ -33,7 +33,7 @@ async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
             INSERT INTO user_role(
                 user_id, role
             ) VALUES ${sql.join(
-                roles.map(role => sql`(${id}, ${role})`),
+                roles.map((role) => sql`(${id}, ${role})`),
                 sql`, `
             )}
             RETURNING role
@@ -154,7 +154,7 @@ export class UserDao extends DaoBase<User, Row> {
                 WHERE ${whereToken}
             `)) as number;
         }
-        return { count, users: rows.map(r => mapRow(r)) };
+        return { count, users: rows.map((r) => mapRow(r)) };
     }
 
     async rolesById(db: Db, id: Id): Promise<string[]> {

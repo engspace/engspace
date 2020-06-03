@@ -2,7 +2,7 @@ import { CharIterator } from './util';
 import { VersionFormat } from './version-format';
 
 export class BadRefNamingFormatError extends Error {
-    constructor(message) {
+    constructor(message: string) {
         super(message);
         this.name = 'BadRefNamingFormatError';
         Error.captureStackTrace(this, BadRefNamingFormatError);
@@ -10,7 +10,7 @@ export class BadRefNamingFormatError extends Error {
 }
 
 export class RefNameFormatMismatchError extends Error {
-    constructor(message) {
+    constructor(message: string) {
         super(message);
         this.name = 'RefNameFormatMismatchError';
         Error.captureStackTrace(this, RefNameFormatMismatchError);
@@ -18,7 +18,7 @@ export class RefNameFormatMismatchError extends Error {
 }
 
 export class FamilyCounterLimitError extends Error {
-    constructor(message) {
+    constructor(message: string) {
         super(message);
         this.name = 'FamilyCounterLimitError';
         Error.captureStackTrace(this, FamilyCounterLimitError);
@@ -145,14 +145,16 @@ export class PartRefNaming {
             'fam_count',
             'part_version',
         ]);
-        if (this.tokens.filter(t => t.kind === Kind.Var && t.ident === 'fam_code').length !== 1) {
+        if (this.tokens.filter((t) => t.kind === Kind.Var && t.ident === 'fam_code').length !== 1) {
             throw new BadRefNamingFormatError('Missing variable: "fam_code"');
         }
-        if (this.tokens.filter(t => t.kind === Kind.Var && t.ident === 'fam_count').length !== 1) {
+        if (
+            this.tokens.filter((t) => t.kind === Kind.Var && t.ident === 'fam_count').length !== 1
+        ) {
             throw new BadRefNamingFormatError('Missing variable: "fam_count"');
         }
         const partVersionToks = this.tokens.filter(
-            t => t.kind === Kind.Var && t.ident === 'part_version'
+            (t) => t.kind === Kind.Var && t.ident === 'part_version'
         ) as PartVersionToken[];
         if (partVersionToks.length !== 1) {
             throw new BadRefNamingFormatError('Missing variable: "part_version"');

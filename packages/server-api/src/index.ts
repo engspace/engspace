@@ -92,7 +92,7 @@ export class EsServerApi {
 
     setupPostAuthHttpRoutes(prefix: string): void {
         const router = new Router({ prefix });
-        router.get('/check_token', async ctx => {
+        router.get('/check_token', async (ctx) => {
             ctx.status = HttpStatus.OK;
         });
         setupPostAuthDocRoutes(router, this.config);

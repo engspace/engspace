@@ -52,11 +52,11 @@ const PARTVAL_DEEPFIELDS = gql`
     ${TRACKED_FIELDS}
 `;
 
-describe('GraphQL Part - Mutations', function() {
+describe('GraphQL Part - Mutations', function () {
     let users: Dict<User>;
     let family;
-    before('create res', async function() {
-        return pool.transaction(async db => {
+    before('create res', async function () {
+        return pool.transaction(async (db) => {
             users = await th.createUsers(db, {
                 a: { name: 'a' },
                 b: { name: 'b' },
@@ -72,7 +72,7 @@ describe('GraphQL Part - Mutations', function() {
     afterEach(th.cleanTables(['part_revision', 'part']));
     afterEach(th.resetFamilyCounters());
 
-    describe('partCreate', function() {
+    describe('partCreate', function () {
         const PART_CREATENEW = gql`
             mutation CreateNewPart($input: PartCreateInput!) {
                 partCreate(input: $input) {
@@ -82,8 +82,8 @@ describe('GraphQL Part - Mutations', function() {
             ${PARTREV_DEEPFIELDS}
         `;
 
-        it('should create a new Part', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should create a new Part', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
@@ -114,8 +114,8 @@ describe('GraphQL Part - Mutations', function() {
             });
         });
 
-        it('should not create a new Part without "part.create"', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should not create a new Part without "part.create"', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['part.read', 'partfamily.read', 'user.read'])
@@ -134,7 +134,7 @@ describe('GraphQL Part - Mutations', function() {
             expect(errors).to.be.not.empty;
             expect(errors[0].message).to.contain('part.create');
             expect(data).to.be.null;
-            const counts = await pool.transaction(async db => {
+            const counts = await pool.transaction(async (db) => {
                 return [
                     await dao.part.rowCount(db),
                     await dao.partRevision.rowCount(db),
@@ -145,7 +145,7 @@ describe('GraphQL Part - Mutations', function() {
         });
     });
 
-    describe('partFork', function() {
+    describe('partFork', function () {
         const PART_FORK = gql`
             mutation ForkPart($input: PartForkInput!) {
                 partFork(input: $input) {
@@ -157,8 +157,8 @@ describe('GraphQL Part - Mutations', function() {
 
         let part;
         let partRev;
-        beforeEach(function() {
-            return pool.transaction(async db => {
+        beforeEach(function () {
+            return pool.transaction(async (db) => {
                 part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
@@ -169,8 +169,8 @@ describe('GraphQL Part - Mutations', function() {
         this.afterEach(th.cleanTables(['part_revision', 'part']));
         this.afterEach(th.resetFamilyCounters());
 
-        it('should create a fork of a part', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should create a fork of a part', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
@@ -204,8 +204,8 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partFork.part.id).to.not.equal(part.id);
         });
 
-        it('should create a fork of a part with new designation', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should create a fork of a part with new designation', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
@@ -240,8 +240,8 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partFork.part.id).to.not.equal(part.id);
         });
 
-        it('should create a fork of a part with specified version', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should create a fork of a part with specified version', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
@@ -276,8 +276,8 @@ describe('GraphQL Part - Mutations', function() {
             expect(data.partFork.part.id).to.not.equal(part.id);
         });
 
-        it('should not create a fork without "part.create"', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should not create a fork without "part.create"', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.b, ['part.read', 'partfamily.read', 'user.read'])
@@ -298,7 +298,7 @@ describe('GraphQL Part - Mutations', function() {
         });
     });
 
-    describe('partUpdate', function() {
+    describe('partUpdate', function () {
         const PART_UPDATE = gql`
             mutation UpdatePart($id: ID!, $input: PartUpdateInput!) {
                 partUpdate(id: $id, input: $input) {
@@ -315,8 +315,8 @@ describe('GraphQL Part - Mutations', function() {
         `;
 
         let part;
-        beforeEach(function() {
-            return pool.transaction(async db => {
+        beforeEach(function () {
+            return pool.transaction(async (db) => {
                 part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
@@ -326,9 +326,9 @@ describe('GraphQL Part - Mutations', function() {
         this.afterEach(th.cleanTables(['part']));
         this.afterEach(th.resetFamilyCounters());
 
-        it('should update a Part', async function() {
+        it('should update a Part', async function () {
             const bef2 = Date.now();
-            const { errors, data } = await pool.transaction(async db => {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.b, ['part.update', 'part.read', 'partfamily.read', 'user.read'])
@@ -352,14 +352,12 @@ describe('GraphQL Part - Mutations', function() {
                 ...trackedBy(users.a, users.b),
                 createdAt: part.createdAt,
             });
-            expect(data.partUpdate.updatedAt)
-                .to.be.gt(bef2)
-                .and.lt(aft2);
+            expect(data.partUpdate.updatedAt).to.be.gt(bef2).and.lt(aft2);
             expect(data.partUpdate.updatedAt).to.be.gt(data.partUpdate.createdAt);
         });
 
-        it('should not update a Part without "part.update"', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should not update a Part without "part.update"', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.b, ['part.read', 'partfamily.read', 'user.read'])
@@ -380,7 +378,7 @@ describe('GraphQL Part - Mutations', function() {
         });
     });
 
-    describe('partRevise', function() {
+    describe('partRevise', function () {
         const PART_REVISE = gql`
             mutation RevisePart($input: PartRevisionInput!) {
                 partRevise(input: $input) {
@@ -392,8 +390,8 @@ describe('GraphQL Part - Mutations', function() {
 
         let part;
         let partRev;
-        beforeEach(function() {
-            return pool.transaction(async db => {
+        beforeEach(function () {
+            return pool.transaction(async (db) => {
                 part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
@@ -405,8 +403,8 @@ describe('GraphQL Part - Mutations', function() {
         this.afterEach(th.cleanTables(['part_revision', 'part']));
         this.afterEach(th.resetFamilyCounters());
 
-        it('should revise a part', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should revise a part', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
@@ -439,8 +437,8 @@ describe('GraphQL Part - Mutations', function() {
             });
         });
 
-        it('should revise a part with specific designation', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should revise a part with specific designation', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
@@ -474,8 +472,8 @@ describe('GraphQL Part - Mutations', function() {
             });
         });
 
-        it('should not revise a part without "part.create"', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should not revise a part without "part.create"', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.b, ['part.read', 'partfamily.read', 'user.read'])
@@ -495,11 +493,11 @@ describe('GraphQL Part - Mutations', function() {
             expect(data).to.be.null;
         });
 
-        it('should not revise a part if previous is edition', async function() {
-            await pool.transaction(async db => {
+        it('should not revise a part if previous is edition', async function () {
+            await pool.transaction(async (db) => {
                 return dao.partRevision.updateCycleState(db, partRev.id, PartCycle.Edition);
             });
-            const { errors, data } = await pool.transaction(async db => {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
@@ -517,7 +515,7 @@ describe('GraphQL Part - Mutations', function() {
         });
     });
 
-    describe('partStartValidation', function() {
+    describe('partStartValidation', function () {
         const PART_STARTVAL = gql`
             mutation StartPartVal($input: PartValidationInput!) {
                 partStartValidation(input: $input) {
@@ -528,8 +526,8 @@ describe('GraphQL Part - Mutations', function() {
         `;
         let part;
         let partRev;
-        beforeEach(function() {
-            return pool.transaction(async db => {
+        beforeEach(function () {
+            return pool.transaction(async (db) => {
                 part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
@@ -542,8 +540,8 @@ describe('GraphQL Part - Mutations', function() {
         );
         this.afterEach(th.resetFamilyCounters());
 
-        it('should start a validation', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should start a validation', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['partval.create', 'partval.read', 'part.read', 'user.read'])
@@ -553,7 +551,7 @@ describe('GraphQL Part - Mutations', function() {
                     variables: {
                         input: {
                             partRevId: partRev.id,
-                            requiredApprovals: Object.values(users).map(u => ({
+                            requiredApprovals: Object.values(users).map((u) => ({
                                 assigneeId: u.id,
                             })),
                         },
@@ -573,9 +571,7 @@ describe('GraphQL Part - Mutations', function() {
                 ...trackedBy(users.a),
             });
             expect(data.partStartValidation.id).to.be.a(idType);
-            expect(data.partStartValidation.approvals)
-                .to.be.an('array')
-                .with.lengthOf(5);
+            expect(data.partStartValidation.approvals).to.be.an('array').with.lengthOf(5);
             const approvals = data.partStartValidation.approvals.sort((a, b) =>
                 a.assignee.name < b.assignee.name ? -1 : 1
             );
@@ -595,8 +591,8 @@ describe('GraphQL Part - Mutations', function() {
             }
         });
 
-        it('should not start a validation without "partval.create"', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should not start a validation without "partval.create"', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['partval.read', 'part.read', 'user.read'])
@@ -606,7 +602,7 @@ describe('GraphQL Part - Mutations', function() {
                     variables: {
                         input: {
                             partRevId: partRev.id,
-                            requiredApprovals: Object.values(users).map(u => ({
+                            requiredApprovals: Object.values(users).map((u) => ({
                                 assigneeId: u.id,
                             })),
                         },
@@ -618,11 +614,11 @@ describe('GraphQL Part - Mutations', function() {
             expect(data).to.be.null;
         });
 
-        it('should not start a validation of a part that is not in edition mode', async function() {
-            await pool.transaction(async db => {
+        it('should not start a validation of a part that is not in edition mode', async function () {
+            await pool.transaction(async (db) => {
                 return dao.partRevision.updateCycleState(db, partRev.id, PartCycle.Release);
             });
-            const { errors, data } = await pool.transaction(async db => {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['partval.create', 'partval.read', 'part.read', 'user.read'])
@@ -632,7 +628,7 @@ describe('GraphQL Part - Mutations', function() {
                     variables: {
                         input: {
                             partRevId: partRev.id,
-                            requiredApprovals: Object.values(users).map(u => ({
+                            requiredApprovals: Object.values(users).map((u) => ({
                                 assigneeId: u.id,
                             })),
                         },
@@ -645,7 +641,7 @@ describe('GraphQL Part - Mutations', function() {
         });
     });
 
-    describe('partUpdateApproval', async function() {
+    describe('partUpdateApproval', async function () {
         const PARTAPPR_UPDATE = gql`
             mutation UpdatePartAppr($id: ID!, $input: PartApprovalUpdateInput!) {
                 partUpdateApproval(id: $id, input: $input) {
@@ -666,8 +662,8 @@ describe('GraphQL Part - Mutations', function() {
         let partRev;
         let partVal;
         let partApprs;
-        beforeEach(function() {
-            return pool.transaction(async db => {
+        beforeEach(function () {
+            return pool.transaction(async (db) => {
                 part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
@@ -682,8 +678,8 @@ describe('GraphQL Part - Mutations', function() {
         );
         this.afterEach(th.resetFamilyCounters());
 
-        it('should update a part approval', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should update a part approval', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.b, ['partval.read', 'part.read', 'user.read'])
@@ -712,8 +708,8 @@ describe('GraphQL Part - Mutations', function() {
             });
         });
 
-        it('should update a part approval with comments', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should update a part approval with comments', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.b, ['partval.read', 'part.read', 'user.read'])
@@ -743,8 +739,8 @@ describe('GraphQL Part - Mutations', function() {
             });
         });
 
-        it('should not update someone else part approval', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should not update someone else part approval', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['partval.update', 'partval.read', 'part.read', 'user.read'])
@@ -764,8 +760,8 @@ describe('GraphQL Part - Mutations', function() {
             expect(data).to.be.null;
         });
 
-        it('rejecting a part approval should reject validation', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('rejecting a part approval should reject validation', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.b, ['partval.read', 'part.read', 'user.read'])
@@ -794,8 +790,8 @@ describe('GraphQL Part - Mutations', function() {
             });
         });
 
-        it('all assignees approved should approve validation', async function() {
-            await pool.transaction(async db => {
+        it('all assignees approved should approve validation', async function () {
+            await pool.transaction(async (db) => {
                 return Promise.all([
                     dao.partApproval.update(db, partApprs.a.id, {
                         decision: ApprovalDecision.Approved,
@@ -815,7 +811,7 @@ describe('GraphQL Part - Mutations', function() {
                     }),
                 ]);
             });
-            const { errors, data } = await pool.transaction(async db => {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.e, ['partval.read', 'part.read', 'user.read'])
@@ -839,7 +835,7 @@ describe('GraphQL Part - Mutations', function() {
         });
     });
 
-    describe('partCloseValidation', function() {
+    describe('partCloseValidation', function () {
         const PARTVAL_CLOSE = gql`
             mutation ClosePartVal($id: ID!, $input: PartValidationCloseInput!) {
                 partCloseValidation(id: $id, input: $input) {
@@ -858,8 +854,8 @@ describe('GraphQL Part - Mutations', function() {
         let partRev;
         let partVal;
         let partApprs;
-        beforeEach(function() {
-            return pool.transaction(async db => {
+        beforeEach(function () {
+            return pool.transaction(async (db) => {
                 part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
@@ -875,7 +871,7 @@ describe('GraphQL Part - Mutations', function() {
         this.afterEach(th.resetFamilyCounters());
 
         async function setApprovals(apprs: ApprovalDecision[]): Promise<void> {
-            await pool.transaction(async db => {
+            await pool.transaction(async (db) => {
                 return Promise.all([
                     dao.partApproval.update(db, partApprs.a.id, {
                         decision: apprs[0],
@@ -901,9 +897,9 @@ describe('GraphQL Part - Mutations', function() {
             });
         }
 
-        it('should release a part if validation is approved', async function() {
+        it('should release a part if validation is approved', async function () {
             await setApprovals(new Array(5).fill(ApprovalDecision.Approved));
-            const { errors, data } = await pool.transaction(async db => {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['partval.update', 'partval.read', 'part.read', 'user.read'])
@@ -929,7 +925,7 @@ describe('GraphQL Part - Mutations', function() {
             });
         });
 
-        it('should not release with a pending validation', async function() {
+        it('should not release with a pending validation', async function () {
             await setApprovals([
                 ApprovalDecision.Approved,
                 ApprovalDecision.Pending,
@@ -937,7 +933,7 @@ describe('GraphQL Part - Mutations', function() {
                 ApprovalDecision.Approved,
                 ApprovalDecision.Approved,
             ]);
-            const { errors, data } = await pool.transaction(async db => {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['partval.update', 'partval.read', 'part.read', 'user.read'])
@@ -957,7 +953,7 @@ describe('GraphQL Part - Mutations', function() {
             expect(data).to.be.null;
         });
 
-        it('should not release with a rejected validation', async function() {
+        it('should not release with a rejected validation', async function () {
             await setApprovals([
                 ApprovalDecision.Approved,
                 ApprovalDecision.Rejected,
@@ -965,7 +961,7 @@ describe('GraphQL Part - Mutations', function() {
                 ApprovalDecision.Approved,
                 ApprovalDecision.Approved,
             ]);
-            const { errors, data } = await pool.transaction(async db => {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['partval.update', 'partval.read', 'part.read', 'user.read'])
@@ -985,7 +981,7 @@ describe('GraphQL Part - Mutations', function() {
             expect(data).to.be.null;
         });
 
-        it('should not close someone else validation', async function() {
+        it('should not close someone else validation', async function () {
             await setApprovals([
                 ApprovalDecision.Approved,
                 ApprovalDecision.Approved,
@@ -993,7 +989,7 @@ describe('GraphQL Part - Mutations', function() {
                 ApprovalDecision.Approved,
                 ApprovalDecision.Approved,
             ]);
-            const { errors, data } = await pool.transaction(async db => {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.b, ['partval.update', 'partval.read', 'part.read', 'user.read'])
@@ -1013,7 +1009,7 @@ describe('GraphQL Part - Mutations', function() {
             expect(data).to.be.null;
         });
 
-        it('should try-again whatever the status', async function() {
+        it('should try-again whatever the status', async function () {
             await setApprovals([
                 ApprovalDecision.Approved,
                 ApprovalDecision.Rejected,
@@ -1021,7 +1017,7 @@ describe('GraphQL Part - Mutations', function() {
                 ApprovalDecision.Approved,
                 ApprovalDecision.Approved,
             ]);
-            const { errors, data } = await pool.transaction(async db => {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['partval.update', 'partval.read', 'part.read', 'user.read'])
@@ -1047,7 +1043,7 @@ describe('GraphQL Part - Mutations', function() {
             });
         });
 
-        it('should cancel whatever the status', async function() {
+        it('should cancel whatever the status', async function () {
             await setApprovals([
                 ApprovalDecision.Approved,
                 ApprovalDecision.Rejected,
@@ -1055,7 +1051,7 @@ describe('GraphQL Part - Mutations', function() {
                 ApprovalDecision.Approved,
                 ApprovalDecision.Approved,
             ]);
-            const { errors, data } = await pool.transaction(async db => {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['partval.update', 'partval.read', 'part.read', 'user.read'])

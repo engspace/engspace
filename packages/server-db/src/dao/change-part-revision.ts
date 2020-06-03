@@ -68,6 +68,6 @@ export class ChangePartRevisionDao extends DaoBase<ChangePartRevision, Row> {
             SELECT ${rowToken} from change_part_revision
             WHERE request_id = ${requestId}
         `);
-        return rows?.map(r => mapRow(r));
+        return rows?.map((r) => mapRow(r));
     }
 }

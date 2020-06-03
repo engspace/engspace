@@ -6,8 +6,8 @@ describe('ProjectDao', () => {
     describe('create', () => {
         afterEach('clean up', th.cleanTable('project'));
 
-        it('should create project', async function() {
-            const proj = await pool.transaction(async db => {
+        it('should create project', async function () {
+            const proj = await pool.transaction(async (db) => {
                 return dao.project.create(db, {
                     code: 'a',
                     name: 'A',
@@ -34,18 +34,18 @@ describe('ProjectDao', () => {
         after('delete projects', th.cleanTable('project'));
 
         it('should find project by id', async () =>
-            pool.connect(async db => {
+            pool.connect(async (db) => {
                 const project = await dao.project.byId(db, projects.a.id);
                 expect(project).to.deep.include(projects.a);
             }));
 
         it('should find project by code', async () =>
-            pool.connect(async db => {
+            pool.connect(async (db) => {
                 const project = await dao.project.byCode(db, 'a');
                 expect(project).to.deep.include(projects.a);
             }));
         it('should get by ordered batch', async () => {
-            const projs = await pool.connect(db =>
+            const projs = await pool.connect((db) =>
                 dao.project.batchByIds(db, [projects.b.id, projects.a.id])
             );
             expect(projs).to.eql([projects.b, projects.a]);
@@ -62,8 +62,8 @@ describe('ProjectDao', () => {
         });
         after('delete projects', th.cleanTable('project'));
 
-        it('should find project by partial code', async function() {
-            const result = await pool.connect(async db => {
+        it('should find project by partial code', async function () {
+            const result = await pool.connect(async (db) => {
                 return dao.project.search(db, { phrase: 'ch' });
             });
             const expected = {
@@ -73,8 +73,8 @@ describe('ProjectDao', () => {
             expect(result).to.eql(expected);
         });
 
-        it('should find project with member name', async function() {
-            const result = await pool.transaction(async db => {
+        it('should find project with member name', async function () {
+            const result = await pool.transaction(async (db) => {
                 const user = await th.createUser(db, { name: 'user.a' });
                 await dao.projectMember.create(db, {
                     projectId: projects.chair.id,
@@ -90,37 +90,33 @@ describe('ProjectDao', () => {
             };
             expect(result).to.eql(expected);
 
-            await pool.transaction(async db => {
+            await pool.transaction(async (db) => {
                 await dao.projectMember.deleteAll(db);
                 return dao.user.deleteAll(db);
             });
         });
 
-        it('should paginate search', async function() {
-            const { res1, res2 } = await pool.connect(async db => {
+        it('should paginate search', async function () {
+            const { res1, res2 } = await pool.connect(async (db) => {
                 const res1 = await dao.project.search(db, { offset: 0, limit: 1 });
                 const res2 = await dao.project.search(db, { offset: 1, limit: 1 });
                 return { res1, res2 };
             });
             expect(res1.count).to.eql(2);
             expect(res2.count).to.eql(2);
-            expect(res1.projects)
-                .to.be.an('array')
-                .with.lengthOf(1);
-            expect(res2.projects)
-                .to.be.an('array')
-                .with.lengthOf(1);
+            expect(res1.projects).to.be.an('array').with.lengthOf(1);
+            expect(res2.projects).to.be.an('array').with.lengthOf(1);
             expect(res1.projects[0].id).to.satisfy(
-                id => id === projects.chair.id || id === projects.desk.id
+                (id) => id === projects.chair.id || id === projects.desk.id
             );
             expect(res2.projects[0].id).to.satisfy(
-                id => id === projects.chair.id || id === projects.desk.id
+                (id) => id === projects.chair.id || id === projects.desk.id
             );
             expect(res1.projects[0].id).to.not.eql(res2.projects[0].id);
         });
     });
 
-    describe('Update', function() {
+    describe('Update', function () {
         const projAInput = {
             name: 'project a',
             code: 'proja',
@@ -132,17 +128,17 @@ describe('ProjectDao', () => {
             description: 'project b description',
         };
         let projA;
-        beforeEach('Create Project A', async function() {
-            projA = await pool.transaction(async db => {
+        beforeEach('Create Project A', async function () {
+            projA = await pool.transaction(async (db) => {
                 return dao.project.create(db, projAInput);
             });
         });
-        afterEach('Delete project', async function() {
-            return pool.transaction(async db => dao.project.deleteAll(db));
+        afterEach('Delete project', async function () {
+            return pool.transaction(async (db) => dao.project.deleteAll(db));
         });
 
-        it('should update project', async function() {
-            const projB = await pool.transaction(async db => {
+        it('should update project', async function () {
+            const projB = await pool.transaction(async (db) => {
                 return dao.project.updateById(db, projA.id, projBInput);
             });
             expect(projB).to.deep.include({
@@ -163,7 +159,7 @@ describe('ProjectDao', () => {
         afterEach('delete projects', th.cleanTable('project'));
 
         it('should patch project description', async () =>
-            pool.connect(async db => {
+            pool.connect(async (db) => {
                 const patch = {
                     description: 'A stool chair',
                 };
@@ -178,7 +174,7 @@ describe('ProjectDao', () => {
             }));
 
         it('should patch project code', async () =>
-            pool.connect(async db => {
+            pool.connect(async (db) => {
                 const patch = {
                     code: 'drawing-table',
                 };
@@ -204,8 +200,8 @@ describe('ProjectDao', () => {
         afterEach('delete projects', th.cleanTable('project'));
 
         it('should delete by id', async () => {
-            await pool.connect(db => dao.project.deleteById(db, projects.chair.id));
-            const result = await pool.connect(db => dao.project.search(db, {}));
+            await pool.connect((db) => dao.project.deleteById(db, projects.chair.id));
+            const result = await pool.connect((db) => dao.project.search(db, {}));
             expect(result).to.deep.equal({
                 count: 1,
                 projects: [projects.desk],

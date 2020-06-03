@@ -98,7 +98,7 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
             WHERE document_id = ${documentId}
             ORDER BY revision
         `);
-        return rows.map(r => mapRow(r));
+        return rows.map((r) => mapRow(r));
     }
 
     async lastByDocumentId(db: Db, documentId: Id): Promise<DocumentRevision | null> {

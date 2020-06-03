@@ -2,21 +2,21 @@ import { expect } from 'chai';
 import { dao, pool, th } from '.';
 import { idType } from '../src';
 
-describe('DocumentRevisionDao', function() {
+describe('DocumentRevisionDao', function () {
     let users;
-    before('create users', async function() {
+    before('create users', async function () {
         users = await th.transacUsersAB();
     });
 
-    after('delete users', async function() {
-        return pool.transaction(async db => {
+    after('delete users', async function () {
+        return pool.transaction(async (db) => {
             return dao.user.deleteAll(db);
         });
     });
 
-    describe('Create', function() {
-        it('should create first revision and release checkout', async function() {
-            const { doc, rev1 } = await pool.transaction(async db => {
+    describe('Create', function () {
+        it('should create first revision and release checkout', async function () {
+            const { doc, rev1 } = await pool.transaction(async (db) => {
                 const doc = await th.createDoc(db, users.a, { initialCheckout: true });
                 const rev1 = await dao.documentRevision.create(
                     db,
@@ -48,8 +48,8 @@ describe('DocumentRevisionDao', function() {
             });
         });
 
-        it('should retain checkout', async function() {
-            const { doc, rev1 } = await pool.transaction(async db => {
+        it('should retain checkout', async function () {
+            const { doc, rev1 } = await pool.transaction(async (db) => {
                 const doc = await th.createDoc(db, users.a);
                 const rev1 = await dao.documentRevision.create(
                     db,
@@ -76,13 +76,13 @@ describe('DocumentRevisionDao', function() {
         });
     });
 
-    describe('Read', function() {
+    describe('Read', function () {
         let document;
         let revision1;
         let revision2;
 
-        before('create doc and revisions', async function() {
-            await pool.transaction(async db => {
+        before('create doc and revisions', async function () {
+            await pool.transaction(async (db) => {
                 document = await th.createDoc(db, users.a, { initialCheckout: true });
                 revision1 = await th.createDocRev(db, document, users.a, {
                     filesize: 1665,
@@ -99,52 +99,52 @@ describe('DocumentRevisionDao', function() {
             });
         });
 
-        after('delete document and revs', async function() {
-            await pool.transaction(async db => {
+        after('delete document and revs', async function () {
+            await pool.transaction(async (db) => {
                 await dao.documentRevision.deleteAll(db);
                 await dao.document.deleteAll(db);
             });
         });
 
-        it('should read all revisions', async function() {
-            const revs = await pool.connect(async db => {
+        it('should read all revisions', async function () {
+            const revs = await pool.connect(async (db) => {
                 return dao.documentRevision.byDocumentId(db, document.id);
             });
             expect(revs).to.eql([revision1, revision2]);
         });
 
-        it('should read last revision', async function() {
-            const rev2 = await pool.connect(async db => {
+        it('should read last revision', async function () {
+            const rev2 = await pool.connect(async (db) => {
                 return dao.documentRevision.lastByDocumentId(db, document.id);
             });
             expect(rev2).to.eql(revision2);
         });
 
-        it('should read by revision number and document id', async function() {
-            const rev2 = await pool.connect(async db => {
+        it('should read by revision number and document id', async function () {
+            const rev2 = await pool.connect(async (db) => {
                 return dao.documentRevision.byDocumentIdAndRev(db, document.id, 2);
             });
             expect(rev2).to.eql(revision2);
         });
 
-        it('should read id by revision number and document id', async function() {
-            const id = await pool.connect(async db => {
+        it('should read id by revision number and document id', async function () {
+            const id = await pool.connect(async (db) => {
                 return dao.documentRevision.idByDocumentIdAndRev(db, document.id, 2);
             });
             expect(id).to.eql(revision2.id);
         });
     });
 
-    describe('Update', function() {
-        afterEach('delete document and revs', async function() {
-            await pool.transaction(async db => {
+    describe('Update', function () {
+        afterEach('delete document and revs', async function () {
+            await pool.transaction(async (db) => {
                 await dao.documentRevision.deleteAll(db);
                 await dao.document.deleteAll(db);
             });
         });
 
-        it('should revise document', async function() {
-            const { doc, rev1, rev2 } = await pool.transaction(async db => {
+        it('should revise document', async function () {
+            const { doc, rev1, rev2 } = await pool.transaction(async (db) => {
                 const doc = await th.createDoc(db, users.a);
                 const rev1 = await th.createDocRev(db, doc, users.a, { retainCheckout: true });
                 const rev2 = await th.createDocRev(db, doc, users.a, {
@@ -171,19 +171,29 @@ describe('DocumentRevisionDao', function() {
             });
         });
 
-        it('should update progress', async function() {
-            const { rev0, upld10k, rev10k, upld25k, rev25k } = await pool.transaction(async db => {
-                const doc = await th.createDoc(db, users.a);
-                const rev0 = await th.createDocRev(db, doc, users.a, {
-                    filesize: 25000,
-                    retainCheckout: true,
-                });
-                const upld10k = await dao.documentRevision.updateAddProgress(db, rev0.id, 10000);
-                const rev10k = await dao.documentRevision.byId(db, rev0.id);
-                const upld25k = await dao.documentRevision.updateAddProgress(db, rev0.id, 15000);
-                const rev25k = await dao.documentRevision.byId(db, rev0.id);
-                return { rev0, upld10k, rev10k, upld25k, rev25k };
-            });
+        it('should update progress', async function () {
+            const { rev0, upld10k, rev10k, upld25k, rev25k } = await pool.transaction(
+                async (db) => {
+                    const doc = await th.createDoc(db, users.a);
+                    const rev0 = await th.createDocRev(db, doc, users.a, {
+                        filesize: 25000,
+                        retainCheckout: true,
+                    });
+                    const upld10k = await dao.documentRevision.updateAddProgress(
+                        db,
+                        rev0.id,
+                        10000
+                    );
+                    const rev10k = await dao.documentRevision.byId(db, rev0.id);
+                    const upld25k = await dao.documentRevision.updateAddProgress(
+                        db,
+                        rev0.id,
+                        15000
+                    );
+                    const rev25k = await dao.documentRevision.byId(db, rev0.id);
+                    return { rev0, upld10k, rev10k, upld25k, rev25k };
+                }
+            );
 
             expect(rev0).to.deep.include({
                 uploaded: 0,
@@ -198,8 +208,8 @@ describe('DocumentRevisionDao', function() {
             });
         });
 
-        it('should not allow progress above filesize', async function() {
-            const tooHighUpload = pool.transaction(async db => {
+        it('should not allow progress above filesize', async function () {
+            const tooHighUpload = pool.transaction(async (db) => {
                 const doc = await th.createDoc(db, users.a);
                 const rev0 = await th.createDocRev(db, doc, users.a, {
                     filesize: 25000,
@@ -211,8 +221,8 @@ describe('DocumentRevisionDao', function() {
             await expect(tooHighUpload).to.be.rejectedWith('check');
         });
 
-        it('should update sha1', async function() {
-            const rev = await pool.transaction(async db => {
+        it('should update sha1', async function () {
+            const rev = await pool.transaction(async (db) => {
                 const doc = await th.createDoc(db, users.a);
                 const rev0 = await th.createDocRev(db, doc, users.a, {
                     filesize: 25000,

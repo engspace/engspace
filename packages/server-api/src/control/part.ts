@@ -29,7 +29,7 @@ export class PartControl {
 
         const { userId } = ctx.auth;
 
-        const ref = await ctx.db.transaction(async db => {
+        const ref = await ctx.db.transaction(async (db) => {
             const fam = await this.dao.partFamily.bumpCounterById(db, input.familyId);
             return ctx.config.refNaming.buildRef({
                 familyCode: fam.code,

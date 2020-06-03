@@ -70,7 +70,7 @@ describe('GraphQL Project', () => {
 
     after(th.cleanTable('user'));
 
-    describe('Query', function() {
+    describe('Query', function () {
         let projects;
 
         before('Create projects', async () => {
@@ -80,7 +80,7 @@ describe('GraphQL Project', () => {
         after(th.cleanTable('project'));
 
         it('should read project with "project.read"', async () => {
-            const result = await pool.connect(async db => {
+            const result = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, ['project.read']));
                 return query({
                     query: PROJECT_READ,
@@ -93,22 +93,20 @@ describe('GraphQL Project', () => {
         });
 
         it('should not read project without "project.read"', async () => {
-            const result = await pool.connect(async db => {
+            const result = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: PROJECT_READ,
                     variables: { id: projects.a.id },
                 });
             });
-            expect(result.errors)
-                .to.be.an('array')
-                .with.lengthOf.at.least(1);
+            expect(result.errors).to.be.an('array').with.lengthOf.at.least(1);
             expect(result.data).to.be.an('object');
             expect(result.data.project).to.be.null;
         });
 
         it('should read project by code with "project.read"', async () => {
-            const result = await pool.connect(async db => {
+            const result = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, ['project.read']));
                 return query({
                     query: PROJECT_READ_BYCODE,
@@ -121,22 +119,20 @@ describe('GraphQL Project', () => {
         });
 
         it('should not read project by code without "project.read"', async () => {
-            const result = await pool.connect(async db => {
+            const result = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: PROJECT_READ_BYCODE,
                     variables: { code: 'b' },
                 });
             });
-            expect(result.errors)
-                .to.be.an('array')
-                .with.lengthOf.at.least(1);
+            expect(result.errors).to.be.an('array').with.lengthOf.at.least(1);
             expect(result.data).to.be.an('object');
             expect(result.data.projectByCode).to.be.null;
         });
 
         it('should search project with "project.read"', async () => {
-            const result = await pool.connect(async db => {
+            const result = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, ['project.read']));
                 return query({
                     query: PROJECT_SEARCH,
@@ -151,20 +147,18 @@ describe('GraphQL Project', () => {
         });
 
         it('should not search project without "project.read"', async () => {
-            const result = await pool.connect(async db => {
+            const result = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: PROJECT_SEARCH,
                 });
             });
-            expect(result.errors)
-                .to.be.an('array')
-                .with.lengthOf.at.least(1);
+            expect(result.errors).to.be.an('array').with.lengthOf.at.least(1);
             expect(result.data).to.be.null;
         });
 
         it('should search project by code', async () => {
-            const result = await pool.connect(async db => {
+            const result = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, ['project.read']));
                 return query({
                     query: PROJECT_SEARCH,
@@ -190,8 +184,8 @@ describe('GraphQL Project', () => {
                 description: 'Project A',
             };
 
-            it('should create project with "project.create"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should create project with "project.create"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(db, permsAuth(users.a, ['project.create']));
                     return mutate({
                         mutation: PROJECT_CREATE,
@@ -205,8 +199,8 @@ describe('GraphQL Project', () => {
                 expect(data.projectCreate).to.deep.include(input);
                 expect(data.projectCreate.id).to.be.a(idType);
             });
-            it('should not create project without "project.create"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should not create project without "project.create"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(db, permsAuth(users.a, []));
                     return mutate({
                         mutation: PROJECT_CREATE,
@@ -215,14 +209,12 @@ describe('GraphQL Project', () => {
                         },
                     });
                 });
-                expect(errors)
-                    .to.be.an('array')
-                    .with.lengthOf.at.least(1);
+                expect(errors).to.be.an('array').with.lengthOf.at.least(1);
                 expect(data).to.be.null;
             });
         });
 
-        describe('Update', function() {
+        describe('Update', function () {
             let moon;
 
             beforeEach('Create projects', async () => {
@@ -241,8 +233,8 @@ describe('GraphQL Project', () => {
                 description: 'A journey to Mars',
             };
 
-            it('should update project with "project.update"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should update project with "project.update"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(db, permsAuth(users.a, ['project.update']));
                     return mutate({
                         mutation: PROJECT_UPDATE,
@@ -259,8 +251,8 @@ describe('GraphQL Project', () => {
                     id: moon.id,
                 });
             });
-            it('should not update project without "project.update"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should not update project without "project.update"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(db, permsAuth(users.a, []));
                     return mutate({
                         mutation: PROJECT_UPDATE,
@@ -270,9 +262,7 @@ describe('GraphQL Project', () => {
                         },
                     });
                 });
-                expect(errors)
-                    .to.be.an('array')
-                    .with.lengthOf.at.least(1);
+                expect(errors).to.be.an('array').with.lengthOf.at.least(1);
                 expect(data).to.be.null;
             });
         });

@@ -22,7 +22,7 @@ export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServe
 
     const router = new Router({ prefix });
 
-    router.get('/login', async ctx => {
+    router.get('/login', async (ctx) => {
         const htmlFile = path.normalize(path.join(__dirname, '../../pages/playground-login.html'));
         const stream = fs.createReadStream(htmlFile);
         ctx.set('Content-Disposition', 'inline');
@@ -30,7 +30,7 @@ export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServe
         ctx.response.body = stream;
     });
 
-    router.post('/login', async ctx => {
+    router.post('/login', async (ctx) => {
         const { username, password } = ctx.request.body;
 
         ctx.assert(
@@ -45,7 +45,7 @@ export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServe
             "'nameOrEmail' and 'password' cannot be empty"
         );
 
-        const user = await pool.connect(async db => {
+        const user = await pool.connect(async (db) => {
             return dao.login.login(db, username, password);
         });
         if (user) {

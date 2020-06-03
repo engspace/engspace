@@ -39,7 +39,7 @@ describe('GraphQL User', () => {
         after(th.cleanTable('user'));
 
         it('should read a user with "user.read"', async () => {
-            const result = await pool.connect(async db => {
+            const result = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.dupond, ['user.read']));
                 return query({
                     query: USER_READ,
@@ -52,7 +52,7 @@ describe('GraphQL User', () => {
         });
 
         it('should not read a user without "user.read"', async () => {
-            const result = await pool.connect(async db => {
+            const result = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.dupond, []));
                 return query({
                     query: USER_READ,
@@ -65,7 +65,7 @@ describe('GraphQL User', () => {
         });
 
         it('should read a user by name', async () => {
-            const result = await pool.connect(async db => {
+            const result = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.haddock, ['user.read']));
                 return query({
                     query: gql`
@@ -86,7 +86,7 @@ describe('GraphQL User', () => {
         });
 
         it('should read a user by email', async () => {
-            const result = await pool.connect(async db => {
+            const result = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.haddock, ['user.read']));
                 return query({
                     query: gql`
@@ -107,7 +107,7 @@ describe('GraphQL User', () => {
         });
 
         it('should search all users', async () => {
-            const result = await pool.connect(async db => {
+            const result = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.haddock, ['user.read']));
                 return query({
                     query: gql`
@@ -140,13 +140,13 @@ describe('GraphQL User', () => {
     describe('Mutate', () => {
         describe('Create', () => {
             let userA;
-            beforeEach('create user', async function() {
+            beforeEach('create user', async function () {
                 userA = th.transacUser({ name: 'a' });
             });
             afterEach(th.cleanTable('user'));
 
             it('should create user with "user.create"', async () => {
-                const result = await pool.transaction(async db => {
+                const result = await pool.transaction(async (db) => {
                     const auth = await permsAuth(userA, ['user.create', 'user.read']);
                     const { mutate } = buildGqlServer(db, auth);
                     return mutate({
@@ -181,7 +181,7 @@ describe('GraphQL User', () => {
             });
 
             it('should reject create user without "user.create"', async () => {
-                const result = await pool.transaction(async db => {
+                const result = await pool.transaction(async (db) => {
                     const auth = await permsAuth(userA, ['user.read']);
                     const { mutate } = buildGqlServer(db, auth);
                     return mutate({
@@ -204,15 +204,13 @@ describe('GraphQL User', () => {
                         },
                     });
                 });
-                expect(result.errors)
-                    .to.be.an('array')
-                    .with.lengthOf.at.least(1);
+                expect(result.errors).to.be.an('array').with.lengthOf.at.least(1);
                 expect(result.errors[0].message).to.contain('user.create');
                 expect(result.data).to.be.null;
             });
 
             it('should reject create user with invalid email', async () => {
-                const result = await pool.transaction(async db => {
+                const result = await pool.transaction(async (db) => {
                     const auth = await permsAuth(userA, ['user.create', 'user.read']);
                     const { mutate } = buildGqlServer(db, auth);
                     return mutate({
@@ -258,7 +256,7 @@ describe('GraphQL User', () => {
             };
 
             it('should update user with "user.update"', async () => {
-                const result = await pool.transaction(async db => {
+                const result = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, ['user.update', 'user.read'])
@@ -288,7 +286,7 @@ describe('GraphQL User', () => {
             });
 
             it('should reject update user without "user.update"', async () => {
-                const result = await pool.transaction(async db => {
+                const result = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(db, permsAuth(users.a, []));
                     return mutate({
                         mutation: gql`
@@ -311,7 +309,7 @@ describe('GraphQL User', () => {
             });
 
             it('should self-update user', async () => {
-                const result = await pool.transaction(async db => {
+                const result = await pool.transaction(async (db) => {
                     await dao.user.updateRoles(db, users.a.id, ['manager']);
                     const { mutate } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
                     return mutate({
@@ -339,7 +337,7 @@ describe('GraphQL User', () => {
             });
 
             it('should not self-update user with role change', async () => {
-                const result = await pool.transaction(async db => {
+                const result = await pool.transaction(async (db) => {
                     await dao.user.updateRoles(db, users.a.id, ['user']);
                     const { mutate } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
                     return mutate({

@@ -70,7 +70,7 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
             SELECT ${rowToken} FROM part_revision
             WHERE part_id = ${partId}
         `);
-        return rows.map(row => mapRow(row));
+        return rows.map((row) => mapRow(row));
     }
 
     async lastByPartId(db: Db, partId: Id): Promise<PartRevision> {

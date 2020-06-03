@@ -8,6 +8,6 @@ export interface GqlLoaders {
 
 export function makeLoaders(ctx: ApiContext, control: ControllerSet): GqlLoaders {
     return {
-        user: new DataLoader(ids => control.user.byIds(ctx, ids)),
+        user: new DataLoader((ids) => control.user.byIds(ctx, ids)),
     };
 }

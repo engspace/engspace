@@ -43,15 +43,15 @@ function fileSha1Hash(filepath: string): Promise<string> {
         const shasum = crypto.createHash('sha1');
         try {
             const s = fs.createReadStream(filepath);
-            s.on('data', function(data) {
+            s.on('data', function (data) {
                 shasum.update(data);
             });
             // making digest
-            s.on('end', function() {
+            s.on('end', function () {
                 const hash = shasum.digest('hex');
                 return resolve(hash);
             });
-            s.on('error', function(err) {
+            s.on('error', function (err) {
                 reject(err);
             });
         } catch (error) {

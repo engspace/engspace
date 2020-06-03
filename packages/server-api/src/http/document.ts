@@ -19,7 +19,7 @@ interface DownloadToken {
 
 export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): void {
     const { pool, control, dao } = config;
-    router.post('/document/upload', async ctx => {
+    router.post('/document/upload', async (ctx) => {
         const { rev_id: revId } = ctx.request.query;
         const {
             'content-length': length,
@@ -42,7 +42,7 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
         if (totalLength === undefined) {
             ctx.throw(HttpStatus.BAD_REQUEST, 'Missing "X-Upload-Length" header');
         }
-        await pool.connect(async db => {
+        await pool.connect(async (db) => {
             ctx.assert(
                 await dao.documentRevision.checkId(db, revId),
                 HttpStatus.NOT_FOUND,
@@ -66,7 +66,7 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
         ctx.status = HttpStatus.OK;
     });
 
-    router.get('/document/download_token', async ctx => {
+    router.get('/document/download_token', async (ctx) => {
         const { documentId, revision } = ctx.request.query;
         const auth = getAuthToken(ctx);
         if (!auth.userPerms.includes('document.read')) {
@@ -75,7 +75,7 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
         if (!validator.isInt(documentId) || !validator.isInt(revision)) {
             ctx.throw(HttpStatus.BAD_REQUEST, 'wrong document or revision');
         }
-        const documentRevisionId = await pool.connect(async db => {
+        const documentRevisionId = await pool.connect(async (db) => {
             return dao.documentRevision.idByDocumentIdAndRev(db, documentId, parseInt(revision));
         });
         if (!documentRevisionId) {
@@ -95,7 +95,7 @@ export function setupPostAuthDocRoutes(router: Router, config: EsServerConfig): 
 export function setupPreAuthDocRoutes(router: Router, config: EsServerConfig): void {
     const { pool, rolePolicies, control, dao } = config;
 
-    router.get('/document/download', async ctx => {
+    router.get('/document/download', async (ctx) => {
         const { token } = ctx.request.query;
         let downloadToken: DownloadToken;
         try {
@@ -108,7 +108,7 @@ export function setupPreAuthDocRoutes(router: Router, config: EsServerConfig): v
         if (!documentRevisionId || !userId) {
             ctx.throw(HttpStatus.BAD_REQUEST);
         }
-        const fd = await pool.connect(async db => {
+        const fd = await pool.connect(async (db) => {
             const roles = await dao.user.rolesById(db, userId);
             const auth = {
                 userId,

@@ -68,12 +68,12 @@ const DOC_REVISE = gql`
     ${DOCREV_FIELDS}
 `;
 
-describe('GraphQL Document Revision', function() {
+describe('GraphQL Document Revision', function () {
     let users;
     let document;
 
-    before('Create users and document', async function() {
-        await pool.transaction(async db => {
+    before('Create users and document', async function () {
+        await pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
             document = await th.createDoc(db, users.a, {
                 name: 'a',
@@ -84,11 +84,11 @@ describe('GraphQL Document Revision', function() {
     });
     after('Delete users and document', th.cleanTables(['document', 'user']));
 
-    describe('Query', function() {
+    describe('Query', function () {
         let revisions;
 
-        before('Create revisions', async function() {
-            revisions = await pool.transaction(async db => {
+        before('Create revisions', async function () {
+            revisions = await pool.transaction(async (db) => {
                 const rev1 = await th.createDocRev(db, document, users.a, {
                     filesize: 1000,
                     filename: 'file_v1.ext',
@@ -122,12 +122,12 @@ describe('GraphQL Document Revision', function() {
             });
         });
 
-        after('Delete revisions', async function() {
-            await pool.transaction(async db => dao.documentRevision.deleteAll(db));
+        after('Delete revisions', async function () {
+            await pool.transaction(async (db) => dao.documentRevision.deleteAll(db));
         });
 
-        it('should read document revision with "document.read"', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should read document revision with "document.read"', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['document.read', 'user.read'])
@@ -153,8 +153,8 @@ describe('GraphQL Document Revision', function() {
             });
         });
 
-        it('should not read document revision without "document.read"', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should not read document revision without "document.read"', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
                 return query({
                     query: DOCREV_READ,
@@ -165,8 +165,8 @@ describe('GraphQL Document Revision', function() {
             expect(data.documentRevision).to.be.null;
         });
 
-        it('should read document last revision', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should read document last revision', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['document.read', 'user.read'])
@@ -194,8 +194,8 @@ describe('GraphQL Document Revision', function() {
             });
         });
 
-        it('should read all document revisions', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should read all document revisions', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['document.read', 'user.read'])
@@ -207,9 +207,7 @@ describe('GraphQL Document Revision', function() {
             });
             expect(errors).to.be.undefined;
             expect(data).to.be.an('object');
-            expect(data.document.revisions)
-                .to.be.an('array')
-                .with.lengthOf(4);
+            expect(data.document.revisions).to.be.an('array').with.lengthOf(4);
             expect(data.document.revisions[0]).to.deep.include({
                 id: revisions[0].id,
                 revision: 1,
@@ -228,8 +226,8 @@ describe('GraphQL Document Revision', function() {
             });
         });
 
-        it('should read recursively', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should read recursively', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['document.read', 'user.read'])
@@ -270,7 +268,7 @@ describe('GraphQL Document Revision', function() {
             expect(data.document).to.deep.include({
                 id: document.id,
                 name: 'a',
-                revisions: revisions.map(r => ({
+                revisions: revisions.map((r) => ({
                     id: r.id,
                     document: {
                         id: document.id,
@@ -285,7 +283,7 @@ describe('GraphQL Document Revision', function() {
                     document: {
                         id: document.id,
                         name: 'a',
-                        revisions: revisions.map(r => ({
+                        revisions: revisions.map((r) => ({
                             id: r.id,
                         })),
                     },
@@ -294,14 +292,14 @@ describe('GraphQL Document Revision', function() {
         });
     });
 
-    describe('Mutation', function() {
-        describe('Create', function() {
-            afterEach('Delete revisions', async function() {
-                await pool.transaction(async db => dao.documentRevision.deleteAll(db));
+    describe('Mutation', function () {
+        describe('Create', function () {
+            afterEach('Delete revisions', async function () {
+                await pool.transaction(async (db) => dao.documentRevision.deleteAll(db));
             });
 
-            it('should revise a document with "document.revise"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should revise a document with "document.revise"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, ['document.revise', 'document.read', 'user.read'])
@@ -337,8 +335,8 @@ describe('GraphQL Document Revision', function() {
                 });
             });
 
-            it('should not revise a document without "document.revise"', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should not revise a document without "document.revise"', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, ['document.read', 'user.read'])
@@ -360,8 +358,8 @@ describe('GraphQL Document Revision', function() {
                 expect(data).to.be.null;
             });
 
-            it('should not revise a document checked-out by someone else', async function() {
-                const { errors, data } = await pool.transaction(async db => {
+            it('should not revise a document checked-out by someone else', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
                     const doc = await th.createDoc(db, users.a, {
                         name: 'b',
                         description: 'doc B',

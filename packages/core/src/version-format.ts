@@ -5,7 +5,7 @@ export function isVersionFormatSpec(spec: string): boolean {
 }
 
 export class BadVersionFormatError extends Error {
-    constructor(message) {
+    constructor(message: string) {
         super(message);
         this.name = 'BadVersionFormatError';
         Error.captureStackTrace(this, BadVersionFormatError);
@@ -13,7 +13,7 @@ export class BadVersionFormatError extends Error {
 }
 
 export class MismatchVersionFormatError extends Error {
-    constructor(message) {
+    constructor(message: string) {
         super(message);
         this.name = 'MismatchVersionFormatError';
         Error.captureStackTrace(this, MismatchVersionFormatError);
@@ -56,7 +56,7 @@ function getInterval(kind: Kind): { firstChar: number; lastChar: number } {
 }
 
 function parseVersionFormat(input: string): Token[] {
-    return [...input].map(c => {
+    return [...input].map((c) => {
         const kind = getKind(c);
         return {
             kind,

@@ -83,7 +83,7 @@ export class PartApprovalDao extends DaoBase<PartApproval, Row> {
             SELECT ${rowToken} FROM part_approval
             WHERE validation_id = ${validationId}
         `);
-        return rows.map(r => mapRow(r));
+        return rows.map((r) => mapRow(r));
     }
 
     async update(

@@ -4,16 +4,16 @@ import { buildGqlServer, pool, th } from '.';
 import { signJwt, verifyJwt } from '../src/crypto';
 import { permsAuth } from './auth';
 
-describe('Miscellaneous', function() {
+describe('Miscellaneous', function () {
     let users;
-    before('Create users', async function() {
+    before('Create users', async function () {
         users = await th.transacUsersAB();
     });
 
     after('Delete users', th.cleanTable('user'));
 
-    describe('Crypto', function() {
-        it('should verify a valid token', async function() {
+    describe('Crypto', function () {
+        it('should verify a valid token', async function () {
             const tokStr = await signJwt(
                 {
                     a: 'a',
@@ -28,7 +28,7 @@ describe('Miscellaneous', function() {
                 b: 'b',
             });
         });
-        it('should fail to verify with wrong secret', async function() {
+        it('should fail to verify with wrong secret', async function () {
             const tokStr = await signJwt(
                 {
                     a: 'a',
@@ -41,18 +41,18 @@ describe('Miscellaneous', function() {
             await expect(fail).to.be.rejectedWith('invalid signature');
         });
 
-        it('should fail to sign with secret empty', async function() {
+        it('should fail to sign with secret empty', async function () {
             const fail = signJwt({ a: 'a', b: 'b' }, '', {});
             await expect(fail).to.be.rejectedWith('secret');
         });
     });
 
-    describe('GraphQL DateTime', function() {
+    describe('GraphQL DateTime', function () {
         const iso = '2020-01-01T12:00:00.000Z';
         const ms = 1577880000000;
 
-        it('reads graphql DateTime from Value', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('reads graphql DateTime from Value', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: gql`
@@ -71,8 +71,8 @@ describe('Miscellaneous', function() {
             expect(data.testDateTimeToIso8601).to.equal(iso);
         });
 
-        it('reads graphql DateTime from Int Literal', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('reads graphql DateTime from Int Literal', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: gql`
@@ -88,8 +88,8 @@ describe('Miscellaneous', function() {
             expect(data.testDateTimeToIso8601).to.equal(iso);
         });
 
-        it('reads graphql DateTime from String Literal', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('reads graphql DateTime from String Literal', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: gql`
@@ -105,8 +105,8 @@ describe('Miscellaneous', function() {
             expect(data.testDateTimeToIso8601).to.equal(iso);
         });
 
-        it('errors if cannot parse datetime string', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('errors if cannot parse datetime string', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: gql`
@@ -121,8 +121,8 @@ describe('Miscellaneous', function() {
             expect(data).to.be.undefined;
         });
 
-        it('errors if supplying invalid type', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('errors if supplying invalid type', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, []));
                 return query({
                     query: gql`

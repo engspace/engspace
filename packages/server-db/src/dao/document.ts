@@ -84,7 +84,7 @@ export class DocumentDao extends DaoBase<Document, Row> {
             LIMIT ${limitToken}
             OFFSET ${offsetToken}
         `);
-        const documents = rows.map(r => mapRow(r));
+        const documents = rows.map((r) => mapRow(r));
         let count = documents.length + (offset | 0);
         if (limit && documents.length === limit) {
             count = (await db.oneFirst(sql`

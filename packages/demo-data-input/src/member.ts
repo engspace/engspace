@@ -63,7 +63,7 @@ export async function prepareMembers(
     users: Promise<DemoUserSet>
 ): Promise<ProjectMemberInput[]> {
     const [projs, usrs] = await Promise.all([projects, users]);
-    return input.map(m => ({
+    return input.map((m) => ({
         projectId: projs[m.project].id,
         userId: usrs[m.user].id,
         roles: m.roles,

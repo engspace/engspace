@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/camelcase */
+/* eslint-disable @typescript-eslint/naming-convention */
 import {
     ChangePartChange,
     ChangePartChangeInput,
@@ -119,7 +119,7 @@ export class TestHelpers {
         { withDeps }: WithDeps = { withDeps: false }
     ): () => Promise<void> {
         return async (): Promise<void> => {
-            return this.pool.transaction(async db => {
+            return this.pool.transaction(async (db) => {
                 if (!withDeps) {
                     for (const t of tableNames) {
                         await db.query(sql`DELETE FROM ${sql.identifier([t])}`);
@@ -172,7 +172,7 @@ export class TestHelpers {
     }
 
     transacUser(input: Partial<UserInput>, opts: Partial<RoleOptions> = {}): Promise<User> {
-        return this.pool.transaction(db => this.createUser(db, input, opts));
+        return this.pool.transaction((db) => this.createUser(db, input, opts));
     }
 
     createUsers(
@@ -180,7 +180,7 @@ export class TestHelpers {
         input: Dict<Partial<UserInput>>,
         opts: Partial<RoleOptions> = {}
     ): Promise<Dict<User>> {
-        return asyncDictMap(input, inp => this.createUser(db, inp, opts));
+        return asyncDictMap(input, (inp) => this.createUser(db, inp, opts));
     }
 
     createUsersAB(db: Db): Promise<{ a: User; b: User }> {
@@ -194,13 +194,13 @@ export class TestHelpers {
         input: Dict<Partial<UserInput>>,
         opts: Partial<RoleOptions> = {}
     ): Promise<Dict<User>> {
-        return this.pool.transaction(db =>
-            asyncDictMap(input, inp => this.createUser(db, inp, opts))
+        return this.pool.transaction((db) =>
+            asyncDictMap(input, (inp) => this.createUser(db, inp, opts))
         );
     }
 
     transacUsersAB(): Promise<{ a: User; b: User }> {
-        return this.pool.transaction(async db => {
+        return this.pool.transaction(async (db) => {
             return this.createUsersAB(db);
         });
     }
@@ -217,18 +217,18 @@ export class TestHelpers {
     }
 
     transacProject(input: Partial<ProjectInput> = {}): Promise<Project> {
-        return this.pool.transaction(async db => {
+        return this.pool.transaction(async (db) => {
             return this.createProject(db, input);
         });
     }
 
     createProjects(db: Db, input: Dict<Partial<ProjectInput>>): Promise<Dict<Project>> {
-        return asyncDictMap(input, inp => this.createProject(db, inp));
+        return asyncDictMap(input, (inp) => this.createProject(db, inp));
     }
 
     transacProjects(input: Dict<Partial<ProjectInput>>): Promise<Dict<Project>> {
-        return this.pool.transaction(async db => {
-            return asyncDictMap(input, inp => this.createProject(db, inp));
+        return this.pool.transaction(async (db) => {
+            return asyncDictMap(input, (inp) => this.createProject(db, inp));
         });
     }
 
@@ -241,7 +241,7 @@ export class TestHelpers {
     }
 
     transacMember(proj: Project, user: User, roles: string[]): Promise<ProjectMember> {
-        return this.pool.transaction(async db =>
+        return this.pool.transaction(async (db) =>
             this.dao.projectMember.create(db, {
                 projectId: proj.id,
                 userId: user.id,
@@ -260,12 +260,12 @@ export class TestHelpers {
     }
 
     createPartFamilies(db: Db, input: Dict<Partial<PartFamilyInput>>): Promise<Dict<PartFamily>> {
-        return asyncDictMap(input, inp => this.createPartFamily(db, inp));
+        return asyncDictMap(input, (inp) => this.createPartFamily(db, inp));
     }
 
     resetFamilyCounters() {
         return (): Promise<void> => {
-            return this.pool.transaction(async db => {
+            return this.pool.transaction(async (db) => {
                 await db.query(sql`UPDATE part_family SET counter=0`);
             });
         };
@@ -322,7 +322,7 @@ export class TestHelpers {
         user: User,
         input: Partial<PartRevisionDaoInput>
     ): Promise<PartRevision> {
-        return this.pool.transaction(async db => {
+        return this.pool.transaction(async (db) => {
             return this.createPartRev(db, part, user, input);
         });
     }
@@ -356,7 +356,7 @@ export class TestHelpers {
         user: User,
         input: Partial<PartApprovalDaoInput> = {}
     ): Promise<Dict<PartApproval>> {
-        return asyncDictMap(assignees, assignee =>
+        return asyncDictMap(assignees, (assignee) =>
             this.createPartApproval(db, partVal, assignee, user, input)
         );
     }
@@ -374,7 +374,7 @@ export class TestHelpers {
         });
         if (input.partCreations) {
             req.partCreations = await Promise.all(
-                input.partCreations.map(inp =>
+                input.partCreations.map((inp) =>
                     this.dao.changePartCreate.create(db, {
                         requestId: req.id,
                         ...inp,
@@ -384,7 +384,7 @@ export class TestHelpers {
         }
         if (input.partChanges) {
             req.partChanges = await Promise.all(
-                input.partChanges.map(inp =>
+                input.partChanges.map((inp) =>
                     this.dao.changePartChange.create(db, {
                         requestId: req.id,
                         ...inp,
@@ -394,7 +394,7 @@ export class TestHelpers {
         }
         if (input.partRevisions) {
             req.partRevisions = await Promise.all(
-                input.partRevisions.map(inp =>
+                input.partRevisions.map((inp) =>
                     this.dao.changePartRevision.create(db, {
                         requestId: req.id,
                         ...inp,
@@ -404,7 +404,7 @@ export class TestHelpers {
         }
         if (input.reviewerIds) {
             req.reviews = await Promise.all(
-                input.reviewerIds.map(inp =>
+                input.reviewerIds.map((inp) =>
                     this.dao.changeReview.create(db, {
                         requestId: req.id,
                         assigneeId: inp,

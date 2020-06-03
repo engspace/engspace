@@ -95,20 +95,20 @@ export function buildGqlServer(db: Db, auth: AuthToken): ApolloServerTestClient 
     return createTestClient(api.buildTestGqlServer(db, auth));
 }
 
-before('Start-up DB and Server', async function() {
+before('Start-up DB and Server', async function () {
     console.log('preparing db with config:');
     console.log(dbPreparationConfig);
     await prepareDb(dbPreparationConfig);
-    await pool.transaction(db => initSchema(db));
+    await pool.transaction((db) => initSchema(db));
 });
 
-before('Create test store', async function() {
+before('Create test store', async function () {
     await fs.promises.mkdir(config.storePath, {
         recursive: true,
     });
 });
 
-after('Delete test store', async function() {
+after('Delete test store', async function () {
     await fs.promises.rmdir(config.storePath, {
         recursive: true,
     });

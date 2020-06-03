@@ -4,19 +4,19 @@ import { dao, pool, th } from '.';
 // fake database id
 export const wrongId = '-5';
 
-describe('Dao Base', function() {
-    describe('DaoBase (with dao.project)', function() {
+describe('Dao Base', function () {
+    describe('DaoBase (with dao.project)', function () {
         afterEach('Delete projects', th.cleanTable('project'));
 
-        it('should get a row by id', async function() {
-            const { id } = await pool.transaction(async db => {
+        it('should get a row by id', async function () {
+            const { id } = await pool.transaction(async (db) => {
                 return dao.project.create(db, {
                     name: 'a',
                     code: 'b',
                     description: 'c',
                 });
             });
-            const proj = await pool.connect(async db => {
+            const proj = await pool.connect(async (db) => {
                 return dao.project.byId(db, id);
             });
             expect(proj).to.deep.include({
@@ -27,18 +27,18 @@ describe('Dao Base', function() {
             });
         });
 
-        it('should get null with unknown uuid', async function() {
-            const proj = await pool.connect(async db => {
+        it('should get null with unknown uuid', async function () {
+            const proj = await pool.connect(async (db) => {
                 return dao.project.byId(db, wrongId);
             });
             expect(proj).to.be.null;
         });
 
-        it('should get row count', async function() {
-            const rc0 = await pool.connect(async db => {
+        it('should get row count', async function () {
+            const rc0 = await pool.connect(async (db) => {
                 return dao.project.rowCount(db);
             });
-            const rc10 = await pool.transaction(async db => {
+            const rc10 = await pool.transaction(async (db) => {
                 const p = [];
                 for (let i = 0; i < 10; i++) {
                     p.push(
@@ -56,29 +56,29 @@ describe('Dao Base', function() {
             expect(rc10).to.equal(10);
         });
 
-        it('should check that an id exists', async function() {
-            const { id } = await pool.transaction(async db => {
+        it('should check that an id exists', async function () {
+            const { id } = await pool.transaction(async (db) => {
                 return dao.project.create(db, {
                     name: 'a',
                     code: 'b',
                     description: 'c',
                 });
             });
-            const has = await pool.connect(async db => {
+            const has = await pool.connect(async (db) => {
                 return dao.project.checkId(db, id);
             });
             expect(has).to.be.true;
         });
 
-        it('should check that an id does not exist', async function() {
-            const has = await pool.connect(async db => {
+        it('should check that an id does not exist', async function () {
+            const has = await pool.connect(async (db) => {
                 return dao.project.checkId(db, wrongId);
             });
             expect(has).to.be.false;
         });
 
-        it('should return a value batch', async function() {
-            const { id1, id2 } = await pool.transaction(async db => {
+        it('should return a value batch', async function () {
+            const { id1, id2 } = await pool.transaction(async (db) => {
                 const proj1 = await dao.project.create(db, {
                     name: 'a',
                     code: 'b',
@@ -91,7 +91,7 @@ describe('Dao Base', function() {
                 });
                 return { id1: proj1.id, id2: proj2.id };
             });
-            const batch = await pool.connect(async db => {
+            const batch = await pool.connect(async (db) => {
                 return dao.project.batchByIds(db, [id2, id1]);
             });
             expect(batch).to.eql([
@@ -110,15 +110,15 @@ describe('Dao Base', function() {
             ]);
         });
 
-        it('should delete by id', async function() {
-            const { id } = await pool.transaction(async db => {
+        it('should delete by id', async function () {
+            const { id } = await pool.transaction(async (db) => {
                 return dao.project.create(db, {
                     name: 'a',
                     code: 'b',
                     description: 'c',
                 });
             });
-            const proj = await pool.connect(async db => {
+            const proj = await pool.connect(async (db) => {
                 return dao.project.deleteById(db, id);
             });
             expect(proj).to.deep.include({
@@ -127,21 +127,21 @@ describe('Dao Base', function() {
                 code: 'b',
                 description: 'c',
             });
-            const has = await pool.connect(async db => {
+            const has = await pool.connect(async (db) => {
                 return dao.project.checkId(db, id);
             });
             expect(has).to.be.false;
         });
 
-        it('should get null if deleting wrong id', async function() {
-            const doc = await pool.transaction(async db => {
+        it('should get null if deleting wrong id', async function () {
+            const doc = await pool.transaction(async (db) => {
                 return dao.project.deleteById(db, wrongId);
             });
             expect(doc).to.be.null;
         });
 
-        it('should delete all rows', async function() {
-            const { id1, id2 } = await pool.transaction(async db => {
+        it('should delete all rows', async function () {
+            const { id1, id2 } = await pool.transaction(async (db) => {
                 const proj1 = await dao.project.create(db, {
                     name: 'a',
                     code: 'b',
@@ -154,28 +154,28 @@ describe('Dao Base', function() {
                 });
                 return { id1: proj1.id, id2: proj2.id };
             });
-            const deleted = await pool.connect(async db => {
+            const deleted = await pool.connect(async (db) => {
                 return dao.project.deleteAll(db);
             });
             expect(deleted).to.equal(2);
-            const has = await pool.connect(async db => {
+            const has = await pool.connect(async (db) => {
                 return Promise.all([dao.project.checkId(db, id1), dao.project.checkId(db, id2)]);
             });
             expect(has).to.eql([false, false]);
         });
     });
 
-    describe('DaoBase (with dao.document)', function() {
+    describe('DaoBase (with dao.document)', function () {
         let users;
-        before('create users', async function() {
+        before('create users', async function () {
             users = await th.transacUsersAB();
         });
         after('delete users', th.cleanTable('user'));
 
         afterEach('delete documents', th.cleanTable('document'));
 
-        it('should get a row by id', async function() {
-            const { id } = await pool.transaction(async db => {
+        it('should get a row by id', async function () {
+            const { id } = await pool.transaction(async (db) => {
                 return dao.document.create(
                     db,
                     {
@@ -186,7 +186,7 @@ describe('Dao Base', function() {
                     users.a.id
                 );
             });
-            const doc = await pool.connect(async db => {
+            const doc = await pool.connect(async (db) => {
                 return dao.document.byId(db, id);
             });
             expect(doc).to.deep.include({
@@ -198,18 +198,18 @@ describe('Dao Base', function() {
             });
         });
 
-        it('should get null if unknown id', async function() {
-            const doc = await pool.connect(async db => {
+        it('should get null if unknown id', async function () {
+            const doc = await pool.connect(async (db) => {
                 return dao.document.byId(db, wrongId);
             });
             expect(doc).to.be.null;
         });
 
-        it('should get row count', async function() {
-            const rc0 = await pool.connect(async db => {
+        it('should get row count', async function () {
+            const rc0 = await pool.connect(async (db) => {
                 return dao.document.rowCount(db);
             });
-            const rc10 = await pool.transaction(async db => {
+            const rc10 = await pool.transaction(async (db) => {
                 const p = [];
                 for (let i = 0; i < 10; i++) {
                     p.push(
@@ -231,8 +231,8 @@ describe('Dao Base', function() {
             expect(rc10).to.equal(10);
         });
 
-        it('should check that a row exists', async function() {
-            const { id } = await pool.transaction(async db => {
+        it('should check that a row exists', async function () {
+            const { id } = await pool.transaction(async (db) => {
                 return dao.document.create(
                     db,
                     {
@@ -243,21 +243,21 @@ describe('Dao Base', function() {
                     users.a.id
                 );
             });
-            const has = await pool.connect(async db => {
+            const has = await pool.connect(async (db) => {
                 return dao.document.checkId(db, id);
             });
             expect(has).to.be.true;
         });
 
-        it('should check that a row does not exist', async function() {
-            const has = await pool.connect(async db => {
+        it('should check that a row does not exist', async function () {
+            const has = await pool.connect(async (db) => {
                 return dao.document.checkId(db, wrongId);
             });
             expect(has).to.be.false;
         });
 
-        it('should batch rows by ids', async function() {
-            const { id1, id2 } = await pool.transaction(async db => {
+        it('should batch rows by ids', async function () {
+            const { id1, id2 } = await pool.transaction(async (db) => {
                 const doc1 = await dao.document.create(
                     db,
                     {
@@ -278,12 +278,10 @@ describe('Dao Base', function() {
                 );
                 return { id1: doc1.id, id2: doc2.id };
             });
-            const docs = await pool.connect(async db => {
+            const docs = await pool.connect(async (db) => {
                 return dao.document.batchByIds(db, [id2, id1]);
             });
-            expect(docs)
-                .to.be.an('array')
-                .with.lengthOf(2);
+            expect(docs).to.be.an('array').with.lengthOf(2);
             expect(docs[0]).to.deep.include({
                 id: id2,
                 name: 'c',
@@ -300,8 +298,8 @@ describe('Dao Base', function() {
             });
         });
 
-        it('should delete a row by id', async function() {
-            const { id } = await pool.transaction(async db => {
+        it('should delete a row by id', async function () {
+            const { id } = await pool.transaction(async (db) => {
                 return dao.document.create(
                     db,
                     {
@@ -312,7 +310,7 @@ describe('Dao Base', function() {
                     users.a.id
                 );
             });
-            const deleted = await pool.transaction(async db => {
+            const deleted = await pool.transaction(async (db) => {
                 return dao.document.deleteById(db, id);
             });
             expect(deleted).to.deep.include({
@@ -322,21 +320,21 @@ describe('Dao Base', function() {
                 createdBy: { id: users.a.id },
                 checkout: null,
             });
-            const has = await pool.connect(async db => {
+            const has = await pool.connect(async (db) => {
                 return dao.document.checkId(db, id);
             });
             expect(has).to.be.false;
         });
 
-        it('should get null if deleting wrong id', async function() {
-            const doc = await pool.transaction(async db => {
+        it('should get null if deleting wrong id', async function () {
+            const doc = await pool.transaction(async (db) => {
                 return dao.document.deleteById(db, wrongId);
             });
             expect(doc).to.be.null;
         });
 
-        it('should delete all rows', async function() {
-            const { id1, id2 } = await pool.transaction(async db => {
+        it('should delete all rows', async function () {
+            const { id1, id2 } = await pool.transaction(async (db) => {
                 const doc1 = await dao.document.create(
                     db,
                     {
@@ -357,11 +355,11 @@ describe('Dao Base', function() {
                 );
                 return { id1: doc1.id, id2: doc2.id };
             });
-            const deleted = await pool.transaction(async db => {
+            const deleted = await pool.transaction(async (db) => {
                 return dao.document.deleteAll(db);
             });
             expect(deleted).to.equal(2);
-            const has = await pool.connect(async db => {
+            const has = await pool.connect(async (db) => {
                 return Promise.all([dao.document.checkId(db, id1), dao.document.checkId(db, id2)]);
             });
             expect(has).to.eql([false, false]);

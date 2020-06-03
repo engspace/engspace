@@ -6,12 +6,12 @@ import { buildGqlServer, dao, pool, th } from '.';
 import { permsAuth } from './auth';
 import { CHANGEREQ_DEEPFIELDS } from './helpers';
 
-describe('GraphQL ChangeRequest - Mutations', function() {
+describe('GraphQL ChangeRequest - Mutations', function () {
     let users;
     let fam;
     let parts;
-    before(async function() {
-        return pool.transaction(async db => {
+    before(async function () {
+        return pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
             fam = await th.createPartFamily(db);
             parts = {
@@ -34,7 +34,7 @@ describe('GraphQL ChangeRequest - Mutations', function() {
     });
     after(th.cleanTables(['part_revision'], { withDeps: true }));
 
-    describe('changeRequestCreate', function() {
+    describe('changeRequestCreate', function () {
         const CHANGEREQ_CREATE = gql`
             mutation CreateChangeReq($input: ChangeRequestInput!) {
                 changeRequestCreate(input: $input) {
@@ -46,8 +46,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
 
         let rev1s;
 
-        this.beforeEach(async function() {
-            return pool.transaction(async db => {
+        this.beforeEach(async function () {
+            return pool.transaction(async (db) => {
                 rev1s = {
                     p1: await th.createPartRev(db, parts.p1, users.a, {
                         cycle: PartCycle.Release,
@@ -70,8 +70,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             ])
         );
 
-        it('should create an empty change request', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should create an empty change request', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, [
@@ -103,8 +103,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             expect(data.changeRequestCreate.id).to.be.a(idType);
         });
 
-        it('should create a change request with a description', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should create a change request with a description', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, [
@@ -138,8 +138,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             expect(data.changeRequestCreate.id).to.be.a(idType);
         });
 
-        it('should create a change request with part creations', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should create a change request with part creations', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, [
@@ -198,8 +198,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             expect(data.changeRequestCreate.id).to.be.a(idType);
         });
 
-        it('should create a change request with part change', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should create a change request with part change', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, [
@@ -257,8 +257,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             expect(data.changeRequestCreate.id).to.be.a(idType);
         });
 
-        it('should create a change request with part revision', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should create a change request with part revision', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, [
@@ -312,8 +312,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             ]);
         });
 
-        it('should create a change request with reviewers', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should create a change request with reviewers', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, [
@@ -358,8 +358,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             ]);
         });
 
-        it('should not allow a part change with the same version', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should not allow a part change with the same version', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, [
@@ -389,11 +389,11 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             expect(data).to.be.null;
         });
 
-        it('should not allow a revision of part in edition', async function() {
-            await pool.transaction(async db => {
+        it('should not allow a revision of part in edition', async function () {
+            await pool.transaction(async (db) => {
                 return dao.partRevision.updateCycleState(db, rev1s.p1.id, PartCycle.Edition);
             });
-            const { errors, data } = await pool.transaction(async db => {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, [
@@ -422,8 +422,8 @@ describe('GraphQL ChangeRequest - Mutations', function() {
             expect(data).to.be.null;
         });
 
-        it('should not create a change request without "change.create"', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should not create a change request without "change.create"', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['change.read', 'part.read', 'partfamily.read', 'user.read'])

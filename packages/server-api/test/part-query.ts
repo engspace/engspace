@@ -102,15 +102,15 @@ const PARTAPPR_READ = gql`
     ${PARTAPPR_FIELDS}
 `;
 
-describe('GraphQL Part - Queries', function() {
+describe('GraphQL Part - Queries', function () {
     let users;
     let family;
     let part;
     let partRev;
     let bef, aft;
-    before('create res', async function() {
+    before('create res', async function () {
         bef = Date.now();
-        await pool.transaction(async db => {
+        await pool.transaction(async (db) => {
             users = await th.createUsers(db, {
                 a: { name: 'a' },
                 b: { name: 'b' },
@@ -126,9 +126,9 @@ describe('GraphQL Part - Queries', function() {
     });
     after('delete res', th.cleanTables(['part_revision', 'part', 'part_family', 'user']));
 
-    describe('Part', function() {
-        it('should query a Part', async function() {
-            const { errors, data } = await pool.connect(async db => {
+    describe('Part', function () {
+        it('should query a Part', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['part.read', 'partfamily.read', 'user.read'])
@@ -148,14 +148,12 @@ describe('GraphQL Part - Queries', function() {
                 createdBy: { id: users.a.id },
                 updatedBy: { id: users.a.id },
             });
-            expect(data.part.createdAt)
-                .to.be.gt(bef)
-                .and.lt(aft);
+            expect(data.part.createdAt).to.be.gt(bef).and.lt(aft);
             expect(data.part.updatedAt).to.equal(data.part.createdAt);
         });
 
-        it('should not query a Part without "part.read"', async function() {
-            const { errors, data } = await pool.connect(async db => {
+        it('should not query a Part without "part.read"', async function () {
+            const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
                 return query({
                     query: PART_READ,
@@ -170,9 +168,9 @@ describe('GraphQL Part - Queries', function() {
         });
     });
 
-    describe('PartRevision', function() {
-        it('should query a part revision', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+    describe('PartRevision', function () {
+        it('should query a part revision', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['part.read', 'user.read'])
@@ -188,8 +186,8 @@ describe('GraphQL Part - Queries', function() {
             expect(data.partRevision).to.deep.include(partRev);
         });
 
-        it('should not query a part revision without "part.read"', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should not query a part revision without "part.read"', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.a, ['user.read']));
                 return query({
                     query: PARTREV_READ,
@@ -204,20 +202,20 @@ describe('GraphQL Part - Queries', function() {
         });
     });
 
-    describe('Validation', function() {
+    describe('Validation', function () {
         let partVal;
         let approvals: Dict<PartApproval>;
 
-        before(async function() {
-            return pool.transaction(async db => {
+        before(async function () {
+            return pool.transaction(async (db) => {
                 partVal = await th.createPartVal(db, partRev, users.a);
                 approvals = await th.createPartApprovals(db, partVal, users, users.a);
             });
         });
         after(th.cleanTables(['part_approval', 'part_validation']));
 
-        it('should read part validation', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should read part validation', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['partval.read', 'part.read', 'user.read'])
@@ -234,14 +232,14 @@ describe('GraphQL Part - Queries', function() {
                 ...trackedBy(users.a),
             });
             expect(data.partValidation.approvals).to.have.same.deep.members(
-                Object.values(approvals).map(a => ({
+                Object.values(approvals).map((a) => ({
                     id: a.id,
                 }))
             );
         });
 
-        it('should not read part validation without "partval.read"', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should not read part validation without "partval.read"', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['part.read', 'user.read'])
@@ -256,8 +254,8 @@ describe('GraphQL Part - Queries', function() {
             expect(data.partValidation).to.be.null;
         });
 
-        it('should read part approval', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should read part approval', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['partval.read', 'part.read', 'user.read'])
@@ -274,8 +272,8 @@ describe('GraphQL Part - Queries', function() {
             });
         });
 
-        it('should read part approval without "partval.read"', async function() {
-            const { errors, data } = await pool.transaction(async db => {
+        it('should read part approval without "partval.read"', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
                 const { query } = buildGqlServer(
                     db,
                     permsAuth(users.a, ['part.read', 'user.read'])
