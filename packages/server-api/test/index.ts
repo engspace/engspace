@@ -96,6 +96,7 @@ export function buildGqlServer(db: Db, auth: AuthToken): ApolloServerTestClient 
 }
 
 before('Start-up DB and Server', async function () {
+    this.timeout(5000);
     console.log('preparing db with config:');
     console.log(dbPreparationConfig);
     await prepareDb(dbPreparationConfig);
