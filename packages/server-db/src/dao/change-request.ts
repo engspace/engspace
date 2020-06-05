@@ -1,7 +1,7 @@
-import { ChangeRequest, Id, ApprovalDecision, ChangeRequestCycle } from '@engspace/core';
+import { ApprovalDecision, ChangeRequest, ChangeRequestCycle, HasId, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, nullable, RowId, toId, tracked, TrackedRow } from './base';
+import { DaoBase, DaoBaseConfig, HasRowId, nullable, RowId, toId, tracked, TrackedRow } from './base';
 
 interface Row extends TrackedRow {
     id: RowId;
@@ -83,5 +83,30 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
             RETURNING ${rowToken}
         `);
         return mapRow(row);
+    }
+}
+
+export abstract class ChangeRequestChildDaoBase<
+    T extends HasId,
+    R extends HasRowId
+> extends DaoBase<T, R> {
+    constructor(config: DaoBaseConfig<T, R>) {
+        super(config);
+    }
+
+    async byRequestId(db: Db, requestId: Id): Promise<T[]> {
+        const rows: R[] = await db.any(sql`
+            SELECT ${this.rowToken}
+            FROM ${sql.identifier([this.table])}
+            WHERE request_id = ${requestId}
+        `);
+        return rows?.map((r) => this.mapRow(r));
+    }
+
+    async checkRequestId(db: Db, id: Id): Promise<Id> {
+        const reqId = await db.oneFirst(sql`
+            SELECT request_id FROM ${sql.identifier([this.table])} WHERE id = ${id}
+        `);
+        return toId(reqId as number);
     }
 }

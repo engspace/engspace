@@ -1,7 +1,8 @@
 import { ApprovalDecision, ChangeReview, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, foreignKey, nullable, RowId, toId, tracked, TrackedRow } from './base';
+import { foreignKey, nullable, RowId, toId, tracked, TrackedRow } from './base';
+import { ChangeRequestChildDaoBase } from './change-request';
 
 interface Row extends TrackedRow {
     id: RowId;
@@ -33,7 +34,7 @@ export interface ChangeReviewDaoInput {
     userId: Id;
 }
 
-export class ChangeReviewDao extends DaoBase<ChangeReview, Row> {
+export class ChangeReviewDao extends ChangeRequestChildDaoBase<ChangeReview, Row> {
     constructor() {
         super({
             table: 'change_review',
@@ -64,13 +65,5 @@ export class ChangeReviewDao extends DaoBase<ChangeReview, Row> {
             RETURNING ${rowToken}
         `);
         return mapRow(row);
-    }
-
-    async byRequestId(db: Db, requestId: Id): Promise<ChangeReview[]> {
-        const rows: Row[] = await db.any(sql`
-            SELECT ${rowToken} from change_review
-            WHERE request_id = ${requestId}
-        `);
-        return rows?.map((r) => mapRow(r));
     }
 }

@@ -69,4 +69,40 @@ describe('ChangePartCreateDao', function () {
             expect(cpc).to.be.empty;
         });
     });
+
+    describe('checkRequestId', function () {
+        let req2;
+        let partCreations;
+        before(async function () {
+            return pool.transaction(async (db) => {
+                req2 = await th.createChangeRequest(db, users.a);
+                partCreations = [
+                    await th.createChangePartCreate(db, req, fam, {
+                        designation: 'PART A',
+                        version: 'A',
+                    }),
+                    await th.createChangePartCreate(db, req2, fam, {
+                        designation: 'PART B',
+                        version: 'B',
+                    }),
+                ];
+            });
+        });
+
+        after(th.cleanTable('change_part_create'));
+        after(async function () {
+            return pool.transaction(async (db) => {
+                return dao.changeRequest.deleteById(db, req2.id);
+            });
+        });
+
+        it('should check request id', async function () {
+            const { paReqId, pbReqId } = await pool.connect(async (db) => ({
+                paReqId: await dao.changePartCreate.checkRequestId(db, partCreations[0].id),
+                pbReqId: await dao.changePartCreate.checkRequestId(db, partCreations[1].id),
+            }));
+            expect(paReqId).to.eql(req.id);
+            expect(pbReqId).to.eql(req2.id);
+        });
+    });
 });

@@ -1,7 +1,8 @@
 import { ChangePartCreate, Id } from '@engspace/core';
 import { sql } from 'slonik';
 import { Db } from '..';
-import { DaoBase, foreignKey, nullable, RowId, toId } from './base';
+import { foreignKey, nullable, RowId, toId } from './base';
+import { ChangeRequestChildDaoBase } from './change-request';
 
 interface Row {
     id: RowId;
@@ -42,7 +43,7 @@ export interface ChangePartCreateDaoInput {
     comments?: string;
 }
 
-export class ChangePartCreateDao extends DaoBase<ChangePartCreate, Row> {
+export class ChangePartCreateDao extends ChangeRequestChildDaoBase<ChangePartCreate, Row> {
     constructor() {
         super({
             table: 'change_part_create',
@@ -73,13 +74,5 @@ export class ChangePartCreateDao extends DaoBase<ChangePartCreate, Row> {
             RETURNING ${rowToken}
         `);
         return mapRow(row);
-    }
-
-    async byRequestId(db: Db, requestId: Id): Promise<ChangePartCreate[]> {
-        const rows: Row[] = await db.any(sql`
-            SELECT ${rowToken} from change_part_create
-            WHERE request_id = ${requestId}
-        `);
-        return rows?.map((r) => mapRow(r));
     }
 }
