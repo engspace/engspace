@@ -71,7 +71,7 @@ export function expTrackedTime(expect: any, obj: Partial<Tracked>, maxAge = 100)
     const now = Date.now();
     expect(obj.createdAt).to.be.a('number');
     expect(obj.updatedAt).to.be.a('number');
-    expect(obj.createdAt).to.be.gte(obj.updatedAt);
+    expect(obj.updatedAt).to.be.gte(obj.createdAt);
     expect(obj.createdAt)
         .to.be.lte(now)
         .and.gte(now - maxAge);
