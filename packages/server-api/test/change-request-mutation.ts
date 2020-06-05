@@ -528,5 +528,26 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             expect(data.changeRequestUpdate.partRevisions).to.have.lengthOf(1);
             expect(data.changeRequestUpdate.reviews).to.have.lengthOf(2);
         });
+
+        it('should not update the description without "change.update"', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, ['change.read', 'part.read', 'partfamily.read', 'user.read'])
+                );
+                return mutate({
+                    mutation: CHANGEREQ_UPDATE,
+                    variables: {
+                        id: req.id,
+                        input: {
+                            description: 'An updated change request',
+                        },
+                    },
+                });
+            });
+            expect(errors).to.not.be.empty;
+            expect(errors[0].message).to.contain('change.update');
+            expect(data).to.be.null;
+        });
     });
 });
