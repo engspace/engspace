@@ -96,7 +96,7 @@ describe('GraphQL ChangeRequest - Queries', function () {
                 });
             });
             expect(errors).to.be.undefined;
-            expect(data.changeRequest).to.deep.include({
+            expect(data.changeRequest).to.containSubset({
                 id: req.id,
                 description: 'A change request',
                 cycle: ChangeRequestCycle.Edition,

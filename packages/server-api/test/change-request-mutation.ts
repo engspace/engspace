@@ -12,7 +12,11 @@ describe('GraphQL ChangeRequest - Mutations', function () {
     let parts;
     before(async function () {
         return pool.transaction(async (db) => {
-            users = await th.createUsersAB(db);
+            users = {
+                a: await th.createUser(db, { name: 'a' }),
+                b: await th.createUser(db, { name: 'b' }),
+                c: await th.createUser(db, { name: 'c' }),
+            };
             fam = await th.createPartFamily(db);
             parts = {
                 p1: await th.createPart(
@@ -27,6 +31,13 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                     fam,
                     users.a,
                     { ref: 'P002.A', designation: 'PART 2' },
+                    { withRev1: false, bumpFamCounter: true }
+                ),
+                p3: await th.createPart(
+                    db,
+                    fam,
+                    users.a,
+                    { ref: 'P003.A', designation: 'PART 3' },
                     { withRev1: false, bumpFamCounter: true }
                 ),
             };
@@ -53,6 +64,9 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         cycle: PartCycle.Release,
                     }),
                     p2: await th.createPartRev(db, parts.p2, users.a, {
+                        cycle: PartCycle.Release,
+                    }),
+                    p3: await th.createPartRev(db, parts.p3, users.a, {
                         cycle: PartCycle.Release,
                     }),
                 };
@@ -172,7 +186,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 });
             });
             expect(errors).to.be.undefined;
-            expect(data.changeRequestCreate).to.deep.include({
+            expect(data.changeRequestCreate).to.containSubset({
                 description: null,
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
@@ -231,7 +245,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 });
             });
             expect(errors).to.be.undefined;
-            expect(data.changeRequestCreate).to.deep.include({
+            expect(data.changeRequestCreate).to.containSubset({
                 description: null,
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
@@ -240,7 +254,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 reviews: [],
                 ...trackedBy(users.a),
             });
-            expect(data.changeRequestCreate.partChanges).to.have.same.deep.members([
+            expect(data.changeRequestCreate.partChanges).to.containSubset([
                 {
                     part: { id: parts.p1.id },
                     version: 'B',
@@ -288,7 +302,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 });
             });
             expect(errors).to.be.undefined;
-            expect(data.changeRequestCreate).to.deep.include({
+            expect(data.changeRequestCreate).to.containSubset({
                 description: null,
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
@@ -298,7 +312,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 ...trackedBy(users.a),
             });
             expect(data.changeRequestCreate.id).to.be.a(idType);
-            expect(data.changeRequestCreate.partRevisions).to.have.same.deep.members([
+            expect(data.changeRequestCreate.partRevisions).to.containSubset([
                 {
                     part: { id: parts.p1.id },
                     designation: null,
@@ -344,7 +358,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 ...trackedBy(users.a),
             });
             expect(data.changeRequestCreate.id).to.be.a(idType);
-            expect(data.changeRequestCreate.reviews).to.have.same.deep.members([
+            expect(data.changeRequestCreate.reviews).to.containSubset([
                 {
                     assignee: { id: users.a.id },
                     decision: ApprovalDecision.Pending,
@@ -384,6 +398,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                     },
                 });
             });
+            console.log(errors);
             expect(errors).to.not.be.empty;
             expect(errors[0].message).to.contain(parts.p1.ref);
             expect(data).to.be.null;
@@ -451,21 +466,34 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             ${CHANGEREQ_DEEPFIELDS}
         `;
 
+        let rev1s;
         let req;
 
-        beforeEach(async function () {
+        this.beforeEach(async function () {
             return pool.transaction(async (db) => {
+                rev1s = {
+                    p1: await th.createPartRev(db, parts.p1, users.a, {
+                        cycle: PartCycle.Release,
+                    }),
+                    p2: await th.createPartRev(db, parts.p2, users.a, {
+                        cycle: PartCycle.Release,
+                    }),
+                    p3: await th.createPartRev(db, parts.p3, users.a, {
+                        cycle: PartCycle.Release,
+                    }),
+                };
+
                 req = await th.createChangeRequest(db, users.a, {
                     description: 'A change request',
                     partCreations: [
                         {
                             familyId: fam.id,
-                            designation: 'PART 3',
+                            designation: 'PART 4',
                             version: 'A',
                         },
                         {
                             familyId: fam.id,
-                            designation: 'PART 4',
+                            designation: 'PART 5',
                             version: 'K',
                         },
                     ],
@@ -485,16 +513,16 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 });
             });
         });
-        afterEach(
-            th.cleanTables(
-                [
-                    'change_part_create',
-                    'change_part_change',
-                    'change_part_revision',
-                    'change_review',
-                ],
-                { withDeps: true }
-            )
+
+        this.afterEach(
+            th.cleanTables([
+                'change_part_create',
+                'change_part_change',
+                'change_part_revision',
+                'change_review',
+                'change_request',
+                'part_revision',
+            ])
         );
 
         it('should update the description', async function () {
@@ -548,6 +576,256 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             expect(errors).to.not.be.empty;
             expect(errors[0].message).to.contain('change.update');
             expect(data).to.be.null;
+        });
+
+        it('should add a part creation to a change request', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, [
+                        'change.update',
+                        'change.read',
+                        'part.read',
+                        'partfamily.read',
+                        'user.read',
+                    ])
+                );
+                return mutate({
+                    mutation: CHANGEREQ_UPDATE,
+                    variables: {
+                        id: req.id,
+                        input: {
+                            partCreationsAdd: [
+                                {
+                                    familyId: fam.id,
+                                    designation: 'PART 5',
+                                    version: 'B',
+                                },
+                            ],
+                        },
+                    },
+                });
+            });
+            console.log(errors);
+            expect(errors).to.be.undefined;
+            expect(data.changeRequestUpdate.partCreations).to.have.lengthOf(3);
+            expect(data.changeRequestUpdate.partCreations[2]).to.deep.include({
+                family: { id: fam.id },
+                designation: 'PART 5',
+                version: 'B',
+            });
+        });
+
+        it('should remove a part creation from a change request', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, [
+                        'change.update',
+                        'change.read',
+                        'part.read',
+                        'partfamily.read',
+                        'user.read',
+                    ])
+                );
+                return mutate({
+                    mutation: CHANGEREQ_UPDATE,
+                    variables: {
+                        id: req.id,
+                        input: {
+                            partCreationsRem: [req.partCreations[0].id],
+                        },
+                    },
+                });
+            });
+            console.log(errors);
+            expect(errors).to.be.undefined;
+            expect(data.changeRequestUpdate.partCreations).to.have.lengthOf(1);
+            expect(data.changeRequestUpdate.partCreations[0].id).to.eql(req.partCreations[1].id);
+        });
+
+        it('should add a part change to a change request', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, [
+                        'change.update',
+                        'change.read',
+                        'part.read',
+                        'partfamily.read',
+                        'user.read',
+                    ])
+                );
+                return mutate({
+                    mutation: CHANGEREQ_UPDATE,
+                    variables: {
+                        id: req.id,
+                        input: {
+                            partChangesAdd: [
+                                {
+                                    partId: parts.p3.id,
+                                    version: 'B',
+                                    comments: 'this part doesnt work either',
+                                },
+                            ],
+                        },
+                    },
+                });
+            });
+            console.log(errors);
+            expect(errors).to.be.undefined;
+            expect(data.changeRequestUpdate.partChanges).to.have.lengthOf(2);
+            expect(data.changeRequestUpdate.partChanges[1]).to.deep.include({
+                part: { id: parts.p3.id },
+                version: 'B',
+                comments: 'this part doesnt work either',
+            });
+        });
+
+        it('should remove a part change from a change request', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, [
+                        'change.update',
+                        'change.read',
+                        'part.read',
+                        'partfamily.read',
+                        'user.read',
+                    ])
+                );
+                return mutate({
+                    mutation: CHANGEREQ_UPDATE,
+                    variables: {
+                        id: req.id,
+                        input: {
+                            partChangesRem: [req.partChanges[0].id],
+                        },
+                    },
+                });
+            });
+            console.log(errors);
+            expect(errors).to.be.undefined;
+            expect(data.changeRequestUpdate.partChanges).to.have.lengthOf(0);
+        });
+
+        it('should add a part revision to a change request', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, [
+                        'change.update',
+                        'change.read',
+                        'part.read',
+                        'partfamily.read',
+                        'user.read',
+                    ])
+                );
+                return mutate({
+                    mutation: CHANGEREQ_UPDATE,
+                    variables: {
+                        id: req.id,
+                        input: {
+                            partRevisionsAdd: [
+                                {
+                                    partId: parts.p3.id,
+                                },
+                            ],
+                        },
+                    },
+                });
+            });
+            console.log(errors);
+            expect(errors).to.be.undefined;
+            expect(data.changeRequestUpdate.partRevisions).to.have.lengthOf(2);
+            expect(data.changeRequestUpdate.partRevisions[1]).to.deep.include({
+                part: { id: parts.p3.id },
+            });
+        });
+
+        it('should remove a part revision from a change request', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, [
+                        'change.update',
+                        'change.read',
+                        'part.read',
+                        'partfamily.read',
+                        'user.read',
+                    ])
+                );
+                return mutate({
+                    mutation: CHANGEREQ_UPDATE,
+                    variables: {
+                        id: req.id,
+                        input: {
+                            partRevisionsRem: [req.partRevisions[0].id],
+                        },
+                    },
+                });
+            });
+            console.log(errors);
+            expect(errors).to.be.undefined;
+            expect(data.changeRequestUpdate.partRevisions).to.have.lengthOf(0);
+        });
+
+        it('should add a review to a change request', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, [
+                        'change.update',
+                        'change.read',
+                        'part.read',
+                        'partfamily.read',
+                        'user.read',
+                    ])
+                );
+                return mutate({
+                    mutation: CHANGEREQ_UPDATE,
+                    variables: {
+                        id: req.id,
+                        input: {
+                            reviewerIdsAdd: [users.c.id],
+                        },
+                    },
+                });
+            });
+            console.log(errors);
+            expect(errors).to.be.undefined;
+            expect(data.changeRequestUpdate.reviews).to.have.lengthOf(3);
+            expect(data.changeRequestUpdate.reviews[2]).to.deep.include({
+                assignee: { id: users.c.id },
+            });
+        });
+
+        it('should remove a review from a change request', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, [
+                        'change.update',
+                        'change.read',
+                        'part.read',
+                        'partfamily.read',
+                        'user.read',
+                    ])
+                );
+                return mutate({
+                    mutation: CHANGEREQ_UPDATE,
+                    variables: {
+                        id: req.id,
+                        input: {
+                            reviewsRem: [req.reviews[0].id],
+                        },
+                    },
+                });
+            });
+            console.log(errors);
+            expect(errors).to.be.undefined;
+            expect(data.changeRequestUpdate.reviews).to.have.lengthOf(1);
+            expect(data.changeRequestUpdate.reviews[0].id).to.eql(req.reviews[1].id);
         });
     });
 });

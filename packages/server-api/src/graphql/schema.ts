@@ -264,6 +264,18 @@ export const typeDefs = gql`
     """
     input ChangeRequestUpdateInput {
         description: String
+
+        partCreationsAdd: [ChangePartCreateInput!]
+        partCreationsRem: [ID!]
+
+        partChangesAdd: [ChangePartChangeInput!]
+        partChangesRem: [ID!]
+
+        partRevisionsAdd: [ChangePartRevisionInput!]
+        partRevisionsRem: [ID!]
+
+        reviewerIdsAdd: [ID!]
+        reviewsRem: [ID!]
     }
 
     type ChangePartCreate {

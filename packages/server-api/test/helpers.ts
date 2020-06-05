@@ -20,6 +20,7 @@ export const CHANGEREQ_DEEPFIELDS = gql`
         cycle
         state
         partCreations {
+            id
             family {
                 id
             }
@@ -28,6 +29,7 @@ export const CHANGEREQ_DEEPFIELDS = gql`
             comments
         }
         partChanges {
+            id
             part {
                 id
             }
@@ -36,6 +38,7 @@ export const CHANGEREQ_DEEPFIELDS = gql`
             comments
         }
         partRevisions {
+            id
             part {
                 id
             }
@@ -43,6 +46,7 @@ export const CHANGEREQ_DEEPFIELDS = gql`
             comments
         }
         reviews {
+            id
             assignee {
                 id
             }

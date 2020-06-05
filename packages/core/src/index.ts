@@ -226,6 +226,18 @@ export interface ChangeRequestInput {
 
 export interface ChangeRequestUpdateInput {
     description?: string;
+
+    partCreationsAdd?: ChangePartCreateInput[];
+    partCreationsRem?: Id[];
+
+    partChangesAdd?: ChangePartChangeInput[];
+    partChangesRem?: Id[];
+
+    partRevisionsAdd?: ChangePartRevisionInput[];
+    partRevisionsRem?: Id[];
+
+    reviewerIdsAdd?: Id[];
+    reviewsRem?: Id[];
 }
 
 export interface ChangePartCreate {
