@@ -23,6 +23,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiHttp from 'chai-http';
 import chaiUuid from 'chai-uuid';
+import chaiSubset from 'chai-subset';
 import events from 'events';
 import fs from 'fs';
 import Koa from 'koa';
@@ -35,6 +36,7 @@ events.EventEmitter.defaultMaxListeners = 100;
 chai.use(chaiAsPromised);
 chai.use(chaiHttp);
 chai.use(chaiUuid);
+chai.use(chaiSubset);
 
 export const config = {
     dbHost: process.env.DB_HOST || 'localhost',
