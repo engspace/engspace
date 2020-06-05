@@ -32,6 +32,7 @@ import {
     ChangePartRevision,
     ChangeReview,
     ChangeRequestInput,
+    ChangeRequestUpdateInput,
 } from '@engspace/core';
 import { IResolvers, UserInputError } from 'apollo-server-koa';
 import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
@@ -434,10 +435,18 @@ export function buildResolvers(control: ControllerSet): IResolvers {
 
             changeRequestCreate(
                 parent,
-                { id, input }: { id: Id; input: ChangeRequestInput },
+                { input }: { input: ChangeRequestInput },
                 ctx: GqlContext
             ): Promise<ChangeRequest> {
                 return control.change.createRequest(ctx, input);
+            },
+
+            changeRequestUpdate(
+                parent,
+                { id, input }: { id: Id; input: ChangeRequestUpdateInput },
+                ctx: GqlContext
+            ): Promise<ChangeRequest> {
+                return control.change.updateRequest(ctx, id, input);
             },
 
             documentCreate(

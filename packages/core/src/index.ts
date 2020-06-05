@@ -224,6 +224,10 @@ export interface ChangeRequestInput {
     reviewerIds: Id[];
 }
 
+export interface ChangeRequestUpdateInput {
+    description?: string;
+}
+
 export interface ChangePartCreate {
     id: Id;
     request: IdOr<ChangeRequest>;

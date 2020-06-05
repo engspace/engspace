@@ -1,7 +1,7 @@
 import { ChangeRequestCycle, ApprovalDecision } from '@engspace/core';
 import { dao, pool, th } from '.';
 import { expect } from 'chai';
-import { trackedBy, idType } from '../src';
+import { trackedBy, idType, expTrackedTime } from '../src';
 
 describe('ChangeRequestDao', function () {
     let users;
@@ -60,6 +60,35 @@ describe('ChangeRequestDao', function () {
                 state: ApprovalDecision.Approved,
             });
             expect(cr.id).to.be.a(idType);
+        });
+    });
+
+    describe('update', function () {
+        let cr;
+        this.beforeEach(async function () {
+            cr = await pool.transaction(async (db) => {
+                return dao.changeRequest.create(db, {
+                    description: 'SUPER CHANGE',
+                    userId: users.a.id,
+                    cycle: ChangeRequestCycle.Validation,
+                });
+            });
+        });
+        this.afterEach(th.cleanTable('change_request'));
+
+        it('should update the description', async function () {
+            const updated = await pool.transaction(async (db) => {
+                return dao.changeRequest.update(db, cr.id, {
+                    description: 'AWESOME CHANGE',
+                    userId: users.b.id,
+                });
+            });
+            expect(updated).to.deep.include({
+                description: 'AWESOME CHANGE',
+                createdBy: { id: users.a.id },
+                updatedBy: { id: users.b.id },
+            });
+            expTrackedTime(expect, updated, 1000);
         });
     });
 });

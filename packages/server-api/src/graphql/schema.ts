@@ -259,6 +259,13 @@ export const typeDefs = gql`
         reviewerIds: [ID!]
     }
 
+    """
+    An input to update ChangeRequest
+    """
+    input ChangeRequestUpdateInput {
+        description: String
+    }
+
     type ChangePartCreate {
         id: ID!
         request: ChangeRequest!
@@ -409,6 +416,7 @@ export const typeDefs = gql`
         partCloseValidation(id: ID!, input: PartValidationCloseInput!): PartValidation!
 
         changeRequestCreate(input: ChangeRequestInput!): ChangeRequest!
+        changeRequestUpdate(id: ID!, input: ChangeRequestUpdateInput!): ChangeRequest!
 
         documentCreate(input: DocumentInput!): Document!
         documentCheckout(id: ID!, revision: Int!): Document!

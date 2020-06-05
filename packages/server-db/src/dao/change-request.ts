@@ -35,6 +35,11 @@ export interface ChangeRequestDaoInput {
     userId: Id;
 }
 
+export interface ChangeRequestUpdateDaoInput {
+    description?: string;
+    userId: Id;
+}
+
 export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
     constructor() {
         super({
@@ -59,6 +64,22 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
                 ${cycle ?? ChangeRequestCycle.Edition},
                 ${tracked.insertValToken(userId)}
             )
+            RETURNING ${rowToken}
+        `);
+        return mapRow(row);
+    }
+
+    async update(
+        db: Db,
+        id: Id,
+        { description, userId }: ChangeRequestUpdateDaoInput
+    ): Promise<ChangeRequest> {
+        const row: Row = await db.one(sql`
+            UPDATE change_request SET
+                description=${nullable(description)},
+                ${tracked.updateAssignmentsToken(userId)}
+            WHERE
+                id = ${id}
             RETURNING ${rowToken}
         `);
         return mapRow(row);
