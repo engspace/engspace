@@ -1,5 +1,6 @@
 import jwt, { SignOptions } from 'jsonwebtoken';
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function signJwt(obj: any, jwtSecret: string, options: SignOptions): Promise<string> {
     return new Promise((resolve, reject) => {
         jwt.sign(obj, jwtSecret, options, (err, encoded) => {

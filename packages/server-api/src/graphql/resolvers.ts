@@ -39,9 +39,11 @@ import { ControllerSet } from '../control';
 import { GqlContext } from './context';
 
 export const resolveTracked = {
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     createdBy({ createdBy }: Tracked, args, ctx: GqlContext): Promise<User> {
         return ctx.loaders.user.load(createdBy.id);
     },
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     updatedBy({ updatedBy }: Tracked, args, ctx: GqlContext): Promise<User> {
         return ctx.loaders.user.load(updatedBy.id);
     },

@@ -26,6 +26,7 @@ const { expect } = chai;
 
 events.EventEmitter.defaultMaxListeners = 100;
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function filterFields(obj: any, field: string): any {
     const res = _.cloneDeep(obj);
     delete res[field];
