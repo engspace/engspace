@@ -38,7 +38,7 @@ export async function createDemoProjects(
 }
 
 export async function createDemoMembers(
-    db,
+    db: Db,
     projects: Promise<DemoProjectSet>,
     users: Promise<DemoUserSet>
 ): Promise<ProjectMember[]> {
