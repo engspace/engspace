@@ -1,3 +1,5 @@
+import { IResolvers, UserInputError } from 'apollo-server-koa';
+import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
 import {
     DateTime,
     Document,
@@ -34,8 +36,6 @@ import {
     ChangeRequestInput,
     ChangeRequestUpdateInput,
 } from '@engspace/core';
-import { IResolvers, UserInputError } from 'apollo-server-koa';
-import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
 import { ControllerSet } from '../control';
 import { GqlContext } from './context';
 

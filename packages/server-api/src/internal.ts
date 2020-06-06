@@ -1,8 +1,8 @@
-import { AuthToken } from '@engspace/core';
-import { Db, DbPool } from '@engspace/server-db';
 import crypto from 'crypto';
 import HttpStatus from 'http-status-codes';
 import { Context, DefaultContext, Next } from 'koa';
+import { Db, DbPool } from '@engspace/server-db';
+import { AuthToken } from '@engspace/core';
 
 const DB_SYMBOL = Symbol('@engspace/server-api/db');
 const AUTH_TOKEN_SYMBOL = Symbol('@engspace/server-api/authToken');

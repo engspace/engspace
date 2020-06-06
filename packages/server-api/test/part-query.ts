@@ -1,10 +1,10 @@
-import { ApprovalDecision, PartApproval } from '@engspace/core';
-import { Dict, trackedBy } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool, th } from '.';
+import { Dict, trackedBy } from '@engspace/server-db';
+import { ApprovalDecision, PartApproval } from '@engspace/core';
 import { permsAuth } from './auth';
 import { TRACKED_FIELDS } from './helpers';
+import { buildGqlServer, pool, th } from '.';
 
 const PART_FIELDS = gql`
     fragment PartFields on Part {

@@ -1,7 +1,7 @@
-import { PartCycle, PartRevision } from '@engspace/core';
 import { expect } from 'chai';
-import { dao, pool, th } from '.';
+import { PartCycle, PartRevision } from '@engspace/core';
 import { idType, trackedBy } from '../src/test-helpers';
+import { dao, pool, th } from '.';
 
 describe('PartRevisionDao', function () {
     let users;

@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool, th } from '.';
 import { signJwt, verifyJwt } from '../src/crypto';
 import { permsAuth } from './auth';
+import { buildGqlServer, pool, th } from '.';
 
 describe('Miscellaneous', function () {
     let users;

@@ -1,7 +1,6 @@
-import { ApprovalDecision, PartCycle, ValidationResult } from '@engspace/core';
 import { expect } from 'chai';
 import { sql } from 'slonik';
-import { serverConnConfig } from '.';
+import { ApprovalDecision, PartCycle, ValidationResult } from '@engspace/core';
 import {
     connectionString,
     createDbPool,
@@ -10,6 +9,7 @@ import {
     initSchema,
     prepareDb,
 } from '../src';
+import { serverConnConfig } from '.';
 
 function preparationConf(dbName: string): DbPreparationConfig {
     return {

@@ -1,5 +1,5 @@
-import { idType } from '@engspace/server-db';
 import { expect, request } from 'chai';
+import { idType } from '@engspace/server-db';
 import { api, config, dao, pool, th } from '.';
 
 const { serverPort } = config;

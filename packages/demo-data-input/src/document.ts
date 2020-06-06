@@ -1,9 +1,9 @@
-import { Document, DocumentRevisionInput } from '@engspace/core';
-import { DemoUser } from './user';
 import path from 'path';
 import fs from 'fs';
 import util from 'util';
 import crypto from 'crypto';
+import { Document, DocumentRevisionInput } from '@engspace/core';
+import { DemoUser } from './user';
 
 export interface DemoDocInput {
     name: string;

@@ -1,5 +1,5 @@
-import { Id, User } from '@engspace/core';
 import DataLoader from 'dataloader';
+import { Id, User } from '@engspace/core';
 import { ControllerSet, ApiContext } from '../control';
 
 export interface GqlLoaders {

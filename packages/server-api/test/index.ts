@@ -1,9 +1,13 @@
-import {
-    AppRolePolicies,
-    AuthToken,
-    buildDefaultAppRolePolicies,
-    PartRefNaming,
-} from '@engspace/core';
+import events from 'events';
+import fs from 'fs';
+import path from 'path';
+import { ApolloServerTestClient, createTestClient } from 'apollo-server-testing';
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import chaiHttp from 'chai-http';
+import chaiUuid from 'chai-uuid';
+import chaiSubset from 'chai-subset';
+import Koa from 'koa';
 import {
     buildDaoSet,
     connectionString,
@@ -18,16 +22,12 @@ import {
     ServerConnConfig,
     TestHelpers,
 } from '@engspace/server-db';
-import { ApolloServerTestClient, createTestClient } from 'apollo-server-testing';
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import chaiHttp from 'chai-http';
-import chaiUuid from 'chai-uuid';
-import chaiSubset from 'chai-subset';
-import events from 'events';
-import fs from 'fs';
-import Koa from 'koa';
-import path from 'path';
+import {
+    AppRolePolicies,
+    AuthToken,
+    buildDefaultAppRolePolicies,
+    PartRefNaming,
+} from '@engspace/core';
 import { EsServerApi } from '../src';
 import { buildControllerSet } from '../src/control';
 

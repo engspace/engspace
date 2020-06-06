@@ -1,7 +1,7 @@
-import { ApprovalDecision } from '@engspace/core';
 import { expect } from 'chai';
-import { dao, pool, th } from '.';
+import { ApprovalDecision } from '@engspace/core';
 import { expTrackedTime, trackedBy, idType } from '../src/test-helpers';
+import { dao, pool, th } from '.';
 
 describe('PartApprovalDao', function () {
     let users;

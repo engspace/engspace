@@ -1,9 +1,9 @@
-import { UserInput } from '@engspace/core';
-import { idType } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, dao, pool, th } from '.';
+import { UserInput } from '@engspace/core';
+import { idType } from '@engspace/server-db';
 import { permsAuth } from './auth';
+import { buildGqlServer, dao, pool, th } from '.';
 
 export const USER_FIELDS = gql`
     fragment UserFields on User {

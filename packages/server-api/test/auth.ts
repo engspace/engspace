@@ -1,8 +1,8 @@
 import { AuthToken, HasId, User, UserInput } from '@engspace/core';
 import { Db } from '@engspace/server-db';
-import { dao, rolePolicies } from '.';
 import { signJwt } from '../src/crypto';
 import { authJwtSecret } from '../src/internal';
+import { dao, rolePolicies } from '.';
 
 export function auth(user: User): AuthToken {
     return {

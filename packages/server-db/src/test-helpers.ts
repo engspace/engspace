@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import { sql } from 'slonik';
 import {
     ChangePartChange,
     ChangePartChangeInput,
@@ -27,8 +28,6 @@ import {
     User,
     UserInput,
 } from '@engspace/core';
-import { sql } from 'slonik';
-import { Db, DbPool } from '.';
 import {
     ChangeReviewDaoInput,
     DaoSet,
@@ -37,6 +36,7 @@ import {
     PartRevisionDaoInput,
 } from './dao';
 import { RoleOptions } from './dao/user';
+import { Db, DbPool } from '.';
 
 // for ID assertions
 export const idType = 'string';

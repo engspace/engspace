@@ -1,5 +1,5 @@
-import { DocumentRevision, DocumentRevisionInput, Id } from '@engspace/core';
 import { sql } from 'slonik';
+import { DocumentRevision, DocumentRevisionInput, Id } from '@engspace/core';
 import { Db } from '..';
 import { DaoBase, foreignKey, RowId, timestamp, toId } from './base';
 

@@ -1,3 +1,8 @@
+import fs from 'fs';
+import path from 'path';
+import stream from 'stream';
+import util from 'util';
+import { UserInputError } from 'apollo-server-koa';
 import {
     Document,
     DocumentInput,
@@ -6,15 +11,10 @@ import {
     DocumentSearch,
     Id,
 } from '@engspace/core';
-import { UserInputError } from 'apollo-server-koa';
-import fs from 'fs';
-import path from 'path';
-import stream from 'stream';
-import util from 'util';
-import { ApiContext } from '.';
+import { DaoSet } from '@engspace/server-db';
 import { fileSha1sum } from '../util';
 import { assertUserPerm, hasUserPerm } from './helpers';
-import { DaoSet } from '@engspace/server-db';
+import { ApiContext } from '.';
 
 export class DocumentControl {
     constructor(private dao: DaoSet) {}

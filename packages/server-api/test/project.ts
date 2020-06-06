@@ -1,8 +1,8 @@
-import { idType } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool, th } from '.';
+import { idType } from '@engspace/server-db';
 import { permsAuth } from './auth';
+import { buildGqlServer, pool, th } from '.';
 
 export const PROJECT_FIELDS = gql`
     fragment ProjectFields on Project {

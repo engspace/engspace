@@ -1,8 +1,8 @@
-import { PartCycle, ValidationResult, ChangeRequestCycle } from '@engspace/core';
 import fs from 'fs';
 import path from 'path';
 import { sql } from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
+import { PartCycle, ValidationResult, ChangeRequestCycle } from '@engspace/core';
 import { Db } from '.';
 
 // const currentVersion = 1;

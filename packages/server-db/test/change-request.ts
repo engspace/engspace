@@ -1,7 +1,7 @@
-import { ChangeRequestCycle, ApprovalDecision } from '@engspace/core';
-import { dao, pool, th } from '.';
 import { expect } from 'chai';
+import { ChangeRequestCycle, ApprovalDecision } from '@engspace/core';
 import { trackedBy, idType, expTrackedTime } from '../src';
+import { dao, pool, th } from '.';
 
 describe('ChangeRequestDao', function () {
     let users;

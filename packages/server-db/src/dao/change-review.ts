@@ -1,5 +1,5 @@
-import { ApprovalDecision, ChangeReview, Id } from '@engspace/core';
 import { sql } from 'slonik';
+import { ApprovalDecision, ChangeReview, Id } from '@engspace/core';
 import { Db } from '..';
 import { foreignKey, nullable, RowId, toId, tracked, TrackedRow } from './base';
 import { ChangeRequestChildDaoBase } from './change-request';

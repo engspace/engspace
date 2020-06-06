@@ -1,7 +1,7 @@
-import { Project, User } from '@engspace/core';
 import { expect } from 'chai';
-import { dao, pool, th } from '.';
+import { Project, User } from '@engspace/core';
 import { Dict, idType } from '../src/test-helpers';
+import { dao, pool, th } from '.';
 
 describe('ProjectMemberDao', () => {
     let users: Dict<User>;

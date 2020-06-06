@@ -1,9 +1,9 @@
-import { ApprovalDecision, ChangeRequestCycle } from '@engspace/core';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, pool, th } from '.';
+import { ApprovalDecision, ChangeRequestCycle } from '@engspace/core';
 import { permsAuth } from './auth';
 import { CHANGEREQ_DEEPFIELDS } from './helpers';
+import { buildGqlServer, pool, th } from '.';
 
 describe('GraphQL ChangeRequest - Queries', function () {
     let users;

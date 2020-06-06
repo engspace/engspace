@@ -1,9 +1,9 @@
-import { expect, request } from 'chai';
 import http from 'http';
-import { api, config, dao, pool, th } from '.';
+import { expect, request } from 'chai';
 import { verifyJwt } from '../src/crypto';
 import { authJwtSecret } from '../src/internal';
 import { auth } from './auth';
+import { api, config, dao, pool, th } from '.';
 
 const { serverPort } = config;
 

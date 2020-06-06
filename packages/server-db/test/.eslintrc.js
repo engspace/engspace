@@ -1,5 +1,5 @@
 module.exports = {
     extends: [
-        '@engspace/eslint-config/test',
+        '@engspace/eslint-config/ts_test',
     ],
 };

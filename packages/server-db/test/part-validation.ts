@@ -1,7 +1,7 @@
-import { ApprovalDecision, ValidationResult } from '@engspace/core';
 import { expect } from 'chai';
-import { dao, pool, th } from '.';
+import { ApprovalDecision, ValidationResult } from '@engspace/core';
 import { idType, trackedBy } from '../src/test-helpers';
+import { dao, pool, th } from '.';
 
 describe('PartValidationDao', function () {
     let users;

@@ -1,7 +1,16 @@
-import { ApprovalDecision, ChangeRequest, ChangeRequestCycle, HasId, Id } from '@engspace/core';
 import { sql } from 'slonik';
+import { ApprovalDecision, ChangeRequest, ChangeRequestCycle, HasId, Id } from '@engspace/core';
 import { Db } from '..';
-import { DaoBase, DaoBaseConfig, HasRowId, nullable, RowId, toId, tracked, TrackedRow } from './base';
+import {
+    DaoBase,
+    DaoBaseConfig,
+    HasRowId,
+    nullable,
+    RowId,
+    toId,
+    tracked,
+    TrackedRow,
+} from './base';
 
 interface Row extends TrackedRow {
     id: RowId;

@@ -1,8 +1,8 @@
-import { User } from '@engspace/core';
 import { expect } from 'chai';
 import deepEqual from 'deep-equal';
-import { dao, filterFields, pool, th } from '.';
+import { User } from '@engspace/core';
 import { Dict, dictMap } from '../src/test-helpers';
+import { dao, filterFields, pool, th } from '.';
 
 describe('UserDao', () => {
     describe('Create', () => {

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { dao, pool, th } from '.';
 import { idType, trackedBy } from '../src/test-helpers';
+import { dao, pool, th } from '.';
 
 describe('PartDao', function () {
     let users;

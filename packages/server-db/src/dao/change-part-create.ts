@@ -1,5 +1,5 @@
-import { ChangePartCreate, Id } from '@engspace/core';
 import { sql } from 'slonik';
+import { ChangePartCreate, Id } from '@engspace/core';
 import { Db } from '..';
 import { foreignKey, nullable, RowId, toId } from './base';
 import { ChangeRequestChildDaoBase } from './change-request';

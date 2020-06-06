@@ -1,3 +1,6 @@
+import events from 'events';
+import Koa from 'koa';
+import logger from 'koa-logger';
 import { buildDefaultAppRolePolicies, PartRefNaming } from '@engspace/core';
 import { buildControllerSet, EsServerApi } from '@engspace/server-api';
 import {
@@ -12,9 +15,6 @@ import {
     prepareDb,
     ServerConnConfig,
 } from '@engspace/server-db';
-import events from 'events';
-import Koa from 'koa';
-import logger from 'koa-logger';
 import { populateData } from './populate-data';
 
 events.EventEmitter.defaultMaxListeners = 100;

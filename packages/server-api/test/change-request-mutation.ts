@@ -1,10 +1,10 @@
-import { ApprovalDecision, PartCycle, ChangeRequestCycle } from '@engspace/core';
-import { idType, trackedBy } from '@engspace/server-db';
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { buildGqlServer, dao, pool, th } from '.';
+import { idType, trackedBy } from '@engspace/server-db';
+import { ApprovalDecision, PartCycle, ChangeRequestCycle } from '@engspace/core';
 import { permsAuth } from './auth';
 import { CHANGEREQ_DEEPFIELDS } from './helpers';
+import { buildGqlServer, dao, pool, th } from '.';
 
 describe('GraphQL ChangeRequest - Mutations', function () {
     let users;

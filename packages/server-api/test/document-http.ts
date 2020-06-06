@@ -1,12 +1,12 @@
-import { Document, DocumentRevision, DocumentRevisionInput, User } from '@engspace/core';
-import { Db } from '@engspace/server-db';
-import { expect, request } from 'chai';
 import fs from 'fs';
-import gql from 'graphql-tag';
 import path from 'path';
-import { api, buildGqlServer, config, dao, pool, th } from '.';
+import { expect, request } from 'chai';
+import gql from 'graphql-tag';
+import { Db } from '@engspace/server-db';
+import { Document, DocumentRevision, DocumentRevisionInput, User } from '@engspace/core';
 import { bufferSha1sum } from '../src/util';
 import { bearerToken, permsAuth } from './auth';
+import { api, buildGqlServer, config, dao, pool, th } from '.';
 
 const { storePath, serverPort } = config;
 

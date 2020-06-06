@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { dao, pool } from '.';
 import { idType } from '../src/test-helpers';
+import { dao, pool } from '.';
 
 describe('PartFamilyDao', function () {
     describe('create', function () {

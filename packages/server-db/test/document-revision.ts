@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { dao, pool, th } from '.';
 import { idType } from '../src';
+import { dao, pool, th } from '.';
 
 describe('DocumentRevisionDao', function () {
     let users;

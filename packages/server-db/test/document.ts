@@ -1,7 +1,7 @@
-import { Document } from '@engspace/core';
 import { expect } from 'chai';
-import { dao, pool, th } from '.';
+import { Document } from '@engspace/core';
 import { Dict, idType } from '../src/test-helpers';
+import { dao, pool, th } from '.';
 
 describe('DocumentDao', function () {
     let users;

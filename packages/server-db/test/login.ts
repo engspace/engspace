@@ -1,9 +1,9 @@
-import { User } from '@engspace/core';
 import { expect } from 'chai';
 import { sql } from 'slonik';
-import { dao, pool, th } from '.';
+import { User } from '@engspace/core';
 import { Db } from '../src';
 import { Dict } from '../src/test-helpers';
+import { dao, pool, th } from '.';
 
 async function createLogins(db: Db, users: Promise<Dict<User>>): Promise<void> {
     const usrs = await users;

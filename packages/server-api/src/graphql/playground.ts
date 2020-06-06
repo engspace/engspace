@@ -1,12 +1,12 @@
-import { AuthToken } from '@engspace/core';
+import fs from 'fs';
+import path from 'path';
 import Router from '@koa/router';
 import { ApolloServer } from 'apollo-server-koa';
-import fs from 'fs';
 import HttpStatus from 'http-status-codes';
 import Koa from 'koa';
 import session from 'koa-session';
 import mime from 'mime';
-import path from 'path';
+import { AuthToken } from '@engspace/core';
 import { EsServerConfig } from '../';
 import { signJwt, verifyJwt } from '../crypto';
 import { attachDb, authJwtSecret, setAuthToken } from '../internal';
