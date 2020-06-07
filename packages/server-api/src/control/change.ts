@@ -193,9 +193,16 @@ export class ChangeControl {
             );
         }
 
+        let req;
+        if (description) {
+            req = await this.dao.changeRequest.update(db, requestId, { description, userId });
+        } else {
+            req = await this.dao.changeRequest.byId(db, requestId);
+        }
+
         await Promise.all(promises);
 
-        return this.dao.changeRequest.update(db, requestId, { description, userId });
+        return req;
     }
 
     private async checkPartChanges(

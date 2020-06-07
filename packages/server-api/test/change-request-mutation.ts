@@ -525,6 +525,48 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             ])
         );
 
+        it('empty change should be no-op', async function () {
+            const { errors, data } = await pool.transaction(async (db) => {
+                const { mutate } = buildGqlServer(
+                    db,
+                    permsAuth(users.a, [
+                        'change.update',
+                        'change.read',
+                        'part.read',
+                        'partfamily.read',
+                        'user.read',
+                    ])
+                );
+                return mutate({
+                    mutation: CHANGEREQ_UPDATE,
+                    variables: {
+                        id: req.id,
+                        input: {},
+                    },
+                });
+            });
+            expect(errors).to.be.undefined;
+            const partCreations = req.partCreations.map((obj) => ({
+                id: obj.id,
+            }));
+            const partChanges = req.partChanges.map((obj) => ({
+                id: obj.id,
+            }));
+            const partRevisions = req.partRevisions.map((obj) => ({
+                id: obj.id,
+            }));
+            const reviews = req.reviews.map((obj) => ({
+                id: obj.id,
+            }));
+            expect(data.changeRequestUpdate).to.containSubset({
+                ...req,
+                partCreations,
+                partChanges,
+                partRevisions,
+                reviews,
+            });
+        });
+
         it('should update the description', async function () {
             const { errors, data } = await pool.transaction(async (db) => {
                 const { mutate } = buildGqlServer(
