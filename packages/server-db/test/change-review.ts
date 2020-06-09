@@ -96,4 +96,31 @@ describe('#ChangeReviewDao', function () {
             expect(cr).to.be.empty;
         });
     });
+
+    describe('#byRequestAndAssigneeId', function () {
+        let review;
+        before(async function () {
+            return pool.transaction(async (db) => {
+                review = await th.createChangeReview(db, req, users.a, users.b);
+            });
+        });
+        after(th.cleanTable('change_review'));
+
+        it('should read ChangeReview by request and assignee id', async function () {
+            const rc = await pool.connect(async (db) => {
+                return dao.changeReview.byRequestAndAssigneeId(db, req.id, users.a.id);
+            });
+            expect(rc).to.deep.include({
+                id: review.id,
+                assignee: { id: users.a.id },
+            });
+        });
+
+        it('should return null if no review for user and change request', async function () {
+            const rc = await pool.connect(async (db) => {
+                return dao.changeReview.byRequestAndAssigneeId(db, req.id, users.b.id);
+            });
+            expect(rc).to.be.null;
+        });
+    });
 });

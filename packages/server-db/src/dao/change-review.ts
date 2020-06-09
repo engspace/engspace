@@ -66,4 +66,12 @@ export class ChangeReviewDao extends ChangeRequestChildDaoBase<ChangeReview, Row
         `);
         return mapRow(row);
     }
+
+    async byRequestAndAssigneeId(db: Db, requestId: Id, assigneeId: Id): Promise<ChangeReview> {
+        const row: Row = await db.maybeOne(sql`
+            SELECT ${rowToken} FROM change_review
+            WHERE request_id = ${requestId} and assignee_id = ${assigneeId}
+        `);
+        return row ? mapRow(row) : null;
+    }
 }
