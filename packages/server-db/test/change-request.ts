@@ -63,7 +63,7 @@ describe('ChangeRequestDao', function () {
         });
     });
 
-    describe('update', function () {
+    describe('Updates', function () {
         let cr;
         this.beforeEach(async function () {
             cr = await pool.transaction(async (db) => {
@@ -76,19 +76,40 @@ describe('ChangeRequestDao', function () {
         });
         this.afterEach(th.cleanTable('change_request'));
 
-        it('should update the description', async function () {
-            const updated = await pool.transaction(async (db) => {
-                return dao.changeRequest.update(db, cr.id, {
-                    description: 'AWESOME CHANGE',
-                    userId: users.b.id,
+        describe('update', function () {
+            it('should update the description', async function () {
+                const updated = await pool.transaction(async (db) => {
+                    return dao.changeRequest.update(db, cr.id, {
+                        description: 'AWESOME CHANGE',
+                        userId: users.b.id,
+                    });
                 });
+                expect(updated).to.deep.include({
+                    description: 'AWESOME CHANGE',
+                    createdBy: { id: users.a.id },
+                    updatedBy: { id: users.b.id },
+                });
+                expTrackedTime(expect, updated);
             });
-            expect(updated).to.deep.include({
-                description: 'AWESOME CHANGE',
-                createdBy: { id: users.a.id },
-                updatedBy: { id: users.b.id },
+        });
+
+        describe('updateCycle', function () {
+            it('should update the cycle', async function () {
+                const updated = await pool.transaction((db) => {
+                    return dao.changeRequest.updateCycle(
+                        db,
+                        cr.id,
+                        ChangeRequestCycle.Approved,
+                        users.b.id
+                    );
+                });
+                expect(updated).to.deep.include({
+                    cycle: ChangeRequestCycle.Approved,
+                    createdBy: { id: users.a.id },
+                    updatedBy: { id: users.b.id },
+                });
+                expTrackedTime(expect, updated);
             });
-            expTrackedTime(expect, updated, 1000);
         });
     });
 });

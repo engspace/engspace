@@ -93,6 +93,23 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
         `);
         return mapRow(row);
     }
+
+    async updateCycle(
+        db: Db,
+        id: Id,
+        cycle: ChangeRequestCycle,
+        userId: Id
+    ): Promise<ChangeRequest> {
+        const row: Row = await db.one(sql`
+            UPDATE change_request SET
+                cycle=${cycle},
+                ${tracked.updateAssignmentsToken(userId)}
+            WHERE
+                id = ${id}
+            RETURNING ${rowToken}
+        `);
+        return mapRow(row);
+    }
 }
 
 export abstract class ChangeRequestChildDaoBase<
