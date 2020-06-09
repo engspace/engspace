@@ -16,7 +16,7 @@
         "test:cov": "lerna run test:cov --stream -- --colors",
         "cov:merge": "node ./merge_nyc_reports.js && nyc report",
         "coveralls": "nyc report --reporter=text-lcov | coveralls",
-        "build": "lerna run build",
+        "build": "lerna run build --scope @engspace/demo-server --stream",
         "demo:build": "lerna run build --scope @engspace/demo-server --stream",
         "demo:serve": "lerna run serve --scope=@engspace/demo-server --stream",
         "clean": "lerna run clean --parallel"
