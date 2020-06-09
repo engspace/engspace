@@ -3,7 +3,7 @@ import { ApprovalDecision } from '@engspace/core';
 import { trackedBy } from '../src';
 import { dao, pool, th } from '.';
 
-describe('ChangeReviewDao', function () {
+describe('#ChangeReviewDao', function () {
     let users;
     let req;
     before(async function () {
@@ -14,7 +14,7 @@ describe('ChangeReviewDao', function () {
     });
     after(th.cleanTables(['change_request', 'user']));
 
-    describe('create', function () {
+    describe('#create', function () {
         this.afterEach(th.cleanTable('change_review'));
 
         it('should create a ChangeReview', async function () {
@@ -72,7 +72,7 @@ describe('ChangeReviewDao', function () {
         });
     });
 
-    describe('byRequestId', function () {
+    describe('#byRequestId', function () {
         let reviews;
         before(async function () {
             return pool.transaction(async (db) => {

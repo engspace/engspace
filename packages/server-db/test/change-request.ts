@@ -3,7 +3,7 @@ import { ChangeRequestCycle, ApprovalDecision } from '@engspace/core';
 import { trackedBy, idType, expTrackedTime } from '../src';
 import { dao, pool, th } from '.';
 
-describe('ChangeRequestDao', function () {
+describe('#ChangeRequestDao', function () {
     let users;
     before(async function () {
         await pool.transaction(async (db) => {
@@ -12,7 +12,7 @@ describe('ChangeRequestDao', function () {
     });
     after(th.cleanTable('user'));
 
-    describe('create', function () {
+    describe('#create', function () {
         this.afterEach(th.cleanTable('change_request'));
 
         it('should create a ChangeRequest', async function () {
@@ -76,7 +76,7 @@ describe('ChangeRequestDao', function () {
         });
         this.afterEach(th.cleanTable('change_request'));
 
-        describe('update', function () {
+        describe('#update', function () {
             it('should update the description', async function () {
                 const updated = await pool.transaction(async (db) => {
                     return dao.changeRequest.update(db, cr.id, {
@@ -93,7 +93,7 @@ describe('ChangeRequestDao', function () {
             });
         });
 
-        describe('updateCycle', function () {
+        describe('#updateCycle', function () {
             it('should update the cycle', async function () {
                 const updated = await pool.transaction((db) => {
                     return dao.changeRequest.updateCycle(

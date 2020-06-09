@@ -4,8 +4,8 @@ import { User } from '@engspace/core';
 import { Dict, dictMap } from '../src/test-helpers';
 import { dao, filterFields, pool, th } from '.';
 
-describe('UserDao', () => {
-    describe('Create', () => {
+describe('#UserDao', () => {
+    describe('#create', () => {
         afterEach(th.cleanTable('user'));
 
         it('should create user', async () => {

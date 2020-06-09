@@ -3,7 +3,7 @@ import { Project, User } from '@engspace/core';
 import { Dict, idType } from '../src/test-helpers';
 import { dao, pool, th } from '.';
 
-describe('ProjectMemberDao', () => {
+describe('#ProjectMemberDao', () => {
     let users: Dict<User>;
     let projects: Dict<Project>;
 
@@ -35,7 +35,7 @@ describe('ProjectMemberDao', () => {
 
     after('Delete users and projects', th.cleanTables(['project', 'user']));
 
-    describe('Create', () => {
+    describe('#create', () => {
         afterEach('delete all members', th.cleanTable('project_member'));
         it('should create a project member', async () => {
             const mem = await pool.transaction((db) =>

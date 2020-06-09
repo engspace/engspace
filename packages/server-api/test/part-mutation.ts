@@ -72,7 +72,7 @@ describe('GraphQL Part - Mutations', function () {
     afterEach(th.cleanTables(['part_revision', 'part']));
     afterEach(th.resetFamilyCounters());
 
-    describe('partCreate', function () {
+    describe('#partCreate', function () {
         const PART_CREATENEW = gql`
             mutation CreateNewPart($input: PartCreateInput!) {
                 partCreate(input: $input) {
@@ -145,7 +145,7 @@ describe('GraphQL Part - Mutations', function () {
         });
     });
 
-    describe('partFork', function () {
+    describe('#partFork', function () {
         const PART_FORK = gql`
             mutation ForkPart($input: PartForkInput!) {
                 partFork(input: $input) {
@@ -298,7 +298,7 @@ describe('GraphQL Part - Mutations', function () {
         });
     });
 
-    describe('partUpdate', function () {
+    describe('#partUpdate', function () {
         const PART_UPDATE = gql`
             mutation UpdatePart($id: ID!, $input: PartUpdateInput!) {
                 partUpdate(id: $id, input: $input) {
@@ -378,7 +378,7 @@ describe('GraphQL Part - Mutations', function () {
         });
     });
 
-    describe('partRevise', function () {
+    describe('#partRevise', function () {
         const PART_REVISE = gql`
             mutation RevisePart($input: PartRevisionInput!) {
                 partRevise(input: $input) {
@@ -515,7 +515,7 @@ describe('GraphQL Part - Mutations', function () {
         });
     });
 
-    describe('partStartValidation', function () {
+    describe('#partStartValidation', function () {
         const PART_STARTVAL = gql`
             mutation StartPartVal($input: PartValidationInput!) {
                 partStartValidation(input: $input) {
@@ -641,7 +641,7 @@ describe('GraphQL Part - Mutations', function () {
         });
     });
 
-    describe('partUpdateApproval', async function () {
+    describe('#partUpdateApproval', async function () {
         const PARTAPPR_UPDATE = gql`
             mutation UpdatePartAppr($id: ID!, $input: PartApprovalUpdateInput!) {
                 partUpdateApproval(id: $id, input: $input) {
@@ -835,7 +835,7 @@ describe('GraphQL Part - Mutations', function () {
         });
     });
 
-    describe('partCloseValidation', function () {
+    describe('#partCloseValidation', function () {
         const PARTVAL_CLOSE = gql`
             mutation ClosePartVal($id: ID!, $input: PartValidationCloseInput!) {
                 partCloseValidation(id: $id, input: $input) {

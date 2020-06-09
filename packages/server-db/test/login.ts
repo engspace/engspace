@@ -12,7 +12,7 @@ async function createLogins(db: Db, users: Promise<Dict<User>>): Promise<void> {
     }
 }
 
-describe('LoginDao', () => {
+describe('#LoginDao', () => {
     let users;
     before('Create users', async function () {
         users = await th.transacUsers({

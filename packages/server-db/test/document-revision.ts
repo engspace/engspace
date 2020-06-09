@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { idType } from '../src';
 import { dao, pool, th } from '.';
 
-describe('DocumentRevisionDao', function () {
+describe('#DocumentRevisionDao', function () {
     let users;
     before('create users', async function () {
         users = await th.transacUsersAB();
@@ -14,7 +14,7 @@ describe('DocumentRevisionDao', function () {
         });
     });
 
-    describe('Create', function () {
+    describe('#create', function () {
         it('should create first revision and release checkout', async function () {
             const { doc, rev1 } = await pool.transaction(async (db) => {
                 const doc = await th.createDoc(db, users.a, { initialCheckout: true });

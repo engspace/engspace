@@ -5,7 +5,7 @@ import {
     VersionFormat,
 } from '../src/version-format';
 
-describe('VersionFormat', function () {
+describe('#VersionFormat', function () {
     it('should format version with numbers', function () {
         const vf = new VersionFormat('001');
         expect(vf.matches('123')).to.be.true;

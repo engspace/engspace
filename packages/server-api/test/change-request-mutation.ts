@@ -45,7 +45,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
     });
     after(th.cleanTables(['part_revision'], { withDeps: true }));
 
-    describe('changeRequestCreate', function () {
+    describe('#changeRequestCreate', function () {
         const CHANGEREQ_CREATE = gql`
             mutation CreateChangeReq($input: ChangeRequestInput!) {
                 changeRequestCreate(input: $input) {
@@ -456,7 +456,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
         });
     });
 
-    describe('changeRequestUpdate', function () {
+    describe('#changeRequestUpdate', function () {
         const CHANGEREQ_UPDATE = gql`
             mutation UpdateChangeReq($id: ID!, $input: ChangeRequestUpdateInput!) {
                 changeRequestUpdate(id: $id, input: $input) {

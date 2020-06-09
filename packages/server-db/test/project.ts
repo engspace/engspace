@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import { idType } from '../src/test-helpers';
 import { dao, pool, th } from '.';
 
-describe('ProjectDao', () => {
-    describe('create', () => {
+describe('#ProjectDao', () => {
+    describe('#create', () => {
         afterEach('clean up', th.cleanTable('project'));
 
         it('should create project', async function () {
@@ -23,7 +23,7 @@ describe('ProjectDao', () => {
         });
     });
 
-    describe('Get', () => {
+    describe('#byId - #byCode', () => {
         let projects;
         before('create projects', async () => {
             projects = await th.transacProjects({
@@ -52,7 +52,7 @@ describe('ProjectDao', () => {
         });
     });
 
-    describe('Search', () => {
+    describe('#search', () => {
         let projects;
         before('create projects', async () => {
             projects = await th.transacProjects({
@@ -116,7 +116,7 @@ describe('ProjectDao', () => {
         });
     });
 
-    describe('Update', function () {
+    describe('#update', function () {
         const projAInput = {
             name: 'project a',
             code: 'proja',
@@ -148,7 +148,7 @@ describe('ProjectDao', () => {
         });
     });
 
-    describe('Patch', async () => {
+    describe('#patch', async () => {
         let projects;
         beforeEach('create projects', async () => {
             projects = await th.transacProjects({
@@ -189,7 +189,7 @@ describe('ProjectDao', () => {
             }));
     });
 
-    describe('Delete', () => {
+    describe('#deleteById', () => {
         let projects;
         beforeEach('create projects', async () => {
             projects = await th.transacProjects({

@@ -3,7 +3,7 @@ import { Document } from '@engspace/core';
 import { Dict, idType } from '../src/test-helpers';
 import { dao, pool, th } from '.';
 
-describe('DocumentDao', function () {
+describe('#DocumentDao', function () {
     let users;
     before('create users', async function () {
         users = await th.transacUsersAB();
@@ -11,7 +11,7 @@ describe('DocumentDao', function () {
 
     after('delete users', th.cleanTable('user'));
 
-    describe('Create', function () {
+    describe('#create', function () {
         const msBefore = Date.now();
 
         afterEach('delete documents', async function () {
@@ -129,7 +129,7 @@ describe('DocumentDao', function () {
         });
     });
 
-    describe('Checkout', function () {
+    describe('#checkout', function () {
         afterEach('delete documents', async function () {
             return pool.transaction(async (db) => dao.document.deleteAll(db));
         });

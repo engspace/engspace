@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { idType, trackedBy } from '../src/test-helpers';
 import { dao, pool, th } from '.';
 
-describe('PartDao', function () {
+describe('#PartDao', function () {
     let users;
     let family;
     before('create res', async function () {
@@ -14,7 +14,7 @@ describe('PartDao', function () {
 
     after('delete res', th.cleanTables(['part_family', 'user']));
 
-    describe('create', function () {
+    describe('#create', function () {
         afterEach('delete res', th.cleanTable('part'));
 
         it('should create a part', async function () {
@@ -39,7 +39,7 @@ describe('PartDao', function () {
         });
     });
 
-    describe('byRef', function () {
+    describe('#byRef', function () {
         let part;
         before(function () {
             return pool.transaction(async (db) => {
@@ -65,7 +65,7 @@ describe('PartDao', function () {
         });
     });
 
-    describe('checkRef', function () {
+    describe('#checkRef', function () {
         before(function () {
             return pool.transaction(async (db) => {
                 await th.createPart(db, family, users.a, {
@@ -90,7 +90,7 @@ describe('PartDao', function () {
         });
     });
 
-    describe('update', function () {
+    describe('#update', function () {
         let part;
         beforeEach('create part', async function () {
             return pool.transaction(async (db) => {

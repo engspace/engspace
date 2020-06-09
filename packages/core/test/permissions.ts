@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { buildDefaultAppRolePolicies, buildRolePolicy, UnknownRoleError } from '../src';
 
 describe('Permissions', function () {
-    describe('RolePolicy', function () {
+    describe('#RolePolicy', function () {
         const policies = buildRolePolicy({
             role1: {
                 permissions: ['perm1.1', 'perm1.2', 'perm1.3'],

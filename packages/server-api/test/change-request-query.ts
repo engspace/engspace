@@ -72,7 +72,7 @@ describe('GraphQL ChangeRequest - Queries', function () {
             { withDeps: true }
         )
     );
-    describe('changeRequest', function () {
+    describe('#changeRequest', function () {
         const CHANGEREQ_READ = gql`
             query ReadChangeReq($id: ID!) {
                 changeRequest(id: $id) {

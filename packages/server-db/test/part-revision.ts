@@ -3,7 +3,7 @@ import { PartCycle, PartRevision } from '@engspace/core';
 import { idType, trackedBy } from '../src/test-helpers';
 import { dao, pool, th } from '.';
 
-describe('PartRevisionDao', function () {
+describe('#PartRevisionDao', function () {
     let users;
     let fam;
     let part;
@@ -16,7 +16,7 @@ describe('PartRevisionDao', function () {
     });
     after('clean deps', th.cleanTables(['part', 'part_family', 'user']));
 
-    describe('Create', function () {
+    describe('#create', function () {
         afterEach(th.cleanTable('part_revision'));
 
         it('should create part revision', async function () {
@@ -39,7 +39,7 @@ describe('PartRevisionDao', function () {
         });
     });
 
-    describe('byPartId - lastByPartId', function () {
+    describe('#byPartId - #lastByPartId', function () {
         let partRevs: PartRevision[];
         before(async function () {
             return pool.transaction(async (db) => {
@@ -72,7 +72,7 @@ describe('PartRevisionDao', function () {
         });
     });
 
-    describe('Update', function () {
+    describe('#updateCycleState', function () {
         let partRev;
         beforeEach(async function () {
             partRev = await th.transacPartRev(part, users.a, {

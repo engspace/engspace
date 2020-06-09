@@ -3,7 +3,7 @@ import { ApprovalDecision } from '@engspace/core';
 import { expTrackedTime, trackedBy, idType } from '../src/test-helpers';
 import { dao, pool, th } from '.';
 
-describe('PartApprovalDao', function () {
+describe('#PartApprovalDao', function () {
     let users;
     let fam;
     let part;
@@ -28,7 +28,7 @@ describe('PartApprovalDao', function () {
         'clean deps',
         th.cleanTables(['part_validation', 'part_revision', 'part', 'part_family', 'user'])
     );
-    describe('Create', function () {
+    describe('#create', function () {
         afterEach(th.cleanTable('part_approval'));
         it('should create part approval in pending decision', async function () {
             const partAppr = await pool.transaction(async (db) => {
@@ -66,7 +66,7 @@ describe('PartApprovalDao', function () {
         });
     });
 
-    describe('Update', function () {
+    describe('#update', function () {
         let partAppr;
         beforeEach(async function () {
             partAppr = await pool.transaction(async (db) => {

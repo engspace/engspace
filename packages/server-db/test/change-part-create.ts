@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
 
-describe('ChangePartCreateDao', function () {
+describe('#ChangePartCreateDao', function () {
     let users;
     let req;
     let fam;
@@ -14,7 +14,7 @@ describe('ChangePartCreateDao', function () {
     });
     after(th.cleanTables(['part_family', 'change_request', 'user']));
 
-    describe('create', function () {
+    describe('#create', function () {
         this.afterEach(th.cleanTable('change_part_create'));
 
         it('should create a ChangePartCreate', async function () {
@@ -35,7 +35,7 @@ describe('ChangePartCreateDao', function () {
         });
     });
 
-    describe('byRequestId', function () {
+    describe('#byRequestId', function () {
         let partCreations;
         before(async function () {
             return pool.transaction(async (db) => {
@@ -70,7 +70,7 @@ describe('ChangePartCreateDao', function () {
         });
     });
 
-    describe('checkRequestId', function () {
+    describe('#checkRequestId', function () {
         let req2;
         let partCreations;
         before(async function () {

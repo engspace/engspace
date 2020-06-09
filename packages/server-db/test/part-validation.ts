@@ -3,7 +3,7 @@ import { ApprovalDecision, ValidationResult } from '@engspace/core';
 import { idType, trackedBy } from '../src/test-helpers';
 import { dao, pool, th } from '.';
 
-describe('PartValidationDao', function () {
+describe('#PartValidationDao', function () {
     let users;
     let fam;
     let part;
@@ -23,7 +23,7 @@ describe('PartValidationDao', function () {
         });
     });
     after('clean deps', th.cleanTables(['part_revision', 'part', 'part_family', 'user']));
-    describe('create', function () {
+    describe('#create', function () {
         afterEach(th.cleanTable('part_validation'));
 
         it('should create part validation', async function () {
@@ -40,7 +40,7 @@ describe('PartValidationDao', function () {
         });
     });
 
-    describe('byId - state', function () {
+    describe('#byId - state', function () {
         let partVal;
         beforeEach(async function () {
             partVal = await pool.transaction(async (db) => {
@@ -126,7 +126,7 @@ describe('PartValidationDao', function () {
         });
     });
 
-    describe('update', function () {
+    describe('#update', function () {
         let partVal;
         beforeEach(async function () {
             partVal = await pool.transaction(async (db) => {

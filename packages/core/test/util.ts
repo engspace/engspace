@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { arraysHaveSameMembers, arraysHaveSameMembersMut, CharIterator } from '../src/util';
 
 describe('Util', function () {
-    describe('CharIterator', function () {
+    describe('#CharIterator', function () {
         it('gets next char until done', function () {
             const inp = new CharIterator('abc');
             expect(inp.done).to.be.false;

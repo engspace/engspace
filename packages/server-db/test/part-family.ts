@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import { idType } from '../src/test-helpers';
 import { dao, pool } from '.';
 
-describe('PartFamilyDao', function () {
-    describe('create', function () {
+describe('#PartFamilyDao', function () {
+    describe('#create', function () {
         afterEach('delete families', async function () {
             await pool.transaction(async (db) => {
                 return dao.partFamily.deleteAll(db);
@@ -25,7 +25,7 @@ describe('PartFamilyDao', function () {
             expect(famA.id).to.be.a(idType);
         });
     });
-    describe('read', function () {
+    describe('Read', function () {
         let famA;
         before('Create part family', async function () {
             famA = await pool.transaction(async (db) => {
