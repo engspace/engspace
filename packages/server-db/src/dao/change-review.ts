@@ -34,6 +34,12 @@ export interface ChangeReviewDaoInput {
     userId: Id;
 }
 
+export interface ChangeReviewUpdateDaoInput {
+    userId: Id;
+    decision: ApprovalDecision;
+    comments?: string;
+}
+
 export class ChangeReviewDao extends ChangeRequestChildDaoBase<ChangeReview, Row> {
     constructor() {
         super({
@@ -73,5 +79,22 @@ export class ChangeReviewDao extends ChangeRequestChildDaoBase<ChangeReview, Row
             WHERE request_id = ${requestId} and assignee_id = ${assigneeId}
         `);
         return row ? mapRow(row) : null;
+    }
+
+    async update(
+        db: Db,
+        id: Id,
+        { decision, comments, userId }: ChangeReviewUpdateDaoInput
+    ): Promise<ChangeReview> {
+        const row: Row = await db.one(sql`
+            UPDATE change_review SET
+                decision = ${decision},
+                comments = ${nullable(comments)},
+                ${tracked.updateAssignmentsToken(userId)}
+            WHERE
+                id = ${id}
+            RETURNING ${rowToken}
+        `);
+        return mapRow(row);
     }
 }

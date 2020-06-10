@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { ApprovalDecision } from '@engspace/core';
 import { trackedBy } from '../src';
 import { dao, pool, th } from '.';
+import { expTrackedTime } from '../dist';
 
 describe('#ChangeReviewDao', function () {
     let users;
@@ -121,6 +122,35 @@ describe('#ChangeReviewDao', function () {
                 return dao.changeReview.byRequestAndAssigneeId(db, req.id, users.b.id);
             });
             expect(rc).to.be.null;
+        });
+    });
+
+    describe('#update', function () {
+        let review;
+        beforeEach(async function () {
+            return pool.transaction(async (db) => {
+                review = await th.createChangeReview(db, req, users.a, users.b);
+            });
+        });
+        afterEach(th.cleanTable('change_review'));
+
+        it('should update a change review', async function () {
+            const updated = await pool.transaction(async (db) => {
+                return dao.changeReview.update(db, review.id, {
+                    decision: ApprovalDecision.Rejected,
+                    comments: 'Not good enough',
+                    userId: users.a.id,
+                });
+            });
+            expect(updated).to.deep.include({
+                id: review.id,
+                assignee: { id: users.a.id },
+                decision: ApprovalDecision.Rejected,
+                comments: 'Not good enough',
+                createdBy: { id: users.b.id },
+                updatedBy: { id: users.a.id },
+            });
+            expTrackedTime(expect, updated);
         });
     });
 });
