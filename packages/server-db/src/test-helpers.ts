@@ -68,7 +68,7 @@ export function trackedBy(createdBy: User, updatedBy?: User): Partial<Tracked> {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function expTrackedTime(expect: any, obj: Partial<Tracked>, maxAge = 100): void {
+export function expTrackedTime(expect: any, obj: Partial<Tracked>, maxAge = 400): void {
     const now = Date.now();
     expect(obj.createdAt).to.be.a('number');
     expect(obj.updatedAt).to.be.a('number');
