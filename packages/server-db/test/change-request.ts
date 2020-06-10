@@ -7,7 +7,13 @@ describe('#ChangeRequestDao', function () {
     let users;
     before(async function () {
         await pool.transaction(async (db) => {
-            users = await th.createUsersAB(db);
+            users = await th.createUsers(db, {
+                a: { name: 'a' },
+                b: { name: 'b' },
+                c: { name: 'c' },
+                d: { name: 'd' },
+                e: { name: 'e' },
+            });
         });
     });
     after(th.cleanTable('user'));
@@ -60,6 +66,108 @@ describe('#ChangeRequestDao', function () {
                 state: ApprovalDecision.Approved,
             });
             expect(cr.id).to.be.a(idType);
+        });
+    });
+
+    describe('state', function () {
+        let cr;
+        this.beforeEach(async function () {
+            cr = await pool.transaction(async (db) => {
+                return dao.changeRequest.create(db, {
+                    description: 'SUPER CHANGE',
+                    userId: users.a.id,
+                    cycle: ChangeRequestCycle.Validation,
+                });
+            });
+        });
+        this.afterEach(th.cleanTables(['change_review', 'change_request']));
+
+        it('should be rejected if one review is rejected', async function () {
+            const req = await pool.connect(async (db) => {
+                await th.createChangeReview(db, cr, users.a, users.a, {
+                    decision: ApprovalDecision.Rejected,
+                });
+                await th.createChangeReview(db, cr, users.b, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                await th.createChangeReview(db, cr, users.c, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                await th.createChangeReview(db, cr, users.d, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                await th.createChangeReview(db, cr, users.e, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                return dao.changeRequest.byId(db, cr.id);
+            });
+            expect(req.state).to.eql(ApprovalDecision.Rejected);
+        });
+
+        it('should be pending if one review is pending', async function () {
+            const req = await pool.connect(async (db) => {
+                await th.createChangeReview(db, cr, users.a, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                await th.createChangeReview(db, cr, users.b, users.a, {
+                    decision: ApprovalDecision.Pending,
+                });
+                await th.createChangeReview(db, cr, users.c, users.a, {
+                    decision: ApprovalDecision.Reserved,
+                });
+                await th.createChangeReview(db, cr, users.d, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                await th.createChangeReview(db, cr, users.e, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                return dao.changeRequest.byId(db, cr.id);
+            });
+            expect(req.state).to.eql(ApprovalDecision.Pending);
+        });
+
+        it('should be reserved if one review is reserved', async function () {
+            const req = await pool.connect(async (db) => {
+                await th.createChangeReview(db, cr, users.a, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                await th.createChangeReview(db, cr, users.b, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                await th.createChangeReview(db, cr, users.c, users.a, {
+                    decision: ApprovalDecision.Reserved,
+                });
+                await th.createChangeReview(db, cr, users.d, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                await th.createChangeReview(db, cr, users.e, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                return dao.changeRequest.byId(db, cr.id);
+            });
+            expect(req.state).to.eql(ApprovalDecision.Reserved);
+        });
+
+        it('should be approved if all reviews are approved', async function () {
+            const req = await pool.connect(async (db) => {
+                await th.createChangeReview(db, cr, users.a, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                await th.createChangeReview(db, cr, users.b, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                await th.createChangeReview(db, cr, users.c, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                await th.createChangeReview(db, cr, users.d, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                await th.createChangeReview(db, cr, users.e, users.a, {
+                    decision: ApprovalDecision.Approved,
+                });
+                return dao.changeRequest.byId(db, cr.id);
+            });
+            expect(req.state).to.eql(ApprovalDecision.Approved);
         });
     });
 
