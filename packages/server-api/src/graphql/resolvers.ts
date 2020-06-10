@@ -33,8 +33,10 @@ import {
     ChangePartChange,
     ChangePartRevision,
     ChangeReview,
+    ChangeReviewInput,
     ChangeRequestInput,
     ChangeRequestUpdateInput,
+    HasId,
 } from '@engspace/core';
 import { ControllerSet } from '../control';
 import { GqlContext } from './context';
@@ -155,6 +157,17 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             },
 
             ...resolveTracked,
+        },
+
+        ChangeReview: {
+            async request(
+                { request }: ChangeReview,
+                args,
+                ctx: GqlContext
+            ): Promise<ChangeRequest> {
+                const req = await control.change.request(ctx, request.id);
+                return req;
+            },
         },
 
         ChangeRequest: {
@@ -447,6 +460,22 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 ctx: GqlContext
             ): Promise<ChangeRequest> {
                 return control.change.updateRequest(ctx, id, input);
+            },
+
+            changeRequestStartValidation(
+                parent,
+                { id }: HasId,
+                ctx: GqlContext
+            ): Promise<ChangeRequest> {
+                return control.change.startValidation(ctx, id);
+            },
+
+            changeRequestReview(
+                parent,
+                { id, input }: { id: Id; input: ChangeReviewInput },
+                ctx: GqlContext
+            ): Promise<ChangeReview> {
+                return control.change.review(ctx, id, input);
             },
 
             documentCreate(

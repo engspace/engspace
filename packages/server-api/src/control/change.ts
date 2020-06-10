@@ -12,6 +12,8 @@ import {
     ChangeRequestUpdateInput,
     ChangePartChangeInput,
     ChangePartRevisionInput,
+    ChangeRequestCycle,
+    ChangeReviewInput,
 } from '@engspace/core';
 import { DaoSet } from '@engspace/server-db';
 import { assertUserPerm } from './helpers';
@@ -203,6 +205,55 @@ export class ChangeControl {
         await Promise.all(promises);
 
         return req;
+    }
+
+    async startValidation(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
+        assertUserPerm(ctx, 'change.update');
+        const {
+            db,
+            auth: { userId },
+        } = ctx;
+        const req = await this.dao.changeRequest.byId(db, id);
+        if (req.createdBy.id !== userId) {
+            // TODO: editor list
+            const user = await this.dao.user.byId(db, userId);
+            throw new UserInputError(
+                `User "${user.fullName}" is not allowed to start the validation of this change request`
+            );
+        }
+        if (req.cycle !== ChangeRequestCycle.Edition) {
+            throw new UserInputError(
+                'Validation can be started only if change request is in Edition mode.'
+            );
+        }
+        return this.dao.changeRequest.updateCycle(db, id, ChangeRequestCycle.Validation, userId);
+    }
+
+    async review(ctx: ApiContext, requestId: Id, input: ChangeReviewInput): Promise<ChangeReview> {
+        assertUserPerm(ctx, 'change.review');
+        const {
+            db,
+            auth: { userId },
+        } = ctx;
+        const req = await this.dao.changeRequest.byId(db, requestId);
+        if (!req) {
+            throw new UserInputError('Cannot find specified change request');
+        }
+        if (req.cycle !== ChangeRequestCycle.Validation) {
+            throw new UserInputError('Cannot review a change that is not in validation');
+        }
+        const review = await this.dao.changeReview.byRequestAndAssigneeId(db, requestId, userId);
+        if (!review) {
+            const user = await this.dao.user.byId(db, userId);
+            throw new UserInputError(
+                `User ${user.fullName} is not a reviewer of the specified change request`
+            );
+        }
+        return this.dao.changeReview.update(db, review.id, {
+            decision: input.decision,
+            comments: input.comments,
+            userId,
+        });
     }
 
     private async checkPartChanges(

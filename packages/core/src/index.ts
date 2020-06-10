@@ -266,6 +266,11 @@ export interface ChangePartRevision {
     comments?: string;
 }
 
+export interface ChangeReviewInput {
+    decision: ApprovalDecision;
+    comments?: string;
+}
+
 export interface ChangeReview extends Tracked {
     id: Id;
     request: IdOr<ChangeRequest>;

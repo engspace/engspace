@@ -304,6 +304,14 @@ export const typeDefs = gql`
         comments: String
     }
 
+    """
+    Input to review a change request
+    """
+    input ChangeReviewInput {
+        decision: ApprovalDecision!
+        comments: String
+    }
+
     type ChangeReview implements Tracked {
         id: ID!
         assignee: User!
@@ -313,6 +321,8 @@ export const typeDefs = gql`
         createdAt: DateTime!
         updatedBy: User!
         updatedAt: DateTime!
+
+        request: ChangeRequest!
     }
 
     """
@@ -429,6 +439,17 @@ export const typeDefs = gql`
 
         changeRequestCreate(input: ChangeRequestInput!): ChangeRequest!
         changeRequestUpdate(id: ID!, input: ChangeRequestUpdateInput!): ChangeRequest!
+        """
+        Start the validation process of a change request.
+        The change request must be in edition mode.
+        """
+        changeRequestStartValidation(id: ID!): ChangeRequest!
+        """
+        Edit a review for a change request.
+        The logged-in user must be a reviewer of the given change request.
+        Previous reviews of the same user and same change request are erased.
+        """
+        changeRequestReview(id: ID!, input: ChangeReviewInput!): ChangeReview!
 
         documentCreate(input: DocumentInput!): Document!
         documentCheckout(id: ID!, revision: Int!): Document!

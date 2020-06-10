@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { idType, trackedBy } from '@engspace/server-db';
+import { idType, trackedBy, expTrackedTime } from '@engspace/server-db';
 import { ApprovalDecision, PartCycle, ChangeRequestCycle } from '@engspace/core';
 import { permsAuth } from './auth';
 import { CHANGEREQ_DEEPFIELDS } from './helpers';
@@ -398,7 +398,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                     },
                 });
             });
-            console.log(errors);
             expect(errors).to.not.be.empty;
             expect(errors[0].message).to.contain(parts.p1.ref);
             expect(data).to.be.null;
@@ -659,7 +658,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
-                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestUpdate.partCreations).to.have.lengthOf(3);
                 expect(data.changeRequestUpdate.partCreations[2]).to.deep.include({
@@ -691,7 +689,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
-                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestUpdate.partCreations).to.have.lengthOf(1);
                 expect(data.changeRequestUpdate.partCreations[0].id).to.eql(
@@ -727,7 +724,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
-                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestUpdate.partChanges).to.have.lengthOf(2);
                 expect(data.changeRequestUpdate.partChanges[1]).to.deep.include({
@@ -759,7 +755,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
-                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestUpdate.partChanges).to.have.lengthOf(0);
             });
@@ -790,7 +785,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
-                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestUpdate.partRevisions).to.have.lengthOf(2);
                 expect(data.changeRequestUpdate.partRevisions[1]).to.deep.include({
@@ -820,7 +814,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
-                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestUpdate.partRevisions).to.have.lengthOf(0);
             });
@@ -847,7 +840,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
-                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestUpdate.reviews).to.have.lengthOf(3);
                 expect(data.changeRequestUpdate.reviews[2]).to.deep.include({
@@ -877,7 +869,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
-                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestUpdate.reviews).to.have.lengthOf(1);
                 expect(data.changeRequestUpdate.reviews[0].id).to.eql(req.reviews[1].id);
@@ -925,14 +916,15 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 const reviews = req.reviews.map((obj) => ({
                     id: obj.id,
                 }));
-                expect(data.changeRequestUpdate).to.containSubset({
-                    ...req,
+                expect(data.changeRequestStartValidation).to.containSubset({
+                    description: req.description,
                     cycle: ChangeRequestCycle.Validation,
                     partCreations,
                     partChanges,
                     partRevisions,
                     reviews,
                 });
+                expTrackedTime(expect, data.changeRequestStartValidation);
             });
 
             it('should not start a change request validation without "change.update"', async function () {
@@ -1007,13 +999,12 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 });
                 expect(errors).to.not.be.empty;
                 expect(errors[0].message).to.contain(users.c.fullName);
-                expect(errors[0].message.toLocaleLowerCase()).to.contain('authorization');
             });
         });
 
         describe('#changeRequestReview', function () {
             const CHANGEREQ_REVIEW = gql`
-                mutation ReviewChangeReq($id: ID!, $input: ChangeRequestReviewInput!) {
+                mutation ReviewChangeReq($id: ID!, $input: ChangeReviewInput!) {
                     changeRequestReview(id: $id, input: $input) {
                         id
                         assignee {
@@ -1029,7 +1020,19 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 }
             `;
 
+            this.beforeEach('switch to validation mode', async function () {
+                return pool.transaction((db) =>
+                    dao.changeRequest.updateCycle(
+                        db,
+                        req.id,
+                        ChangeRequestCycle.Validation,
+                        users.a.id
+                    )
+                );
+            });
+
             it('should reject a change request', async function () {
+                this.timeout(1000000);
                 const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
@@ -1052,6 +1055,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
+                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestReview).to.deep.include({
                     id: reviews.a.id,
@@ -1088,6 +1092,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
+                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestReview).to.deep.include({
                     id: reviews.b.id,
@@ -1124,6 +1129,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
+                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestReview).to.deep.include({
                     id: reviews.a.id,
@@ -1186,6 +1192,38 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 });
                 expect(errors).to.not.be.empty;
                 expect(errors[0].message).to.contain(users.c.fullName);
+            });
+
+            it('should not allow to review a request not in validation', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    await dao.changeRequest.updateCycle(
+                        db,
+                        req.id,
+                        ChangeRequestCycle.Edition,
+                        users.a.id
+                    );
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.review',
+                            'change.read',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_REVIEW,
+                        variables: {
+                            id: req.id,
+                            input: {
+                                decision: ApprovalDecision.Rejected,
+                            },
+                        },
+                    });
+                });
+                expect(errors).to.not.be.empty;
+                expect(errors[0].message.toLocaleLowerCase()).to.contain('validation');
             });
         });
     });
