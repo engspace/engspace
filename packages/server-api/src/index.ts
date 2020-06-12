@@ -5,6 +5,7 @@ import { ApolloServer } from 'apollo-server-koa';
 import HttpStatus from 'http-status-codes';
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
+import { GraphQLSchema } from 'graphql';
 import { DaoSet, Db, DbPool } from '@engspace/server-db';
 import { AppRolePolicies, AuthToken, PartRefNaming } from '@engspace/core';
 import { ApiContext, buildControllerSet, ControllerSet } from './control';
@@ -12,8 +13,7 @@ import { verifyJwt } from './crypto';
 import { GqlContext, gqlContextFactory } from './graphql/context';
 import { makeLoaders } from './graphql/loaders';
 import { setupPlaygroundEndpoint, setupPlaygroundLogin } from './graphql/playground';
-import { buildResolvers } from './graphql/resolvers';
-import { typeDefs } from './graphql/schema';
+import { buildSchema } from './graphql/schema';
 import { setupPostAuthDocRoutes, setupPreAuthDocRoutes } from './http/document';
 import { setupFirstAdminRoutes } from './http/first-admin';
 import { setupLoginRoute } from './http/login';
@@ -123,8 +123,7 @@ export class EsServerApi {
               }
             : undefined;
         const graphQL = new ApolloServer({
-            typeDefs,
-            resolvers: buildResolvers(this.config.control),
+            schema: buildSchema(this.config.control),
             introspection: false,
             playground: false,
             extensions,
@@ -138,10 +137,15 @@ export class EsServerApi {
         );
     }
 
+    private testSchema: GraphQLSchema = null;
+
     buildTestGqlServer(db: Db, auth: AuthToken): ApolloServer {
+        if (!this.testSchema) {
+            // caching for more efficiency
+            this.testSchema = buildSchema(this.config.control);
+        }
         return new ApolloServer({
-            typeDefs,
-            resolvers: buildResolvers(this.config.control),
+            schema: this.testSchema,
             introspection: false,
             playground: false,
             context: (): GqlContext => {
