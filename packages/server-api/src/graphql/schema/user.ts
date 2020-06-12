@@ -1,6 +1,6 @@
-import { Id, ProjectMember, User, UserInput } from '@engspace/core';
 import { IResolvers } from 'apollo-server-koa';
 import gql from 'graphql-tag';
+import { Id, ProjectMember, User, UserInput } from '@engspace/core';
 import { ControllerSet } from '../../control';
 import { GqlContext } from '../context';
 
@@ -37,9 +37,6 @@ export const typeDefs = gql`
     }
 `;
 
-
-
-
 export function buildResolvers(control: ControllerSet): IResolvers {
     return {
         User: {
@@ -52,7 +49,6 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             },
         },
         Query: {
-
             user(parent, { id }, ctx: GqlContext): Promise<User> {
                 return ctx.loaders.user.load(id);
             },
@@ -78,16 +74,6 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             ): Promise<User> {
                 return control.user.update(ctx, id, input);
             },
-
         },
     };
 }
-export default {
-    typeDefs,
-    buildResolvers(control: ControllerSet) {
-        return {
-            Query: {},
-            Mutation: {},
-        };
-    },
-};
