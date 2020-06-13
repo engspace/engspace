@@ -6,6 +6,7 @@ import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
 export interface PartRevisionDaoInput {
     partId: Id;
     designation: string;
+    changeRequestId: Id;
     cycle: PartCycle;
     userId: Id;
 }
@@ -13,16 +14,18 @@ export interface PartRevisionDaoInput {
 interface Row extends TrackedRow {
     id: RowId;
     partId: RowId;
+    changeRequestId: RowId;
     revision: number;
     designation: string;
     cycle: string;
 }
 
 function mapRow(row: Row): PartRevision {
-    const { id, partId, revision, designation, cycle } = row;
+    const { id, partId, changeRequestId, revision, designation, cycle } = row;
     return {
         id: toId(id),
         part: foreignKey(partId),
+        changeRequest: foreignKey(changeRequestId),
         revision,
         designation,
         cycle: cycle as PartCycle,
@@ -31,7 +34,7 @@ function mapRow(row: Row): PartRevision {
 }
 
 const rowToken = sql`
-    id, part_id, revision, designation, cycle, ${tracked.selectToken}
+    id, part_id, revision, designation, change_request_id, cycle, ${tracked.selectToken}
 `;
 
 export class PartRevisionDao extends DaoBase<PartRevision, Row> {
@@ -44,11 +47,11 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
     }
     async create(
         db: Db,
-        { partId, designation, cycle, userId }: PartRevisionDaoInput
+        { partId, designation, cycle, changeRequestId, userId }: PartRevisionDaoInput
     ): Promise<PartRevision> {
         const row: Row = await db.one(sql`
             INSERT INTO part_revision (
-                part_id, revision, designation, cycle, ${tracked.insertListToken}
+                part_id, revision, designation, change_request_id, cycle, ${tracked.insertListToken}
             )
             VALUES (
                 ${partId},
@@ -57,6 +60,7 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
                     0
                 ) + 1,
                 ${designation},
+                ${changeRequestId},
                 ${cycle},
                 ${tracked.insertValToken(userId)}
             )

@@ -1,37 +1,10 @@
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { Dict, trackedBy } from '@engspace/server-db';
-import { ApprovalDecision, PartApproval } from '@engspace/core';
+import { ApprovalDecision, PartApproval, PartCycle } from '@engspace/core';
 import { permsAuth } from './auth';
-import { TRACKED_FIELDS } from './helpers';
+import { TRACKED_FIELDS, PART_FIELDS, PARTREV_FIELDS } from './helpers';
 import { buildGqlServer, pool, th } from '.';
-
-const PART_FIELDS = gql`
-    fragment PartFields on Part {
-        id
-        family {
-            id
-        }
-        ref
-        designation
-        ...TrackedFields
-    }
-    ${TRACKED_FIELDS}
-`;
-
-const PARTREV_FIELDS = gql`
-    fragment PartRevFields on PartRevision {
-        id
-        part {
-            id
-        }
-        revision
-        designation
-        cycle
-        ...TrackedFields
-    }
-    ${TRACKED_FIELDS}
-`;
 
 const PARTVAL_FIELDS = gql`
     fragment PartValFields on PartValidation {
@@ -105,6 +78,7 @@ const PARTAPPR_READ = gql`
 describe('GraphQL Part - Queries', function () {
     let users;
     let family;
+    let req;
     let part;
     let partRev;
     let bef, aft;
@@ -119,12 +93,16 @@ describe('GraphQL Part - Queries', function () {
                 e: { name: 'e' },
             });
             family = await th.createPartFamily(db, { code: 'P' });
+            req = await th.createChangeRequest(db, users.a);
             part = await th.createPart(db, family, users.a, {});
-            partRev = await th.createPartRev(db, part, users.a);
+            partRev = await th.createPartRev(db, part, req, users.a);
         });
         aft = Date.now();
     });
-    after('delete res', th.cleanTables(['part_revision', 'part', 'part_family', 'user']));
+    after(
+        'delete res',
+        th.cleanTables(['part_revision', 'part', 'change_request', 'part_family', 'user'])
+    );
 
     describe('Part', function () {
         it('should query a Part', async function () {
@@ -183,7 +161,15 @@ describe('GraphQL Part - Queries', function () {
                 });
             });
             expect(errors).to.be.undefined;
-            expect(data.partRevision).to.deep.include(partRev);
+            expect(data.partRevision).to.deep.include({
+                id: partRev.id,
+                revision: partRev.revision,
+                designation: partRev.designation,
+                // changeRequest: {
+                //     id: req.id,
+                // }
+                cycle: PartCycle.Edition,
+            });
         });
 
         it('should not query a part revision without "part.read"', async function () {

@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import gql from 'graphql-tag';
+import { sql } from 'slonik';
 import { idType, trackedBy, expTrackedTime } from '@engspace/server-db';
 import { ApprovalDecision, PartCycle, ChangeRequestCycle } from '@engspace/core';
 import { permsAuth } from './auth';
@@ -9,7 +10,10 @@ import { buildGqlServer, dao, pool, th } from '.';
 describe('GraphQL ChangeRequest - Mutations', function () {
     let users;
     let fam;
+    let oldReq;
     let parts;
+    let rev1s;
+
     before(async function () {
         return pool.transaction(async (db) => {
             users = {
@@ -18,32 +22,58 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 c: await th.createUser(db, { name: 'c' }),
             };
             fam = await th.createPartFamily(db);
+        });
+    });
+    after(th.cleanTables(['part_family', 'user']));
+
+    beforeEach(async function () {
+        return pool.transaction(async (db) => {
+            oldReq = await th.createChangeRequest(db, users.a);
+            await dao.changeRequest.updateCycle(
+                db,
+                oldReq.id,
+                ChangeRequestCycle.Approved,
+                users.a.id
+            );
             parts = {
                 p1: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P001.A', designation: 'PART 1' },
-                    { withRev1: false, bumpFamCounter: true }
+                    { withRev1: false, changeRequest: oldReq, bumpFamCounter: true }
                 ),
                 p2: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P002.A', designation: 'PART 2' },
-                    { withRev1: false, bumpFamCounter: true }
+                    { withRev1: false, changeRequest: oldReq, bumpFamCounter: true }
                 ),
                 p3: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P003.A', designation: 'PART 3' },
-                    { withRev1: false, bumpFamCounter: true }
+                    { withRev1: false, changeRequest: oldReq, bumpFamCounter: true }
                 ),
+            };
+            rev1s = {
+                p1: await th.createPartRev(db, parts.p1, oldReq, users.a, {
+                    cycle: PartCycle.Release,
+                }),
+                p2: await th.createPartRev(db, parts.p2, oldReq, users.a, {
+                    cycle: PartCycle.Release,
+                }),
+                p3: await th.createPartRev(db, parts.p3, oldReq, users.a, {
+                    cycle: PartCycle.Release,
+                }),
             };
         });
     });
-    after(th.cleanTables(['part_revision'], { withDeps: true }));
+
+    afterEach(th.cleanTables(['part_revision', 'part', 'change_request']));
+    afterEach(th.resetFamilyCounters());
 
     describe('#changeRequestCreate', function () {
         const CHANGEREQ_CREATE = gql`
@@ -55,34 +85,21 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             ${CHANGEREQ_DEEPFIELDS}
         `;
 
-        let rev1s;
-
-        this.beforeEach(async function () {
-            return pool.transaction(async (db) => {
-                rev1s = {
-                    p1: await th.createPartRev(db, parts.p1, users.a, {
-                        cycle: PartCycle.Release,
-                    }),
-                    p2: await th.createPartRev(db, parts.p2, users.a, {
-                        cycle: PartCycle.Release,
-                    }),
-                    p3: await th.createPartRev(db, parts.p3, users.a, {
-                        cycle: PartCycle.Release,
-                    }),
-                };
-            });
-        });
-
         this.afterEach(
             th.cleanTables([
                 'change_part_create',
                 'change_part_change',
                 'change_part_revision',
                 'change_review',
-                'change_request',
-                'part_revision',
             ])
         );
+        this.afterEach(function () {
+            return pool.transaction((db) => {
+                return db.query(sql`
+                    DELETE FROM change_request WHERE id != ${oldReq.id}
+                `);
+            });
+        });
 
         it('should create an empty change request', async function () {
             const { errors, data } = await pool.transaction(async (db) => {
@@ -456,24 +473,11 @@ describe('GraphQL ChangeRequest - Mutations', function () {
     });
 
     describe('Updates', function () {
-        let rev1s;
         let req;
         let reviews;
 
         this.beforeEach(async function () {
             return pool.transaction(async (db) => {
-                rev1s = {
-                    p1: await th.createPartRev(db, parts.p1, users.a, {
-                        cycle: PartCycle.Release,
-                    }),
-                    p2: await th.createPartRev(db, parts.p2, users.a, {
-                        cycle: PartCycle.Release,
-                    }),
-                    p3: await th.createPartRev(db, parts.p3, users.a, {
-                        cycle: PartCycle.Release,
-                    }),
-                };
-
                 req = await th.createChangeRequest(db, users.a, {
                     description: 'A change request',
                     partCreations: [
@@ -515,8 +519,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 'change_part_change',
                 'change_part_revision',
                 'change_review',
-                'change_request',
-                'part_revision',
             ])
         );
 
@@ -1055,7 +1057,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
-                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestReview).to.deep.include({
                     id: reviews.a.id,
@@ -1092,7 +1093,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
-                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestReview).to.deep.include({
                     id: reviews.b.id,
@@ -1129,7 +1129,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     });
                 });
-                console.log(errors);
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestReview).to.deep.include({
                     id: reviews.a.id,

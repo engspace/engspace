@@ -126,18 +126,21 @@ export interface PartFamily extends PartFamilyInput {
 
 export interface PartCreateInput {
     familyId: Id;
+    changeRequestId: Id;
     designation: string;
     initialVersion: string;
 }
 
 export interface PartForkInput {
     partId: Id;
+    changeRequestId: Id;
     version?: string;
     designation?: string;
 }
 
 export interface PartRevisionInput {
     partId: Id;
+    changeRequestId: Id;
     designation?: string;
 }
 
@@ -150,6 +153,8 @@ export interface Part extends Tracked {
     family: IdOr<PartFamily>;
     ref: string;
     designation: string;
+
+    changeRequest?: IdOr<ChangeRequest>;
 }
 
 export interface PartRevision extends Tracked {
@@ -158,6 +163,8 @@ export interface PartRevision extends Tracked {
     revision: number;
     designation: string;
     cycle: PartCycle;
+
+    changeRequest: IdOr<ChangeRequest>;
 }
 
 export interface PartApprovalInput {
@@ -288,6 +295,9 @@ export interface ChangeRequest extends Tracked {
     partChanges?: ChangePartChange[];
     partRevisions?: ChangePartRevision[];
     reviews?: ChangeReview[];
+
+    createdParts?: Part[];
+    revisedParts?: PartRevision[];
 }
 
 export interface DocumentInput {

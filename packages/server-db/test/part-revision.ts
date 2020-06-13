@@ -7,14 +7,16 @@ describe('#PartRevisionDao', function () {
     let users;
     let fam;
     let part;
+    let req;
     before('create deps', async function () {
         return pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
             fam = await th.createPartFamily(db);
             part = await th.createPart(db, fam, users.a, {});
+            req = await th.createChangeRequest(db, users.a);
         });
     });
-    after('clean deps', th.cleanTables(['part', 'part_family', 'user']));
+    after('clean deps', th.cleanTables(['part', 'change_request', 'part_family', 'user']));
 
     describe('#create', function () {
         afterEach(th.cleanTable('part_revision'));
@@ -26,6 +28,7 @@ describe('#PartRevisionDao', function () {
                     designation: 'Part 1',
                     cycle: PartCycle.Edition,
                     userId: users.a.id,
+                    changeRequestId: req.id,
                 });
             });
             expect(pr.id).to.be.a(idType);
@@ -45,13 +48,13 @@ describe('#PartRevisionDao', function () {
             return pool.transaction(async (db) => {
                 partRevs = [];
                 partRevs.push(
-                    await th.createPartRev(db, part, users.a, { cycle: PartCycle.Obsolete })
+                    await th.createPartRev(db, part, req, users.a, { cycle: PartCycle.Obsolete })
                 );
                 partRevs.push(
-                    await th.createPartRev(db, part, users.a, { cycle: PartCycle.Cancelled })
+                    await th.createPartRev(db, part, req, users.a, { cycle: PartCycle.Cancelled })
                 );
                 partRevs.push(
-                    await th.createPartRev(db, part, users.a, { cycle: PartCycle.Release })
+                    await th.createPartRev(db, part, req, users.a, { cycle: PartCycle.Release })
                 );
             });
         });
@@ -75,7 +78,7 @@ describe('#PartRevisionDao', function () {
     describe('#updateCycleState', function () {
         let partRev;
         beforeEach(async function () {
-            partRev = await th.transacPartRev(part, users.a, {
+            partRev = await th.transacPartRev(part, req, users.a, {
                 cycle: PartCycle.Edition,
             });
         });

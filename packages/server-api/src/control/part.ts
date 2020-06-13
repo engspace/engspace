@@ -47,6 +47,7 @@ export class PartControl {
         return this.dao.partRevision.create(ctx.db, {
             partId: part.id,
             designation: input.designation,
+            changeRequestId: input.changeRequestId,
             cycle: PartCycle.Edition,
             userId,
         });
@@ -54,7 +55,7 @@ export class PartControl {
 
     async fork(
         ctx: ApiContext,
-        { partId, version, designation }: PartForkInput
+        { partId, version, designation, changeRequestId }: PartForkInput
     ): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.create');
         const { userId } = ctx.auth;
@@ -75,6 +76,7 @@ export class PartControl {
         return this.dao.partRevision.create(ctx.db, {
             partId: fork.id,
             designation: fork.designation,
+            changeRequestId,
             cycle: PartCycle.Edition,
             userId,
         });
@@ -82,7 +84,7 @@ export class PartControl {
 
     async revise(
         ctx: ApiContext,
-        { partId, designation }: PartRevisionInput
+        { partId, designation, changeRequestId }: PartRevisionInput
     ): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.create');
 
@@ -100,6 +102,7 @@ export class PartControl {
         return this.dao.partRevision.create(ctx.db, {
             partId,
             designation: des,
+            changeRequestId,
             cycle: PartCycle.Edition,
             userId: ctx.auth.userId,
         });

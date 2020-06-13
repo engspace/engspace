@@ -8,26 +8,28 @@ import { buildGqlServer, pool, th } from '.';
 describe('GraphQL ChangeRequest - Queries', function () {
     let users;
     let fam;
+    let oldReq;
     let parts;
     let req;
     before(async function () {
         return pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
             fam = await th.createPartFamily(db);
+            oldReq = await th.createChangeRequest(db, users.a);
             parts = {
                 p1: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P001.A', designation: 'PART 1' },
-                    { withRev1: true, bumpFamCounter: true }
+                    { withRev1: true, changeRequest: oldReq, bumpFamCounter: true }
                 ),
                 p2: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P002.A', designation: 'PART 2' },
-                    { withRev1: true, bumpFamCounter: true }
+                    { withRev1: true, changeRequest: oldReq, bumpFamCounter: true }
                 ),
             };
             req = await th.createChangeRequest(db, users.a, {
