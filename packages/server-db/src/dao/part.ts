@@ -37,6 +37,14 @@ const rowToken = sql`
     id, family_id, ref, designation, ${tracked.selectToken}
 `;
 
+const rowTokenAlias = sql`
+    p.id AS id,
+    p.family_id AS family_id,
+    p.ref AS ref,
+    p.designation AS designation,
+    ${tracked.selectTokenAlias('p')}
+`;
+
 export class PartDao extends DaoBase<Part, Row> {
     constructor() {
         super({
@@ -78,6 +86,15 @@ export class PartDao extends DaoBase<Part, Row> {
             WHERE ref = ${ref}
         `);
         return !!row;
+    }
+
+    async whoseRev1IsCreatedBy(db: Db, changeRequestId: Id): Promise<Part[]> {
+        const rows: Row[] = await db.any(sql`
+            SELECT ${rowTokenAlias} FROM part AS p
+            LEFT OUTER JOIN part_revision AS pr ON pr.part_id = p.id
+            WHERE pr.revision = 1 AND pr.change_request_id = ${changeRequestId}
+        `);
+        return rows.map((r) => mapRow(r));
     }
 
     async updateById(db: Db, id: Id, { designation, userId }: PartUpdateDaoInput): Promise<Part> {
