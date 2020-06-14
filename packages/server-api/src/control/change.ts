@@ -118,6 +118,9 @@ export class ChangeControl {
             auth: { userId },
         } = ctx;
 
+        let req = await this.dao.changeRequest.byId(db, requestId);
+
+        await this.assertEditor(ctx, req);
         const promises = [];
 
         if (partCreationsRem?.length > 0) {
@@ -195,11 +198,8 @@ export class ChangeControl {
             );
         }
 
-        let req;
         if (description) {
             req = await this.dao.changeRequest.update(db, requestId, { description, userId });
-        } else {
-            req = await this.dao.changeRequest.byId(db, requestId);
         }
 
         await Promise.all(promises);
@@ -214,13 +214,7 @@ export class ChangeControl {
             auth: { userId },
         } = ctx;
         const req = await this.dao.changeRequest.byId(db, id);
-        if (req.createdBy.id !== userId) {
-            // TODO: editor list
-            const user = await this.dao.user.byId(db, userId);
-            throw new UserInputError(
-                `User "${user.fullName}" is not allowed to start the validation of this change request`
-            );
-        }
+        await this.assertEditor(ctx, req);
         if (req.cycle !== ChangeRequestCycle.Edition) {
             throw new UserInputError(
                 'Validation can be started only if change request is in Edition mode.'
@@ -290,6 +284,19 @@ export class ChangeControl {
                     `Part "${part.ref}" has its last revision in "Edition" mode and be currently revised`
                 );
             }
+        }
+    }
+
+    private async assertEditor(
+        { db, auth: { userId } }: ApiContext,
+        req: ChangeRequest
+    ): Promise<void> {
+        // FIXME: editor list
+        if (userId !== req.createdBy.id) {
+            const user = await this.dao.user.byId(db, userId);
+            throw new UserInputError(
+                `User ${user.fullName} cannot edit the specified change request`
+            );
         }
     }
 }
