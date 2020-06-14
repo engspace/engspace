@@ -14,13 +14,16 @@ import {
     ChangePartRevisionInput,
     ChangeRequestCycle,
     ChangeReviewInput,
+    Part,
+    PartRevision,
 } from '@engspace/core';
 import { DaoSet } from '@engspace/server-db';
 import { assertUserPerm } from './helpers';
+import { PartControl } from './part';
 import { ApiContext } from '.';
 
 export class ChangeControl {
-    constructor(private dao: DaoSet) {}
+    constructor(private dao: DaoSet, private partControl: PartControl) {}
 
     async createRequest(ctx: ApiContext, input: ChangeRequestInput): Promise<ChangeRequest> {
         assertUserPerm(ctx, 'change.create');
@@ -95,6 +98,17 @@ export class ChangeControl {
     requestReviews(ctx: ApiContext, requestId: Id): Promise<ChangeReview[]> {
         assertUserPerm(ctx, 'change.read');
         return this.dao.changeReview.byRequestId(ctx.db, requestId);
+    }
+
+    requestCreatedParts(ctx: ApiContext, requestId: Id): Promise<Part[]> {
+        assertUserPerm(ctx, 'part.read');
+        // parts created by a change request have their first revision associated with it
+        return this.dao.part.whoseRev1IsCreatedBy(ctx.db, requestId);
+    }
+
+    requestRevisedParts(ctx: ApiContext, requestId: Id): Promise<PartRevision[]> {
+        assertUserPerm(ctx, 'part.read');
+        return this.dao.partRevision.aboveRev1ByChangeRequestId(ctx.db, requestId);
     }
 
     async updateRequest(
@@ -248,6 +262,64 @@ export class ChangeControl {
             comments: input.comments,
             userId,
         });
+    }
+
+    async approve(ctx: ApiContext, requestId: Id): Promise<ChangeRequest> {
+        assertUserPerm(ctx, 'change.update');
+        const {
+            db,
+            auth: { userId },
+        } = ctx;
+        const req = await this.dao.changeRequest.byId(db, requestId);
+        await this.assertEditor(ctx, req);
+
+        if (req.cycle !== ChangeRequestCycle.Validation) {
+            throw new UserInputError(
+                'Cannot approve a change request that is not in the validation cycle'
+            );
+        }
+
+        if (req.state !== ApprovalDecision.Approved && req.state !== ApprovalDecision.Reserved) {
+            throw new UserInputError('Specified change request does not have required approvals');
+        }
+
+        // Everything looks OK. Let's proceed to changes
+
+        const creations = await this.dao.changePartCreate.byRequestId(db, requestId);
+        const changes = await this.dao.changePartChange.byRequestId(db, requestId);
+        const revisions = await this.dao.changePartRevision.byRequestId(db, requestId);
+        for (const creation of creations) {
+            await this.partControl.create(ctx, {
+                familyId: creation.family.id,
+                designation: creation.designation,
+                initialVersion: creation.version,
+                changeRequestId: req.id,
+            });
+        }
+        for (const change of changes) {
+            await this.partControl.fork(ctx, {
+                partId: change.part.id,
+                designation: change.designation,
+                version: change.version,
+                changeRequestId: req.id,
+            });
+        }
+        for (const revision of revisions) {
+            await this.partControl.revise(ctx, {
+                partId: revision.part.id,
+                designation: revision.designation,
+                changeRequestId: req.id,
+            });
+        }
+
+        // All changes done without error. We bump the cycle to APPROVED and return result.
+
+        return this.dao.changeRequest.updateCycle(
+            db,
+            requestId,
+            ChangeRequestCycle.Approved,
+            userId
+        );
     }
 
     private async checkPartChanges(

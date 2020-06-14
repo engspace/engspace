@@ -80,7 +80,18 @@ export const CHANGEREQ_DEEPFIELDS = gql`
             decision
             comments
         }
+
+        createdParts {
+            ...PartFields
+        }
+
+        revisedParts {
+            ...PartRevFields
+        }
+
         ...TrackedFields
     }
     ${TRACKED_FIELDS}
+    ${PART_FIELDS}
+    ${PARTREV_FIELDS}
 `;

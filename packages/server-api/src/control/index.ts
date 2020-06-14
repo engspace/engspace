@@ -33,13 +33,20 @@ export function buildControllerSet(
     dao: DaoSet,
     custom: Partial<ControllerSet> = {}
 ): ControllerSet {
+    const user = custom.user ?? new UserControl(dao);
+    const project = custom.project ?? new ProjectControl(dao);
+    const partFamily = custom.partFamily ?? new PartFamilyControl(dao);
+    const part = custom.part ?? new PartControl(dao);
+    const change = custom.change ?? new ChangeControl(dao, part);
+    const document = custom.document ?? new DocumentControl(dao);
+    const documentRevision = custom.documentRevision ?? new DocumentRevisionControl(dao);
     return {
-        user: custom.user ?? new UserControl(dao),
-        project: custom.project ?? new ProjectControl(dao),
-        partFamily: custom.partFamily ?? new PartFamilyControl(dao),
-        part: custom.part ?? new PartControl(dao),
-        change: custom.change ?? new ChangeControl(dao),
-        document: custom.document ?? new DocumentControl(dao),
-        documentRevision: custom.documentRevision ?? new DocumentRevisionControl(dao),
+        user,
+        project,
+        partFamily,
+        part,
+        change,
+        document,
+        documentRevision,
     };
 }

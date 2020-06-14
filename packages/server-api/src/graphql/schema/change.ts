@@ -11,6 +11,8 @@ import {
     ChangeReviewInput,
     HasId,
     Id,
+    Part,
+    PartRevision,
 } from '@engspace/core';
 import { ControllerSet } from '../../control';
 import { GqlContext } from '../context';
@@ -145,6 +147,19 @@ export const typeDefs = gql`
         partRevisions: [ChangePartRevision!]
         reviews: [ChangeReview!]
 
+        """
+        The parts created by this change.
+        After approval, this field is populated with the
+        parts that are created or forked by this change.
+        """
+        createdParts: [Part!]
+        """
+        The revisions made in this change.
+        After approval, this field is populated with the
+        revisions created by this change.
+        """
+        revisedParts: [PartRevision!]
+
         createdBy: User!
         createdAt: DateTime!
         updatedBy: User!
@@ -169,6 +184,11 @@ export const typeDefs = gql`
         Previous reviews of the same user and same change request are erased.
         """
         changeRequestReview(id: ID!, input: ChangeReviewInput!): ChangeReview!
+
+        """
+        Approve a change request and apply changes.
+        """
+        changeRequestApprove(id: ID!): ChangeRequest!
     }
 `;
 
@@ -205,6 +225,13 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             },
             reviews({ id }: ChangeRequest, args, ctx: GqlContext): Promise<ChangeReview[]> {
                 return control.change.requestReviews(ctx, id);
+            },
+
+            createdParts({ id }: ChangeRequest, args, ctx: GqlContext): Promise<Part[]> {
+                return control.change.requestCreatedParts(ctx, id);
+            },
+            revisedParts({ id }: ChangeRequest, args, ctx: GqlContext): Promise<PartRevision[]> {
+                return control.change.requestRevisedParts(ctx, id);
             },
 
             ...resolveTracked,
@@ -245,6 +272,14 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 ctx: GqlContext
             ): Promise<ChangeReview> {
                 return control.change.review(ctx, id, input);
+            },
+
+            changeRequestApprove(
+                parent,
+                { id }: ChangeRequest,
+                ctx: GqlContext
+            ): Promise<ChangeRequest> {
+                return control.change.approve(ctx, id);
             },
         },
     };

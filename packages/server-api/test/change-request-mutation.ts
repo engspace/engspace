@@ -1225,5 +1225,90 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 expect(errors[0].message.toLocaleLowerCase()).to.contain('validation');
             });
         });
+
+        describe('#changeRequestApprove', function () {
+            const CHANGEREQ_APPROVE = gql`
+                mutation ApproveChangeRequest($id: ID!) {
+                    changeRequestApprove(id: $id) {
+                        ...ChangeReqDeepFields
+                    }
+                }
+                ${CHANGEREQ_DEEPFIELDS}
+            `;
+
+            it('should approve a change', async function () {
+                //await pool.transaction(async (db) => {});
+                const { errors, data } = await pool.transaction(async (db) => {
+                    await Promise.all([
+                        dao.changeRequest.updateCycle(
+                            db,
+                            req.id,
+                            ChangeRequestCycle.Validation,
+                            users.a.id
+                        ),
+                        dao.changeReview.update(db, reviews.a.id, {
+                            decision: ApprovalDecision.Approved,
+                            userId: users.a.id,
+                        }),
+                        dao.changeReview.update(db, reviews.b.id, {
+                            decision: ApprovalDecision.Approved,
+                            userId: users.b.id,
+                        }),
+                    ]);
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.update',
+                            'change.read',
+                            'part.create',
+                            'part.revise',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_APPROVE,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.be.undefined;
+                expect(data.changeRequestApprove.createdParts).to.have.lengthOf(3);
+                expect(data.changeRequestApprove.revisedParts).to.have.lengthOf(1);
+                expect(data.changeRequestApprove).to.containSubset({
+                    id: req.id,
+                    description: 'A change request',
+                    cycle: ChangeRequestCycle.Approved,
+                    createdParts: [
+                        {
+                            ref: 'P004.A',
+                            designation: 'PART 4',
+                            family: { id: fam.id },
+                        },
+                        {
+                            ref: 'P005.K',
+                            designation: 'PART 5',
+                            family: { id: fam.id },
+                        },
+                        {
+                            ref: 'P001.B',
+                            designation: 'PART 1',
+                            family: { id: fam.id },
+                        },
+                    ],
+                    revisedParts: [
+                        {
+                            part: {
+                                id: parts.p2.id,
+                            },
+                            revision: 2,
+                            cycle: PartCycle.Edition,
+                        },
+                    ],
+                });
+            });
+        });
     });
 });
