@@ -43,10 +43,10 @@ async function executeSqlFolder(db: Db, sqlFolder: string): Promise<void> {
 }
 
 async function createSchema(db: Db): Promise<void> {
-    await executeSqlFile(db, sqlPath('extensions.sql'));
-    await executeSqlFile(db, sqlPath('enums.sql'));
-    await executeSqlFolder(db, sqlPath('functions'));
-    await executeSqlFile(db, sqlPath('schema.sql'));
+    await executeSqlFile(db, sqlPath('1-extensions.sql'));
+    await executeSqlFile(db, sqlPath('2-enums.sql'));
+    await executeSqlFile(db, sqlPath('3-schema.sql'));
+    await executeSqlFolder(db, sqlPath('4-functions'));
 }
 
 interface EnumTable {
