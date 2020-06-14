@@ -45,6 +45,15 @@ export const tracked = {
         updated_by, EXTRACT(EPOCH FROM updated_at) AS updated_at
     `,
 
+    selectTokenAlias(alias: string): SqlTokenType {
+        return sql`
+            ${sql.identifier([alias, 'created_by'])} AS created_by,
+            ${sql.identifier([alias, 'created_at'])} AS created_at,
+            ${sql.identifier([alias, 'updated_by'])} AS updated_by,
+            ${sql.identifier([alias, 'updated_at'])} AS updated_at
+        `;
+    },
+
     insertListToken: sql`created_by, created_at, updated_by, updated_at`,
 
     insertValToken(userId: Id): SqlTokenType {
