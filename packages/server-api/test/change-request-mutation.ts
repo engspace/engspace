@@ -877,10 +877,10 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             });
         });
 
-        describe('#changeRequestStartValidation', function () {
-            const CHANGEREQ_STARTVAL = gql`
-                mutation StartValidateChangeReq($id: ID!) {
-                    changeRequestStartValidation(id: $id) {
+        describe('#changeRequestSubmit', function () {
+            const CHANGEREQ_SUBMIT = gql`
+                mutation SubmitChangeRequest($id: ID!) {
+                    changeRequestSubmit(id: $id) {
                         ...ChangeReqDeepFields
                     }
                 }
@@ -899,7 +899,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         ])
                     );
                     return mutate({
-                        mutation: CHANGEREQ_STARTVAL,
+                        mutation: CHANGEREQ_SUBMIT,
                         variables: {
                             id: req.id,
                         },
@@ -918,7 +918,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 const reviews = req.reviews.map((obj) => ({
                     id: obj.id,
                 }));
-                expect(data.changeRequestStartValidation).to.containSubset({
+                expect(data.changeRequestSubmit).to.containSubset({
                     description: req.description,
                     cycle: ChangeRequestCycle.Validation,
                     partCreations,
@@ -926,7 +926,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                     partRevisions,
                     reviews,
                 });
-                expTrackedTime(expect, data.changeRequestStartValidation);
+                expTrackedTime(expect, data.changeRequestSubmit);
             });
 
             it('should not start a change request validation without "change.update"', async function () {
@@ -941,7 +941,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         ])
                     );
                     return mutate({
-                        mutation: CHANGEREQ_STARTVAL,
+                        mutation: CHANGEREQ_SUBMIT,
                         variables: {
                             id: req.id,
                         },
@@ -970,7 +970,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         ])
                     );
                     return mutate({
-                        mutation: CHANGEREQ_STARTVAL,
+                        mutation: CHANGEREQ_SUBMIT,
                         variables: {
                             id: req.id,
                         },
@@ -993,7 +993,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         ])
                     );
                     return mutate({
-                        mutation: CHANGEREQ_STARTVAL,
+                        mutation: CHANGEREQ_SUBMIT,
                         variables: {
                             id: req.id,
                         },

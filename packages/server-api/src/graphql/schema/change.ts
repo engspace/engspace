@@ -174,10 +174,11 @@ export const typeDefs = gql`
         changeRequestCreate(input: ChangeRequestInput!): ChangeRequest!
         changeRequestUpdate(id: ID!, input: ChangeRequestUpdateInput!): ChangeRequest!
         """
-        Start the validation process of a change request.
-        The change request must be in EDITION cycle.
+        Submit a change a request to review in the VALIDATION cycle.
+        The change request must be in EDITION cycle and will be placed
+        in the VALIDATION cycle to allow reviews to start.
         """
-        changeRequestStartValidation(id: ID!): ChangeRequest!
+        changeRequestSubmit(id: ID!): ChangeRequest!
         """
         Edit a review for a change request.
         The logged-in user must be a reviewer of the given change request.
@@ -269,11 +270,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 return control.change.updateRequest(ctx, id, input);
             },
 
-            changeRequestStartValidation(
-                parent,
-                { id }: HasId,
-                ctx: GqlContext
-            ): Promise<ChangeRequest> {
+            changeRequestSubmit(parent, { id }: HasId, ctx: GqlContext): Promise<ChangeRequest> {
                 return control.change.startValidation(ctx, id);
             },
 
