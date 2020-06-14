@@ -55,6 +55,7 @@ const PARTVAL_DEEPFIELDS = gql`
 describe('GraphQL Part - Mutations', function () {
     let users: Dict<User>;
     let family;
+    let req;
     before('create res', async function () {
         return pool.transaction(async (db) => {
             users = await th.createUsers(db, {
@@ -65,238 +66,239 @@ describe('GraphQL Part - Mutations', function () {
                 e: { name: 'e' },
             });
             family = await th.createPartFamily(db, { code: 'P' });
+            req = await th.createChangeRequest(db, users.a);
         });
     });
-    after('delete res', th.cleanTables(['part_family', 'user']));
+    after('delete res', th.cleanTables(['part_family', 'change_request', 'user']));
 
     afterEach(th.cleanTables(['part_revision', 'part']));
     afterEach(th.resetFamilyCounters());
 
-    describe('#partCreate', function () {
-        const PART_CREATENEW = gql`
-            mutation CreateNewPart($input: PartCreateInput!) {
-                partCreate(input: $input) {
-                    ...PartRevDeepFields
-                }
-            }
-            ${PARTREV_DEEPFIELDS}
-        `;
+    // describe('#partCreate', function () {
+    //     const PART_CREATENEW = gql`
+    //         mutation CreateNewPart($input: PartCreateInput!) {
+    //             partCreate(input: $input) {
+    //                 ...PartRevDeepFields
+    //             }
+    //         }
+    //         ${PARTREV_DEEPFIELDS}
+    //     `;
 
-        it('should create a new Part', async function () {
-            const { errors, data } = await pool.transaction(async (db) => {
-                const { mutate } = buildGqlServer(
-                    db,
-                    permsAuth(users.a, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
-                );
-                return mutate({
-                    mutation: PART_CREATENEW,
-                    variables: {
-                        input: {
-                            familyId: family.id,
-                            initialVersion: 'A',
-                            designation: 'SOME NEW PART',
-                        },
-                    },
-                });
-            });
-            expect(errors).to.be.undefined;
-            expect(data.partCreate).to.deep.include({
-                revision: 1,
-                designation: 'SOME NEW PART',
-                cycle: PartCycle.Edition,
-                ...trackedBy(users.a),
-            });
-            expect(data.partCreate.part).to.deep.include({
-                ref: 'P001.A',
-                designation: 'SOME NEW PART',
-                ...trackedBy(users.a),
-                family: { id: family.id },
-            });
-        });
+    //     it('should create a new Part', async function () {
+    //         const { errors, data } = await pool.transaction(async (db) => {
+    //             const { mutate } = buildGqlServer(
+    //                 db,
+    //                 permsAuth(users.a, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
+    //             );
+    //             return mutate({
+    //                 mutation: PART_CREATENEW,
+    //                 variables: {
+    //                     input: {
+    //                         familyId: family.id,
+    //                         initialVersion: 'A',
+    //                         designation: 'SOME NEW PART',
+    //                     },
+    //                 },
+    //             });
+    //         });
+    //         expect(errors).to.be.undefined;
+    //         expect(data.partCreate).to.deep.include({
+    //             revision: 1,
+    //             designation: 'SOME NEW PART',
+    //             cycle: PartCycle.Edition,
+    //             ...trackedBy(users.a),
+    //         });
+    //         expect(data.partCreate.part).to.deep.include({
+    //             ref: 'P001.A',
+    //             designation: 'SOME NEW PART',
+    //             ...trackedBy(users.a),
+    //             family: { id: family.id },
+    //         });
+    //     });
 
-        it('should not create a new Part without "part.create"', async function () {
-            const { errors, data } = await pool.transaction(async (db) => {
-                const { mutate } = buildGqlServer(
-                    db,
-                    permsAuth(users.a, ['part.read', 'partfamily.read', 'user.read'])
-                );
-                return mutate({
-                    mutation: PART_CREATENEW,
-                    variables: {
-                        input: {
-                            familyId: family.id,
-                            initialVersion: 'A',
-                            designation: 'SOME NEW PART',
-                        },
-                    },
-                });
-            });
-            expect(errors).to.be.not.empty;
-            expect(errors[0].message).to.contain('part.create');
-            expect(data).to.be.null;
-            const counts = await pool.transaction(async (db) => {
-                return [
-                    await dao.part.rowCount(db),
-                    await dao.partRevision.rowCount(db),
-                    (await dao.partFamily.byId(db, family.id)).counter,
-                ];
-            });
-            expect(counts).to.eql([0, 0, 0]);
-        });
-    });
+    //     it('should not create a new Part without "part.create"', async function () {
+    //         const { errors, data } = await pool.transaction(async (db) => {
+    //             const { mutate } = buildGqlServer(
+    //                 db,
+    //                 permsAuth(users.a, ['part.read', 'partfamily.read', 'user.read'])
+    //             );
+    //             return mutate({
+    //                 mutation: PART_CREATENEW,
+    //                 variables: {
+    //                     input: {
+    //                         familyId: family.id,
+    //                         initialVersion: 'A',
+    //                         designation: 'SOME NEW PART',
+    //                     },
+    //                 },
+    //             });
+    //         });
+    //         expect(errors).to.be.not.empty;
+    //         expect(errors[0].message).to.contain('part.create');
+    //         expect(data).to.be.null;
+    //         const counts = await pool.transaction(async (db) => {
+    //             return [
+    //                 await dao.part.rowCount(db),
+    //                 await dao.partRevision.rowCount(db),
+    //                 (await dao.partFamily.byId(db, family.id)).counter,
+    //             ];
+    //         });
+    //         expect(counts).to.eql([0, 0, 0]);
+    //     });
+    // });
 
-    describe('#partFork', function () {
-        const PART_FORK = gql`
-            mutation ForkPart($input: PartForkInput!) {
-                partFork(input: $input) {
-                    ...PartRevDeepFields
-                }
-            }
-            ${PARTREV_DEEPFIELDS}
-        `;
+    // describe('#partFork', function () {
+    //     const PART_FORK = gql`
+    //         mutation ForkPart($input: PartForkInput!) {
+    //             partFork(input: $input) {
+    //                 ...PartRevDeepFields
+    //             }
+    //         }
+    //         ${PARTREV_DEEPFIELDS}
+    //     `;
 
-        let part;
-        let partRev;
-        beforeEach(function () {
-            return pool.transaction(async (db) => {
-                part = await th.createPart(db, family, users.a, {
-                    designation: 'SOME EXISTING PART',
-                });
-                partRev = await th.createPartRev(db, part, users.a);
-                await dao.partFamily.bumpCounterById(db, family.id);
-            });
-        });
-        this.afterEach(th.cleanTables(['part_revision', 'part']));
-        this.afterEach(th.resetFamilyCounters());
+    //     let part;
+    //     let partRev;
+    //     beforeEach(function () {
+    //         return pool.transaction(async (db) => {
+    //             part = await th.createPart(db, family, users.a, {
+    //                 designation: 'SOME EXISTING PART',
+    //             });
+    //             partRev = await th.createPartRev(db, part, req, users.a);
+    //             await dao.partFamily.bumpCounterById(db, family.id);
+    //         });
+    //     });
+    //     this.afterEach(th.cleanTables(['part_revision', 'part']));
+    //     this.afterEach(th.resetFamilyCounters());
 
-        it('should create a fork of a part', async function () {
-            const { errors, data } = await pool.transaction(async (db) => {
-                const { mutate } = buildGqlServer(
-                    db,
-                    permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
-                );
-                return mutate({
-                    mutation: PART_FORK,
-                    variables: {
-                        input: {
-                            partId: part.id,
-                        },
-                    },
-                });
-            });
-            expect(errors).to.be.undefined;
+    //     it('should create a fork of a part', async function () {
+    //         const { errors, data } = await pool.transaction(async (db) => {
+    //             const { mutate } = buildGqlServer(
+    //                 db,
+    //                 permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
+    //             );
+    //             return mutate({
+    //                 mutation: PART_FORK,
+    //                 variables: {
+    //                     input: {
+    //                         partId: part.id,
+    //                     },
+    //                 },
+    //             });
+    //         });
+    //         expect(errors).to.be.undefined;
 
-            expect(data.partFork).to.deep.include({
-                revision: 1,
-                designation: 'SOME EXISTING PART',
-                cycle: PartCycle.Edition,
-                ...trackedBy(users.b),
-            });
-            expect(data.partFork.id).to.be.a(idType);
-            expect(data.partFork.id).to.not.equal(partRev.id);
-            expect(data.partFork.part).to.deep.include({
-                ref: 'P001.B',
-                designation: 'SOME EXISTING PART',
-                ...trackedBy(users.b),
-                family: { id: family.id },
-            });
-            expect(data.partFork.part.id).to.be.a(idType);
-            expect(data.partFork.part.id).to.not.equal(part.id);
-        });
+    //         expect(data.partFork).to.deep.include({
+    //             revision: 1,
+    //             designation: 'SOME EXISTING PART',
+    //             cycle: PartCycle.Edition,
+    //             ...trackedBy(users.b),
+    //         });
+    //         expect(data.partFork.id).to.be.a(idType);
+    //         expect(data.partFork.id).to.not.equal(partRev.id);
+    //         expect(data.partFork.part).to.deep.include({
+    //             ref: 'P001.B',
+    //             designation: 'SOME EXISTING PART',
+    //             ...trackedBy(users.b),
+    //             family: { id: family.id },
+    //         });
+    //         expect(data.partFork.part.id).to.be.a(idType);
+    //         expect(data.partFork.part.id).to.not.equal(part.id);
+    //     });
 
-        it('should create a fork of a part with new designation', async function () {
-            const { errors, data } = await pool.transaction(async (db) => {
-                const { mutate } = buildGqlServer(
-                    db,
-                    permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
-                );
-                return mutate({
-                    mutation: PART_FORK,
-                    variables: {
-                        input: {
-                            partId: part.id,
-                            designation: 'NEW EXISTING PART',
-                        },
-                    },
-                });
-            });
-            expect(errors).to.be.undefined;
+    //     it('should create a fork of a part with new designation', async function () {
+    //         const { errors, data } = await pool.transaction(async (db) => {
+    //             const { mutate } = buildGqlServer(
+    //                 db,
+    //                 permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
+    //             );
+    //             return mutate({
+    //                 mutation: PART_FORK,
+    //                 variables: {
+    //                     input: {
+    //                         partId: part.id,
+    //                         designation: 'NEW EXISTING PART',
+    //                     },
+    //                 },
+    //             });
+    //         });
+    //         expect(errors).to.be.undefined;
 
-            expect(data.partFork).to.deep.include({
-                revision: 1,
-                designation: 'NEW EXISTING PART',
-                cycle: PartCycle.Edition,
-                ...trackedBy(users.b),
-            });
-            expect(data.partFork.id).to.be.a(idType);
-            expect(data.partFork.id).to.not.equal(partRev.id);
-            expect(data.partFork.part).to.deep.include({
-                ref: 'P001.B',
-                family: { id: family.id },
-                designation: 'NEW EXISTING PART',
-                ...trackedBy(users.b),
-            });
-            expect(data.partFork.part.id).to.be.a(idType);
-            expect(data.partFork.part.id).to.not.equal(part.id);
-        });
+    //         expect(data.partFork).to.deep.include({
+    //             revision: 1,
+    //             designation: 'NEW EXISTING PART',
+    //             cycle: PartCycle.Edition,
+    //             ...trackedBy(users.b),
+    //         });
+    //         expect(data.partFork.id).to.be.a(idType);
+    //         expect(data.partFork.id).to.not.equal(partRev.id);
+    //         expect(data.partFork.part).to.deep.include({
+    //             ref: 'P001.B',
+    //             family: { id: family.id },
+    //             designation: 'NEW EXISTING PART',
+    //             ...trackedBy(users.b),
+    //         });
+    //         expect(data.partFork.part.id).to.be.a(idType);
+    //         expect(data.partFork.part.id).to.not.equal(part.id);
+    //     });
 
-        it('should create a fork of a part with specified version', async function () {
-            const { errors, data } = await pool.transaction(async (db) => {
-                const { mutate } = buildGqlServer(
-                    db,
-                    permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
-                );
-                return mutate({
-                    mutation: PART_FORK,
-                    variables: {
-                        input: {
-                            partId: part.id,
-                            version: 'K',
-                        },
-                    },
-                });
-            });
-            expect(errors).to.be.undefined;
+    //     it('should create a fork of a part with specified version', async function () {
+    //         const { errors, data } = await pool.transaction(async (db) => {
+    //             const { mutate } = buildGqlServer(
+    //                 db,
+    //                 permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
+    //             );
+    //             return mutate({
+    //                 mutation: PART_FORK,
+    //                 variables: {
+    //                     input: {
+    //                         partId: part.id,
+    //                         version: 'K',
+    //                     },
+    //                 },
+    //             });
+    //         });
+    //         expect(errors).to.be.undefined;
 
-            expect(data.partFork).to.deep.include({
-                revision: 1,
-                designation: 'SOME EXISTING PART',
-                cycle: PartCycle.Edition,
-                ...trackedBy(users.b),
-            });
-            expect(data.partFork.id).to.be.a(idType);
-            expect(data.partFork.id).to.not.equal(partRev.id);
-            expect(data.partFork.part).to.deep.include({
-                ref: 'P001.K',
-                designation: 'SOME EXISTING PART',
-                ...trackedBy(users.b),
-                family: { id: family.id },
-            });
-            expect(data.partFork.part.id).to.be.a(idType);
-            expect(data.partFork.part.id).to.not.equal(part.id);
-        });
+    //         expect(data.partFork).to.deep.include({
+    //             revision: 1,
+    //             designation: 'SOME EXISTING PART',
+    //             cycle: PartCycle.Edition,
+    //             ...trackedBy(users.b),
+    //         });
+    //         expect(data.partFork.id).to.be.a(idType);
+    //         expect(data.partFork.id).to.not.equal(partRev.id);
+    //         expect(data.partFork.part).to.deep.include({
+    //             ref: 'P001.K',
+    //             designation: 'SOME EXISTING PART',
+    //             ...trackedBy(users.b),
+    //             family: { id: family.id },
+    //         });
+    //         expect(data.partFork.part.id).to.be.a(idType);
+    //         expect(data.partFork.part.id).to.not.equal(part.id);
+    //     });
 
-        it('should not create a fork without "part.create"', async function () {
-            const { errors, data } = await pool.transaction(async (db) => {
-                const { mutate } = buildGqlServer(
-                    db,
-                    permsAuth(users.b, ['part.read', 'partfamily.read', 'user.read'])
-                );
-                return mutate({
-                    mutation: PART_FORK,
-                    variables: {
-                        input: {
-                            partId: part.id,
-                        },
-                    },
-                });
-            });
-            expect(errors).to.be.not.empty;
-            expect(errors[0].message).to.contain('part.create');
+    //     it('should not create a fork without "part.create"', async function () {
+    //         const { errors, data } = await pool.transaction(async (db) => {
+    //             const { mutate } = buildGqlServer(
+    //                 db,
+    //                 permsAuth(users.b, ['part.read', 'partfamily.read', 'user.read'])
+    //             );
+    //             return mutate({
+    //                 mutation: PART_FORK,
+    //                 variables: {
+    //                     input: {
+    //                         partId: part.id,
+    //                     },
+    //                 },
+    //             });
+    //         });
+    //         expect(errors).to.be.not.empty;
+    //         expect(errors[0].message).to.contain('part.create');
 
-            expect(data).to.be.null;
-        });
-    });
+    //         expect(data).to.be.null;
+    //     });
+    // });
 
     describe('#partUpdate', function () {
         const PART_UPDATE = gql`
@@ -378,142 +380,142 @@ describe('GraphQL Part - Mutations', function () {
         });
     });
 
-    describe('#partRevise', function () {
-        const PART_REVISE = gql`
-            mutation RevisePart($input: PartRevisionInput!) {
-                partRevise(input: $input) {
-                    ...PartRevDeepFields
-                }
-            }
-            ${PARTREV_DEEPFIELDS}
-        `;
+    // describe('#partRevise', function () {
+    //     const PART_REVISE = gql`
+    //         mutation RevisePart($input: PartRevisionInput!) {
+    //             partRevise(input: $input) {
+    //                 ...PartRevDeepFields
+    //             }
+    //         }
+    //         ${PARTREV_DEEPFIELDS}
+    //     `;
 
-        let part;
-        let partRev;
-        beforeEach(function () {
-            return pool.transaction(async (db) => {
-                part = await th.createPart(db, family, users.a, {
-                    designation: 'SOME EXISTING PART',
-                });
-                const pr = await th.createPartRev(db, part, users.a);
-                await dao.partFamily.bumpCounterById(db, family.id);
-                partRev = await dao.partRevision.updateCycleState(db, pr.id, PartCycle.Release);
-            });
-        });
-        this.afterEach(th.cleanTables(['part_revision', 'part']));
-        this.afterEach(th.resetFamilyCounters());
+    //     let part;
+    //     let partRev;
+    //     beforeEach(function () {
+    //         return pool.transaction(async (db) => {
+    //             part = await th.createPart(db, family, users.a, {
+    //                 designation: 'SOME EXISTING PART',
+    //             });
+    //             const pr = await th.createPartRev(db, part, req, users.a);
+    //             await dao.partFamily.bumpCounterById(db, family.id);
+    //             partRev = await dao.partRevision.updateCycleState(db, pr.id, PartCycle.Release);
+    //         });
+    //     });
+    //     this.afterEach(th.cleanTables(['part_revision', 'part']));
+    //     this.afterEach(th.resetFamilyCounters());
 
-        it('should revise a part', async function () {
-            const { errors, data } = await pool.transaction(async (db) => {
-                const { mutate } = buildGqlServer(
-                    db,
-                    permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
-                );
-                return mutate({
-                    mutation: PART_REVISE,
-                    variables: {
-                        input: {
-                            partId: part.id,
-                        },
-                    },
-                });
-            });
-            expect(errors).to.be.undefined;
+    //     it('should revise a part', async function () {
+    //         const { errors, data } = await pool.transaction(async (db) => {
+    //             const { mutate } = buildGqlServer(
+    //                 db,
+    //                 permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
+    //             );
+    //             return mutate({
+    //                 mutation: PART_REVISE,
+    //                 variables: {
+    //                     input: {
+    //                         partId: part.id,
+    //                     },
+    //                 },
+    //             });
+    //         });
+    //         expect(errors).to.be.undefined;
 
-            expect(data.partRevise).to.deep.include({
-                revision: 2,
-                designation: 'SOME EXISTING PART',
-                cycle: PartCycle.Edition,
-                ...trackedBy(users.b),
-            });
-            expect(data.partRevise.id).to.be.a(idType);
-            expect(data.partRevise.id).to.not.equal(partRev.id);
-            expect(data.partRevise.part).to.deep.include({
-                id: part.id,
-                ref: 'P001.A',
-                designation: 'SOME EXISTING PART',
-                ...trackedBy(users.a),
-                family: { id: family.id },
-            });
-        });
+    //         expect(data.partRevise).to.deep.include({
+    //             revision: 2,
+    //             designation: 'SOME EXISTING PART',
+    //             cycle: PartCycle.Edition,
+    //             ...trackedBy(users.b),
+    //         });
+    //         expect(data.partRevise.id).to.be.a(idType);
+    //         expect(data.partRevise.id).to.not.equal(partRev.id);
+    //         expect(data.partRevise.part).to.deep.include({
+    //             id: part.id,
+    //             ref: 'P001.A',
+    //             designation: 'SOME EXISTING PART',
+    //             ...trackedBy(users.a),
+    //             family: { id: family.id },
+    //         });
+    //     });
 
-        it('should revise a part with specific designation', async function () {
-            const { errors, data } = await pool.transaction(async (db) => {
-                const { mutate } = buildGqlServer(
-                    db,
-                    permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
-                );
-                return mutate({
-                    mutation: PART_REVISE,
-                    variables: {
-                        input: {
-                            partId: part.id,
-                            designation: 'NEW EXISTING PART',
-                        },
-                    },
-                });
-            });
-            expect(errors).to.be.undefined;
+    //     it('should revise a part with specific designation', async function () {
+    //         const { errors, data } = await pool.transaction(async (db) => {
+    //             const { mutate } = buildGqlServer(
+    //                 db,
+    //                 permsAuth(users.b, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
+    //             );
+    //             return mutate({
+    //                 mutation: PART_REVISE,
+    //                 variables: {
+    //                     input: {
+    //                         partId: part.id,
+    //                         designation: 'NEW EXISTING PART',
+    //                     },
+    //                 },
+    //             });
+    //         });
+    //         expect(errors).to.be.undefined;
 
-            expect(data.partRevise).to.deep.include({
-                revision: 2,
-                designation: 'NEW EXISTING PART',
-                cycle: PartCycle.Edition,
-                ...trackedBy(users.b),
-            });
-            expect(data.partRevise.id).to.be.a(idType);
-            expect(data.partRevise.id).to.not.equal(partRev.id);
-            expect(data.partRevise.part).to.deep.include({
-                id: part.id,
-                ref: 'P001.A',
-                designation: 'SOME EXISTING PART',
-                ...trackedBy(users.a),
-                family: { id: family.id },
-            });
-        });
+    //         expect(data.partRevise).to.deep.include({
+    //             revision: 2,
+    //             designation: 'NEW EXISTING PART',
+    //             cycle: PartCycle.Edition,
+    //             ...trackedBy(users.b),
+    //         });
+    //         expect(data.partRevise.id).to.be.a(idType);
+    //         expect(data.partRevise.id).to.not.equal(partRev.id);
+    //         expect(data.partRevise.part).to.deep.include({
+    //             id: part.id,
+    //             ref: 'P001.A',
+    //             designation: 'SOME EXISTING PART',
+    //             ...trackedBy(users.a),
+    //             family: { id: family.id },
+    //         });
+    //     });
 
-        it('should not revise a part without "part.create"', async function () {
-            const { errors, data } = await pool.transaction(async (db) => {
-                const { mutate } = buildGqlServer(
-                    db,
-                    permsAuth(users.b, ['part.read', 'partfamily.read', 'user.read'])
-                );
-                return mutate({
-                    mutation: PART_REVISE,
-                    variables: {
-                        input: {
-                            partId: part.id,
-                        },
-                    },
-                });
-            });
-            expect(errors).to.be.not.empty;
-            expect(errors[0].message).to.contain('part.create');
+    //     it('should not revise a part without "part.create"', async function () {
+    //         const { errors, data } = await pool.transaction(async (db) => {
+    //             const { mutate } = buildGqlServer(
+    //                 db,
+    //                 permsAuth(users.b, ['part.read', 'partfamily.read', 'user.read'])
+    //             );
+    //             return mutate({
+    //                 mutation: PART_REVISE,
+    //                 variables: {
+    //                     input: {
+    //                         partId: part.id,
+    //                     },
+    //                 },
+    //             });
+    //         });
+    //         expect(errors).to.be.not.empty;
+    //         expect(errors[0].message).to.contain('part.create');
 
-            expect(data).to.be.null;
-        });
+    //         expect(data).to.be.null;
+    //     });
 
-        it('should not revise a part if previous is edition', async function () {
-            await pool.transaction(async (db) => {
-                return dao.partRevision.updateCycleState(db, partRev.id, PartCycle.Edition);
-            });
-            const { errors, data } = await pool.transaction(async (db) => {
-                const { mutate } = buildGqlServer(
-                    db,
-                    permsAuth(users.a, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
-                );
-                return mutate({
-                    mutation: PART_REVISE,
-                    variables: {
-                        input: { partId: part.id },
-                    },
-                });
-            });
-            expect(errors).to.not.be.empty;
-            expect(errors[0].message.toLowerCase()).to.contain('edition');
-            expect(data).to.be.null;
-        });
-    });
+    //     it('should not revise a part if previous is edition', async function () {
+    //         await pool.transaction(async (db) => {
+    //             return dao.partRevision.updateCycleState(db, partRev.id, PartCycle.Edition);
+    //         });
+    //         const { errors, data } = await pool.transaction(async (db) => {
+    //             const { mutate } = buildGqlServer(
+    //                 db,
+    //                 permsAuth(users.a, ['part.create', 'part.read', 'partfamily.read', 'user.read'])
+    //             );
+    //             return mutate({
+    //                 mutation: PART_REVISE,
+    //                 variables: {
+    //                     input: { partId: part.id },
+    //                 },
+    //             });
+    //         });
+    //         expect(errors).to.not.be.empty;
+    //         expect(errors[0].message.toLowerCase()).to.contain('edition');
+    //         expect(data).to.be.null;
+    //     });
+    // });
 
     describe('#partStartValidation', function () {
         const PART_STARTVAL = gql`
@@ -531,7 +533,7 @@ describe('GraphQL Part - Mutations', function () {
                 part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
-                partRev = await th.createPartRev(db, part, users.a);
+                partRev = await th.createPartRev(db, part, req, users.a);
                 await dao.partFamily.bumpCounterById(db, family.id);
             });
         });
@@ -667,7 +669,7 @@ describe('GraphQL Part - Mutations', function () {
                 part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
-                partRev = await th.createPartRev(db, part, users.a);
+                partRev = await th.createPartRev(db, part, req, users.a);
                 partVal = await th.createPartVal(db, partRev, users.a);
                 partApprs = await th.createPartApprovals(db, partVal, users, users.a);
                 await dao.partFamily.bumpCounterById(db, family.id);
@@ -859,7 +861,7 @@ describe('GraphQL Part - Mutations', function () {
                 part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
-                partRev = await th.createPartRev(db, part, users.a);
+                partRev = await th.createPartRev(db, part, req, users.a);
                 partVal = await th.createPartVal(db, partRev, users.a);
                 partApprs = await th.createPartApprovals(db, partVal, users, users.a);
                 await dao.partFamily.bumpCounterById(db, family.id);

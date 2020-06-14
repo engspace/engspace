@@ -1,6 +1,6 @@
 import { HasId, Id } from '@engspace/core';
 import { Db } from '..';
-import { ChangePartChangeDao } from './change-part-change';
+import { ChangePartForkDao } from './change-part-fork';
 import { ChangePartCreateDao } from './change-part-create';
 import { ChangePartRevisionDao } from './change-part-revision';
 import { ChangeRequestDao } from './change-request';
@@ -17,7 +17,7 @@ import { ProjectDao } from './project';
 import { ProjectMemberDao } from './project-member';
 import { UserDao } from './user';
 
-export { ChangePartChangeDaoInput } from './change-part-change';
+export { ChangePartForkDaoInput } from './change-part-fork';
 export { ChangePartCreateDaoInput } from './change-part-create';
 export { ChangePartRevisionDaoInput } from './change-part-revision';
 export { ChangeReviewDaoInput } from './change-review';
@@ -66,7 +66,7 @@ export interface DaoSet {
     partApproval: PartApprovalDao;
     changeRequest: ChangeRequestDao;
     changePartCreate: ChangePartCreateDao;
-    changePartChange: ChangePartChangeDao;
+    changePartFork: ChangePartForkDao;
     changePartRevision: ChangePartRevisionDao;
     changeReview: ChangeReviewDao;
     document: DocumentDao;
@@ -86,7 +86,7 @@ export function buildDaoSet(custom: Partial<DaoSet> = {}): DaoSet {
         partApproval: custom.partApproval ?? new PartApprovalDao(),
         changeRequest: custom.changeRequest ?? new ChangeRequestDao(),
         changePartCreate: custom.changePartCreate ?? new ChangePartCreateDao(),
-        changePartChange: custom.changePartChange ?? new ChangePartChangeDao(),
+        changePartFork: custom.changePartFork ?? new ChangePartForkDao(),
         changePartRevision: custom.changePartRevision ?? new ChangePartRevisionDao(),
         changeReview: custom.changeReview ?? new ChangeReviewDao(),
         document: custom.document ?? new DocumentDao(),

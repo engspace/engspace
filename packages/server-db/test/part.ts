@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { ChangeRequest, Part } from '@engspace/core';
 import { idType, trackedBy } from '../src/test-helpers';
 import { dao, pool, th } from '.';
 
@@ -87,6 +88,81 @@ describe('#PartDao', function () {
                 return dao.part.checkRef(db, 'P002.A');
             });
             expect(has).to.be.false;
+        });
+    });
+
+    describe('#whoseRev1IsCreatedBy', function () {
+        let reqA: ChangeRequest, reqB: ChangeRequest;
+        let part1a: Part, part1b: Part;
+        let part2a: Part, part2b: Part;
+
+        this.beforeEach(function () {
+            return pool.transaction(async (db) => {
+                reqA = await th.createChangeRequest(db, users.a);
+                reqB = await th.createChangeRequest(db, users.a);
+                part1a = await th.createPart(
+                    db,
+                    family,
+                    users.a,
+                    {
+                        ref: 'P001.A',
+                    },
+                    { withRev1: true, changeRequest: reqA, bumpFamCounter: false }
+                );
+                part1b = await th.createPart(
+                    db,
+                    family,
+                    users.a,
+                    {
+                        ref: 'P001.B',
+                    },
+                    { withRev1: true, changeRequest: reqB, bumpFamCounter: false }
+                );
+                part2a = await th.createPart(
+                    db,
+                    family,
+                    users.a,
+                    {
+                        ref: 'P002.A',
+                    },
+                    { withRev1: true, changeRequest: reqA, bumpFamCounter: false }
+                );
+                part2b = await th.createPart(
+                    db,
+                    family,
+                    users.a,
+                    {
+                        ref: 'P002.B',
+                    },
+                    { withRev1: true, changeRequest: reqB, bumpFamCounter: false }
+                );
+            });
+        });
+        this.afterEach(th.cleanTables(['part_revision', 'part', 'change_request']));
+
+        it('should get all parts whose rev1 created by request', async function () {
+            const partsA = await pool.connect(async (db) => {
+                return dao.part.whoseRev1IsCreatedBy(db, reqA.id);
+            });
+            const partsB = await pool.connect(async (db) => {
+                return dao.part.whoseRev1IsCreatedBy(db, reqB.id);
+            });
+            expect(partsA).to.containSubset([
+                {
+                    id: part1a.id,
+                },
+                {
+                    id: part2a.id,
+                },
+            ]);
+            expect(partsB).to.containSubset([
+                {
+                    id: part1b.id,
+                },
+                {
+                    id: part2b.id,
+                },
+            ]);
         });
     });
 

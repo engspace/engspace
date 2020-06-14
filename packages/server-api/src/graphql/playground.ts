@@ -11,8 +11,7 @@ import { EsServerConfig } from '../';
 import { signJwt, verifyJwt } from '../crypto';
 import { attachDb, authJwtSecret, setAuthToken } from '../internal';
 import { gqlContextFactory } from './context';
-import { buildResolvers } from './resolvers';
-import { typeDefs } from './schema';
+import { buildSchema } from './schema';
 
 export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServerConfig): void {
     app.keys = esConfig.sessionKeys;
@@ -95,8 +94,7 @@ export function setupPlaygroundEndpoint(prefix: string, app: Koa, config: EsServ
     app.use(attachDb(config.pool, prefix));
 
     const playground = new ApolloServer({
-        typeDefs,
-        resolvers: buildResolvers(config.control),
+        schema: buildSchema(config.control),
         introspection: true,
         playground: {
             settings: {

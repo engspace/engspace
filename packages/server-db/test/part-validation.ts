@@ -6,6 +6,7 @@ import { dao, pool, th } from '.';
 describe('#PartValidationDao', function () {
     let users;
     let fam;
+    let req;
     let part;
     let partRev;
     before('create deps', async function () {
@@ -18,11 +19,15 @@ describe('#PartValidationDao', function () {
                 e: { name: 'e' },
             });
             fam = await th.createPartFamily(db, { code: 'P' });
+            req = await th.createChangeRequest(db, users.a);
             part = await th.createPart(db, fam, users.a, {});
-            partRev = await th.createPartRev(db, part, users.a);
+            partRev = await th.createPartRev(db, part, req, users.a);
         });
     });
-    after('clean deps', th.cleanTables(['part_revision', 'part', 'part_family', 'user']));
+    after(
+        'clean deps',
+        th.cleanTables(['part_revision', 'part', 'change_request', 'part_family', 'user'])
+    );
     describe('#create', function () {
         afterEach(th.cleanTable('part_validation'));
 

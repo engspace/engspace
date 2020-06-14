@@ -8,26 +8,28 @@ import { buildGqlServer, pool, th } from '.';
 describe('GraphQL ChangeRequest - Queries', function () {
     let users;
     let fam;
+    let oldReq;
     let parts;
     let req;
     before(async function () {
         return pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
             fam = await th.createPartFamily(db);
+            oldReq = await th.createChangeRequest(db, users.a);
             parts = {
                 p1: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P001.A', designation: 'PART 1' },
-                    { withRev1: true, bumpFamCounter: true }
+                    { withRev1: true, changeRequest: oldReq, bumpFamCounter: true }
                 ),
                 p2: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P002.A', designation: 'PART 2' },
-                    { withRev1: true, bumpFamCounter: true }
+                    { withRev1: true, changeRequest: oldReq, bumpFamCounter: true }
                 ),
             };
             req = await th.createChangeRequest(db, users.a, {
@@ -44,7 +46,7 @@ describe('GraphQL ChangeRequest - Queries', function () {
                         version: 'K',
                     },
                 ],
-                partChanges: [
+                partForks: [
                     {
                         partId: parts.p1.id,
                         version: 'B',
@@ -64,7 +66,7 @@ describe('GraphQL ChangeRequest - Queries', function () {
         th.cleanTables(
             [
                 'change_part_create',
-                'change_part_change',
+                'change_part_fork',
                 'change_part_revision',
                 'change_review',
                 'part_revision',
@@ -115,7 +117,7 @@ describe('GraphQL ChangeRequest - Queries', function () {
                         comments: null,
                     },
                 ],
-                partChanges: [
+                partForks: [
                     {
                         part: { id: parts.p1.id },
                         designation: null,

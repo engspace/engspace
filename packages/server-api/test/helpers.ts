@@ -13,6 +13,33 @@ export const TRACKED_FIELDS = gql`
     }
 `;
 
+export const PART_FIELDS = gql`
+    fragment PartFields on Part {
+        id
+        family {
+            id
+        }
+        ref
+        designation
+        ...TrackedFields
+    }
+    ${TRACKED_FIELDS}
+`;
+
+export const PARTREV_FIELDS = gql`
+    fragment PartRevFields on PartRevision {
+        id
+        part {
+            id
+        }
+        revision
+        designation
+        cycle
+        ...TrackedFields
+    }
+    ${TRACKED_FIELDS}
+`;
+
 export const CHANGEREQ_DEEPFIELDS = gql`
     fragment ChangeReqDeepFields on ChangeRequest {
         id
@@ -28,7 +55,7 @@ export const CHANGEREQ_DEEPFIELDS = gql`
             designation
             comments
         }
-        partChanges {
+        partForks {
             id
             part {
                 id
@@ -53,7 +80,18 @@ export const CHANGEREQ_DEEPFIELDS = gql`
             decision
             comments
         }
+
+        createdParts {
+            ...PartFields
+        }
+
+        revisedParts {
+            ...PartRevFields
+        }
+
         ...TrackedFields
     }
     ${TRACKED_FIELDS}
+    ${PART_FIELDS}
+    ${PARTREV_FIELDS}
 `;

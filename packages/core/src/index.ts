@@ -62,7 +62,7 @@ export enum ChangeRequestCycle {
     Edition = 'EDITION',
     Validation = 'VALIDATION',
     Approved = 'APPROVED',
-    Canceled = 'CANCELLED',
+    Cancelled = 'CANCELLED',
 }
 
 export interface UserInput {
@@ -126,18 +126,21 @@ export interface PartFamily extends PartFamilyInput {
 
 export interface PartCreateInput {
     familyId: Id;
+    changeRequestId: Id;
     designation: string;
     initialVersion: string;
 }
 
 export interface PartForkInput {
     partId: Id;
+    changeRequestId: Id;
     version?: string;
     designation?: string;
 }
 
 export interface PartRevisionInput {
     partId: Id;
+    changeRequestId: Id;
     designation?: string;
 }
 
@@ -150,6 +153,8 @@ export interface Part extends Tracked {
     family: IdOr<PartFamily>;
     ref: string;
     designation: string;
+
+    changeRequest?: IdOr<ChangeRequest>;
 }
 
 export interface PartRevision extends Tracked {
@@ -158,6 +163,8 @@ export interface PartRevision extends Tracked {
     revision: number;
     designation: string;
     cycle: PartCycle;
+
+    changeRequest: IdOr<ChangeRequest>;
 }
 
 export interface PartApprovalInput {
@@ -203,7 +210,7 @@ export interface ChangePartCreateInput {
     comments?: string;
 }
 
-export interface ChangePartChangeInput {
+export interface ChangePartForkInput {
     partId: Id;
     version: string;
     designation?: string;
@@ -219,7 +226,7 @@ export interface ChangePartRevisionInput {
 export interface ChangeRequestInput {
     description?: string;
     partCreations: ChangePartCreateInput[];
-    partChanges: ChangePartChangeInput[];
+    partForks: ChangePartForkInput[];
     partRevisions: ChangePartRevisionInput[];
     reviewerIds: Id[];
 }
@@ -230,8 +237,8 @@ export interface ChangeRequestUpdateInput {
     partCreationsAdd?: ChangePartCreateInput[];
     partCreationsRem?: Id[];
 
-    partChangesAdd?: ChangePartChangeInput[];
-    partChangesRem?: Id[];
+    partForksAdd?: ChangePartForkInput[];
+    partForksRem?: Id[];
 
     partRevisionsAdd?: ChangePartRevisionInput[];
     partRevisionsRem?: Id[];
@@ -249,7 +256,7 @@ export interface ChangePartCreate {
     comments?: string;
 }
 
-export interface ChangePartChange {
+export interface ChangePartFork {
     id: Id;
     request: IdOr<ChangeRequest>;
     part: IdOr<Part>;
@@ -263,6 +270,11 @@ export interface ChangePartRevision {
     request: IdOr<ChangeRequest>;
     part: IdOr<Part>;
     designation?: string;
+    comments?: string;
+}
+
+export interface ChangeReviewInput {
+    decision: ApprovalDecision;
     comments?: string;
 }
 
@@ -280,9 +292,12 @@ export interface ChangeRequest extends Tracked {
     cycle: ChangeRequestCycle;
     state?: ApprovalDecision;
     partCreations?: ChangePartCreate[];
-    partChanges?: ChangePartChange[];
+    partForks?: ChangePartFork[];
     partRevisions?: ChangePartRevision[];
     reviews?: ChangeReview[];
+
+    createdParts?: Part[];
+    revisedParts?: PartRevision[];
 }
 
 export interface DocumentInput {

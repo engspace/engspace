@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { dao, pool, th } from '.';
 
-describe('#ChangePartChangeDao', function () {
+describe('#ChangePartForkDao', function () {
     let users;
     let req;
     let fam;
@@ -17,11 +17,11 @@ describe('#ChangePartChangeDao', function () {
     after(th.cleanTables(['part', 'part_family', 'change_request', 'user']));
 
     describe('#create', function () {
-        this.afterEach(th.cleanTable('change_part_change'));
+        this.afterEach(th.cleanTable('change_part_fork'));
 
-        it('should create a ChangePartChange', async function () {
+        it('should create a ChangePartFork', async function () {
             const cpc = await pool.transaction(async (db) => {
-                return dao.changePartChange.create(db, {
+                return dao.changePartFork.create(db, {
                     requestId: req.id,
                     partId: part.id,
                     version: 'A',
@@ -35,9 +35,9 @@ describe('#ChangePartChangeDao', function () {
             });
         });
 
-        it('should create a ChangePartChange with new designation', async function () {
+        it('should create a ChangePartFork with new designation', async function () {
             const cpc = await pool.transaction(async (db) => {
-                return dao.changePartChange.create(db, {
+                return dao.changePartFork.create(db, {
                     requestId: req.id,
                     partId: part.id,
                     version: 'A',
@@ -54,15 +54,15 @@ describe('#ChangePartChangeDao', function () {
     });
 
     describe('#byRequestId', function () {
-        let partChanges;
+        let partForks;
         before(async function () {
             return pool.transaction(async (db) => {
-                partChanges = [
-                    await th.createChangePartChange(db, req, part, {
+                partForks = [
+                    await th.createChangePartFork(db, req, part, {
                         designation: 'PART A',
                         version: 'A',
                     }),
-                    await th.createChangePartChange(db, req, part, {
+                    await th.createChangePartFork(db, req, part, {
                         designation: 'PART B',
                         version: 'B',
                         comments: 'Some comment about part B',
@@ -71,18 +71,18 @@ describe('#ChangePartChangeDao', function () {
             });
         });
 
-        after(th.cleanTable('change_part_change'));
+        after(th.cleanTable('change_part_fork'));
 
-        it('should read ChangePartChange by request id', async function () {
+        it('should read ChangePartFork by request id', async function () {
             const cpc = await pool.connect(async (db) => {
-                return dao.changePartChange.byRequestId(db, req.id);
+                return dao.changePartFork.byRequestId(db, req.id);
             });
-            expect(cpc).to.have.same.deep.members(partChanges);
+            expect(cpc).to.have.same.deep.members(partForks);
         });
 
-        it('should return empty if no ChangePartChange', async function () {
+        it('should return empty if no ChangePartFork', async function () {
             const cpc = await pool.connect(async (db) => {
-                return dao.changePartChange.byRequestId(db, '-1');
+                return dao.changePartFork.byRequestId(db, '-1');
             });
             expect(cpc).to.be.empty;
         });

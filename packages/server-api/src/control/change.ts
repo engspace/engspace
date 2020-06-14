@@ -1,6 +1,6 @@
 import { UserInputError } from 'apollo-server-koa';
 import {
-    ChangePartChange,
+    ChangePartFork,
     ChangePartCreate,
     ChangePartRevision,
     ChangeRequest,
@@ -10,24 +10,29 @@ import {
     PartCycle,
     ApprovalDecision,
     ChangeRequestUpdateInput,
-    ChangePartChangeInput,
+    ChangePartForkInput,
     ChangePartRevisionInput,
+    ChangeRequestCycle,
+    ChangeReviewInput,
+    Part,
+    PartRevision,
 } from '@engspace/core';
 import { DaoSet } from '@engspace/server-db';
 import { assertUserPerm } from './helpers';
+import { PartControl } from './part';
 import { ApiContext } from '.';
 
 export class ChangeControl {
-    constructor(private dao: DaoSet) {}
+    constructor(private dao: DaoSet, private partControl: PartControl) {}
 
-    async createRequest(ctx: ApiContext, input: ChangeRequestInput): Promise<ChangeRequest> {
+    async requestCreate(ctx: ApiContext, input: ChangeRequestInput): Promise<ChangeRequest> {
         assertUserPerm(ctx, 'change.create');
         const {
             db,
             auth: { userId },
         } = ctx;
-        if (input.partChanges?.length > 0) {
-            await this.checkPartChanges(ctx, input.partChanges);
+        if (input.partForks?.length > 0) {
+            await this.checkPartChanges(ctx, input.partForks);
         }
         if (input.partRevisions?.length > 0) {
             await this.checkPartRevisions(ctx, input.partRevisions);
@@ -42,10 +47,10 @@ export class ChangeControl {
                     this.dao.changePartCreate.create(db, { requestId: req.id, ...inp })
                 )
             );
-        if (input.partChanges)
-            req.partChanges = await Promise.all(
-                input.partChanges?.map((inp) =>
-                    this.dao.changePartChange.create(db, { requestId: req.id, ...inp })
+        if (input.partForks)
+            req.partForks = await Promise.all(
+                input.partForks?.map((inp) =>
+                    this.dao.changePartFork.create(db, { requestId: req.id, ...inp })
                 )
             );
         if (input.partRevisions)
@@ -80,9 +85,9 @@ export class ChangeControl {
         return this.dao.changePartCreate.byRequestId(ctx.db, requestId);
     }
 
-    requestPartChanges(ctx: ApiContext, requestId: Id): Promise<ChangePartChange[]> {
+    requestPartChanges(ctx: ApiContext, requestId: Id): Promise<ChangePartFork[]> {
         assertUserPerm(ctx, 'change.read');
-        return this.dao.changePartChange.byRequestId(ctx.db, requestId);
+        return this.dao.changePartFork.byRequestId(ctx.db, requestId);
     }
 
     requestPartRevisions(ctx: ApiContext, requestId: Id): Promise<ChangePartRevision[]> {
@@ -95,15 +100,26 @@ export class ChangeControl {
         return this.dao.changeReview.byRequestId(ctx.db, requestId);
     }
 
-    async updateRequest(
+    requestCreatedParts(ctx: ApiContext, requestId: Id): Promise<Part[]> {
+        assertUserPerm(ctx, 'part.read');
+        // parts created by a change request have their first revision associated with it
+        return this.dao.part.whoseRev1IsCreatedBy(ctx.db, requestId);
+    }
+
+    requestRevisedParts(ctx: ApiContext, requestId: Id): Promise<PartRevision[]> {
+        assertUserPerm(ctx, 'part.read');
+        return this.dao.partRevision.aboveRev1ByChangeRequestId(ctx.db, requestId);
+    }
+
+    async requestUpdate(
         ctx: ApiContext,
         requestId: Id,
         {
             description,
             partCreationsAdd,
             partCreationsRem,
-            partChangesAdd,
-            partChangesRem,
+            partForksAdd,
+            partForksRem,
             partRevisionsAdd,
             partRevisionsRem,
             reviewerIdsAdd,
@@ -116,6 +132,9 @@ export class ChangeControl {
             auth: { userId },
         } = ctx;
 
+        let req = await this.dao.changeRequest.byId(db, requestId);
+
+        await this.assertEditor(ctx, req);
         const promises = [];
 
         if (partCreationsRem?.length > 0) {
@@ -130,14 +149,14 @@ export class ChangeControl {
             );
         }
 
-        if (partChangesRem?.length > 0) {
+        if (partForksRem?.length > 0) {
             const reqIds = await Promise.all(
-                partChangesRem.map((pcId) => this.dao.changePartChange.checkRequestId(db, pcId))
+                partForksRem.map((pcId) => this.dao.changePartFork.checkRequestId(db, pcId))
             );
             if (!reqIds.every((reqId) => reqId == requestId)) {
                 throw new UserInputError('Part change do not belong to the Change request');
             }
-            promises.push(partChangesRem.map((id) => this.dao.changePartChange.deleteById(db, id)));
+            promises.push(partForksRem.map((id) => this.dao.changePartFork.deleteById(db, id)));
         }
 
         if (partRevisionsRem?.length > 0) {
@@ -169,12 +188,10 @@ export class ChangeControl {
                 )
             );
         }
-        if (partChangesAdd?.length > 0) {
-            await this.checkPartChanges(ctx, partChangesAdd);
+        if (partForksAdd?.length > 0) {
+            await this.checkPartChanges(ctx, partForksAdd);
             promises.push(
-                partChangesAdd.map((inp) =>
-                    this.dao.changePartChange.create(db, { requestId, ...inp })
-                )
+                partForksAdd.map((inp) => this.dao.changePartFork.create(db, { requestId, ...inp }))
             );
         }
         if (partRevisionsAdd?.length > 0) {
@@ -193,11 +210,8 @@ export class ChangeControl {
             );
         }
 
-        let req;
         if (description) {
             req = await this.dao.changeRequest.update(db, requestId, { description, userId });
-        } else {
-            req = await this.dao.changeRequest.byId(db, requestId);
         }
 
         await Promise.all(promises);
@@ -205,19 +219,153 @@ export class ChangeControl {
         return req;
     }
 
+    async requestSubmit(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
+        assertUserPerm(ctx, 'change.update');
+        const {
+            db,
+            auth: { userId },
+        } = ctx;
+        const req = await this.dao.changeRequest.byId(db, id);
+        await this.assertEditor(ctx, req);
+        if (req.cycle !== ChangeRequestCycle.Edition) {
+            throw new UserInputError(`Can't submit a change request that is in ${req.cycle} cycle`);
+        }
+        return this.dao.changeRequest.updateCycle(db, id, ChangeRequestCycle.Validation, userId);
+    }
+
+    async requestWithdraw(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
+        assertUserPerm(ctx, 'change.update');
+        const {
+            db,
+            auth: { userId },
+        } = ctx;
+        const req = await this.dao.changeRequest.byId(db, id);
+        await this.assertEditor(ctx, req);
+        if (req.cycle !== ChangeRequestCycle.Validation) {
+            throw new UserInputError(`Can't submit a change request that is in ${req.cycle} cycle`);
+        }
+        return this.dao.changeRequest.updateCycle(db, id, ChangeRequestCycle.Edition, userId);
+    }
+
+    async requestReview(
+        ctx: ApiContext,
+        requestId: Id,
+        input: ChangeReviewInput
+    ): Promise<ChangeReview> {
+        assertUserPerm(ctx, 'change.review');
+        const {
+            db,
+            auth: { userId },
+        } = ctx;
+        const req = await this.dao.changeRequest.byId(db, requestId);
+        if (!req) {
+            throw new UserInputError('Cannot find specified change request');
+        }
+        if (req.cycle !== ChangeRequestCycle.Validation) {
+            throw new UserInputError('Cannot review a change that is not in validation');
+        }
+        const review = await this.dao.changeReview.byRequestAndAssigneeId(db, requestId, userId);
+        if (!review) {
+            const user = await this.dao.user.byId(db, userId);
+            throw new UserInputError(
+                `User ${user.fullName} is not a reviewer of the specified change request`
+            );
+        }
+        return this.dao.changeReview.update(db, review.id, {
+            decision: input.decision,
+            comments: input.comments,
+            userId,
+        });
+    }
+
+    async requestApprove(ctx: ApiContext, requestId: Id): Promise<ChangeRequest> {
+        assertUserPerm(ctx, 'change.update');
+        const {
+            db,
+            auth: { userId },
+        } = ctx;
+        const req = await this.dao.changeRequest.byId(db, requestId);
+        await this.assertEditor(ctx, req);
+
+        if (req.cycle !== ChangeRequestCycle.Validation) {
+            throw new UserInputError(`Can't approve a change request from the ${req.cycle} cycle`);
+        }
+
+        if (req.state !== ApprovalDecision.Approved && req.state !== ApprovalDecision.Reserved) {
+            throw new UserInputError('Specified change request does not have required approvals');
+        }
+
+        // Everything looks OK. Let's proceed to changes
+
+        const creations = await this.dao.changePartCreate.byRequestId(db, requestId);
+        const changes = await this.dao.changePartFork.byRequestId(db, requestId);
+        const revisions = await this.dao.changePartRevision.byRequestId(db, requestId);
+        for (const creation of creations) {
+            await this.partControl.create(ctx, {
+                familyId: creation.family.id,
+                designation: creation.designation,
+                initialVersion: creation.version,
+                changeRequestId: req.id,
+            });
+        }
+        for (const change of changes) {
+            await this.partControl.fork(ctx, {
+                partId: change.part.id,
+                designation: change.designation,
+                version: change.version,
+                changeRequestId: req.id,
+            });
+        }
+        for (const revision of revisions) {
+            await this.partControl.revise(ctx, {
+                partId: revision.part.id,
+                designation: revision.designation,
+                changeRequestId: req.id,
+            });
+        }
+
+        // All changes done without error. We bump the cycle to APPROVED and return result.
+
+        return this.dao.changeRequest.updateCycle(
+            db,
+            requestId,
+            ChangeRequestCycle.Approved,
+            userId
+        );
+    }
+
+    async requestCancel(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
+        assertUserPerm(ctx, 'change.update');
+        const {
+            db,
+            auth: { userId },
+        } = ctx;
+        const req = await this.dao.changeRequest.byId(db, id);
+        await this.assertEditor(ctx, req);
+        if (
+            req.cycle === ChangeRequestCycle.Approved ||
+            req.cycle === ChangeRequestCycle.Cancelled
+        ) {
+            throw new UserInputError(
+                `Cannot cancel a change request that is in the ${req.cycle} cycle`
+            );
+        }
+        return this.dao.changeRequest.updateCycle(db, id, ChangeRequestCycle.Cancelled, userId);
+    }
+
     private async checkPartChanges(
         { db, config }: ApiContext,
-        partChanges: ChangePartChangeInput[]
+        partForks: ChangePartForkInput[]
     ): Promise<void> {
         const parts = await this.dao.part.batchByIds(
             db,
-            partChanges.map((pc) => pc.partId)
+            partForks.map((pc) => pc.partId)
         );
         for (let i = 0; i < parts.length; ++i) {
             const refParts = config.refNaming.extractParts(parts[i].ref);
             const newRef = config.refNaming.buildRef({
                 ...refParts,
-                partVersion: partChanges[i].version,
+                partVersion: partForks[i].version,
             });
             if (await this.dao.part.checkRef(db, newRef)) {
                 throw new UserInputError(`Part with reference "${newRef}" already exists.`);
@@ -239,6 +387,19 @@ export class ChangeControl {
                     `Part "${part.ref}" has its last revision in "Edition" mode and be currently revised`
                 );
             }
+        }
+    }
+
+    private async assertEditor(
+        { db, auth: { userId } }: ApiContext,
+        req: ChangeRequest
+    ): Promise<void> {
+        // FIXME: editor list
+        if (userId !== req.createdBy.id) {
+            const user = await this.dao.user.byId(db, userId);
+            throw new UserInputError(
+                `User ${user.fullName} cannot edit the specified change request`
+            );
         }
     }
 }

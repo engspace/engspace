@@ -58,6 +58,21 @@ CREATE TABLE part_family (
     counter integer NOT NULL DEFAULT 0
 );
 
+CREATE TABLE change_request (
+    id serial PRIMARY KEY,
+    description text,
+    cycle text NOT NULL,
+
+    created_by integer NOT NULL,
+    created_at timestamptz NOT NULL,
+    updated_by integer NOT NULL,
+    updated_at timestamptz NOT NULL,
+
+    FOREIGN KEY(cycle) REFERENCES change_request_cycle_enum(id),
+    FOREIGN KEY(created_by) REFERENCES "user"(id),
+    FOREIGN KEY(updated_by) REFERENCES "user"(id)
+);
+
 CREATE TABLE part (
     id serial PRIMARY KEY,
     family_id integer NOT NULL,
@@ -81,8 +96,11 @@ CREATE TABLE part (
 CREATE TABLE part_revision (
     id serial PRIMARY KEY,
     part_id integer NOT NULL,
+
     revision integer NOT NULL,
     designation text NOT NULL,
+
+    change_request_id integer NOT NULL,
 
     cycle text NOT NULL,
 
@@ -95,6 +113,7 @@ CREATE TABLE part_revision (
     CHECK(LENGTH(designation) > 0),
 
     FOREIGN KEY(part_id) REFERENCES part(id),
+    FOREIGN KEY(change_request_id) REFERENCES change_request(id),
     FOREIGN KEY(cycle) REFERENCES part_cycle_enum(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id),
     FOREIGN KEY(updated_by) REFERENCES "user"(id)
@@ -135,21 +154,6 @@ CREATE TABLE part_approval (
     FOREIGN KEY(updated_by) REFERENCES "user"(id)
 );
 
-CREATE TABLE change_request (
-    id serial PRIMARY KEY,
-    description text,
-    cycle text NOT NULL,
-
-    created_by integer NOT NULL,
-    created_at timestamptz NOT NULL,
-    updated_by integer NOT NULL,
-    updated_at timestamptz NOT NULL,
-
-    FOREIGN KEY(cycle) REFERENCES change_request_cycle_enum(id),
-    FOREIGN KEY(created_by) REFERENCES "user"(id),
-    FOREIGN KEY(updated_by) REFERENCES "user"(id)
-);
-
 CREATE TABLE change_part_create (
     id serial PRIMARY KEY,
     request_id integer NOT NULL,
@@ -165,7 +169,7 @@ CREATE TABLE change_part_create (
     FOREIGN KEY(family_id) REFERENCES part_family(id)
 );
 
-CREATE TABLE change_part_change (
+CREATE TABLE change_part_fork (
     id serial PRIMARY KEY,
     request_id integer NOT NULL,
     part_id integer NOT NULL,

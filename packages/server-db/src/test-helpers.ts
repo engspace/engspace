@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { sql } from 'slonik';
 import {
-    ChangePartChange,
-    ChangePartChangeInput,
+    ChangePartFork,
+    ChangePartForkInput,
     ChangePartCreate,
     ChangePartCreateInput,
     ChangePartRevision,
@@ -27,6 +27,7 @@ import {
     Tracked,
     User,
     UserInput,
+    ChangeRequestCycle,
 } from '@engspace/core';
 import {
     ChangeReviewDaoInput,
@@ -68,7 +69,7 @@ export function trackedBy(createdBy: User, updatedBy?: User): Partial<Tracked> {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function expTrackedTime(expect: any, obj: Partial<Tracked>, maxAge = 100): void {
+export function expTrackedTime(expect: any, obj: Partial<Tracked>, maxAge = 400): void {
     const now = Date.now();
     expect(obj.createdAt).to.be.a('number');
     expect(obj.updatedAt).to.be.a('number');
@@ -93,12 +94,12 @@ const tableDeps = {
     project_member_role: ['project_member'],
     part_family: [],
     part: ['part_family', 'user'],
-    part_revision: ['part', 'user'],
+    part_revision: ['part', 'change_request', 'user'],
     part_validation: ['part_revision', 'user'],
     part_approval: ['part_validation', 'user'],
     change_request: ['user'],
     change_part_create: ['change_request', 'part_family'],
-    change_part_change: ['change_request', 'part'],
+    change_part_fork: ['change_request', 'part'],
     change_part_revision: ['change_request', 'part'],
     change_review: ['change_request', 'user'],
     document: ['user'],
@@ -277,21 +278,35 @@ export class TestHelpers {
         family: PartFamily,
         user: User,
         input: Partial<PartDaoInput>,
-        { withRev1, bumpFamCounter }: { withRev1: boolean; bumpFamCounter: boolean } = {
+        {
+            withRev1,
+            changeRequest,
+            bumpFamCounter,
+        }: { withRev1: boolean; changeRequest: ChangeRequest; bumpFamCounter: boolean } = {
             withRev1: false,
+            changeRequest: null,
             bumpFamCounter: false,
         }
     ): Promise<Part> {
         const ref = input.ref ?? `P001.A`;
+        const designation = input.designation ?? 'Part';
         const part = await this.dao.part.create(db, {
             familyId: family.id,
             ref,
-            designation: input.designation ?? 'Part',
+            designation,
             userId: user.id,
         });
         if (withRev1) {
+            if (!changeRequest) {
+                changeRequest = await this.dao.changeRequest.create(db, {
+                    description: `Creation of ${ref}`,
+                    cycle: ChangeRequestCycle.Approved,
+                    userId: user.id,
+                });
+            }
             await this.dao.partRevision.create(db, {
                 partId: part.id,
+                changeRequestId: changeRequest.id,
                 cycle: PartCycle.Edition,
                 userId: user.id,
                 designation: part.designation,
@@ -303,28 +318,37 @@ export class TestHelpers {
         return part;
     }
 
-    createPartRev(
+    async createPartRev(
         db: Db,
         part: Part,
+        changeRequest: ChangeRequest = null,
         user: User,
         input: Partial<PartRevisionDaoInput> = {}
     ): Promise<PartRevision> {
+        if (!changeRequest) {
+            changeRequest = await this.dao.changeRequest.create(db, {
+                description: `Revision of ${part.ref}`,
+                cycle: ChangeRequestCycle.Approved,
+                userId: user.id,
+            });
+        }
         return this.dao.partRevision.create(db, {
-            designation: part.designation ?? 'Part',
-            cycle: PartCycle.Edition,
-            ...input,
+            designation: input.designation ?? part.designation ?? 'Part',
+            cycle: input.cycle ?? PartCycle.Edition,
             partId: part.id,
+            changeRequestId: changeRequest.id,
             userId: user.id,
         });
     }
 
     transacPartRev(
         part: Part,
+        changeRequest: ChangeRequest = null,
         user: User,
-        input: Partial<PartRevisionDaoInput>
+        input: Partial<PartRevisionDaoInput> = {}
     ): Promise<PartRevision> {
         return this.pool.transaction(async (db) => {
-            return this.createPartRev(db, part, user, input);
+            return this.createPartRev(db, part, changeRequest, user, input);
         });
     }
 
@@ -383,10 +407,10 @@ export class TestHelpers {
                 )
             );
         }
-        if (input.partChanges) {
-            req.partChanges = await Promise.all(
-                input.partChanges.map((inp) =>
-                    this.dao.changePartChange.create(db, {
+        if (input.partForks) {
+            req.partForks = await Promise.all(
+                input.partForks.map((inp) =>
+                    this.dao.changePartFork.create(db, {
                         requestId: req.id,
                         ...inp,
                     })
@@ -432,13 +456,13 @@ export class TestHelpers {
         });
     }
 
-    async createChangePartChange(
+    async createChangePartFork(
         db: Db,
         request: ChangeRequest,
         part: Part,
-        input: Partial<ChangePartChangeInput> = {}
-    ): Promise<ChangePartChange> {
-        return this.dao.changePartChange.create(db, {
+        input: Partial<ChangePartForkInput> = {}
+    ): Promise<ChangePartFork> {
+        return this.dao.changePartFork.create(db, {
             designation: 'PART',
             version: 'A',
             ...input,
