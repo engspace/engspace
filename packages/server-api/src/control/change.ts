@@ -25,7 +25,7 @@ import { ApiContext } from '.';
 export class ChangeControl {
     constructor(private dao: DaoSet, private partControl: PartControl) {}
 
-    async createRequest(ctx: ApiContext, input: ChangeRequestInput): Promise<ChangeRequest> {
+    async requestCreate(ctx: ApiContext, input: ChangeRequestInput): Promise<ChangeRequest> {
         assertUserPerm(ctx, 'change.create');
         const {
             db,
@@ -111,7 +111,7 @@ export class ChangeControl {
         return this.dao.partRevision.aboveRev1ByChangeRequestId(ctx.db, requestId);
     }
 
-    async updateRequest(
+    async requestUpdate(
         ctx: ApiContext,
         requestId: Id,
         {
@@ -221,7 +221,7 @@ export class ChangeControl {
         return req;
     }
 
-    async startValidation(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
+    async requestSubmit(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
         assertUserPerm(ctx, 'change.update');
         const {
             db,
@@ -230,14 +230,30 @@ export class ChangeControl {
         const req = await this.dao.changeRequest.byId(db, id);
         await this.assertEditor(ctx, req);
         if (req.cycle !== ChangeRequestCycle.Edition) {
-            throw new UserInputError(
-                'Validation can be started only if change request is in Edition mode.'
-            );
+            throw new UserInputError(`Can't submit a change request that is in ${req.cycle} cycle`);
         }
         return this.dao.changeRequest.updateCycle(db, id, ChangeRequestCycle.Validation, userId);
     }
 
-    async review(ctx: ApiContext, requestId: Id, input: ChangeReviewInput): Promise<ChangeReview> {
+    async requestWithdraw(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
+        assertUserPerm(ctx, 'change.update');
+        const {
+            db,
+            auth: { userId },
+        } = ctx;
+        const req = await this.dao.changeRequest.byId(db, id);
+        await this.assertEditor(ctx, req);
+        if (req.cycle !== ChangeRequestCycle.Validation) {
+            throw new UserInputError(`Can't submit a change request that is in ${req.cycle} cycle`);
+        }
+        return this.dao.changeRequest.updateCycle(db, id, ChangeRequestCycle.Edition, userId);
+    }
+
+    async requestReview(
+        ctx: ApiContext,
+        requestId: Id,
+        input: ChangeReviewInput
+    ): Promise<ChangeReview> {
         assertUserPerm(ctx, 'change.review');
         const {
             db,
@@ -264,7 +280,7 @@ export class ChangeControl {
         });
     }
 
-    async approve(ctx: ApiContext, requestId: Id): Promise<ChangeRequest> {
+    async requestApprove(ctx: ApiContext, requestId: Id): Promise<ChangeRequest> {
         assertUserPerm(ctx, 'change.update');
         const {
             db,
@@ -320,7 +336,7 @@ export class ChangeControl {
         );
     }
 
-    async cancel(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
+    async requestCancel(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
         assertUserPerm(ctx, 'change.update');
         const {
             db,

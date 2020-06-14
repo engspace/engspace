@@ -174,11 +174,17 @@ export const typeDefs = gql`
         changeRequestCreate(input: ChangeRequestInput!): ChangeRequest!
         changeRequestUpdate(id: ID!, input: ChangeRequestUpdateInput!): ChangeRequest!
         """
-        Submit a change a request to review in the VALIDATION cycle.
+        Submit a change request to review in the VALIDATION cycle.
         The change request must be in EDITION cycle and will be placed
         in the VALIDATION cycle to allow reviews to start.
         """
         changeRequestSubmit(id: ID!): ChangeRequest!
+        """
+        Withdraw a change request from the VALIDATION cycle.
+        The change request must be in VALIDATION cycle and will be placed
+        back in the EDITION cycle to allow changes to be made.
+        """
+        changeRequestWithdraw(id: ID!): ChangeRequest!
         """
         Edit a review for a change request.
         The logged-in user must be a reviewer of the given change request.
@@ -259,7 +265,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { input }: { input: ChangeRequestInput },
                 ctx: GqlContext
             ): Promise<ChangeRequest> {
-                return control.change.createRequest(ctx, input);
+                return control.change.requestCreate(ctx, input);
             },
 
             changeRequestUpdate(
@@ -267,11 +273,15 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { id, input }: { id: Id; input: ChangeRequestUpdateInput },
                 ctx: GqlContext
             ): Promise<ChangeRequest> {
-                return control.change.updateRequest(ctx, id, input);
+                return control.change.requestUpdate(ctx, id, input);
             },
 
             changeRequestSubmit(parent, { id }: HasId, ctx: GqlContext): Promise<ChangeRequest> {
-                return control.change.startValidation(ctx, id);
+                return control.change.requestSubmit(ctx, id);
+            },
+
+            changeRequestWithdraw(parent, { id }: HasId, ctx: GqlContext): Promise<ChangeRequest> {
+                return control.change.requestWithdraw(ctx, id);
             },
 
             changeRequestReview(
@@ -279,7 +289,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { id, input }: { id: Id; input: ChangeReviewInput },
                 ctx: GqlContext
             ): Promise<ChangeReview> {
-                return control.change.review(ctx, id, input);
+                return control.change.requestReview(ctx, id, input);
             },
 
             changeRequestApprove(
@@ -287,7 +297,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { id }: ChangeRequest,
                 ctx: GqlContext
             ): Promise<ChangeRequest> {
-                return control.change.approve(ctx, id);
+                return control.change.requestApprove(ctx, id);
             },
 
             changeRequestCancel(
@@ -295,7 +305,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 { id }: ChangeRequest,
                 ctx: GqlContext
             ): Promise<ChangeRequest> {
-                return control.change.cancel(ctx, id);
+                return control.change.requestCancel(ctx, id);
             },
         },
     };

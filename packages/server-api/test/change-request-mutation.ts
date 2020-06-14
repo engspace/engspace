@@ -929,7 +929,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 expTrackedTime(expect, data.changeRequestSubmit);
             });
 
-            it('should not start a change request validation without "change.update"', async function () {
+            it('should not submit a change request without "change.update"', async function () {
                 const { errors } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
@@ -951,7 +951,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 expect(errors[0].message).to.contain('change.update');
             });
 
-            it('should not start a change request validation not in edition state', async function () {
+            it('should not submit a change request that is in APPROVED state', async function () {
                 const { errors } = await pool.transaction(async (db) => {
                     await dao.changeRequest.updateCycle(
                         db,
@@ -977,7 +977,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                     });
                 });
                 expect(errors).to.not.be.empty;
-                expect(errors[0].message.toLocaleLowerCase()).to.contain('edition');
+                expect(errors[0].message).to.contain('APPROVED');
             });
 
             it('should not start a change request validation from unauthorized user', async function () {
@@ -1034,7 +1034,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             });
 
             it('should reject a change request', async function () {
-                this.timeout(1000000);
                 const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
@@ -1223,6 +1222,200 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 });
                 expect(errors).to.not.be.empty;
                 expect(errors[0].message.toLocaleLowerCase()).to.contain('validation');
+            });
+        });
+
+        describe('#changeRequestWithdraw', function () {
+            const CHANGEREQ_WITHDRAW = gql`
+                mutation WithdrawChangeRequst($id: ID!) {
+                    changeRequestWithdraw(id: $id) {
+                        ...ChangeReqDeepFields
+                    }
+                }
+                ${CHANGEREQ_DEEPFIELDS}
+            `;
+
+            it('should withdraw a change', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
+                    await dao.changeRequest.updateCycle(
+                        db,
+                        req.id,
+                        ChangeRequestCycle.Validation,
+                        users.a.id
+                    );
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.update',
+                            'change.read',
+                            'part.create',
+                            'part.revise',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_WITHDRAW,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.be.undefined;
+                expect(data.changeRequestWithdraw).to.containSubset({
+                    id: req.id,
+                    description: 'A change request',
+                    cycle: ChangeRequestCycle.Edition,
+                });
+            });
+
+            it('should not withdraw a change from EDITION cycle', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.update',
+                            'change.read',
+                            'part.create',
+                            'part.revise',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_WITHDRAW,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.not.be.undefined;
+                expect(errors[0].message).to.contain('EDITION');
+            });
+
+            it('should not withdraw a change from APPROVED cycle', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    await dao.changeRequest.updateCycle(
+                        db,
+                        req.id,
+                        ChangeRequestCycle.Approved,
+                        users.a.id
+                    );
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.update',
+                            'change.read',
+                            'part.create',
+                            'part.revise',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_WITHDRAW,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.not.be.undefined;
+                expect(errors[0].message).to.contain('APPROVED');
+            });
+
+            it('should not withdraw a change from CANCELLED cycle', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    await dao.changeRequest.updateCycle(
+                        db,
+                        req.id,
+                        ChangeRequestCycle.Cancelled,
+                        users.a.id
+                    );
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.update',
+                            'change.read',
+                            'part.create',
+                            'part.revise',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_WITHDRAW,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.not.be.undefined;
+                expect(errors[0].message).to.contain('CANCELLED');
+            });
+
+            it('should not withdraw a change without "change.update"', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    await dao.changeRequest.updateCycle(
+                        db,
+                        req.id,
+                        ChangeRequestCycle.Validation,
+                        users.a.id
+                    );
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.read',
+                            'part.create',
+                            'part.revise',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_WITHDRAW,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.not.be.undefined;
+                expect(errors[0].message).to.contain('change.update');
+            });
+
+            it('should not withdraw a change from unauthorized editor', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    await dao.changeRequest.updateCycle(
+                        db,
+                        req.id,
+                        ChangeRequestCycle.Validation,
+                        users.a.id
+                    );
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.c, [
+                            'change.update',
+                            'change.read',
+                            'part.create',
+                            'part.revise',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_WITHDRAW,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.not.be.undefined;
+                expect(errors[0].message).to.contain(users.c.fullName);
             });
         });
 
