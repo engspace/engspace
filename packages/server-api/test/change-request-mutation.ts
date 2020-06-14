@@ -88,7 +88,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
         this.afterEach(
             th.cleanTables([
                 'change_part_create',
-                'change_part_change',
+                'change_part_fork',
                 'change_part_revision',
                 'change_review',
             ])
@@ -126,7 +126,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
                 partCreations: [],
-                partChanges: [],
+                partForks: [],
                 partRevisions: [],
                 reviews: [],
                 ...trackedBy(users.a),
@@ -161,7 +161,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
                 partCreations: [],
-                partChanges: [],
+                partForks: [],
                 partRevisions: [],
                 reviews: [],
                 ...trackedBy(users.a),
@@ -221,7 +221,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         comments: 'Some comments',
                     },
                 ],
-                partChanges: [],
+                partForks: [],
                 partRevisions: [],
                 reviews: [],
                 ...trackedBy(users.a),
@@ -245,7 +245,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                     mutation: CHANGEREQ_CREATE,
                     variables: {
                         input: {
-                            partChanges: [
+                            partForks: [
                                 {
                                     partId: parts.p1.id,
                                     version: 'B',
@@ -271,7 +271,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 reviews: [],
                 ...trackedBy(users.a),
             });
-            expect(data.changeRequestCreate.partChanges).to.containSubset([
+            expect(data.changeRequestCreate.partForks).to.containSubset([
                 {
                     part: { id: parts.p1.id },
                     version: 'B',
@@ -324,7 +324,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
                 partCreations: [],
-                partChanges: [],
+                partForks: [],
                 reviews: [],
                 ...trackedBy(users.a),
             });
@@ -370,7 +370,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
                 partCreations: [],
-                partChanges: [],
+                partForks: [],
                 partRevisions: [],
                 ...trackedBy(users.a),
             });
@@ -405,7 +405,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                     mutation: CHANGEREQ_CREATE,
                     variables: {
                         input: {
-                            partChanges: [
+                            partForks: [
                                 {
                                     partId: parts.p1.id,
                                     version: 'A',
@@ -492,7 +492,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                             version: 'K',
                         },
                     ],
-                    partChanges: [
+                    partForks: [
                         {
                             partId: parts.p1.id,
                             version: 'B',
@@ -516,7 +516,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
         this.afterEach(
             th.cleanTables([
                 'change_part_create',
-                'change_part_change',
+                'change_part_fork',
                 'change_part_revision',
                 'change_review',
             ])
@@ -556,7 +556,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 const partCreations = req.partCreations.map((obj) => ({
                     id: obj.id,
                 }));
-                const partChanges = req.partChanges.map((obj) => ({
+                const partForks = req.partForks.map((obj) => ({
                     id: obj.id,
                 }));
                 const partRevisions = req.partRevisions.map((obj) => ({
@@ -568,7 +568,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 expect(data.changeRequestUpdate).to.containSubset({
                     ...req,
                     partCreations,
-                    partChanges,
+                    partForks,
                     partRevisions,
                     reviews,
                 });
@@ -601,7 +601,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                     description: 'An updated change request',
                 });
                 expect(data.changeRequestUpdate.partCreations).to.have.lengthOf(2);
-                expect(data.changeRequestUpdate.partChanges).to.have.lengthOf(1);
+                expect(data.changeRequestUpdate.partForks).to.have.lengthOf(1);
                 expect(data.changeRequestUpdate.partRevisions).to.have.lengthOf(1);
                 expect(data.changeRequestUpdate.reviews).to.have.lengthOf(2);
             });
@@ -715,7 +715,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         variables: {
                             id: req.id,
                             input: {
-                                partChangesAdd: [
+                                partForksAdd: [
                                     {
                                         partId: parts.p3.id,
                                         version: 'B',
@@ -727,8 +727,8 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                     });
                 });
                 expect(errors).to.be.undefined;
-                expect(data.changeRequestUpdate.partChanges).to.have.lengthOf(2);
-                expect(data.changeRequestUpdate.partChanges[1]).to.deep.include({
+                expect(data.changeRequestUpdate.partForks).to.have.lengthOf(2);
+                expect(data.changeRequestUpdate.partForks[1]).to.deep.include({
                     part: { id: parts.p3.id },
                     version: 'B',
                     comments: 'this part doesnt work either',
@@ -752,13 +752,13 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         variables: {
                             id: req.id,
                             input: {
-                                partChangesRem: [req.partChanges[0].id],
+                                partForksRem: [req.partForks[0].id],
                             },
                         },
                     });
                 });
                 expect(errors).to.be.undefined;
-                expect(data.changeRequestUpdate.partChanges).to.have.lengthOf(0);
+                expect(data.changeRequestUpdate.partForks).to.have.lengthOf(0);
             });
 
             it('should add a part revision to a change request', async function () {
@@ -909,7 +909,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 const partCreations = req.partCreations.map((obj) => ({
                     id: obj.id,
                 }));
-                const partChanges = req.partChanges.map((obj) => ({
+                const partForks = req.partForks.map((obj) => ({
                     id: obj.id,
                 }));
                 const partRevisions = req.partRevisions.map((obj) => ({
@@ -922,7 +922,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                     description: req.description,
                     cycle: ChangeRequestCycle.Validation,
                     partCreations,
-                    partChanges,
+                    partForks,
                     partRevisions,
                     reviews,
                 });

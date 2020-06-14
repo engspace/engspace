@@ -55,7 +55,7 @@ export const CHANGEREQ_DEEPFIELDS = gql`
             designation
             comments
         }
-        partChanges {
+        partForks {
             id
             part {
                 id

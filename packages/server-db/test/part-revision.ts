@@ -51,7 +51,7 @@ describe('#PartRevisionDao', function () {
 
     describe('#byPartId - #lastByPartId', function () {
         let partRevs: PartRevision[];
-        before(async function () {
+        beforeEach(async function () {
             return pool.transaction(async (db) => {
                 partRevs = [];
                 partRevs.push(
@@ -65,7 +65,7 @@ describe('#PartRevisionDao', function () {
                 );
             });
         });
-        after(th.cleanTable('part_revision'));
+        afterEach(th.cleanTable('part_revision'));
 
         it('should get all part revisions', async function () {
             const revs = await pool.connect(async (db) => {

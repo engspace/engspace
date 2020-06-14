@@ -169,7 +169,7 @@ CREATE TABLE change_part_create (
     FOREIGN KEY(family_id) REFERENCES part_family(id)
 );
 
-CREATE TABLE change_part_change (
+CREATE TABLE change_part_fork (
     id serial PRIMARY KEY,
     request_id integer NOT NULL,
     part_id integer NOT NULL,

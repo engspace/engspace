@@ -86,7 +86,7 @@ describe('Pool and Schema', async () => {
                 'part_approval',
                 'change_request',
                 'change_part_create',
-                'change_part_change',
+                'change_part_fork',
                 'change_part_revision',
                 'change_review',
                 'document',

@@ -46,7 +46,7 @@ describe('GraphQL ChangeRequest - Queries', function () {
                         version: 'K',
                     },
                 ],
-                partChanges: [
+                partForks: [
                     {
                         partId: parts.p1.id,
                         version: 'B',
@@ -66,7 +66,7 @@ describe('GraphQL ChangeRequest - Queries', function () {
         th.cleanTables(
             [
                 'change_part_create',
-                'change_part_change',
+                'change_part_fork',
                 'change_part_revision',
                 'change_review',
                 'part_revision',
@@ -117,7 +117,7 @@ describe('GraphQL ChangeRequest - Queries', function () {
                         comments: null,
                     },
                 ],
-                partChanges: [
+                partForks: [
                     {
                         part: { id: parts.p1.id },
                         designation: null,

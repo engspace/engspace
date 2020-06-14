@@ -1,7 +1,7 @@
 import { IResolvers } from 'apollo-server-koa';
 import gql from 'graphql-tag';
 import {
-    ChangePartChange,
+    ChangePartFork,
     ChangePartCreate,
     ChangePartRevision,
     ChangeRequest,
@@ -39,7 +39,7 @@ export const typeDefs = gql`
     """
     An input to describe a part change in a ChangeRequest
     """
-    input ChangePartChangeInput {
+    input ChangePartForkInput {
         partId: ID!
         version: String!
         designation: String
@@ -61,7 +61,7 @@ export const typeDefs = gql`
     input ChangeRequestInput {
         description: String
         partCreations: [ChangePartCreateInput!]
-        partChanges: [ChangePartChangeInput!]
+        partForks: [ChangePartForkInput!]
         partRevisions: [ChangePartRevisionInput!]
         reviewerIds: [ID!]
     }
@@ -75,8 +75,8 @@ export const typeDefs = gql`
         partCreationsAdd: [ChangePartCreateInput!]
         partCreationsRem: [ID!]
 
-        partChangesAdd: [ChangePartChangeInput!]
-        partChangesRem: [ID!]
+        partForksAdd: [ChangePartForkInput!]
+        partForksRem: [ID!]
 
         partRevisionsAdd: [ChangePartRevisionInput!]
         partRevisionsRem: [ID!]
@@ -94,7 +94,7 @@ export const typeDefs = gql`
         comments: String
     }
 
-    type ChangePartChange {
+    type ChangePartFork {
         id: ID!
         request: ChangeRequest!
         part: Part!
@@ -143,7 +143,7 @@ export const typeDefs = gql`
         state: ApprovalDecision
 
         partCreations: [ChangePartCreate!]
-        partChanges: [ChangePartChange!]
+        partForks: [ChangePartFork!]
         partRevisions: [ChangePartRevision!]
         reviews: [ChangeReview!]
 
@@ -231,7 +231,7 @@ export function buildResolvers(control: ControllerSet): IResolvers {
             ): Promise<ChangePartCreate[]> {
                 return control.change.requestPartCreations(ctx, id);
             },
-            partChanges({ id }: ChangeRequest, args, ctx: GqlContext): Promise<ChangePartChange[]> {
+            partForks({ id }: ChangeRequest, args, ctx: GqlContext): Promise<ChangePartFork[]> {
                 return control.change.requestPartChanges(ctx, id);
             },
             partRevisions(

@@ -1,5 +1,5 @@
 import { sql } from 'slonik';
-import { ChangePartChange, Id } from '@engspace/core';
+import { ChangePartFork, Id } from '@engspace/core';
 import { Db } from '..';
 import { foreignKey, nullable, RowId, toId } from './base';
 import { ChangeRequestChildDaoBase } from './change-request';
@@ -13,7 +13,7 @@ interface Row {
     comments?: string;
 }
 
-function mapRow({ id, requestId, partId, version, designation, comments }: Row): ChangePartChange {
+function mapRow({ id, requestId, partId, version, designation, comments }: Row): ChangePartFork {
     return {
         id: toId(id),
         request: foreignKey(requestId),
@@ -33,7 +33,7 @@ const rowToken = sql`
     comments
 `;
 
-export interface ChangePartChangeDaoInput {
+export interface ChangePartForkDaoInput {
     requestId: Id;
     partId: Id;
     version: string;
@@ -41,10 +41,10 @@ export interface ChangePartChangeDaoInput {
     comments?: string;
 }
 
-export class ChangePartChangeDao extends ChangeRequestChildDaoBase<ChangePartChange, Row> {
+export class ChangePartForkDao extends ChangeRequestChildDaoBase<ChangePartFork, Row> {
     constructor() {
         super({
-            table: 'change_part_change',
+            table: 'change_part_fork',
             mapRow,
             rowToken,
         });
@@ -52,10 +52,10 @@ export class ChangePartChangeDao extends ChangeRequestChildDaoBase<ChangePartCha
 
     async create(
         db: Db,
-        { requestId, partId, version, designation, comments }: ChangePartChangeDaoInput
-    ): Promise<ChangePartChange> {
+        { requestId, partId, version, designation, comments }: ChangePartForkDaoInput
+    ): Promise<ChangePartFork> {
         const row: Row = await db.one(sql`
-            INSERT INTO change_part_change (
+            INSERT INTO change_part_fork (
                 request_id,
                 part_id,
                 version,

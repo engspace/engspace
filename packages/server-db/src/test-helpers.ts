@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { sql } from 'slonik';
 import {
-    ChangePartChange,
-    ChangePartChangeInput,
+    ChangePartFork,
+    ChangePartForkInput,
     ChangePartCreate,
     ChangePartCreateInput,
     ChangePartRevision,
@@ -99,7 +99,7 @@ const tableDeps = {
     part_approval: ['part_validation', 'user'],
     change_request: ['user'],
     change_part_create: ['change_request', 'part_family'],
-    change_part_change: ['change_request', 'part'],
+    change_part_fork: ['change_request', 'part'],
     change_part_revision: ['change_request', 'part'],
     change_review: ['change_request', 'user'],
     document: ['user'],
@@ -407,10 +407,10 @@ export class TestHelpers {
                 )
             );
         }
-        if (input.partChanges) {
-            req.partChanges = await Promise.all(
-                input.partChanges.map((inp) =>
-                    this.dao.changePartChange.create(db, {
+        if (input.partForks) {
+            req.partForks = await Promise.all(
+                input.partForks.map((inp) =>
+                    this.dao.changePartFork.create(db, {
                         requestId: req.id,
                         ...inp,
                     })
@@ -456,13 +456,13 @@ export class TestHelpers {
         });
     }
 
-    async createChangePartChange(
+    async createChangePartFork(
         db: Db,
         request: ChangeRequest,
         part: Part,
-        input: Partial<ChangePartChangeInput> = {}
-    ): Promise<ChangePartChange> {
-        return this.dao.changePartChange.create(db, {
+        input: Partial<ChangePartForkInput> = {}
+    ): Promise<ChangePartFork> {
+        return this.dao.changePartFork.create(db, {
             designation: 'PART',
             version: 'A',
             ...input,

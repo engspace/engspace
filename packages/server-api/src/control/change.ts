@@ -1,6 +1,6 @@
 import { UserInputError } from 'apollo-server-koa';
 import {
-    ChangePartChange,
+    ChangePartFork,
     ChangePartCreate,
     ChangePartRevision,
     ChangeRequest,
@@ -10,7 +10,7 @@ import {
     PartCycle,
     ApprovalDecision,
     ChangeRequestUpdateInput,
-    ChangePartChangeInput,
+    ChangePartForkInput,
     ChangePartRevisionInput,
     ChangeRequestCycle,
     ChangeReviewInput,
@@ -31,8 +31,8 @@ export class ChangeControl {
             db,
             auth: { userId },
         } = ctx;
-        if (input.partChanges?.length > 0) {
-            await this.checkPartChanges(ctx, input.partChanges);
+        if (input.partForks?.length > 0) {
+            await this.checkPartChanges(ctx, input.partForks);
         }
         if (input.partRevisions?.length > 0) {
             await this.checkPartRevisions(ctx, input.partRevisions);
@@ -47,10 +47,10 @@ export class ChangeControl {
                     this.dao.changePartCreate.create(db, { requestId: req.id, ...inp })
                 )
             );
-        if (input.partChanges)
-            req.partChanges = await Promise.all(
-                input.partChanges?.map((inp) =>
-                    this.dao.changePartChange.create(db, { requestId: req.id, ...inp })
+        if (input.partForks)
+            req.partForks = await Promise.all(
+                input.partForks?.map((inp) =>
+                    this.dao.changePartFork.create(db, { requestId: req.id, ...inp })
                 )
             );
         if (input.partRevisions)
@@ -85,9 +85,9 @@ export class ChangeControl {
         return this.dao.changePartCreate.byRequestId(ctx.db, requestId);
     }
 
-    requestPartChanges(ctx: ApiContext, requestId: Id): Promise<ChangePartChange[]> {
+    requestPartChanges(ctx: ApiContext, requestId: Id): Promise<ChangePartFork[]> {
         assertUserPerm(ctx, 'change.read');
-        return this.dao.changePartChange.byRequestId(ctx.db, requestId);
+        return this.dao.changePartFork.byRequestId(ctx.db, requestId);
     }
 
     requestPartRevisions(ctx: ApiContext, requestId: Id): Promise<ChangePartRevision[]> {
@@ -118,8 +118,8 @@ export class ChangeControl {
             description,
             partCreationsAdd,
             partCreationsRem,
-            partChangesAdd,
-            partChangesRem,
+            partForksAdd,
+            partForksRem,
             partRevisionsAdd,
             partRevisionsRem,
             reviewerIdsAdd,
@@ -149,14 +149,14 @@ export class ChangeControl {
             );
         }
 
-        if (partChangesRem?.length > 0) {
+        if (partForksRem?.length > 0) {
             const reqIds = await Promise.all(
-                partChangesRem.map((pcId) => this.dao.changePartChange.checkRequestId(db, pcId))
+                partForksRem.map((pcId) => this.dao.changePartFork.checkRequestId(db, pcId))
             );
             if (!reqIds.every((reqId) => reqId == requestId)) {
                 throw new UserInputError('Part change do not belong to the Change request');
             }
-            promises.push(partChangesRem.map((id) => this.dao.changePartChange.deleteById(db, id)));
+            promises.push(partForksRem.map((id) => this.dao.changePartFork.deleteById(db, id)));
         }
 
         if (partRevisionsRem?.length > 0) {
@@ -188,12 +188,10 @@ export class ChangeControl {
                 )
             );
         }
-        if (partChangesAdd?.length > 0) {
-            await this.checkPartChanges(ctx, partChangesAdd);
+        if (partForksAdd?.length > 0) {
+            await this.checkPartChanges(ctx, partForksAdd);
             promises.push(
-                partChangesAdd.map((inp) =>
-                    this.dao.changePartChange.create(db, { requestId, ...inp })
-                )
+                partForksAdd.map((inp) => this.dao.changePartFork.create(db, { requestId, ...inp }))
             );
         }
         if (partRevisionsAdd?.length > 0) {
@@ -300,7 +298,7 @@ export class ChangeControl {
         // Everything looks OK. Let's proceed to changes
 
         const creations = await this.dao.changePartCreate.byRequestId(db, requestId);
-        const changes = await this.dao.changePartChange.byRequestId(db, requestId);
+        const changes = await this.dao.changePartFork.byRequestId(db, requestId);
         const revisions = await this.dao.changePartRevision.byRequestId(db, requestId);
         for (const creation of creations) {
             await this.partControl.create(ctx, {
@@ -357,17 +355,17 @@ export class ChangeControl {
 
     private async checkPartChanges(
         { db, config }: ApiContext,
-        partChanges: ChangePartChangeInput[]
+        partForks: ChangePartForkInput[]
     ): Promise<void> {
         const parts = await this.dao.part.batchByIds(
             db,
-            partChanges.map((pc) => pc.partId)
+            partForks.map((pc) => pc.partId)
         );
         for (let i = 0; i < parts.length; ++i) {
             const refParts = config.refNaming.extractParts(parts[i].ref);
             const newRef = config.refNaming.buildRef({
                 ...refParts,
-                partVersion: partChanges[i].version,
+                partVersion: partForks[i].version,
             });
             if (await this.dao.part.checkRef(db, newRef)) {
                 throw new UserInputError(`Part with reference "${newRef}" already exists.`);
