@@ -1,8 +1,8 @@
 import events from 'events';
 import chai from 'chai';
+import chaiSubset from 'chai-subset';
 import chaiAsPromised from 'chai-as-promised';
 import chaiShallowDeepEqual from 'chai-shallow-deep-equal';
-import chaiUuid from 'chai-uuid';
 import _ from 'lodash';
 import {
     buildDaoSet,
@@ -19,8 +19,8 @@ import {
 import { TestHelpers } from '../src/test-helpers';
 
 chai.use(chaiShallowDeepEqual);
-chai.use(chaiUuid);
 chai.use(chaiAsPromised);
+chai.use(chaiSubset);
 
 const { expect } = chai;
 
