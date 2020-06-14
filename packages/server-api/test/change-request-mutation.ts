@@ -1237,7 +1237,6 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             `;
 
             it('should approve a change', async function () {
-                //await pool.transaction(async (db) => {});
                 const { errors, data } = await pool.transaction(async (db) => {
                     await Promise.all([
                         dao.changeRequest.updateCycle(
@@ -1308,6 +1307,134 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                         },
                     ],
                 });
+            });
+
+            it('should not approve a change in EDITION cycle', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.update',
+                            'change.read',
+                            'part.create',
+                            'part.revise',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_APPROVE,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.not.be.undefined;
+                expect(errors[0].message).to.contain('EDITION');
+            });
+
+            it('should not approve a change in CANCELLED cycle', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    await dao.changeRequest.updateCycle(
+                        db,
+                        req.id,
+                        ChangeRequestCycle.Cancelled,
+                        users.a.id
+                    );
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.update',
+                            'change.read',
+                            'part.create',
+                            'part.revise',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_APPROVE,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.not.be.undefined;
+                expect(errors[0].message).to.contain('CANCELLED');
+            });
+
+            it('should not approve a change that has missing approvals', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    await dao.changeRequest.updateCycle(
+                        db,
+                        req.id,
+                        ChangeRequestCycle.Validation,
+                        users.a.id
+                    );
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.update',
+                            'change.read',
+                            'part.create',
+                            'part.revise',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_APPROVE,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.not.be.undefined;
+                expect(errors[0].message).to.contain('approval');
+            });
+
+            it('should not approve a change from unauthorized editor', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    await Promise.all([
+                        dao.changeRequest.updateCycle(
+                            db,
+                            req.id,
+                            ChangeRequestCycle.Validation,
+                            users.a.id
+                        ),
+                        dao.changeReview.update(db, reviews.a.id, {
+                            decision: ApprovalDecision.Approved,
+                            userId: users.a.id,
+                        }),
+                        dao.changeReview.update(db, reviews.b.id, {
+                            decision: ApprovalDecision.Approved,
+                            userId: users.b.id,
+                        }),
+                    ]);
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.c, [
+                            'change.update',
+                            'change.read',
+                            'part.create',
+                            'part.revise',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_APPROVE,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.not.be.undefined;
+                expect(errors[0].message).to.contain(users.c.fullName);
             });
         });
 

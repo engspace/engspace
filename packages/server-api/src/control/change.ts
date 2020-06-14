@@ -274,9 +274,7 @@ export class ChangeControl {
         await this.assertEditor(ctx, req);
 
         if (req.cycle !== ChangeRequestCycle.Validation) {
-            throw new UserInputError(
-                'Cannot approve a change request that is not in the validation cycle'
-            );
+            throw new UserInputError(`Can't approve a change request from the ${req.cycle} cycle`);
         }
 
         if (req.state !== ApprovalDecision.Approved && req.state !== ApprovalDecision.Reserved) {
