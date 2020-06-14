@@ -175,7 +175,7 @@ export const typeDefs = gql`
         changeRequestUpdate(id: ID!, input: ChangeRequestUpdateInput!): ChangeRequest!
         """
         Start the validation process of a change request.
-        The change request must be in edition mode.
+        The change request must be in EDITION cycle.
         """
         changeRequestStartValidation(id: ID!): ChangeRequest!
         """
@@ -187,8 +187,19 @@ export const typeDefs = gql`
 
         """
         Approve a change request and apply changes.
+        Can only be done only from VALIDATION cycle in approved or reserved state.
+        If all changes apply succesfully, the change is placed into APPROVED cycle.
+        Once a change is approved, it cannot be cancelled.
         """
         changeRequestApprove(id: ID!): ChangeRequest!
+
+        """
+        Cancel a change request.
+        Can be done from any cycle other than APPROVED.
+        Will place the change in the CANCELLED cycle.
+        Cannot be undone.
+        """
+        changeRequestCancel(id: ID!): ChangeRequest!
     }
 `;
 
@@ -280,6 +291,14 @@ export function buildResolvers(control: ControllerSet): IResolvers {
                 ctx: GqlContext
             ): Promise<ChangeRequest> {
                 return control.change.approve(ctx, id);
+            },
+
+            changeRequestCancel(
+                parent,
+                { id }: ChangeRequest,
+                ctx: GqlContext
+            ): Promise<ChangeRequest> {
+                return control.change.cancel(ctx, id);
             },
         },
     };

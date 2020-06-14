@@ -322,6 +322,25 @@ export class ChangeControl {
         );
     }
 
+    async cancel(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
+        assertUserPerm(ctx, 'change.update');
+        const {
+            db,
+            auth: { userId },
+        } = ctx;
+        const req = await this.dao.changeRequest.byId(db, id);
+        await this.assertEditor(ctx, req);
+        if (
+            req.cycle === ChangeRequestCycle.Approved ||
+            req.cycle === ChangeRequestCycle.Canceled
+        ) {
+            throw new UserInputError(
+                `Cannot cancel a change request that is in the ${req.cycle} cycle`
+            );
+        }
+        return this.dao.changeRequest.updateCycle(db, id, ChangeRequestCycle.Canceled, userId);
+    }
+
     private async checkPartChanges(
         { db, config }: ApiContext,
         partChanges: ChangePartChangeInput[]

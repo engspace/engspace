@@ -1310,5 +1310,178 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 });
             });
         });
+
+        describe('#changeRequestCancel', function () {
+            const CHANGEREQ_CANCEL = gql`
+                mutation CancelChangeRequest($id: ID!) {
+                    changeRequestCancel(id: $id) {
+                        ...ChangeReqDeepFields
+                    }
+                }
+                ${CHANGEREQ_DEEPFIELDS}
+            `;
+            it('should cancel a change request from EDITION cycle', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.update',
+                            'change.read',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_CANCEL,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.be.undefined;
+                expect(data.changeRequestCancel).to.containSubset({
+                    id: req.id,
+                    description: 'A change request',
+                    cycle: ChangeRequestCycle.Canceled,
+                });
+            });
+
+            it('should cancel a change request from VALIDATION cycle', async function () {
+                const { errors, data } = await pool.transaction(async (db) => {
+                    await dao.changeRequest.updateCycle(
+                        db,
+                        req.id,
+                        ChangeRequestCycle.Validation,
+                        users.a.id
+                    );
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.update',
+                            'change.read',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_CANCEL,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.be.undefined;
+                expect(data.changeRequestCancel).to.containSubset({
+                    id: req.id,
+                    description: 'A change request',
+                    cycle: ChangeRequestCycle.Canceled,
+                });
+            });
+
+            it('should not cancel a change request from APPROVED cycle', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    await dao.changeRequest.updateCycle(
+                        db,
+                        req.id,
+                        ChangeRequestCycle.Approved,
+                        users.a.id
+                    );
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.update',
+                            'change.read',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_CANCEL,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.not.be.empty;
+                expect(errors[0].message).to.contain('APPROVED');
+            });
+
+            it('should not cancel a change request from CANCELLED cycle', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    await dao.changeRequest.updateCycle(
+                        db,
+                        req.id,
+                        ChangeRequestCycle.Canceled,
+                        users.a.id
+                    );
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.update',
+                            'change.read',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_CANCEL,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.not.be.empty;
+                expect(errors[0].message).to.contain('CANCELLED');
+            });
+
+            it('should not cancel a change request from without "change.update"', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.a, [
+                            'change.read',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_CANCEL,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.not.be.empty;
+                expect(errors[0].message).to.contain('change.update');
+            });
+
+            it('should not cancel a change request if not editor', async function () {
+                const { errors } = await pool.transaction(async (db) => {
+                    const { mutate } = buildGqlServer(
+                        db,
+                        permsAuth(users.c, [
+                            'change.update',
+                            'change.read',
+                            'part.read',
+                            'partfamily.read',
+                            'user.read',
+                        ])
+                    );
+                    return mutate({
+                        mutation: CHANGEREQ_CANCEL,
+                        variables: {
+                            id: req.id,
+                        },
+                    });
+                });
+                expect(errors).to.not.be.empty;
+                expect(errors[0].message).to.contain(users.c.fullName);
+            });
+        });
     });
 });
