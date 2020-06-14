@@ -332,13 +332,13 @@ export class ChangeControl {
         await this.assertEditor(ctx, req);
         if (
             req.cycle === ChangeRequestCycle.Approved ||
-            req.cycle === ChangeRequestCycle.Canceled
+            req.cycle === ChangeRequestCycle.Cancelled
         ) {
             throw new UserInputError(
                 `Cannot cancel a change request that is in the ${req.cycle} cycle`
             );
         }
-        return this.dao.changeRequest.updateCycle(db, id, ChangeRequestCycle.Canceled, userId);
+        return this.dao.changeRequest.updateCycle(db, id, ChangeRequestCycle.Cancelled, userId);
     }
 
     private async checkPartChanges(

@@ -1343,7 +1343,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 expect(data.changeRequestCancel).to.containSubset({
                     id: req.id,
                     description: 'A change request',
-                    cycle: ChangeRequestCycle.Canceled,
+                    cycle: ChangeRequestCycle.Cancelled,
                 });
             });
 
@@ -1376,7 +1376,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 expect(data.changeRequestCancel).to.containSubset({
                     id: req.id,
                     description: 'A change request',
-                    cycle: ChangeRequestCycle.Canceled,
+                    cycle: ChangeRequestCycle.Cancelled,
                 });
             });
 
@@ -1414,7 +1414,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                     await dao.changeRequest.updateCycle(
                         db,
                         req.id,
-                        ChangeRequestCycle.Canceled,
+                        ChangeRequestCycle.Cancelled,
                         users.a.id
                     );
                     const { mutate } = buildGqlServer(

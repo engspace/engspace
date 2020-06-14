@@ -62,7 +62,7 @@ export enum ChangeRequestCycle {
     Edition = 'EDITION',
     Validation = 'VALIDATION',
     Approved = 'APPROVED',
-    Canceled = 'CANCELLED',
+    Cancelled = 'CANCELLED',
 }
 
 export interface UserInput {
