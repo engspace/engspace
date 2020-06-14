@@ -45,6 +45,7 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
             table: 'part_revision',
         });
     }
+
     async create(
         db: Db,
         { partId, designation, cycle, changeRequestId, userId }: PartRevisionDaoInput
@@ -73,6 +74,14 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
         const rows: Row[] = await db.any(sql`
             SELECT ${rowToken} FROM part_revision
             WHERE part_id = ${partId}
+        `);
+        return rows.map((row) => mapRow(row));
+    }
+
+    async aboveRev1ByChangeRequestId(db: Db, changeRequestId: Id): Promise<PartRevision[]> {
+        const rows: Row[] = await db.any(sql`
+            SELECT ${rowToken} FROM part_revision
+            WHERE change_request_id = ${changeRequestId} AND revision > 1
         `);
         return rows.map((row) => mapRow(row));
     }
