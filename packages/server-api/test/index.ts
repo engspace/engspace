@@ -87,7 +87,9 @@ export const api = new EsServerApi(new Koa(), {
     control,
     dao,
     cors: true,
-    refNaming: new PartRefNaming('${fam_code}${fam_count:3}.${part_version:A}'),
+    naming: {
+        partRef: new PartRefNaming('${fam_code}${fam_count:3}.${part_version:A}'),
+    },
 });
 
 api.setupAuthAndHttpRoutes('/api');

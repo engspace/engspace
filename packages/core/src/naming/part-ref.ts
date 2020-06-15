@@ -1,6 +1,6 @@
 import { VersionFormat } from '../version-format';
-import { CharIterator } from '../util';
-import { parseNaming, Kind, BadRefNamingFormatError, LitToken, Naming } from '.';
+import { NamingBase, Kind, VarToken } from './base';
+import { BadRefNamingFormatError } from '.';
 
 export class FamilyCounterLimitError extends Error {
     constructor(message: string) {
@@ -41,114 +41,86 @@ interface PartVersionToken {
     format: VersionFormat;
 }
 
-type PartRefToken = LitToken | FamCodeToken | FamCountToken | PartVersionToken;
+type PartRefToken = FamCodeToken | FamCountToken | PartVersionToken;
 
-export class PartRefNaming implements Naming<PartRefComps> {
-    private tokens: readonly PartRefToken[];
-    versionFormat: VersionFormat;
-
-    constructor(public readonly input: string) {
-        const tokens = parseNaming(new CharIterator(input), [
-            'fam_code',
-            'fam_count',
-            'part_version',
-        ]);
-        let famCode = 0;
-        let famCount = 0;
-        this.tokens = tokens.map((tok) => {
-            if (tok.kind === Kind.Lit) return tok;
-            const { ident, arg } = tok;
-            switch (ident) {
-                case 'fam_code': {
-                    famCode++;
-                    if (arg !== undefined) {
-                        throw new BadRefNamingFormatError(`${ident} do not take argument`);
+export class PartRefNaming extends NamingBase<PartRefComps, PartRefToken> {
+    public versionFormat: VersionFormat;
+    constructor(input: string) {
+        super(
+            input,
+            {
+                mapTok({ ident, arg }: VarToken): PartRefToken {
+                    switch (ident) {
+                        case 'fam_code': {
+                            if (arg !== undefined) {
+                                throw new BadRefNamingFormatError(`${ident} do not take argument`);
+                            }
+                            return {
+                                kind: Kind.Var,
+                                ident,
+                            };
+                        }
+                        case 'fam_count': {
+                            const width = parseInt(arg);
+                            if (isNaN(width)) {
+                                throw new BadRefNamingFormatError(
+                                    `"${ident}" takes a number argument for width. Got "${arg}".`
+                                );
+                            }
+                            if (width <= 0) {
+                                throw new BadRefNamingFormatError(
+                                    `"${ident}" width must be positive`
+                                );
+                            }
+                            return {
+                                kind: Kind.Var,
+                                ident,
+                                width,
+                            };
+                        }
+                        case 'part_version': {
+                            if (!arg) {
+                                throw new BadRefNamingFormatError(
+                                    `${ident} takes a format string argument`
+                                );
+                            }
+                            this.versionFormat = new VersionFormat(arg);
+                            return {
+                                kind: Kind.Var,
+                                ident,
+                                format: this.versionFormat,
+                            };
+                        }
                     }
-                    return {
-                        kind: Kind.Var,
-                        ident,
-                    };
-                }
-                case 'fam_count': {
-                    famCount++;
-                    const width = parseInt(arg);
-                    if (isNaN(width)) {
-                        throw new BadRefNamingFormatError(
-                            `"${ident}" takes a number argument for width. Got "${arg}".`
-                        );
-                    }
-                    if (width <= 0) {
-                        throw new BadRefNamingFormatError(`"${ident}" width must be positive`);
-                    }
-                    return {
-                        kind: Kind.Var,
-                        ident,
-                        width,
-                    };
-                }
-                case 'part_version': {
-                    if (!arg) {
-                        throw new BadRefNamingFormatError(
-                            `${ident} takes a format string argument`
-                        );
-                    }
-                    this.versionFormat = new VersionFormat(arg);
-                    return {
-                        kind: Kind.Var,
-                        ident,
-                        format: this.versionFormat,
-                    };
-                }
-            }
-        });
-        if (famCode === 0) {
-            throw new BadRefNamingFormatError('Missing variable: "fam_code"');
-        }
-        if (famCount === 0) {
-            throw new BadRefNamingFormatError('Missing variable: "fam_count"');
-        }
-        if (!this.versionFormat) {
-            throw new BadRefNamingFormatError('Missing variable: "part_version"');
-        }
+                },
+            },
+            ['fam_code', 'fam_count', 'part_version'],
+            ['fam_code', 'fam_count', 'part_version']
+        );
     }
 
-    buildName({ familyCode, familyCount, partVersion }: PartRefComps): string {
-        const segs = [];
-        for (const tok of this.tokens) {
-            switch (tok.kind) {
-                case Kind.Lit: {
-                    segs.push(tok.value);
-                    break;
+    protected compSeg(tok: PartRefToken, comps: PartRefComps): string {
+        switch (tok.ident) {
+            case 'fam_code':
+                return comps.familyCode;
+            case 'fam_count': {
+                const cs = comps.familyCount.toString();
+                if (cs.length > tok.width) {
+                    throw new FamilyCounterLimitError(
+                        `Part family "${comps.familyCode}" has reached the maximum number of references. ` +
+                            'Consider upgrading your reference system.'
+                    );
                 }
-                case Kind.Var: {
-                    switch (tok.ident) {
-                        case 'fam_code':
-                            segs.push(familyCode);
-                            break;
-                        case 'fam_count': {
-                            const cs = familyCount.toString();
-                            if (cs.length > tok.width) {
-                                throw new FamilyCounterLimitError(
-                                    `Part family "${familyCode}" has reached the maximum number of references. ` +
-                                        'Consider upgrading your reference system.'
-                                );
-                            }
-                            segs.push(cs.padStart(tok.width, '0'));
-                            break;
-                        }
-                        case 'part_version':
-                            if (!tok.format.matches(partVersion)) {
-                                throw new PartRefFormatMismatchError(
-                                    `version "${partVersion}" does not match specified version format: "${tok.format.input}"`
-                                );
-                            }
-                            segs.push(partVersion);
-                            break;
-                    }
-                }
+                return cs.padStart(tok.width, '0');
             }
+            case 'part_version':
+                if (!tok.format.matches(comps.partVersion)) {
+                    throw new PartRefFormatMismatchError(
+                        `version "${comps.partVersion}" does not match specified version format: "${tok.format.input}"`
+                    );
+                }
+                return comps.partVersion;
         }
-        return segs.join('');
     }
 
     extractComps(ref: string): PartRefComps {
