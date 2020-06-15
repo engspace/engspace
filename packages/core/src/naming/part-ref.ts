@@ -1,14 +1,6 @@
 import { VersionFormat } from '../version-format';
 import { NamingBase, Kind, VarToken } from './base';
-import { BadRefNamingFormatError } from '.';
-
-export class FamilyCounterLimitError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'FamilyCounterLimitError';
-        Error.captureStackTrace(this, FamilyCounterLimitError);
-    }
-}
+import { BadRefNamingFormatError, NamingCounterLimitError } from '.';
 
 export class PartRefFormatMismatchError extends Error {
     constructor(message: string) {
@@ -106,7 +98,7 @@ export class PartRefNaming extends NamingBase<PartRefComps, PartRefToken> {
             case 'fam_count': {
                 const cs = comps.familyCount.toString();
                 if (cs.length > tok.width) {
-                    throw new FamilyCounterLimitError(
+                    throw new NamingCounterLimitError(
                         `Part family "${comps.familyCode}" has reached the maximum number of references. ` +
                             'Consider upgrading your reference system.'
                     );

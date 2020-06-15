@@ -10,10 +10,12 @@ export {
 } from './permissions';
 export {
     BadRefNamingFormatError,
-    FamilyCounterLimitError,
+    NamingCounterLimitError,
     PartRefNaming,
     PartRefComps,
     PartRefFormatMismatchError,
+    ChangeRequestNaming,
+    ChangeRequestComps,
 } from './naming';
 export { arraysHaveSameMembers, arraysHaveSameMembersMut, CharIterator } from './util';
 export {

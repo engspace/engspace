@@ -111,6 +111,4 @@ export abstract class NamingBase<Comps, VarTok extends VarToken> implements Nami
         }
         return segs.join('');
     }
-
-    abstract extractComps(name: string): Comps;
 }
