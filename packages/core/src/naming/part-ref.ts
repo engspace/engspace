@@ -1,6 +1,6 @@
 import { VersionFormat } from '../version-format';
 import { CharIterator } from '../util';
-import { parseNaming, Kind, BadRefNamingFormatError, LitToken } from '.';
+import { parseNaming, Kind, BadRefNamingFormatError, LitToken, Naming } from '.';
 
 export class FamilyCounterLimitError extends Error {
     constructor(message: string) {
@@ -43,7 +43,7 @@ interface PartVersionToken {
 
 type PartRefToken = LitToken | FamCodeToken | FamCountToken | PartVersionToken;
 
-export class PartRefNaming {
+export class PartRefNaming implements Naming<PartRefComps> {
     private tokens: readonly PartRefToken[];
     versionFormat: VersionFormat;
 
@@ -112,7 +112,7 @@ export class PartRefNaming {
         }
     }
 
-    buildRef({ familyCode, familyCount, partVersion }: PartRefComps): string {
+    buildName({ familyCode, familyCount, partVersion }: PartRefComps): string {
         const segs = [];
         for (const tok of this.tokens) {
             switch (tok.kind) {
@@ -151,7 +151,7 @@ export class PartRefNaming {
         return segs.join('');
     }
 
-    extractParts(ref: string): PartRefComps {
+    extractComps(ref: string): PartRefComps {
         // part family code is the only one whose length is unknown,
         // so we have to loop tokens forward and then backward until we hit fam_code
         let familyCount: number;

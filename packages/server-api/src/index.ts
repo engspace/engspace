@@ -21,6 +21,10 @@ import { attachDb, authJwtSecret, setAuthToken } from './internal';
 
 export { ControllerSet, buildControllerSet };
 
+export interface EsNaming {
+    partRef: PartRefNaming;
+}
+
 export interface EsServerConfig {
     rolePolicies: AppRolePolicies;
     storePath: string;
@@ -28,7 +32,7 @@ export interface EsServerConfig {
     dao: DaoSet;
     control: ControllerSet;
     cors: boolean;
-    refNaming: PartRefNaming;
+    naming: EsNaming;
     // this is for playground only
     sessionKeys?: string[];
 }

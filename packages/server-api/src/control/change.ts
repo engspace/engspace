@@ -362,9 +362,10 @@ export class ChangeControl {
             partForks.map((pc) => pc.partId)
         );
         for (let i = 0; i < parts.length; ++i) {
-            const refParts = config.refNaming.extractParts(parts[i].ref);
-            const newRef = config.refNaming.buildRef({
-                ...refParts,
+            const prn = config.naming.partRef;
+            const comps = prn.extractComps(parts[i].ref);
+            const newRef = prn.buildName({
+                ...comps,
                 partVersion: partForks[i].version,
             });
             if (await this.dao.part.checkRef(db, newRef)) {

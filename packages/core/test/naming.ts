@@ -77,15 +77,15 @@ describe('#PartRefNaming', function () {
         });
     });
 
-    describe('#extractParts', function () {
+    describe('#extractComps', function () {
         it('should extract #1', function () {
             const rn = new PartRefNaming('${fam_code}.${fam_count:5}.${part_version:AA}');
-            expect(rn.extractParts('P.02345.AB')).to.deep.include({
+            expect(rn.extractComps('P.02345.AB')).to.deep.include({
                 familyCode: 'P',
                 familyCount: 2345,
                 partVersion: 'AB',
             });
-            expect(rn.extractParts('ASM.02345.AB')).to.deep.include({
+            expect(rn.extractComps('ASM.02345.AB')).to.deep.include({
                 familyCode: 'ASM',
                 familyCount: 2345,
                 partVersion: 'AB',
@@ -93,12 +93,12 @@ describe('#PartRefNaming', function () {
         });
         it('should extract #2', function () {
             const rn = new PartRefNaming('${part_version:AA}.${fam_code}.${fam_count:5}');
-            expect(rn.extractParts('AB.P.02345')).to.deep.include({
+            expect(rn.extractComps('AB.P.02345')).to.deep.include({
                 familyCode: 'P',
                 familyCount: 2345,
                 partVersion: 'AB',
             });
-            expect(rn.extractParts('AB.ASM.02345')).to.deep.include({
+            expect(rn.extractComps('AB.ASM.02345')).to.deep.include({
                 familyCode: 'ASM',
                 familyCount: 2345,
                 partVersion: 'AB',
@@ -106,12 +106,12 @@ describe('#PartRefNaming', function () {
         });
         it('should extract #3', function () {
             const rn = new PartRefNaming('${fam_count:5}.${part_version:AA}.${fam_code}');
-            expect(rn.extractParts('02345.AB.P')).to.deep.include({
+            expect(rn.extractComps('02345.AB.P')).to.deep.include({
                 familyCode: 'P',
                 familyCount: 2345,
                 partVersion: 'AB',
             });
-            expect(rn.extractParts('02345.AB.ASM')).to.deep.include({
+            expect(rn.extractComps('02345.AB.ASM')).to.deep.include({
                 familyCode: 'ASM',
                 familyCount: 2345,
                 partVersion: 'AB',
@@ -121,7 +121,7 @@ describe('#PartRefNaming', function () {
         it('should throw if no fam_code', function () {
             const rn = new PartRefNaming('${fam_code}.${fam_count:5}.${part_version:AA}');
             function bad(): any {
-                return rn.extractParts('.01234.AB');
+                return rn.extractComps('.01234.AB');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -129,7 +129,7 @@ describe('#PartRefNaming', function () {
         it('should throw if no fam_count #1', function () {
             const rn = new PartRefNaming('${fam_code}.${fam_count:5}.${part_version:AA}');
             function bad(): any {
-                return rn.extractParts('P..AB');
+                return rn.extractComps('P..AB');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -137,7 +137,7 @@ describe('#PartRefNaming', function () {
         it('should throw if no fam_count #2', function () {
             const rn = new PartRefNaming('${fam_count:5}.${part_version:AA}.${fam_code}');
             function bad(): any {
-                return rn.extractParts('.P.AB');
+                return rn.extractComps('.P.AB');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -145,7 +145,7 @@ describe('#PartRefNaming', function () {
         it('should throw if fam_count format mismatch #1', function () {
             const rn = new PartRefNaming('${fam_code}.${fam_count:5}.${part_version:AA}');
             function bad(): any {
-                return rn.extractParts('P.01V43.AB');
+                return rn.extractComps('P.01V43.AB');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -153,7 +153,7 @@ describe('#PartRefNaming', function () {
         it('should throw if fam_count format mismatch #2', function () {
             const rn = new PartRefNaming('${fam_count:5}.${part_version:AA}.${fam_code}');
             function bad(): any {
-                return rn.extractParts('01V43.AB.P');
+                return rn.extractComps('01V43.AB.P');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -161,7 +161,7 @@ describe('#PartRefNaming', function () {
         it('should throw if no part_version #1', function () {
             const rn = new PartRefNaming('${fam_code}.${fam_count:5}.${part_version:AA}');
             function bad(): any {
-                return rn.extractParts('P.01234.');
+                return rn.extractComps('P.01234.');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -169,7 +169,7 @@ describe('#PartRefNaming', function () {
         it('should throw if no part_version #2', function () {
             const rn = new PartRefNaming('${fam_count:5}.${part_version:AA}.${fam_code}');
             function bad(): any {
-                return rn.extractParts('01234..P');
+                return rn.extractComps('01234..P');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -177,7 +177,7 @@ describe('#PartRefNaming', function () {
         it('should throw if part_version format mismatch #1', function () {
             const rn = new PartRefNaming('${fam_code}.${fam_count:5}.${part_version:AA}');
             function bad(): any {
-                return rn.extractParts('P.01234.02');
+                return rn.extractComps('P.01234.02');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -185,7 +185,7 @@ describe('#PartRefNaming', function () {
         it('should throw if part_version format mismatch #2', function () {
             const rn = new PartRefNaming('${fam_count:5}.${part_version:AA}.${fam_code}');
             function bad(): any {
-                return rn.extractParts('01234.02.P');
+                return rn.extractComps('01234.02.P');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -193,7 +193,7 @@ describe('#PartRefNaming', function () {
         it('should throw if missing literal #1', function () {
             const rn = new PartRefNaming('${fam_code}.${fam_count:5}.${part_version:AA}');
             function bad(): any {
-                return rn.extractParts('P.01234AB');
+                return rn.extractComps('P.01234AB');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -201,7 +201,7 @@ describe('#PartRefNaming', function () {
         it('should throw if missing literal #2', function () {
             const rn = new PartRefNaming('${fam_count:5}.${part_version:AA}.${fam_code}');
             function bad(): any {
-                return rn.extractParts('01234AB.P');
+                return rn.extractComps('01234AB.P');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -209,7 +209,7 @@ describe('#PartRefNaming', function () {
         it('should throw if unexpected literal #1', function () {
             const rn = new PartRefNaming('${fam_code}.${fam_count:5}.${part_version:AA}');
             function bad(): any {
-                return rn.extractParts('P.01234-.02');
+                return rn.extractComps('P.01234-.02');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -217,7 +217,7 @@ describe('#PartRefNaming', function () {
         it('should throw if unexpected literal #2', function () {
             const rn = new PartRefNaming('${fam_count:5}.${part_version:AA}.${fam_code}');
             function bad(): any {
-                return rn.extractParts('01234-.AB.P');
+                return rn.extractComps('01234-.AB.P');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -225,7 +225,7 @@ describe('#PartRefNaming', function () {
         it('should throw if wrong literal #1', function () {
             const rn = new PartRefNaming('${fam_code}.${fam_count:5}.${part_version:AA}');
             function bad(): any {
-                return rn.extractParts('P.01234-AB');
+                return rn.extractComps('P.01234-AB');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
@@ -233,17 +233,17 @@ describe('#PartRefNaming', function () {
         it('should throw if wrong literal #2', function () {
             const rn = new PartRefNaming('${fam_count:5}.${part_version:AA}.${fam_code}');
             function bad(): any {
-                return rn.extractParts('01234-AB.P');
+                return rn.extractComps('01234-AB.P');
             }
             expect(bad).to.throw(PartRefFormatMismatchError);
         });
     });
 
-    describe('#buildRef', function () {
+    describe('#buildName', function () {
         it('should get a reference', function () {
             const rn = new PartRefNaming('${fam_code}.${fam_count:5}.${part_version:AA}');
             expect(
-                rn.buildRef({
+                rn.buildName({
                     familyCode: 'P',
                     familyCount: 2350,
                     partVersion: 'BC',
@@ -253,7 +253,7 @@ describe('#PartRefNaming', function () {
         it('should throw if familyCount reached its limit', function () {
             const rn = new PartRefNaming('${fam_code}.${fam_count:5}.${part_version:AA}');
             function bad(): string {
-                return rn.buildRef({
+                return rn.buildName({
                     familyCode: 'P',
                     familyCount: 100000,
                     partVersion: 'BC',
@@ -264,7 +264,7 @@ describe('#PartRefNaming', function () {
         it('should throw if partVersion mismatches', function () {
             const rn = new PartRefNaming('${fam_code}.${fam_count:5}.${part_version:AA}');
             function bad(): string {
-                return rn.buildRef({
+                return rn.buildName({
                     familyCode: 'P',
                     familyCount: 2350,
                     partVersion: '04',

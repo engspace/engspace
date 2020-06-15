@@ -70,3 +70,8 @@ export function parseNaming(inp: CharIterator, allowedVars: string[]): Token[] {
     }
     return toks;
 }
+
+export interface Naming<Comps> {
+    buildName(comps: Comps): string;
+    extractComps(name: string): Comps;
+}

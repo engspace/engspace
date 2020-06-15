@@ -82,7 +82,9 @@ function buildServerApi(pool: DbPool): EsServerApi {
         control,
         dao,
         cors: true,
-        refNaming: new PartRefNaming('${fam_code}${fam_count:4}${part_version:AA}'),
+        naming: {
+            partRef: new PartRefNaming('${fam_code}${fam_count:4}${part_version:AA}'),
+        },
     });
     api.koa.use(logger());
 
