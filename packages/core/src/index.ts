@@ -12,9 +12,9 @@ export {
     BadRefNamingFormatError,
     FamilyCounterLimitError,
     PartRefNaming,
-    PartRefParts,
-    RefNameFormatMismatchError,
-} from './ref-naming';
+    PartRefComps,
+    PartRefFormatMismatchError,
+} from './naming';
 export { arraysHaveSameMembers, arraysHaveSameMembersMut, CharIterator } from './util';
 export {
     BadVersionFormatError,

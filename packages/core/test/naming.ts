@@ -3,8 +3,8 @@ import {
     BadRefNamingFormatError,
     FamilyCounterLimitError,
     PartRefNaming,
-    RefNameFormatMismatchError,
-} from '../src/ref-naming';
+    PartRefFormatMismatchError,
+} from '../src/naming';
 import { BadVersionFormatError } from '../src/version-format';
 
 describe('#PartRefNaming', function () {
@@ -123,7 +123,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('.01234.AB');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if no fam_count #1', function () {
@@ -131,7 +131,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('P..AB');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if no fam_count #2', function () {
@@ -139,7 +139,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('.P.AB');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if fam_count format mismatch #1', function () {
@@ -147,7 +147,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('P.01V43.AB');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if fam_count format mismatch #2', function () {
@@ -155,7 +155,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('01V43.AB.P');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if no part_version #1', function () {
@@ -163,7 +163,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('P.01234.');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if no part_version #2', function () {
@@ -171,7 +171,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('01234..P');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if part_version format mismatch #1', function () {
@@ -179,7 +179,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('P.01234.02');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if part_version format mismatch #2', function () {
@@ -187,7 +187,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('01234.02.P');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if missing literal #1', function () {
@@ -195,7 +195,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('P.01234AB');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if missing literal #2', function () {
@@ -203,7 +203,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('01234AB.P');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if unexpected literal #1', function () {
@@ -211,7 +211,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('P.01234-.02');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if unexpected literal #2', function () {
@@ -219,7 +219,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('01234-.AB.P');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if wrong literal #1', function () {
@@ -227,7 +227,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('P.01234-AB');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
 
         it('should throw if wrong literal #2', function () {
@@ -235,7 +235,7 @@ describe('#PartRefNaming', function () {
             function bad(): any {
                 return rn.extractParts('01234-AB.P');
             }
-            expect(bad).to.throw(RefNameFormatMismatchError);
+            expect(bad).to.throw(PartRefFormatMismatchError);
         });
     });
 
@@ -270,7 +270,7 @@ describe('#PartRefNaming', function () {
                     partVersion: '04',
                 });
             }
-            expect(bad).to.throw(RefNameFormatMismatchError, '04');
+            expect(bad).to.throw(PartRefFormatMismatchError, '04');
         });
     });
 });

@@ -1,21 +1,6 @@
-import { CharIterator } from './util';
-import { VersionFormat } from './version-format';
-
-export class BadRefNamingFormatError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'BadRefNamingFormatError';
-        Error.captureStackTrace(this, BadRefNamingFormatError);
-    }
-}
-
-export class RefNameFormatMismatchError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'RefNameFormatMismatchError';
-        Error.captureStackTrace(this, RefNameFormatMismatchError);
-    }
-}
+import { VersionFormat } from '../version-format';
+import { CharIterator } from '../util';
+import { parseNaming, Kind, BadRefNamingFormatError, LitToken } from '.';
 
 export class FamilyCounterLimitError extends Error {
     constructor(message: string) {
@@ -25,14 +10,18 @@ export class FamilyCounterLimitError extends Error {
     }
 }
 
-enum Kind {
-    Lit,
-    Var,
+export class PartRefFormatMismatchError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'PartRefFormatMismatchError';
+        Error.captureStackTrace(this, PartRefFormatMismatchError);
+    }
 }
 
-interface LitToken {
-    kind: Kind.Lit;
-    value: string;
+export interface PartRefComps {
+    familyCode: string;
+    familyCount: number;
+    partVersion: string;
 }
 
 interface FamCodeToken {
@@ -52,117 +41,78 @@ interface PartVersionToken {
     format: VersionFormat;
 }
 
-type VarToken = FamCodeToken | FamCountToken | PartVersionToken;
-
-type Token = LitToken | VarToken;
-
-function parseVar(inp: CharIterator, allowedVars: string[]): VarToken {
-    /* istanbul ignore next */
-    if (inp.read(2) != '${') {
-        throw new Error('variables start with "${');
-    }
-    const content = inp.readUntil('}', { throws: true, including: false });
-    inp.next(); // eat '}'
-
-    const [ident, arg] = content.split(':');
-    if (!allowedVars.includes(ident)) {
-        throw new BadRefNamingFormatError(`unknown variable "${ident}"`);
-    }
-
-    switch (ident) {
-        case 'fam_code': {
-            if (arg !== undefined) {
-                throw new BadRefNamingFormatError(`${ident} do not take argument`);
-            }
-            return {
-                kind: Kind.Var,
-                ident,
-            };
-        }
-        case 'fam_count': {
-            const width = parseInt(arg);
-            if (isNaN(width)) {
-                throw new BadRefNamingFormatError(
-                    `"${ident}" takes a number argument for width. Got "${arg}".`
-                );
-            }
-            if (width <= 0) {
-                throw new BadRefNamingFormatError(`"${ident}" width must be positive`);
-            }
-            return {
-                kind: Kind.Var,
-                ident,
-                width,
-            };
-        }
-        case 'part_version': {
-            if (!arg) {
-                throw new BadRefNamingFormatError(`${ident} takes a format string argument`);
-            }
-            return {
-                kind: Kind.Var,
-                ident,
-                format: new VersionFormat(arg),
-            };
-        }
-    }
-    /* istanbul ignore next */
-    throw new Error(`unknown identifier: ${ident}`);
-}
-
-function parseLiteral(inp: CharIterator): LitToken {
-    return {
-        kind: Kind.Lit,
-        value: inp.readUntil('${', { throws: false, including: false }),
-    };
-}
-
-function parseRefNaming(inp: CharIterator, allowedVars: string[]): Token[] {
-    const toks = [];
-    while (!inp.done) {
-        if (inp.lookAhead(2) === '${') {
-            toks.push(parseVar(inp, allowedVars));
-        } else {
-            toks.push(parseLiteral(inp));
-        }
-    }
-    return toks;
-}
-
-export interface PartRefParts {
-    familyCode: string;
-    familyCount: number;
-    partVersion: string;
-}
+type PartRefToken = LitToken | FamCodeToken | FamCountToken | PartVersionToken;
 
 export class PartRefNaming {
-    private tokens: readonly Token[];
+    private tokens: readonly PartRefToken[];
     versionFormat: VersionFormat;
 
     constructor(public readonly input: string) {
-        this.tokens = parseRefNaming(new CharIterator(input), [
+        const tokens = parseNaming(new CharIterator(input), [
             'fam_code',
             'fam_count',
             'part_version',
         ]);
-        if (this.tokens.filter((t) => t.kind === Kind.Var && t.ident === 'fam_code').length !== 1) {
+        let famCode = 0;
+        let famCount = 0;
+        this.tokens = tokens.map((tok) => {
+            if (tok.kind === Kind.Lit) return tok;
+            const { ident, arg } = tok;
+            switch (ident) {
+                case 'fam_code': {
+                    famCode++;
+                    if (arg !== undefined) {
+                        throw new BadRefNamingFormatError(`${ident} do not take argument`);
+                    }
+                    return {
+                        kind: Kind.Var,
+                        ident,
+                    };
+                }
+                case 'fam_count': {
+                    famCount++;
+                    const width = parseInt(arg);
+                    if (isNaN(width)) {
+                        throw new BadRefNamingFormatError(
+                            `"${ident}" takes a number argument for width. Got "${arg}".`
+                        );
+                    }
+                    if (width <= 0) {
+                        throw new BadRefNamingFormatError(`"${ident}" width must be positive`);
+                    }
+                    return {
+                        kind: Kind.Var,
+                        ident,
+                        width,
+                    };
+                }
+                case 'part_version': {
+                    if (!arg) {
+                        throw new BadRefNamingFormatError(
+                            `${ident} takes a format string argument`
+                        );
+                    }
+                    this.versionFormat = new VersionFormat(arg);
+                    return {
+                        kind: Kind.Var,
+                        ident,
+                        format: this.versionFormat,
+                    };
+                }
+            }
+        });
+        if (famCode === 0) {
             throw new BadRefNamingFormatError('Missing variable: "fam_code"');
         }
-        if (
-            this.tokens.filter((t) => t.kind === Kind.Var && t.ident === 'fam_count').length !== 1
-        ) {
+        if (famCount === 0) {
             throw new BadRefNamingFormatError('Missing variable: "fam_count"');
         }
-        const partVersionToks = this.tokens.filter(
-            (t) => t.kind === Kind.Var && t.ident === 'part_version'
-        ) as PartVersionToken[];
-        if (partVersionToks.length !== 1) {
+        if (!this.versionFormat) {
             throw new BadRefNamingFormatError('Missing variable: "part_version"');
         }
-        this.versionFormat = partVersionToks[0].format;
     }
 
-    buildRef({ familyCode, familyCount, partVersion }: PartRefParts): string {
+    buildRef({ familyCode, familyCount, partVersion }: PartRefComps): string {
         const segs = [];
         for (const tok of this.tokens) {
             switch (tok.kind) {
@@ -188,7 +138,7 @@ export class PartRefNaming {
                         }
                         case 'part_version':
                             if (!tok.format.matches(partVersion)) {
-                                throw new RefNameFormatMismatchError(
+                                throw new PartRefFormatMismatchError(
                                     `version "${partVersion}" does not match specified version format: "${tok.format.input}"`
                                 );
                             }
@@ -201,7 +151,7 @@ export class PartRefNaming {
         return segs.join('');
     }
 
-    extractParts(ref: string): PartRefParts {
+    extractParts(ref: string): PartRefComps {
         // part family code is the only one whose length is unknown,
         // so we have to loop tokens forward and then backward until we hit fam_code
         let familyCount: number;
@@ -212,7 +162,7 @@ export class PartRefNaming {
             switch (tok.kind) {
                 case Kind.Lit:
                     if (!r.startsWith(tok.value)) {
-                        throw new RefNameFormatMismatchError(
+                        throw new PartRefFormatMismatchError(
                             `"${ref}" does not match expected literal`
                         );
                     }
@@ -226,7 +176,7 @@ export class PartRefNaming {
                         case 'fam_count': {
                             const fc = r.substr(0, tok.width);
                             if (fc.length != tok.width || !/^[0-9]+$/.test(fc)) {
-                                throw new RefNameFormatMismatchError(
+                                throw new PartRefFormatMismatchError(
                                     `"${fc}" does not match expected family count ref-naming`
                                 );
                             }
@@ -237,7 +187,7 @@ export class PartRefNaming {
                         case 'part_version':
                             partVersion = r.substr(0, tok.format.input.length);
                             if (!tok.format.matches(partVersion)) {
-                                throw new RefNameFormatMismatchError(
+                                throw new PartRefFormatMismatchError(
                                     `"${partVersion}" do not match expected version format`
                                 );
                             }
@@ -252,7 +202,7 @@ export class PartRefNaming {
             switch (tok.kind) {
                 case Kind.Lit:
                     if (!r.endsWith(tok.value)) {
-                        throw new RefNameFormatMismatchError(
+                        throw new PartRefFormatMismatchError(
                             `"${ref}" does not match expected literal`
                         );
                     }
@@ -266,7 +216,7 @@ export class PartRefNaming {
                         case 'fam_count': {
                             const fc = r.substr(r.length - tok.width);
                             if (fc.length != tok.width || !/^[0-9]+$/.test(fc)) {
-                                throw new RefNameFormatMismatchError(
+                                throw new PartRefFormatMismatchError(
                                     `"${fc}" does not match expected family count ref-naming`
                                 );
                             }
@@ -277,7 +227,7 @@ export class PartRefNaming {
                         case 'part_version':
                             partVersion = r.substr(r.length - tok.format.input.length);
                             if (!tok.format.matches(partVersion)) {
-                                throw new RefNameFormatMismatchError(
+                                throw new PartRefFormatMismatchError(
                                     `"${partVersion}" do not match expected version format`
                                 );
                             }
@@ -289,7 +239,7 @@ export class PartRefNaming {
 
         const familyCode = r;
         if (!familyCode.length) {
-            throw new RefNameFormatMismatchError(`"${ref}" do not contain any family code`);
+            throw new PartRefFormatMismatchError(`"${ref}" do not contain any family code`);
         }
 
         return {
