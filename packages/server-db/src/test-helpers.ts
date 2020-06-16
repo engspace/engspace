@@ -500,6 +500,14 @@ export class TestHelpers {
         });
     }
 
+    resetChangeCounter() {
+        return (): Promise<void> => {
+            return this.pool.transaction(async (db) => {
+                await db.query(sql`UPDATE global_counter SET change_request=0`);
+            });
+        };
+    }
+
     // Documents
 
     async createDoc(db: Db, user: User, input: Partial<DocumentInput> = {}): Promise<Document> {

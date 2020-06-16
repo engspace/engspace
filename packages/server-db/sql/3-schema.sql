@@ -3,6 +3,10 @@ CREATE TABLE metadata (
     application_id text
 );
 
+CREATE TABLE global_counter (
+    change_request integer NOT NULL
+);
+
 CREATE TABLE "user" (
     id serial PRIMARY KEY,
     name text NOT NULL UNIQUE,

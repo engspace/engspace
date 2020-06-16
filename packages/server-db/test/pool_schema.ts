@@ -73,6 +73,7 @@ describe('Pool and Schema', async () => {
                 'change_request_cycle_enum',
 
                 'metadata',
+                'global_counter',
                 'user',
                 'user_login',
                 'user_role',
