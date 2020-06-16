@@ -126,7 +126,7 @@ describe('#PartRevisionDao', function () {
 
         it('should get all revisions above 1 for a change request', async function () {
             const { revsA, revsB, revsC } = await pool.connect(async (db) => {
-                const revsA = await dao.partRevision.aboveRev1ByChangeRequestId(db, cr2.id);
+                const revsA = await dao.partRevision.aboveRev1ByChangeRequestId(db, cr1.id);
                 const revsB = await dao.partRevision.aboveRev1ByChangeRequestId(db, cr2.id);
                 const revsC = await dao.partRevision.aboveRev1ByChangeRequestId(db, cr3.id);
                 return { revsA, revsB, revsC };
