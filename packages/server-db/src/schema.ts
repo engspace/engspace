@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { sql } from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
-import { PartCycle, ValidationResult, ChangeRequestCycle } from '@engspace/core';
+import { PartCycle, ValidationResult, ChangeCycle } from '@engspace/core';
 import { Db } from '.';
 
 // const currentVersion = 1;
@@ -92,8 +92,8 @@ async function insertCoreEnums(db: Db): Promise<void> {
     await insertEnum(db, Object.values(ValidationResult), {
         table: 'validation_result_enum',
     });
-    await insertEnum(db, Object.values(ChangeRequestCycle), {
-        table: 'change_request_cycle_enum',
+    await insertEnum(db, Object.values(ChangeCycle), {
+        table: 'change_cycle_enum',
     });
 }
 

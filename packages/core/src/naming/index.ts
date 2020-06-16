@@ -1,5 +1,5 @@
 export { PartRefComps, PartRefFormatMismatchError, PartRefNaming } from './part-ref';
-export { ChangeRequestComps, ChangeRequestNaming } from './change-request';
+export { ChangeComps, ChangeNaming } from './change';
 
 export class BadRefNamingFormatError extends Error {
     constructor(message: string) {

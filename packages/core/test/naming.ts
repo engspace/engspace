@@ -4,7 +4,7 @@ import {
     NamingCounterLimitError,
     PartRefNaming,
     PartRefFormatMismatchError,
-    ChangeRequestNaming,
+    ChangeNaming,
 } from '../src/naming';
 import { BadVersionFormatError } from '../src/version-format';
 
@@ -277,44 +277,44 @@ describe('Naming', function () {
         });
     });
 
-    describe('#ChangeRequestNaming', function () {
+    describe('#ChangeNaming', function () {
         describe('#ctor', function () {
             it('should parse input string', function () {
                 function good() {
-                    return new ChangeRequestNaming('CR-${counter:4}');
+                    return new ChangeNaming('CR-${counter:4}');
                 }
                 expect(good).not.to.throw;
             });
             it('should fail if missing ${counter}', function () {
                 function bad() {
-                    return new ChangeRequestNaming('CR-blabla');
+                    return new ChangeNaming('CR-blabla');
                 }
                 expect(bad).to.throw;
             });
             it('should fail if missing ${counter:width}', function () {
                 function bad() {
-                    return new ChangeRequestNaming('CR-${counter}');
+                    return new ChangeNaming('CR-${counter}');
                 }
                 expect(bad).to.throw;
             });
             it('should fail if unexpected ${variable}', function () {
                 function bad() {
-                    return new ChangeRequestNaming('CR-${variable}');
+                    return new ChangeNaming('CR-${variable}');
                 }
                 expect(bad).to.throw;
             });
         });
         describe('#buildName', function () {
             it('should build a name', function () {
-                const naming = new ChangeRequestNaming('CR-${counter:4}');
+                const naming = new ChangeNaming('CR-${counter:4}');
                 expect(naming.buildName({ counter: 345 })).to.equal('CR-0345');
             });
             it('should build a name if counter is one below max', function () {
-                const naming = new ChangeRequestNaming('CR-${counter:4}');
+                const naming = new ChangeNaming('CR-${counter:4}');
                 expect(naming.buildName({ counter: 9999 })).to.equal('CR-9999');
             });
             it('should throw if counter has reached max', function () {
-                const naming = new ChangeRequestNaming('CR-${counter:4}');
+                const naming = new ChangeNaming('CR-${counter:4}');
                 function bad() {
                     return naming.buildName({ counter: 10000 });
                 }

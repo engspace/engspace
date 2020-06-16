@@ -88,11 +88,11 @@ export class PartDao extends DaoBase<Part, Row> {
         return !!row;
     }
 
-    async whoseRev1IsCreatedBy(db: Db, changeRequestId: Id): Promise<Part[]> {
+    async whoseRev1IsCreatedBy(db: Db, changeId: Id): Promise<Part[]> {
         const rows: Row[] = await db.any(sql`
             SELECT ${rowTokenAlias} FROM part AS p
             LEFT OUTER JOIN part_revision AS pr ON pr.part_id = p.id
-            WHERE pr.revision = 1 AND pr.change_request_id = ${changeRequestId}
+            WHERE pr.revision = 1 AND pr.change_id = ${changeId}
         `);
         return rows.map((r) => mapRow(r));
     }

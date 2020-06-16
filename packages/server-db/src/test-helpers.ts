@@ -7,8 +7,8 @@ import {
     ChangePartCreateInput,
     ChangePartRevision,
     ChangePartRevisionInput,
-    ChangeRequest,
-    ChangeRequestInput,
+    Change,
+    ChangeInput,
     ChangeReview,
     Document,
     DocumentInput,
@@ -27,7 +27,7 @@ import {
     Tracked,
     User,
     UserInput,
-    ChangeRequestCycle,
+    ChangeCycle,
 } from '@engspace/core';
 import {
     ChangeReviewDaoInput,
@@ -94,14 +94,14 @@ const tableDeps = {
     project_member_role: ['project_member'],
     part_family: [],
     part: ['part_family', 'user'],
-    part_revision: ['part', 'change_request', 'user'],
+    part_revision: ['part', 'change', 'user'],
     part_validation: ['part_revision', 'user'],
     part_approval: ['part_validation', 'user'],
-    change_request: ['user'],
-    change_part_create: ['change_request', 'part_family'],
-    change_part_fork: ['change_request', 'part'],
-    change_part_revision: ['change_request', 'part'],
-    change_review: ['change_request', 'user'],
+    change: ['user'],
+    change_part_create: ['change', 'part_family'],
+    change_part_fork: ['change', 'part'],
+    change_part_revision: ['change', 'part'],
+    change_review: ['change', 'user'],
     document: ['user'],
     document_revision: ['document', 'user'],
 };
@@ -282,7 +282,7 @@ export class TestHelpers {
             withRev1,
             bumpFamCounter,
         }: {
-            withRev1: { changeRequest: ChangeRequest; cycle?: PartCycle };
+            withRev1: { change: Change; cycle?: PartCycle };
             bumpFamCounter: boolean;
         } = {
             withRev1: null,
@@ -300,7 +300,7 @@ export class TestHelpers {
         if (withRev1) {
             await this.dao.partRevision.create(db, {
                 partId: part.id,
-                changeRequestId: withRev1.changeRequest.id,
+                changeId: withRev1.change.id,
                 cycle: withRev1.cycle ?? PartCycle.Edition,
                 userId: user.id,
                 designation: part.designation,
@@ -315,7 +315,7 @@ export class TestHelpers {
     async createPartRev(
         db: Db,
         part: Part,
-        changeRequest: ChangeRequest,
+        change: Change,
         user: User,
         input: Partial<PartRevisionDaoInput> = {}
     ): Promise<PartRevision> {
@@ -323,19 +323,19 @@ export class TestHelpers {
             designation: input.designation ?? part.designation ?? 'Part',
             cycle: input.cycle ?? PartCycle.Edition,
             partId: part.id,
-            changeRequestId: changeRequest.id,
+            changeId: change.id,
             userId: user.id,
         });
     }
 
     transacPartRev(
         part: Part,
-        changeRequest: ChangeRequest,
+        change: Change,
         user: User,
         input: Partial<PartRevisionDaoInput> = {}
     ): Promise<PartRevision> {
         return this.pool.transaction(async (db) => {
-            return this.createPartRev(db, part, changeRequest, user, input);
+            return this.createPartRev(db, part, change, user, input);
         });
     }
 
@@ -375,26 +375,26 @@ export class TestHelpers {
 
     // Change
 
-    async createChangeRequest(
+    async createChange(
         db: Db,
         user: User,
         name = 'CR-001',
-        input: Partial<ChangeRequestInput> = {},
+        input: Partial<ChangeInput> = {},
         { bumpCounter }: { bumpCounter: boolean } = { bumpCounter: false }
-    ): Promise<ChangeRequest> {
-        const req = await this.dao.changeRequest.create(db, {
+    ): Promise<Change> {
+        const req = await this.dao.change.create(db, {
             name,
             description: input.description ?? null,
             userId: user.id,
         });
         if (bumpCounter) {
-            await this.dao.globalCounter.bumpChangeRequest(db);
+            await this.dao.globalCounter.bumpChange(db);
         }
         if (input.partCreations) {
             req.partCreations = await Promise.all(
                 input.partCreations.map((inp) =>
                     this.dao.changePartCreate.create(db, {
-                        requestId: req.id,
+                        changeId: req.id,
                         ...inp,
                     })
                 )
@@ -404,7 +404,7 @@ export class TestHelpers {
             req.partForks = await Promise.all(
                 input.partForks.map((inp) =>
                     this.dao.changePartFork.create(db, {
-                        requestId: req.id,
+                        changeId: req.id,
                         ...inp,
                     })
                 )
@@ -414,7 +414,7 @@ export class TestHelpers {
             req.partRevisions = await Promise.all(
                 input.partRevisions.map((inp) =>
                     this.dao.changePartRevision.create(db, {
-                        requestId: req.id,
+                        changeId: req.id,
                         ...inp,
                     })
                 )
@@ -424,7 +424,7 @@ export class TestHelpers {
             req.reviews = await Promise.all(
                 input.reviewerIds.map((inp) =>
                     this.dao.changeReview.create(db, {
-                        requestId: req.id,
+                        changeId: req.id,
                         assigneeId: inp,
                         userId: user.id,
                     })
@@ -436,7 +436,7 @@ export class TestHelpers {
 
     async createChangePartCreate(
         db: Db,
-        request: ChangeRequest,
+        change: Change,
         family: PartFamily,
         input: Partial<ChangePartCreateInput> = {}
     ): Promise<ChangePartCreate> {
@@ -444,14 +444,14 @@ export class TestHelpers {
             designation: 'PART',
             version: 'A',
             ...input,
-            requestId: request.id,
+            changeId: change.id,
             familyId: family.id,
         });
     }
 
     async createChangePartFork(
         db: Db,
-        request: ChangeRequest,
+        change: Change,
         part: Part,
         input: Partial<ChangePartForkInput> = {}
     ): Promise<ChangePartFork> {
@@ -459,35 +459,35 @@ export class TestHelpers {
             designation: 'PART',
             version: 'A',
             ...input,
-            requestId: request.id,
+            changeId: change.id,
             partId: part.id,
         });
     }
 
     async createChangePartRevision(
         db: Db,
-        request: ChangeRequest,
+        change: Change,
         part: Part,
         input: Partial<ChangePartRevisionInput> = {}
     ): Promise<ChangePartRevision> {
         return this.dao.changePartRevision.create(db, {
             designation: 'PART',
             ...input,
-            requestId: request.id,
+            changeId: change.id,
             partId: part.id,
         });
     }
 
     async createChangeReview(
         db: Db,
-        request: ChangeRequest,
+        change: Change,
         assignee: User,
         user: User,
         input: Partial<ChangeReviewDaoInput> = {}
     ): Promise<ChangeReview> {
         return this.dao.changeReview.create(db, {
             ...input,
-            requestId: request.id,
+            changeId: change.id,
             assigneeId: assignee.id,
             userId: user.id,
         });
@@ -496,7 +496,7 @@ export class TestHelpers {
     resetChangeCounter() {
         return (): Promise<void> => {
             return this.pool.transaction(async (db) => {
-                await db.query(sql`UPDATE global_counter SET change_request=0`);
+                await db.query(sql`UPDATE global_counter SET change=0`);
             });
         };
     }

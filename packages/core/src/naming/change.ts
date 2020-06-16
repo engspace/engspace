@@ -1,7 +1,7 @@
 import { Kind, NamingBase, VarToken } from './base';
 import { NamingCounterLimitError } from '.';
 
-export interface ChangeRequestComps {
+export interface ChangeComps {
     counter: number;
 }
 
@@ -11,14 +11,14 @@ interface CounterToken {
     width: number;
 }
 
-type ChangeRequestToken = CounterToken;
+type ChangeToken = CounterToken;
 
-export class ChangeRequestNaming extends NamingBase<ChangeRequestComps, ChangeRequestToken> {
+export class ChangeNaming extends NamingBase<ChangeComps, ChangeToken> {
     constructor(input: string) {
         super(
             input,
             {
-                mapTok(tok: VarToken): ChangeRequestToken {
+                mapTok(tok: VarToken): ChangeToken {
                     switch (tok.ident) {
                         case 'counter':
                             return {
@@ -34,7 +34,7 @@ export class ChangeRequestNaming extends NamingBase<ChangeRequestComps, ChangeRe
         );
     }
 
-    protected compSeg(tok: ChangeRequestToken, comps: ChangeRequestComps): string {
+    protected compSeg(tok: ChangeToken, comps: ChangeComps): string {
         switch (tok.ident) {
             case 'counter': {
                 const cs = comps.counter.toString();

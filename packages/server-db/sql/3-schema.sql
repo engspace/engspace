@@ -4,7 +4,7 @@ CREATE TABLE metadata (
 );
 
 CREATE TABLE global_counter (
-    change_request integer NOT NULL
+    change integer NOT NULL
 );
 
 CREATE TABLE "user" (
@@ -62,7 +62,7 @@ CREATE TABLE part_family (
     counter integer NOT NULL DEFAULT 0
 );
 
-CREATE TABLE change_request (
+CREATE TABLE change (
     id serial PRIMARY KEY,
     name text NOT NULL,
     description text,
@@ -76,7 +76,7 @@ CREATE TABLE change_request (
     UNIQUE(name),
     CHECK(LENGTH(name) > 0),
 
-    FOREIGN KEY(cycle) REFERENCES change_request_cycle_enum(id),
+    FOREIGN KEY(cycle) REFERENCES change_cycle_enum(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id),
     FOREIGN KEY(updated_by) REFERENCES "user"(id)
 );
@@ -108,7 +108,7 @@ CREATE TABLE part_revision (
     revision integer NOT NULL,
     designation text NOT NULL,
 
-    change_request_id integer NOT NULL,
+    change_id integer NOT NULL,
 
     cycle text NOT NULL,
 
@@ -121,7 +121,7 @@ CREATE TABLE part_revision (
     CHECK(LENGTH(designation) > 0),
 
     FOREIGN KEY(part_id) REFERENCES part(id),
-    FOREIGN KEY(change_request_id) REFERENCES change_request(id),
+    FOREIGN KEY(change_id) REFERENCES change(id),
     FOREIGN KEY(cycle) REFERENCES part_cycle_enum(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id),
     FOREIGN KEY(updated_by) REFERENCES "user"(id)
@@ -164,7 +164,7 @@ CREATE TABLE part_approval (
 
 CREATE TABLE change_part_create (
     id serial PRIMARY KEY,
-    request_id integer NOT NULL,
+    change_id integer NOT NULL,
     family_id integer NOT NULL,
     version text NOT NULL,
     designation text NOT NULL,
@@ -173,13 +173,13 @@ CREATE TABLE change_part_create (
     CHECK(LENGTH(version) > 0),
     CHECK(LENGTH(designation) > 0),
 
-    FOREIGN KEY(request_id) REFERENCES change_request(id),
+    FOREIGN KEY(change_id) REFERENCES change(id),
     FOREIGN KEY(family_id) REFERENCES part_family(id)
 );
 
 CREATE TABLE change_part_fork (
     id serial PRIMARY KEY,
-    request_id integer NOT NULL,
+    change_id integer NOT NULL,
     part_id integer NOT NULL,
     version text NOT NULL,
     designation text,
@@ -187,24 +187,24 @@ CREATE TABLE change_part_fork (
 
     CHECK(LENGTH(version) > 0),
 
-    FOREIGN KEY(request_id) REFERENCES change_request(id),
+    FOREIGN KEY(change_id) REFERENCES change(id),
     FOREIGN KEY(part_id) REFERENCES part(id)
 );
 
 CREATE TABLE change_part_revision (
     id serial PRIMARY KEY,
-    request_id integer NOT NULL,
+    change_id integer NOT NULL,
     part_id integer NOT NULL,
     designation text,
     comments text,
 
-    FOREIGN KEY(request_id) REFERENCES change_request(id),
+    FOREIGN KEY(change_id) REFERENCES change(id),
     FOREIGN KEY(part_id) REFERENCES part(id)
 );
 
 CREATE TABLE change_review (
     id serial PRIMARY KEY,
-    request_id integer NOT NULL,
+    change_id integer NOT NULL,
     assignee_id integer NOT NULL,
     decision approval_decision_enum NOT NULL,
     comments text,
@@ -214,7 +214,7 @@ CREATE TABLE change_review (
     updated_by integer NOT NULL,
     updated_at timestamptz NOT NULL,
 
-    FOREIGN KEY(request_id) REFERENCES change_request(id),
+    FOREIGN KEY(change_id) REFERENCES change(id),
     FOREIGN KEY(assignee_id) REFERENCES "user"(id)
 );
 

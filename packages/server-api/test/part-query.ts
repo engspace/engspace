@@ -93,16 +93,13 @@ describe('GraphQL Part - Queries', function () {
                 e: { name: 'e' },
             });
             family = await th.createPartFamily(db, { code: 'P' });
-            cr = await th.createChangeRequest(db, users.a);
+            cr = await th.createChange(db, users.a);
             part = await th.createPart(db, family, users.a, {});
             partRev = await th.createPartRev(db, part, cr, users.a);
         });
         aft = Date.now();
     });
-    after(
-        'delete res',
-        th.cleanTables(['part_revision', 'part', 'change_request', 'part_family', 'user'])
-    );
+    after('delete res', th.cleanTables(['part_revision', 'part', 'change', 'part_family', 'user']));
 
     describe('Part', function () {
         it('should query a Part', async function () {
@@ -165,7 +162,7 @@ describe('GraphQL Part - Queries', function () {
                 id: partRev.id,
                 revision: partRev.revision,
                 designation: partRev.designation,
-                // changeRequest: {
+                // change: {
                 //     id: req.id,
                 // }
                 cycle: PartCycle.Edition,

@@ -1,11 +1,11 @@
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { ApprovalDecision, ChangeRequestCycle } from '@engspace/core';
+import { ApprovalDecision, ChangeCycle } from '@engspace/core';
 import { permsAuth } from './auth';
 import { CHANGEREQ_DEEPFIELDS } from './helpers';
 import { buildGqlServer, pool, th } from '.';
 
-describe('GraphQL ChangeRequest - Queries', function () {
+describe('GraphQL Change - Queries', function () {
     let users;
     let fam;
     let cr1;
@@ -15,25 +15,25 @@ describe('GraphQL ChangeRequest - Queries', function () {
         return pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
             fam = await th.createPartFamily(db);
-            cr1 = await th.createChangeRequest(db, users.a, 'CR-001');
+            cr1 = await th.createChange(db, users.a, 'CR-001');
             parts = {
                 p1: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P001.A', designation: 'PART 1' },
-                    { withRev1: { changeRequest: cr1 }, bumpFamCounter: true }
+                    { withRev1: { change: cr1 }, bumpFamCounter: true }
                 ),
                 p2: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P002.A', designation: 'PART 2' },
-                    { withRev1: { changeRequest: cr1 }, bumpFamCounter: true }
+                    { withRev1: { change: cr1 }, bumpFamCounter: true }
                 ),
             };
-            cr2 = await th.createChangeRequest(db, users.a, 'CR-002', {
-                description: 'A change request',
+            cr2 = await th.createChange(db, users.a, 'CR-002', {
+                description: 'A change',
                 partCreations: [
                     {
                         familyId: fam.id,
@@ -74,17 +74,17 @@ describe('GraphQL ChangeRequest - Queries', function () {
             { withDeps: true }
         )
     );
-    describe('#changeRequest', function () {
+    describe('#change', function () {
         const CHANGEREQ_READ = gql`
             query ReadChangeReq($id: ID!) {
-                changeRequest(id: $id) {
+                change(id: $id) {
                     ...ChangeReqDeepFields
                 }
             }
             ${CHANGEREQ_DEEPFIELDS}
         `;
 
-        it('should read a ChangeRequest', async function () {
+        it('should read a Change', async function () {
             const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
@@ -98,10 +98,10 @@ describe('GraphQL ChangeRequest - Queries', function () {
                 });
             });
             expect(errors).to.be.undefined;
-            expect(data.changeRequest).to.containSubset({
+            expect(data.change).to.containSubset({
                 id: cr2.id,
-                description: 'A change request',
-                cycle: ChangeRequestCycle.Edition,
+                description: 'A change',
+                cycle: ChangeCycle.Edition,
                 state: null,
                 partCreations: [
                     {
@@ -147,7 +147,7 @@ describe('GraphQL ChangeRequest - Queries', function () {
             });
         });
 
-        it('should not read a ChangeRequest without "change.read"', async function () {
+        it('should not read a Change without "change.read"', async function () {
             const { errors, data } = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(
                     db,
@@ -162,7 +162,7 @@ describe('GraphQL ChangeRequest - Queries', function () {
             });
             expect(errors).to.not.be.empty;
             expect(errors[0].message).to.contain('change.read');
-            expect(data.changeRequest).to.be.null;
+            expect(data.change).to.be.null;
         });
     });
 });

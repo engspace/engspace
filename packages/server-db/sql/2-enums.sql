@@ -9,7 +9,7 @@ CREATE TABLE validation_result_enum (
     description text
 );
 
-CREATE TABLE change_request_cycle_enum (
+CREATE TABLE change_cycle_enum (
     id text PRIMARY KEY,
     description text
 );

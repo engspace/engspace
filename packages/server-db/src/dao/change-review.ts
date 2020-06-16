@@ -2,21 +2,21 @@ import { sql } from 'slonik';
 import { ApprovalDecision, ChangeReview, Id } from '@engspace/core';
 import { Db } from '..';
 import { foreignKey, nullable, RowId, toId, tracked, TrackedRow } from './base';
-import { ChangeRequestChildDaoBase } from './change-request';
+import { ChangeChildDaoBase } from './change';
 
 interface Row extends TrackedRow {
     id: RowId;
-    requestId: RowId;
+    changeId: RowId;
     assigneeId: RowId;
     decision: string;
     comments?: string;
 }
 
 function mapRow(row: Row): ChangeReview {
-    const { id, requestId, assigneeId, decision, comments } = row;
+    const { id, changeId, assigneeId, decision, comments } = row;
     return {
         id: toId(id),
-        request: foreignKey(requestId),
+        change: foreignKey(changeId),
         assignee: foreignKey(assigneeId),
         decision: decision as ApprovalDecision,
         comments,
@@ -24,10 +24,10 @@ function mapRow(row: Row): ChangeReview {
     };
 }
 
-const rowToken = sql`id, request_id, assignee_id, decision, comments, ${tracked.selectToken}`;
+const rowToken = sql`id, change_id, assignee_id, decision, comments, ${tracked.selectToken}`;
 
 export interface ChangeReviewDaoInput {
-    requestId: Id;
+    changeId: Id;
     assigneeId: Id;
     decision?: ApprovalDecision;
     comments?: string;
@@ -40,7 +40,7 @@ export interface ChangeReviewUpdateDaoInput {
     comments?: string;
 }
 
-export class ChangeReviewDao extends ChangeRequestChildDaoBase<ChangeReview, Row> {
+export class ChangeReviewDao extends ChangeChildDaoBase<ChangeReview, Row> {
     constructor() {
         super({
             table: 'change_review',
@@ -51,18 +51,18 @@ export class ChangeReviewDao extends ChangeRequestChildDaoBase<ChangeReview, Row
 
     async create(
         db: Db,
-        { requestId, assigneeId, decision, comments, userId }: ChangeReviewDaoInput
+        { changeId, assigneeId, decision, comments, userId }: ChangeReviewDaoInput
     ): Promise<ChangeReview> {
         const row: Row = await db.one(sql`
             INSERT INTO change_review (
-                request_id,
+                change_id,
                 assignee_id,
                 decision,
                 comments,
                 ${tracked.insertListToken}
             )
             VALUES (
-                ${requestId},
+                ${changeId},
                 ${assigneeId},
                 ${decision ?? ApprovalDecision.Pending},
                 ${nullable(comments)},
@@ -73,10 +73,10 @@ export class ChangeReviewDao extends ChangeRequestChildDaoBase<ChangeReview, Row
         return mapRow(row);
     }
 
-    async byRequestAndAssigneeId(db: Db, requestId: Id, assigneeId: Id): Promise<ChangeReview> {
+    async byRequestAndAssigneeId(db: Db, changeId: Id, assigneeId: Id): Promise<ChangeReview> {
         const row: Row = await db.maybeOne(sql`
             SELECT ${rowToken} FROM change_review
-            WHERE request_id = ${requestId} and assignee_id = ${assigneeId}
+            WHERE change_id = ${changeId} and assignee_id = ${assigneeId}
         `);
         return row ? mapRow(row) : null;
     }

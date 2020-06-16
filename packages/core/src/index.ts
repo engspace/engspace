@@ -14,8 +14,8 @@ export {
     PartRefNaming,
     PartRefComps,
     PartRefFormatMismatchError,
-    ChangeRequestNaming,
-    ChangeRequestComps,
+    ChangeNaming,
+    ChangeComps,
 } from './naming';
 export { arraysHaveSameMembers, arraysHaveSameMembersMut, CharIterator } from './util';
 export {
@@ -60,7 +60,7 @@ export enum ValidationResult {
     Cancel = 'CANCEL',
 }
 
-export enum ChangeRequestCycle {
+export enum ChangeCycle {
     Edition = 'EDITION',
     Validation = 'VALIDATION',
     Approved = 'APPROVED',
@@ -128,21 +128,21 @@ export interface PartFamily extends PartFamilyInput {
 
 export interface PartCreateInput {
     familyId: Id;
-    changeRequestId: Id;
+    changeId: Id;
     designation: string;
     initialVersion: string;
 }
 
 export interface PartForkInput {
     partId: Id;
-    changeRequestId: Id;
+    changeId: Id;
     version?: string;
     designation?: string;
 }
 
 export interface PartRevisionInput {
     partId: Id;
-    changeRequestId: Id;
+    changeId: Id;
     designation?: string;
 }
 
@@ -156,7 +156,7 @@ export interface Part extends Tracked {
     ref: string;
     designation: string;
 
-    changeRequest?: IdOr<ChangeRequest>;
+    change?: IdOr<Change>;
 }
 
 export interface PartRevision extends Tracked {
@@ -166,7 +166,7 @@ export interface PartRevision extends Tracked {
     designation: string;
     cycle: PartCycle;
 
-    changeRequest: IdOr<ChangeRequest>;
+    change: IdOr<Change>;
 }
 
 export interface PartApprovalInput {
@@ -225,7 +225,7 @@ export interface ChangePartRevisionInput {
     comments?: string;
 }
 
-export interface ChangeRequestInput {
+export interface ChangeInput {
     description?: string;
     partCreations: ChangePartCreateInput[];
     partForks: ChangePartForkInput[];
@@ -233,7 +233,7 @@ export interface ChangeRequestInput {
     reviewerIds: Id[];
 }
 
-export interface ChangeRequestUpdateInput {
+export interface ChangeUpdateInput {
     description?: string;
 
     partCreationsAdd?: ChangePartCreateInput[];
@@ -251,7 +251,7 @@ export interface ChangeRequestUpdateInput {
 
 export interface ChangePartCreate {
     id: Id;
-    request: IdOr<ChangeRequest>;
+    change: IdOr<Change>;
     family: IdOr<PartFamily>;
     version: string;
     designation: string;
@@ -260,7 +260,7 @@ export interface ChangePartCreate {
 
 export interface ChangePartFork {
     id: Id;
-    request: IdOr<ChangeRequest>;
+    change: IdOr<Change>;
     part: IdOr<Part>;
     version: string;
     designation?: string;
@@ -269,7 +269,7 @@ export interface ChangePartFork {
 
 export interface ChangePartRevision {
     id: Id;
-    request: IdOr<ChangeRequest>;
+    change: IdOr<Change>;
     part: IdOr<Part>;
     designation?: string;
     comments?: string;
@@ -282,17 +282,17 @@ export interface ChangeReviewInput {
 
 export interface ChangeReview extends Tracked {
     id: Id;
-    request: IdOr<ChangeRequest>;
+    change: IdOr<Change>;
     assignee: IdOr<User>;
     decision: ApprovalDecision;
     comments?: string;
 }
 
-export interface ChangeRequest extends Tracked {
+export interface Change extends Tracked {
     id: Id;
     name: string;
     description?: string;
-    cycle: ChangeRequestCycle;
+    cycle: ChangeCycle;
     state?: ApprovalDecision;
     partCreations?: ChangePartCreate[];
     partForks?: ChangePartFork[];

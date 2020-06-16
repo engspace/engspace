@@ -6,7 +6,7 @@ import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
 export interface PartRevisionDaoInput {
     partId: Id;
     designation: string;
-    changeRequestId: Id;
+    changeId: Id;
     cycle: PartCycle;
     userId: Id;
 }
@@ -14,18 +14,18 @@ export interface PartRevisionDaoInput {
 interface Row extends TrackedRow {
     id: RowId;
     partId: RowId;
-    changeRequestId: RowId;
+    changeId: RowId;
     revision: number;
     designation: string;
     cycle: string;
 }
 
 function mapRow(row: Row): PartRevision {
-    const { id, partId, changeRequestId, revision, designation, cycle } = row;
+    const { id, partId, changeId, revision, designation, cycle } = row;
     return {
         id: toId(id),
         part: foreignKey(partId),
-        changeRequest: foreignKey(changeRequestId),
+        change: foreignKey(changeId),
         revision,
         designation,
         cycle: cycle as PartCycle,
@@ -34,7 +34,7 @@ function mapRow(row: Row): PartRevision {
 }
 
 const rowToken = sql`
-    id, part_id, revision, designation, change_request_id, cycle, ${tracked.selectToken}
+    id, part_id, revision, designation, change_id, cycle, ${tracked.selectToken}
 `;
 
 export class PartRevisionDao extends DaoBase<PartRevision, Row> {
@@ -48,11 +48,11 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
 
     async create(
         db: Db,
-        { partId, designation, cycle, changeRequestId, userId }: PartRevisionDaoInput
+        { partId, designation, cycle, changeId, userId }: PartRevisionDaoInput
     ): Promise<PartRevision> {
         const row: Row = await db.one(sql`
             INSERT INTO part_revision (
-                part_id, revision, designation, change_request_id, cycle, ${tracked.insertListToken}
+                part_id, revision, designation, change_id, cycle, ${tracked.insertListToken}
             )
             VALUES (
                 ${partId},
@@ -61,7 +61,7 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
                     0
                 ) + 1,
                 ${designation},
-                ${changeRequestId},
+                ${changeId},
                 ${cycle},
                 ${tracked.insertValToken(userId)}
             )
@@ -78,10 +78,10 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
         return rows.map((row) => mapRow(row));
     }
 
-    async aboveRev1ByChangeRequestId(db: Db, changeRequestId: Id): Promise<PartRevision[]> {
+    async aboveRev1ByChangeId(db: Db, changeId: Id): Promise<PartRevision[]> {
         const rows: Row[] = await db.any(sql`
             SELECT ${rowToken} FROM part_revision
-            WHERE change_request_id = ${changeRequestId} AND revision > 1
+            WHERE change_id = ${changeId} AND revision > 1
         `);
         return rows.map((row) => mapRow(row));
     }

@@ -1,5 +1,5 @@
 import { sql } from 'slonik';
-import { ApprovalDecision, ChangeRequest, ChangeRequestCycle, HasId, Id } from '@engspace/core';
+import { ApprovalDecision, Change, ChangeCycle, HasId, Id } from '@engspace/core';
 import { Db } from '..';
 import {
     DaoBase,
@@ -20,13 +20,13 @@ interface Row extends TrackedRow {
     state?: ApprovalDecision;
 }
 
-function mapRow(row: Row): ChangeRequest {
+function mapRow(row: Row): Change {
     const { id, name, description, cycle, state } = row;
     return {
         id: toId(id),
         name,
         description,
-        cycle: cycle as ChangeRequestCycle,
+        cycle: cycle as ChangeCycle,
         state: state as ApprovalDecision,
         ...tracked.mapRow(row),
     };
@@ -37,37 +37,34 @@ const rowToken = sql`
     name,
     description,
     cycle,
-    es_change_request_state(id, cycle) AS state,
+    es_change_state(id, cycle) AS state,
     ${tracked.selectToken}
 `;
 
-export interface ChangeRequestDaoInput {
+export interface ChangeDaoInput {
     name: string;
     description?: string;
-    cycle?: ChangeRequestCycle;
+    cycle?: ChangeCycle;
     userId: Id;
 }
 
-export interface ChangeRequestUpdateDaoInput {
+export interface ChangeUpdateDaoInput {
     description?: string;
     userId: Id;
 }
 
-export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
+export class ChangeDao extends DaoBase<Change, Row> {
     constructor() {
         super({
-            table: 'change_request',
+            table: 'change',
             rowToken,
             mapRow,
         });
     }
 
-    async create(
-        db: Db,
-        { name, description, cycle, userId }: ChangeRequestDaoInput
-    ): Promise<ChangeRequest> {
+    async create(db: Db, { name, description, cycle, userId }: ChangeDaoInput): Promise<Change> {
         const row: Row = await db.one(sql`
-            INSERT INTO change_request (
+            INSERT INTO change (
                 name,
                 description,
                 cycle,
@@ -76,7 +73,7 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
             VALUES (
                 ${name},
                 ${nullable(description)},
-                ${cycle ?? ChangeRequestCycle.Edition},
+                ${cycle ?? ChangeCycle.Edition},
                 ${tracked.insertValToken(userId)}
             )
             RETURNING ${rowToken}
@@ -84,21 +81,17 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
         return mapRow(row);
     }
 
-    async byName(db: Db, name: string): Promise<ChangeRequest> {
+    async byName(db: Db, name: string): Promise<Change> {
         const row: Row = await db.maybeOne(sql`
-            UPDATE ${rowToken} FROM change_request
+            UPDATE ${rowToken} FROM change
             WHERE name = ${name}
         `);
         return row ? mapRow(row) : null;
     }
 
-    async update(
-        db: Db,
-        id: Id,
-        { description, userId }: ChangeRequestUpdateDaoInput
-    ): Promise<ChangeRequest> {
+    async update(db: Db, id: Id, { description, userId }: ChangeUpdateDaoInput): Promise<Change> {
         const row: Row = await db.one(sql`
-            UPDATE change_request SET
+            UPDATE change SET
                 description=${nullable(description)},
                 ${tracked.updateAssignmentsToken(userId)}
             WHERE
@@ -108,14 +101,9 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
         return mapRow(row);
     }
 
-    async updateCycle(
-        db: Db,
-        id: Id,
-        cycle: ChangeRequestCycle,
-        userId: Id
-    ): Promise<ChangeRequest> {
+    async updateCycle(db: Db, id: Id, cycle: ChangeCycle, userId: Id): Promise<Change> {
         const row: Row = await db.one(sql`
-            UPDATE change_request SET
+            UPDATE change SET
                 cycle=${cycle},
                 ${tracked.updateAssignmentsToken(userId)}
             WHERE
@@ -126,26 +114,26 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
     }
 }
 
-export abstract class ChangeRequestChildDaoBase<
-    T extends HasId,
-    R extends HasRowId
-> extends DaoBase<T, R> {
+export abstract class ChangeChildDaoBase<T extends HasId, R extends HasRowId> extends DaoBase<
+    T,
+    R
+> {
     constructor(config: DaoBaseConfig<T, R>) {
         super(config);
     }
 
-    async byRequestId(db: Db, requestId: Id): Promise<T[]> {
+    async byRequestId(db: Db, changeId: Id): Promise<T[]> {
         const rows: R[] = await db.any(sql`
             SELECT ${this.rowToken}
             FROM ${sql.identifier([this.table])}
-            WHERE request_id = ${requestId}
+            WHERE change_id = ${changeId}
         `);
         return rows?.map((r) => this.mapRow(r));
     }
 
     async checkRequestId(db: Db, id: Id): Promise<Id> {
         const reqId = await db.oneFirst(sql`
-            SELECT request_id FROM ${sql.identifier([this.table])} WHERE id = ${id}
+            SELECT change_id FROM ${sql.identifier([this.table])} WHERE id = ${id}
         `);
         return toId(reqId as number);
     }

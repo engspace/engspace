@@ -3,7 +3,7 @@ import { Db } from '..';
 import { ChangePartForkDao } from './change-part-fork';
 import { ChangePartCreateDao } from './change-part-create';
 import { ChangePartRevisionDao } from './change-part-revision';
-import { ChangeRequestDao } from './change-request';
+import { ChangeDao } from './change';
 import { ChangeReviewDao } from './change-review';
 import { DocumentDao } from './document';
 import { DocumentRevisionDao } from './document-revision';
@@ -67,7 +67,7 @@ export interface DaoSet {
     partRevision: PartRevisionDao;
     partValidation: PartValidationDao;
     partApproval: PartApprovalDao;
-    changeRequest: ChangeRequestDao;
+    change: ChangeDao;
     changePartCreate: ChangePartCreateDao;
     changePartFork: ChangePartForkDao;
     changePartRevision: ChangePartRevisionDao;
@@ -88,7 +88,7 @@ export function buildDaoSet(custom: Partial<DaoSet> = {}): DaoSet {
         partRevision: custom.partRevision ?? new PartRevisionDao(),
         partValidation: custom.partValidation ?? new PartValidationDao(),
         partApproval: custom.partApproval ?? new PartApprovalDao(),
-        changeRequest: custom.changeRequest ?? new ChangeRequestDao(),
+        change: custom.change ?? new ChangeDao(),
         changePartCreate: custom.changePartCreate ?? new ChangePartCreateDao(),
         changePartFork: custom.changePartFork ?? new ChangePartForkDao(),
         changePartRevision: custom.changePartRevision ?? new ChangePartRevisionDao(),

@@ -7,7 +7,7 @@ import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import { GraphQLSchema } from 'graphql';
 import { DaoSet, Db, DbPool } from '@engspace/server-db';
-import { AppRolePolicies, AuthToken, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
+import { AppRolePolicies, AuthToken, PartRefNaming, ChangeNaming } from '@engspace/core';
 import { ApiContext, buildControllerSet, ControllerSet } from './control';
 import { verifyJwt } from './crypto';
 import { GqlContext, gqlContextFactory } from './graphql/context';
@@ -23,7 +23,7 @@ export { ControllerSet, buildControllerSet };
 
 export interface EsNaming {
     partRef: PartRefNaming;
-    changeRequest: ChangeRequestNaming;
+    change: ChangeNaming;
 }
 
 export interface EsServerConfig {

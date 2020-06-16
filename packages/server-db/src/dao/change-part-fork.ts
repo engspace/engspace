@@ -2,21 +2,21 @@ import { sql } from 'slonik';
 import { ChangePartFork, Id } from '@engspace/core';
 import { Db } from '..';
 import { foreignKey, nullable, RowId, toId } from './base';
-import { ChangeRequestChildDaoBase } from './change-request';
+import { ChangeChildDaoBase } from './change';
 
 interface Row {
     id: RowId;
-    requestId: RowId;
+    changeId: RowId;
     partId: RowId;
     version: string;
     designation?: string;
     comments?: string;
 }
 
-function mapRow({ id, requestId, partId, version, designation, comments }: Row): ChangePartFork {
+function mapRow({ id, changeId, partId, version, designation, comments }: Row): ChangePartFork {
     return {
         id: toId(id),
-        request: foreignKey(requestId),
+        change: foreignKey(changeId),
         part: foreignKey(partId),
         version,
         designation,
@@ -26,7 +26,7 @@ function mapRow({ id, requestId, partId, version, designation, comments }: Row):
 
 const rowToken = sql`
     id,
-    request_id,
+    change_id,
     part_id,
     version,
     designation,
@@ -34,14 +34,14 @@ const rowToken = sql`
 `;
 
 export interface ChangePartForkDaoInput {
-    requestId: Id;
+    changeId: Id;
     partId: Id;
     version: string;
     designation?: string;
     comments?: string;
 }
 
-export class ChangePartForkDao extends ChangeRequestChildDaoBase<ChangePartFork, Row> {
+export class ChangePartForkDao extends ChangeChildDaoBase<ChangePartFork, Row> {
     constructor() {
         super({
             table: 'change_part_fork',
@@ -52,18 +52,18 @@ export class ChangePartForkDao extends ChangeRequestChildDaoBase<ChangePartFork,
 
     async create(
         db: Db,
-        { requestId, partId, version, designation, comments }: ChangePartForkDaoInput
+        { changeId, partId, version, designation, comments }: ChangePartForkDaoInput
     ): Promise<ChangePartFork> {
         const row: Row = await db.one(sql`
             INSERT INTO change_part_fork (
-                request_id,
+                change_id,
                 part_id,
                 version,
                 designation,
                 comments
             )
             VALUES (
-                ${requestId},
+                ${changeId},
                 ${partId},
                 ${version},
                 ${nullable(designation)},

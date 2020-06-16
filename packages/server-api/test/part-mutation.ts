@@ -66,10 +66,10 @@ describe('GraphQL Part - Mutations', function () {
                 e: { name: 'e' },
             });
             family = await th.createPartFamily(db, { code: 'P' });
-            cr = await th.createChangeRequest(db, users.a);
+            cr = await th.createChange(db, users.a);
         });
     });
-    after('delete res', th.cleanTables(['part_family', 'change_request', 'user']));
+    after('delete res', th.cleanTables(['part_family', 'change', 'user']));
 
     afterEach(th.cleanTables(['part_revision', 'part']));
     afterEach(th.resetFamilyCounters());

@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { PartCycle, PartRevision, ChangeRequest, Part } from '@engspace/core';
+import { PartCycle, PartRevision, Change, Part } from '@engspace/core';
 import { idType, trackedBy } from '../src/test-helpers';
 import { dao, pool, th } from '.';
 
@@ -19,11 +19,11 @@ describe('#PartRevisionDao', function () {
     this.beforeEach(function () {
         return pool.transaction(async (db) => {
             part = await th.createPart(db, family, users.a, { ref: 'P001.A' });
-            cr1 = await th.createChangeRequest(db, users.a, 'CR-001');
+            cr1 = await th.createChange(db, users.a, 'CR-001');
         });
     });
 
-    this.afterEach(th.cleanTables(['part', 'change_request']));
+    this.afterEach(th.cleanTables(['part', 'change']));
 
     describe('#create', function () {
         afterEach(th.cleanTable('part_revision'));
@@ -35,7 +35,7 @@ describe('#PartRevisionDao', function () {
                     designation: 'Part 1',
                     cycle: PartCycle.Edition,
                     userId: users.a.id,
-                    changeRequestId: cr1.id,
+                    changeId: cr1.id,
                 });
             });
             expect(pr.id).to.be.a(idType);
@@ -82,16 +82,16 @@ describe('#PartRevisionDao', function () {
         });
     });
 
-    describe('#aboveRev1ByChangeRequestId', function () {
-        let cr2: ChangeRequest, cr3: ChangeRequest;
+    describe('#aboveRev1ByChangeId', function () {
+        let cr2: Change, cr3: Change;
         let part1a: Part, part1b: Part, part2a: Part, part2b: Part;
         let revs1a: PartRevision[], revs1b: PartRevision[];
         let revs2a: PartRevision[], revs2b: PartRevision[];
 
         this.beforeEach(function () {
             return pool.transaction(async (db) => {
-                cr2 = await th.createChangeRequest(db, users.a, 'CR-002');
-                cr3 = await th.createChangeRequest(db, users.a, 'CR-003');
+                cr2 = await th.createChange(db, users.a, 'CR-002');
+                cr3 = await th.createChange(db, users.a, 'CR-003');
                 part1a = part;
                 part1b = await th.createPart(db, family, users.a, {
                     ref: 'P001.B',
@@ -122,13 +122,13 @@ describe('#PartRevisionDao', function () {
                 ];
             });
         });
-        this.afterEach(th.cleanTables(['part_revision', 'part', 'change_request']));
+        this.afterEach(th.cleanTables(['part_revision', 'part', 'change']));
 
-        it('should get all revisions above 1 for a change request', async function () {
+        it('should get all revisions above 1 for a change', async function () {
             const { revsA, revsB, revsC } = await pool.connect(async (db) => {
-                const revsA = await dao.partRevision.aboveRev1ByChangeRequestId(db, cr1.id);
-                const revsB = await dao.partRevision.aboveRev1ByChangeRequestId(db, cr2.id);
-                const revsC = await dao.partRevision.aboveRev1ByChangeRequestId(db, cr3.id);
+                const revsA = await dao.partRevision.aboveRev1ByChangeId(db, cr1.id);
+                const revsB = await dao.partRevision.aboveRev1ByChangeId(db, cr2.id);
+                const revsC = await dao.partRevision.aboveRev1ByChangeId(db, cr3.id);
                 return { revsA, revsB, revsC };
             });
             expect(revsA).to.be.empty;

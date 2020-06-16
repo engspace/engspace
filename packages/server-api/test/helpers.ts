@@ -41,7 +41,7 @@ export const PARTREV_FIELDS = gql`
 `;
 
 export const CHANGEREQ_DEEPFIELDS = gql`
-    fragment ChangeReqDeepFields on ChangeRequest {
+    fragment ChangeReqDeepFields on Change {
         id
         name
         description

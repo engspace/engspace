@@ -20,7 +20,7 @@ describe('#PartApprovalDao', function () {
                 e: { name: 'e' },
             });
             fam = await th.createPartFamily(db);
-            cr = await th.createChangeRequest(db, users.a);
+            cr = await th.createChange(db, users.a);
             part = await th.createPart(db, fam, users.a, {});
             partRev = await th.createPartRev(db, part, cr, users.a);
             partVal = await th.createPartVal(db, partRev, users.a);
@@ -32,7 +32,7 @@ describe('#PartApprovalDao', function () {
             'part_validation',
             'part_revision',
             'part',
-            'change_request',
+            'change',
             'part_family',
             'user',
         ])

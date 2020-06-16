@@ -2,20 +2,20 @@ import { sql } from 'slonik';
 import { ChangePartRevision, Id } from '@engspace/core';
 import { Db } from '..';
 import { foreignKey, nullable, RowId, toId } from './base';
-import { ChangeRequestChildDaoBase } from './change-request';
+import { ChangeChildDaoBase } from './change';
 
 interface Row {
     id: RowId;
-    requestId: RowId;
+    changeId: RowId;
     partId: RowId;
     designation?: string;
     comments?: string;
 }
 
-function mapRow({ id, requestId, partId, designation, comments }: Row): ChangePartRevision {
+function mapRow({ id, changeId, partId, designation, comments }: Row): ChangePartRevision {
     return {
         id: toId(id),
-        request: foreignKey(requestId),
+        change: foreignKey(changeId),
         part: foreignKey(partId),
         designation,
         comments,
@@ -23,17 +23,17 @@ function mapRow({ id, requestId, partId, designation, comments }: Row): ChangePa
 }
 
 const rowToken = sql`
-    id, request_id, part_id, designation, comments
+    id, change_id, part_id, designation, comments
 `;
 
 export interface ChangePartRevisionDaoInput {
-    requestId: Id;
+    changeId: Id;
     partId: Id;
     designation?: string;
     comments?: string;
 }
 
-export class ChangePartRevisionDao extends ChangeRequestChildDaoBase<ChangePartRevision, Row> {
+export class ChangePartRevisionDao extends ChangeChildDaoBase<ChangePartRevision, Row> {
     constructor() {
         super({
             table: 'change_part_revision',
@@ -44,17 +44,17 @@ export class ChangePartRevisionDao extends ChangeRequestChildDaoBase<ChangePartR
 
     async create(
         db: Db,
-        { requestId, partId, designation, comments }: ChangePartRevisionDaoInput
+        { changeId, partId, designation, comments }: ChangePartRevisionDaoInput
     ): Promise<ChangePartRevision> {
         const row: Row = await db.one(sql`
             INSERT INTO change_part_revision (
-                request_id,
+                change_id,
                 part_id,
                 designation,
                 comments
             )
             VALUES (
-                ${requestId},
+                ${changeId},
                 ${partId},
                 ${nullable(designation)},
                 ${nullable(comments)}

@@ -1,5 +1,5 @@
 INSERT INTO global_counter (
-    change_request
+    change
 ) VALUES (
     0
 );

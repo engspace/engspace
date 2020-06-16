@@ -70,7 +70,7 @@ describe('Pool and Schema', async () => {
             expect(tables).to.have.same.members([
                 'part_cycle_enum',
                 'validation_result_enum',
-                'change_request_cycle_enum',
+                'change_cycle_enum',
 
                 'metadata',
                 'global_counter',
@@ -85,7 +85,7 @@ describe('Pool and Schema', async () => {
                 'part_revision',
                 'part_validation',
                 'part_approval',
-                'change_request',
+                'change',
                 'change_part_create',
                 'change_part_fork',
                 'change_part_revision',

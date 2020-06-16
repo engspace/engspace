@@ -4,9 +4,9 @@ import {
     ChangePartFork,
     ChangePartCreate,
     ChangePartRevision,
-    ChangeRequest,
-    ChangeRequestInput,
-    ChangeRequestUpdateInput,
+    Change,
+    ChangeInput,
+    ChangeUpdateInput,
     ChangeReview,
     ChangeReviewInput,
     HasId,
@@ -19,7 +19,7 @@ import { GqlContext } from '../context';
 import { resolveTracked } from '.';
 
 export const typeDefs = gql`
-    enum ChangeRequestCycle {
+    enum ChangeCycle {
         EDITION
         VALIDATION
         APPROVED
@@ -27,7 +27,7 @@ export const typeDefs = gql`
     }
 
     """
-    An input to describe a part creation in a ChangeRequest
+    An input to describe a part creation in a Change
     """
     input ChangePartCreateInput {
         familyId: ID!
@@ -37,7 +37,7 @@ export const typeDefs = gql`
     }
 
     """
-    An input to describe a part change in a ChangeRequest
+    An input to describe a part change in a Change
     """
     input ChangePartForkInput {
         partId: ID!
@@ -47,7 +47,7 @@ export const typeDefs = gql`
     }
 
     """
-    An input to describe a part revision in a ChangeRequest
+    An input to describe a part revision in a Change
     """
     input ChangePartRevisionInput {
         partId: ID!
@@ -56,9 +56,9 @@ export const typeDefs = gql`
     }
 
     """
-    An input to create ChangeRequest
+    An input to create Change
     """
-    input ChangeRequestInput {
+    input ChangeInput {
         description: String
         partCreations: [ChangePartCreateInput!]
         partForks: [ChangePartForkInput!]
@@ -67,9 +67,9 @@ export const typeDefs = gql`
     }
 
     """
-    An input to update ChangeRequest
+    An input to update Change
     """
-    input ChangeRequestUpdateInput {
+    input ChangeUpdateInput {
         description: String
 
         partCreationsAdd: [ChangePartCreateInput!]
@@ -87,7 +87,7 @@ export const typeDefs = gql`
 
     type ChangePartCreate {
         id: ID!
-        request: ChangeRequest!
+        change: Change!
         family: PartFamily!
         version: String!
         designation: String!
@@ -96,7 +96,7 @@ export const typeDefs = gql`
 
     type ChangePartFork {
         id: ID!
-        request: ChangeRequest!
+        change: Change!
         part: Part!
         version: String!
         designation: String
@@ -105,14 +105,14 @@ export const typeDefs = gql`
 
     type ChangePartRevision {
         id: ID!
-        request: ChangeRequest!
+        change: Change!
         part: Part!
         designation: String
         comments: String
     }
 
     """
-    Input to review a change request
+    Input to review a change
     """
     input ChangeReviewInput {
         decision: ApprovalDecision!
@@ -129,18 +129,18 @@ export const typeDefs = gql`
         updatedBy: User!
         updatedAt: DateTime!
 
-        request: ChangeRequest!
+        change: Change!
     }
 
     """
-    A ChangeRequest gathers all informations about a requeste change.
+    A Change gathers all informations about a requeste change.
     It helps to inform and gather approval of the involved persons.
     """
-    type ChangeRequest implements Tracked {
+    type Change implements Tracked {
         id: ID!
         name: String!
         description: String
-        cycle: ChangeRequestCycle!
+        cycle: ChangeCycle!
         state: ApprovalDecision
 
         partCreations: [ChangePartCreate!]
@@ -168,145 +168,125 @@ export const typeDefs = gql`
     }
 
     extend type Query {
-        changeRequest(id: ID!): ChangeRequest
+        change(id: ID!): Change
     }
 
     extend type Mutation {
-        changeRequestCreate(input: ChangeRequestInput!): ChangeRequest!
-        changeRequestUpdate(id: ID!, input: ChangeRequestUpdateInput!): ChangeRequest!
+        changeCreate(input: ChangeInput!): Change!
+        changeUpdate(id: ID!, input: ChangeUpdateInput!): Change!
         """
-        Submit a change request to review in the VALIDATION cycle.
-        The change request must be in EDITION cycle and will be placed
+        Submit a change to review in the VALIDATION cycle.
+        The change must be in EDITION cycle and will be placed
         in the VALIDATION cycle to allow reviews to start.
         """
-        changeRequestSubmit(id: ID!): ChangeRequest!
+        changeSubmit(id: ID!): Change!
         """
-        Withdraw a change request from the VALIDATION cycle.
-        The change request must be in VALIDATION cycle and will be placed
+        Withdraw a change from the VALIDATION cycle.
+        The change must be in VALIDATION cycle and will be placed
         back in the EDITION cycle to allow changes to be made.
         """
-        changeRequestWithdraw(id: ID!): ChangeRequest!
+        changeWithdraw(id: ID!): Change!
         """
-        Edit a review for a change request.
-        The logged-in user must be a reviewer of the given change request.
-        Previous reviews of the same user and same change request are erased.
+        Edit a review for a change.
+        The logged-in user must be a reviewer of the given change.
+        Previous reviews of the same user and same change are erased.
         """
-        changeRequestReview(id: ID!, input: ChangeReviewInput!): ChangeReview!
+        changeReview(id: ID!, input: ChangeReviewInput!): ChangeReview!
 
         """
-        Approve a change request and apply changes.
+        Approve a change and apply changes.
         Can only be done only from VALIDATION cycle in approved or reserved state.
         If all changes apply succesfully, the change is placed into APPROVED cycle.
         Once a change is approved, it cannot be cancelled.
         """
-        changeRequestApprove(id: ID!): ChangeRequest!
+        changeApprove(id: ID!): Change!
 
         """
-        Cancel a change request.
+        Cancel a change.
         Can be done from any cycle other than APPROVED.
         Will place the change in the CANCELLED cycle.
         Cannot be undone.
         """
-        changeRequestCancel(id: ID!): ChangeRequest!
+        changeCancel(id: ID!): Change!
     }
 `;
 
 export function buildResolvers(control: ControllerSet): IResolvers {
     return {
         ChangeReview: {
-            async request(
-                { request }: ChangeReview,
-                args,
-                ctx: GqlContext
-            ): Promise<ChangeRequest> {
-                const req = await control.change.request(ctx, request.id);
+            async change({ change }: ChangeReview, args, ctx: GqlContext): Promise<Change> {
+                const req = await control.change.change(ctx, change.id);
                 return req;
             },
         },
 
-        ChangeRequest: {
-            partCreations(
-                { id }: ChangeRequest,
-                args,
-                ctx: GqlContext
-            ): Promise<ChangePartCreate[]> {
-                return control.change.requestPartCreations(ctx, id);
+        Change: {
+            partCreations({ id }: Change, args, ctx: GqlContext): Promise<ChangePartCreate[]> {
+                return control.change.partCreations(ctx, id);
             },
-            partForks({ id }: ChangeRequest, args, ctx: GqlContext): Promise<ChangePartFork[]> {
-                return control.change.requestPartChanges(ctx, id);
+            partForks({ id }: Change, args, ctx: GqlContext): Promise<ChangePartFork[]> {
+                return control.change.partChanges(ctx, id);
             },
-            partRevisions(
-                { id }: ChangeRequest,
-                args,
-                ctx: GqlContext
-            ): Promise<ChangePartRevision[]> {
-                return control.change.requestPartRevisions(ctx, id);
+            partRevisions({ id }: Change, args, ctx: GqlContext): Promise<ChangePartRevision[]> {
+                return control.change.partRevisions(ctx, id);
             },
-            reviews({ id }: ChangeRequest, args, ctx: GqlContext): Promise<ChangeReview[]> {
-                return control.change.requestReviews(ctx, id);
+            reviews({ id }: Change, args, ctx: GqlContext): Promise<ChangeReview[]> {
+                return control.change.reviews(ctx, id);
             },
 
-            createdParts({ id }: ChangeRequest, args, ctx: GqlContext): Promise<Part[]> {
-                return control.change.requestCreatedParts(ctx, id);
+            createdParts({ id }: Change, args, ctx: GqlContext): Promise<Part[]> {
+                return control.change.createdParts(ctx, id);
             },
-            revisedParts({ id }: ChangeRequest, args, ctx: GqlContext): Promise<PartRevision[]> {
-                return control.change.requestRevisedParts(ctx, id);
+            revisedParts({ id }: Change, args, ctx: GqlContext): Promise<PartRevision[]> {
+                return control.change.revisedParts(ctx, id);
             },
 
             ...resolveTracked,
         },
         Query: {
-            changeRequest(parent, { id }: { id: Id }, ctx: GqlContext): Promise<ChangeRequest> {
-                return control.change.request(ctx, id);
+            change(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Change> {
+                return control.change.change(ctx, id);
             },
         },
         Mutation: {
-            changeRequestCreate(
+            changeCreate(
                 parent,
-                { input }: { input: ChangeRequestInput },
+                { input }: { input: ChangeInput },
                 ctx: GqlContext
-            ): Promise<ChangeRequest> {
-                return control.change.requestCreate(ctx, input);
+            ): Promise<Change> {
+                return control.change.create(ctx, input);
             },
 
-            changeRequestUpdate(
+            changeUpdate(
                 parent,
-                { id, input }: { id: Id; input: ChangeRequestUpdateInput },
+                { id, input }: { id: Id; input: ChangeUpdateInput },
                 ctx: GqlContext
-            ): Promise<ChangeRequest> {
-                return control.change.requestUpdate(ctx, id, input);
+            ): Promise<Change> {
+                return control.change.update(ctx, id, input);
             },
 
-            changeRequestSubmit(parent, { id }: HasId, ctx: GqlContext): Promise<ChangeRequest> {
-                return control.change.requestSubmit(ctx, id);
+            changeSubmit(parent, { id }: HasId, ctx: GqlContext): Promise<Change> {
+                return control.change.submit(ctx, id);
             },
 
-            changeRequestWithdraw(parent, { id }: HasId, ctx: GqlContext): Promise<ChangeRequest> {
-                return control.change.requestWithdraw(ctx, id);
+            changeWithdraw(parent, { id }: HasId, ctx: GqlContext): Promise<Change> {
+                return control.change.withdraw(ctx, id);
             },
 
-            changeRequestReview(
+            changeReview(
                 parent,
                 { id, input }: { id: Id; input: ChangeReviewInput },
                 ctx: GqlContext
             ): Promise<ChangeReview> {
-                return control.change.requestReview(ctx, id, input);
+                return control.change.review(ctx, id, input);
             },
 
-            changeRequestApprove(
-                parent,
-                { id }: ChangeRequest,
-                ctx: GqlContext
-            ): Promise<ChangeRequest> {
-                return control.change.requestApprove(ctx, id);
+            changeApprove(parent, { id }: Change, ctx: GqlContext): Promise<Change> {
+                return control.change.approve(ctx, id);
             },
 
-            changeRequestCancel(
-                parent,
-                { id }: ChangeRequest,
-                ctx: GqlContext
-            ): Promise<ChangeRequest> {
-                return control.change.requestCancel(ctx, id);
+            changeCancel(parent, { id }: Change, ctx: GqlContext): Promise<Change> {
+                return control.change.cancel(ctx, id);
             },
         },
     };
