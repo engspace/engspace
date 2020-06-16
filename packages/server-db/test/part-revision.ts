@@ -7,7 +7,7 @@ describe('#PartRevisionDao', function () {
     let users;
     let family;
     let part;
-    let req;
+    let cr1;
     before('create deps', async function () {
         return pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
@@ -19,7 +19,7 @@ describe('#PartRevisionDao', function () {
     this.beforeEach(function () {
         return pool.transaction(async (db) => {
             part = await th.createPart(db, family, users.a, { ref: 'P001.A' });
-            req = await th.createChangeRequest(db, users.a, 'CR-001');
+            cr1 = await th.createChangeRequest(db, users.a, 'CR-001');
         });
     });
 
@@ -35,7 +35,7 @@ describe('#PartRevisionDao', function () {
                     designation: 'Part 1',
                     cycle: PartCycle.Edition,
                     userId: users.a.id,
-                    changeRequestId: req.id,
+                    changeRequestId: cr1.id,
                 });
             });
             expect(pr.id).to.be.a(idType);
@@ -55,13 +55,13 @@ describe('#PartRevisionDao', function () {
             return pool.transaction(async (db) => {
                 partRevs = [];
                 partRevs.push(
-                    await th.createPartRev(db, part, req, users.a, { cycle: PartCycle.Obsolete })
+                    await th.createPartRev(db, part, cr1, users.a, { cycle: PartCycle.Obsolete })
                 );
                 partRevs.push(
-                    await th.createPartRev(db, part, req, users.a, { cycle: PartCycle.Cancelled })
+                    await th.createPartRev(db, part, cr1, users.a, { cycle: PartCycle.Cancelled })
                 );
                 partRevs.push(
-                    await th.createPartRev(db, part, req, users.a, { cycle: PartCycle.Release })
+                    await th.createPartRev(db, part, cr1, users.a, { cycle: PartCycle.Release })
                 );
             });
         });
@@ -83,16 +83,15 @@ describe('#PartRevisionDao', function () {
     });
 
     describe('#aboveRev1ByChangeRequestId', function () {
-        let reqA: ChangeRequest, reqB: ChangeRequest, reqC: ChangeRequest;
+        let cr2: ChangeRequest, cr3: ChangeRequest;
         let part1a: Part, part1b: Part, part2a: Part, part2b: Part;
         let revs1a: PartRevision[], revs1b: PartRevision[];
         let revs2a: PartRevision[], revs2b: PartRevision[];
 
         this.beforeEach(function () {
             return pool.transaction(async (db) => {
-                reqA = req;
-                reqB = await th.createChangeRequest(db, users.a, 'CR-002');
-                reqC = await th.createChangeRequest(db, users.a, 'CR-003');
+                cr2 = await th.createChangeRequest(db, users.a, 'CR-002');
+                cr3 = await th.createChangeRequest(db, users.a, 'CR-003');
                 part1a = part;
                 part1b = await th.createPart(db, family, users.a, {
                     ref: 'P001.B',
@@ -104,22 +103,22 @@ describe('#PartRevisionDao', function () {
                     ref: 'P002.B',
                 });
                 revs1a = [
-                    await th.createPartRev(db, part1a, reqA, users.a),
-                    await th.createPartRev(db, part1a, reqB, users.a),
-                    await th.createPartRev(db, part1a, reqC, users.a),
+                    await th.createPartRev(db, part1a, cr2, users.a),
+                    await th.createPartRev(db, part1a, cr2, users.a),
+                    await th.createPartRev(db, part1a, cr3, users.a),
                 ];
                 revs1b = [
-                    await th.createPartRev(db, part1b, reqB, users.a),
-                    await th.createPartRev(db, part1b, reqC, users.a),
+                    await th.createPartRev(db, part1b, cr2, users.a),
+                    await th.createPartRev(db, part1b, cr3, users.a),
                 ];
                 revs2a = [
-                    await th.createPartRev(db, part2a, reqA, users.a),
-                    await th.createPartRev(db, part2a, reqB, users.a),
-                    await th.createPartRev(db, part2a, reqC, users.a),
+                    await th.createPartRev(db, part2a, cr2, users.a),
+                    await th.createPartRev(db, part2a, cr2, users.a),
+                    await th.createPartRev(db, part2a, cr3, users.a),
                 ];
                 revs2b = [
-                    await th.createPartRev(db, part2b, reqB, users.a),
-                    await th.createPartRev(db, part2b, reqC, users.a),
+                    await th.createPartRev(db, part2b, cr2, users.a),
+                    await th.createPartRev(db, part2b, cr3, users.a),
                 ];
             });
         });
@@ -127,9 +126,9 @@ describe('#PartRevisionDao', function () {
 
         it('should get all revisions above 1 for a change request', async function () {
             const { revsA, revsB, revsC } = await pool.connect(async (db) => {
-                const revsA = await dao.partRevision.aboveRev1ByChangeRequestId(db, reqA.id);
-                const revsB = await dao.partRevision.aboveRev1ByChangeRequestId(db, reqB.id);
-                const revsC = await dao.partRevision.aboveRev1ByChangeRequestId(db, reqC.id);
+                const revsA = await dao.partRevision.aboveRev1ByChangeRequestId(db, cr2.id);
+                const revsB = await dao.partRevision.aboveRev1ByChangeRequestId(db, cr2.id);
+                const revsC = await dao.partRevision.aboveRev1ByChangeRequestId(db, cr3.id);
                 return { revsA, revsB, revsC };
             });
             expect(revsA).to.be.empty;
@@ -146,7 +145,7 @@ describe('#PartRevisionDao', function () {
     describe('#updateCycleState', function () {
         let partRev;
         beforeEach(async function () {
-            partRev = await th.transacPartRev(part, req, users.a, {
+            partRev = await th.transacPartRev(part, cr1, users.a, {
                 cycle: PartCycle.Edition,
             });
         });

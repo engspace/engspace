@@ -8,31 +8,31 @@ import { buildGqlServer, pool, th } from '.';
 describe('GraphQL ChangeRequest - Queries', function () {
     let users;
     let fam;
-    let oldReq;
+    let cr1;
     let parts;
-    let req;
+    let cr2;
     before(async function () {
         return pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
             fam = await th.createPartFamily(db);
-            oldReq = await th.createChangeRequest(db, users.a, 'CR-001');
+            cr1 = await th.createChangeRequest(db, users.a, 'CR-001');
             parts = {
                 p1: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P001.A', designation: 'PART 1' },
-                    { withRev1: { changeRequest: oldReq }, bumpFamCounter: true }
+                    { withRev1: { changeRequest: cr1 }, bumpFamCounter: true }
                 ),
                 p2: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P002.A', designation: 'PART 2' },
-                    { withRev1: { changeRequest: oldReq }, bumpFamCounter: true }
+                    { withRev1: { changeRequest: cr1 }, bumpFamCounter: true }
                 ),
             };
-            req = await th.createChangeRequest(db, users.a, 'CR-002', {
+            cr2 = await th.createChangeRequest(db, users.a, 'CR-002', {
                 description: 'A change request',
                 partCreations: [
                     {
@@ -93,13 +93,13 @@ describe('GraphQL ChangeRequest - Queries', function () {
                 return query({
                     query: CHANGEREQ_READ,
                     variables: {
-                        id: req.id,
+                        id: cr2.id,
                     },
                 });
             });
             expect(errors).to.be.undefined;
             expect(data.changeRequest).to.containSubset({
-                id: req.id,
+                id: cr2.id,
                 description: 'A change request',
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
@@ -156,7 +156,7 @@ describe('GraphQL ChangeRequest - Queries', function () {
                 return query({
                     query: CHANGEREQ_READ,
                     variables: {
-                        id: req.id,
+                        id: cr2.id,
                     },
                 });
             });

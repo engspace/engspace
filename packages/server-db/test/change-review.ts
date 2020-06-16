@@ -5,11 +5,11 @@ import { dao, pool, th } from '.';
 
 describe('#ChangeReviewDao', function () {
     let users;
-    let req;
+    let cr;
     before(async function () {
         await pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
-            req = await th.createChangeRequest(db, users.a);
+            cr = await th.createChangeRequest(db, users.a);
         });
     });
     after(th.cleanTables(['change_request', 'user']));
@@ -20,13 +20,13 @@ describe('#ChangeReviewDao', function () {
         it('should create a ChangeReview', async function () {
             const rev = await pool.transaction(async (db) => {
                 return dao.changeReview.create(db, {
-                    requestId: req.id,
+                    requestId: cr.id,
                     assigneeId: users.b.id,
                     userId: users.a.id,
                 });
             });
             expect(rev).to.deep.include({
-                request: { id: req.id },
+                request: { id: cr.id },
                 assignee: { id: users.b.id },
                 decision: ApprovalDecision.Pending,
                 comments: null,
@@ -37,14 +37,14 @@ describe('#ChangeReviewDao', function () {
         it('should create a ChangeReview with decision', async function () {
             const rev = await pool.transaction(async (db) => {
                 return dao.changeReview.create(db, {
-                    requestId: req.id,
+                    requestId: cr.id,
                     assigneeId: users.b.id,
                     userId: users.a.id,
                     decision: ApprovalDecision.Reserved,
                 });
             });
             expect(rev).to.deep.include({
-                request: { id: req.id },
+                request: { id: cr.id },
                 assignee: { id: users.b.id },
                 decision: ApprovalDecision.Reserved,
                 comments: null,
@@ -55,7 +55,7 @@ describe('#ChangeReviewDao', function () {
         it('should create a ChangeReview with decision and comments', async function () {
             const rev = await pool.transaction(async (db) => {
                 return dao.changeReview.create(db, {
-                    requestId: req.id,
+                    requestId: cr.id,
                     assigneeId: users.b.id,
                     userId: users.a.id,
                     decision: ApprovalDecision.Reserved,
@@ -63,7 +63,7 @@ describe('#ChangeReviewDao', function () {
                 });
             });
             expect(rev).to.deep.include({
-                request: { id: req.id },
+                request: { id: cr.id },
                 assignee: { id: users.b.id },
                 decision: ApprovalDecision.Reserved,
                 comments: 'Some comment',
@@ -76,24 +76,24 @@ describe('#ChangeReviewDao', function () {
         let reviews;
         before(async function () {
             return pool.transaction(async (db) => {
-                reviews = [await th.createChangeReview(db, req, users.a, users.b)];
+                reviews = [await th.createChangeReview(db, cr, users.a, users.b)];
             });
         });
 
         after(th.cleanTable('change_review'));
 
         it('should read ChangeReview by request id', async function () {
-            const cr = await pool.connect(async (db) => {
-                return dao.changeReview.byRequestId(db, req.id);
+            const req = await pool.connect(async (db) => {
+                return dao.changeReview.byRequestId(db, cr.id);
             });
-            expect(cr).to.have.same.deep.members(reviews);
+            expect(req).to.have.same.deep.members(reviews);
         });
 
         it('should return empty if no ChangeeReview', async function () {
-            const cr = await pool.connect(async (db) => {
+            const req = await pool.connect(async (db) => {
                 return dao.changeReview.byRequestId(db, '-1');
             });
-            expect(cr).to.be.empty;
+            expect(req).to.be.empty;
         });
     });
 
@@ -101,14 +101,14 @@ describe('#ChangeReviewDao', function () {
         let review;
         before(async function () {
             return pool.transaction(async (db) => {
-                review = await th.createChangeReview(db, req, users.a, users.b);
+                review = await th.createChangeReview(db, cr, users.a, users.b);
             });
         });
         after(th.cleanTable('change_review'));
 
         it('should read ChangeReview by request and assignee id', async function () {
             const rc = await pool.connect(async (db) => {
-                return dao.changeReview.byRequestAndAssigneeId(db, req.id, users.a.id);
+                return dao.changeReview.byRequestAndAssigneeId(db, cr.id, users.a.id);
             });
             expect(rc).to.deep.include({
                 id: review.id,
@@ -118,7 +118,7 @@ describe('#ChangeReviewDao', function () {
 
         it('should return null if no review for user and change request', async function () {
             const rc = await pool.connect(async (db) => {
-                return dao.changeReview.byRequestAndAssigneeId(db, req.id, users.b.id);
+                return dao.changeReview.byRequestAndAssigneeId(db, cr.id, users.b.id);
             });
             expect(rc).to.be.null;
         });
@@ -128,7 +128,7 @@ describe('#ChangeReviewDao', function () {
         let review;
         beforeEach(async function () {
             return pool.transaction(async (db) => {
-                review = await th.createChangeReview(db, req, users.a, users.b);
+                review = await th.createChangeReview(db, cr, users.a, users.b);
             });
         });
         afterEach(th.cleanTable('change_review'));
