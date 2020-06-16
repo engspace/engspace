@@ -14,15 +14,17 @@ import {
 
 interface Row extends TrackedRow {
     id: RowId;
+    name: string;
     description?: string;
     cycle: string;
     state?: ApprovalDecision;
 }
 
 function mapRow(row: Row): ChangeRequest {
-    const { id, description, cycle, state } = row;
+    const { id, name, description, cycle, state } = row;
     return {
         id: toId(id),
+        name,
         description,
         cycle: cycle as ChangeRequestCycle,
         state: state as ApprovalDecision,
@@ -32,6 +34,7 @@ function mapRow(row: Row): ChangeRequest {
 
 const rowToken = sql`
     id,
+    name,
     description,
     cycle,
     es_change_request_state(id, cycle) AS state,
@@ -39,6 +42,7 @@ const rowToken = sql`
 `;
 
 export interface ChangeRequestDaoInput {
+    name: string;
     description?: string;
     cycle?: ChangeRequestCycle;
     userId: Id;
@@ -60,15 +64,17 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
 
     async create(
         db: Db,
-        { description, cycle, userId }: ChangeRequestDaoInput
+        { name, description, cycle, userId }: ChangeRequestDaoInput
     ): Promise<ChangeRequest> {
         const row: Row = await db.one(sql`
             INSERT INTO change_request (
+                name,
                 description,
                 cycle,
                 ${tracked.insertListToken}
             )
             VALUES (
+                ${name},
                 ${nullable(description)},
                 ${cycle ?? ChangeRequestCycle.Edition},
                 ${tracked.insertValToken(userId)}
@@ -76,6 +82,14 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
             RETURNING ${rowToken}
         `);
         return mapRow(row);
+    }
+
+    async byName(db: Db, name: string): Promise<ChangeRequest> {
+        const row: Row = await db.maybeOne(sql`
+            UPDATE ${rowToken} FROM change_request
+            WHERE name = ${name}
+        `);
+        return row ? mapRow(row) : null;
     }
 
     async update(

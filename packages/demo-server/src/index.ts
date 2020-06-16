@@ -1,7 +1,7 @@
 import events from 'events';
 import Koa from 'koa';
 import logger from 'koa-logger';
-import { buildDefaultAppRolePolicies, PartRefNaming } from '@engspace/core';
+import { buildDefaultAppRolePolicies, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
 import { buildControllerSet, EsServerApi } from '@engspace/server-api';
 import {
     buildDaoSet,
@@ -82,7 +82,10 @@ function buildServerApi(pool: DbPool): EsServerApi {
         control,
         dao,
         cors: true,
-        refNaming: new PartRefNaming('${fam_code}${fam_count:4}${part_version:AA}'),
+        naming: {
+            partRef: new PartRefNaming('${fam_code}${fam_count:4}${part_version:AA}'),
+            changeRequest: new ChangeRequestNaming('$CR-${counter:4}'),
+        },
     });
     api.koa.use(logger());
 

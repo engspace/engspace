@@ -43,6 +43,7 @@ export const PARTREV_FIELDS = gql`
 export const CHANGEREQ_DEEPFIELDS = gql`
     fragment ChangeReqDeepFields on ChangeRequest {
         id
+        name
         description
         cycle
         state

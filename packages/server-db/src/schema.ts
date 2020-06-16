@@ -47,6 +47,7 @@ async function createSchema(db: Db): Promise<void> {
     await executeSqlFile(db, sqlPath('2-enums.sql'));
     await executeSqlFile(db, sqlPath('3-schema.sql'));
     await executeSqlFolder(db, sqlPath('4-functions'));
+    await executeSqlFile(db, sqlPath('5-populate.sql'));
 }
 
 interface EnumTable {

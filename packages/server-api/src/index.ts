@@ -7,7 +7,7 @@ import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import { GraphQLSchema } from 'graphql';
 import { DaoSet, Db, DbPool } from '@engspace/server-db';
-import { AppRolePolicies, AuthToken, PartRefNaming } from '@engspace/core';
+import { AppRolePolicies, AuthToken, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
 import { ApiContext, buildControllerSet, ControllerSet } from './control';
 import { verifyJwt } from './crypto';
 import { GqlContext, gqlContextFactory } from './graphql/context';
@@ -21,6 +21,11 @@ import { attachDb, authJwtSecret, setAuthToken } from './internal';
 
 export { ControllerSet, buildControllerSet };
 
+export interface EsNaming {
+    partRef: PartRefNaming;
+    changeRequest: ChangeRequestNaming;
+}
+
 export interface EsServerConfig {
     rolePolicies: AppRolePolicies;
     storePath: string;
@@ -28,7 +33,7 @@ export interface EsServerConfig {
     dao: DaoSet;
     control: ControllerSet;
     cors: boolean;
-    refNaming: PartRefNaming;
+    naming: EsNaming;
     // this is for playground only
     sessionKeys?: string[];
 }

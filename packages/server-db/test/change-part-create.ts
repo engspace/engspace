@@ -3,12 +3,12 @@ import { dao, pool, th } from '.';
 
 describe('#ChangePartCreateDao', function () {
     let users;
-    let req;
+    let cr1;
     let fam;
     before(async function () {
         await pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
-            req = await th.createChangeRequest(db, users.a);
+            cr1 = await th.createChangeRequest(db, users.a);
             fam = await th.createPartFamily(db);
         });
     });
@@ -20,14 +20,14 @@ describe('#ChangePartCreateDao', function () {
         it('should create a ChangePartCreate', async function () {
             const cpc = await pool.transaction(async (db) => {
                 return dao.changePartCreate.create(db, {
-                    requestId: req.id,
+                    requestId: cr1.id,
                     familyId: fam.id,
                     version: 'A',
                     designation: 'NEW PART',
                 });
             });
             expect(cpc).to.deep.include({
-                request: { id: req.id },
+                request: { id: cr1.id },
                 family: { id: fam.id },
                 version: 'A',
                 designation: 'NEW PART',
@@ -40,11 +40,11 @@ describe('#ChangePartCreateDao', function () {
         before(async function () {
             return pool.transaction(async (db) => {
                 partCreations = [
-                    await th.createChangePartCreate(db, req, fam, {
+                    await th.createChangePartCreate(db, cr1, fam, {
                         designation: 'PART A',
                         version: 'A',
                     }),
-                    await th.createChangePartCreate(db, req, fam, {
+                    await th.createChangePartCreate(db, cr1, fam, {
                         designation: 'PART B',
                         version: 'B',
                         comments: 'Some comment about part B',
@@ -57,7 +57,7 @@ describe('#ChangePartCreateDao', function () {
 
         it('should read ChangePartCreate by request id', async function () {
             const cpc = await pool.connect(async (db) => {
-                return dao.changePartCreate.byRequestId(db, req.id);
+                return dao.changePartCreate.byRequestId(db, cr1.id);
             });
             expect(cpc).to.have.same.deep.members(partCreations);
         });
@@ -71,17 +71,17 @@ describe('#ChangePartCreateDao', function () {
     });
 
     describe('#checkRequestId', function () {
-        let req2;
+        let cr2;
         let partCreations;
         before(async function () {
             return pool.transaction(async (db) => {
-                req2 = await th.createChangeRequest(db, users.a);
+                cr2 = await th.createChangeRequest(db, users.a, 'CR-002');
                 partCreations = [
-                    await th.createChangePartCreate(db, req, fam, {
+                    await th.createChangePartCreate(db, cr1, fam, {
                         designation: 'PART A',
                         version: 'A',
                     }),
-                    await th.createChangePartCreate(db, req2, fam, {
+                    await th.createChangePartCreate(db, cr2, fam, {
                         designation: 'PART B',
                         version: 'B',
                     }),
@@ -92,7 +92,7 @@ describe('#ChangePartCreateDao', function () {
         after(th.cleanTable('change_part_create'));
         after(async function () {
             return pool.transaction(async (db) => {
-                return dao.changeRequest.deleteById(db, req2.id);
+                return dao.changeRequest.deleteById(db, cr2.id);
             });
         });
 
@@ -101,8 +101,8 @@ describe('#ChangePartCreateDao', function () {
                 paReqId: await dao.changePartCreate.checkRequestId(db, partCreations[0].id),
                 pbReqId: await dao.changePartCreate.checkRequestId(db, partCreations[1].id),
             }));
-            expect(paReqId).to.eql(req.id);
-            expect(pbReqId).to.eql(req2.id);
+            expect(paReqId).to.eql(cr1.id);
+            expect(pbReqId).to.eql(cr2.id);
         });
     });
 });

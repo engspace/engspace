@@ -92,14 +92,14 @@ describe('#PartDao', function () {
     });
 
     describe('#whoseRev1IsCreatedBy', function () {
-        let reqA: ChangeRequest, reqB: ChangeRequest;
+        let cr1: ChangeRequest, cr2: ChangeRequest;
         let part1a: Part, part1b: Part;
         let part2a: Part, part2b: Part;
 
         this.beforeEach(function () {
             return pool.transaction(async (db) => {
-                reqA = await th.createChangeRequest(db, users.a);
-                reqB = await th.createChangeRequest(db, users.a);
+                cr1 = await th.createChangeRequest(db, users.a, 'CR-001');
+                cr2 = await th.createChangeRequest(db, users.a, 'CR-002');
                 part1a = await th.createPart(
                     db,
                     family,
@@ -107,7 +107,7 @@ describe('#PartDao', function () {
                     {
                         ref: 'P001.A',
                     },
-                    { withRev1: true, changeRequest: reqA, bumpFamCounter: false }
+                    { withRev1: { changeRequest: cr1 }, bumpFamCounter: false }
                 );
                 part1b = await th.createPart(
                     db,
@@ -116,7 +116,7 @@ describe('#PartDao', function () {
                     {
                         ref: 'P001.B',
                     },
-                    { withRev1: true, changeRequest: reqB, bumpFamCounter: false }
+                    { withRev1: { changeRequest: cr2 }, bumpFamCounter: false }
                 );
                 part2a = await th.createPart(
                     db,
@@ -125,7 +125,7 @@ describe('#PartDao', function () {
                     {
                         ref: 'P002.A',
                     },
-                    { withRev1: true, changeRequest: reqA, bumpFamCounter: false }
+                    { withRev1: { changeRequest: cr1 }, bumpFamCounter: false }
                 );
                 part2b = await th.createPart(
                     db,
@@ -134,7 +134,7 @@ describe('#PartDao', function () {
                     {
                         ref: 'P002.B',
                     },
-                    { withRev1: true, changeRequest: reqB, bumpFamCounter: false }
+                    { withRev1: { changeRequest: cr2 }, bumpFamCounter: false }
                 );
             });
         });
@@ -142,10 +142,10 @@ describe('#PartDao', function () {
 
         it('should get all parts whose rev1 created by request', async function () {
             const partsA = await pool.connect(async (db) => {
-                return dao.part.whoseRev1IsCreatedBy(db, reqA.id);
+                return dao.part.whoseRev1IsCreatedBy(db, cr1.id);
             });
             const partsB = await pool.connect(async (db) => {
-                return dao.part.whoseRev1IsCreatedBy(db, reqB.id);
+                return dao.part.whoseRev1IsCreatedBy(db, cr2.id);
             });
             expect(partsA).to.containSubset([
                 {

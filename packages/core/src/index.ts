@@ -10,11 +10,13 @@ export {
 } from './permissions';
 export {
     BadRefNamingFormatError,
-    FamilyCounterLimitError,
+    NamingCounterLimitError,
     PartRefNaming,
-    PartRefParts,
-    RefNameFormatMismatchError,
-} from './ref-naming';
+    PartRefComps,
+    PartRefFormatMismatchError,
+    ChangeRequestNaming,
+    ChangeRequestComps,
+} from './naming';
 export { arraysHaveSameMembers, arraysHaveSameMembersMut, CharIterator } from './util';
 export {
     BadVersionFormatError,
@@ -288,6 +290,7 @@ export interface ChangeReview extends Tracked {
 
 export interface ChangeRequest extends Tracked {
     id: Id;
+    name: string;
     description?: string;
     cycle: ChangeRequestCycle;
     state?: ApprovalDecision;

@@ -16,6 +16,7 @@ import { PartValidationDao } from './part-validation';
 import { ProjectDao } from './project';
 import { ProjectMemberDao } from './project-member';
 import { UserDao } from './user';
+import { GlobalCounterDao } from './global-counter';
 
 export { ChangePartForkDaoInput } from './change-part-fork';
 export { ChangePartCreateDaoInput } from './change-part-create';
@@ -37,6 +38,7 @@ export {
     PartValidationDao,
     ProjectDao,
     UserDao,
+    GlobalCounterDao,
 };
 
 /**
@@ -55,6 +57,7 @@ export interface Dao<T extends HasId> {
 }
 
 export interface DaoSet {
+    globalCounter: GlobalCounterDao;
     user: UserDao;
     login: LoginDao;
     project: ProjectDao;
@@ -75,6 +78,7 @@ export interface DaoSet {
 
 export function buildDaoSet(custom: Partial<DaoSet> = {}): DaoSet {
     return {
+        globalCounter: custom.globalCounter ?? new GlobalCounterDao(),
         user: custom.user ?? new UserDao(),
         login: custom.login ?? new LoginDao(),
         project: custom.project ?? new ProjectDao(),

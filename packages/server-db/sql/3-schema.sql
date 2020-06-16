@@ -3,6 +3,10 @@ CREATE TABLE metadata (
     application_id text
 );
 
+CREATE TABLE global_counter (
+    change_request integer NOT NULL
+);
+
 CREATE TABLE "user" (
     id serial PRIMARY KEY,
     name text NOT NULL UNIQUE,
@@ -60,6 +64,7 @@ CREATE TABLE part_family (
 
 CREATE TABLE change_request (
     id serial PRIMARY KEY,
+    name text NOT NULL,
     description text,
     cycle text NOT NULL,
 
@@ -67,6 +72,9 @@ CREATE TABLE change_request (
     created_at timestamptz NOT NULL,
     updated_by integer NOT NULL,
     updated_at timestamptz NOT NULL,
+
+    UNIQUE(name),
+    CHECK(LENGTH(name) > 0),
 
     FOREIGN KEY(cycle) REFERENCES change_request_cycle_enum(id),
     FOREIGN KEY(created_by) REFERENCES "user"(id),

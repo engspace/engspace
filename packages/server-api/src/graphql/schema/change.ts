@@ -138,6 +138,7 @@ export const typeDefs = gql`
     """
     type ChangeRequest implements Tracked {
         id: ID!
+        name: String!
         description: String
         cycle: ChangeRequestCycle!
         state: ApprovalDecision
