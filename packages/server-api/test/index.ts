@@ -27,6 +27,7 @@ import {
     AuthToken,
     buildDefaultAppRolePolicies,
     PartRefNaming,
+    ChangeRequestNaming,
 } from '@engspace/core';
 import { EsServerApi } from '../src';
 import { buildControllerSet } from '../src/control';
@@ -89,6 +90,7 @@ export const api = new EsServerApi(new Koa(), {
     cors: true,
     naming: {
         partRef: new PartRefNaming('${fam_code}${fam_count:3}.${part_version:A}'),
+        changeRequest: new ChangeRequestNaming('CR-${counter:3}'),
     },
 });
 

@@ -15,24 +15,24 @@ describe('GraphQL ChangeRequest - Queries', function () {
         return pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
             fam = await th.createPartFamily(db);
-            oldReq = await th.createChangeRequest(db, users.a);
+            oldReq = await th.createChangeRequest(db, users.a, 'CR-001');
             parts = {
                 p1: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P001.A', designation: 'PART 1' },
-                    { withRev1: true, changeRequest: oldReq, bumpFamCounter: true }
+                    { withRev1: { changeRequest: oldReq }, bumpFamCounter: true }
                 ),
                 p2: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P002.A', designation: 'PART 2' },
-                    { withRev1: true, changeRequest: oldReq, bumpFamCounter: true }
+                    { withRev1: { changeRequest: oldReq }, bumpFamCounter: true }
                 ),
             };
-            req = await th.createChangeRequest(db, users.a, {
+            req = await th.createChangeRequest(db, users.a, 'CR-002', {
                 description: 'A change request',
                 partCreations: [
                     {

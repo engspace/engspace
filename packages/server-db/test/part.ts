@@ -98,8 +98,8 @@ describe('#PartDao', function () {
 
         this.beforeEach(function () {
             return pool.transaction(async (db) => {
-                reqA = await th.createChangeRequest(db, users.a);
-                reqB = await th.createChangeRequest(db, users.a);
+                reqA = await th.createChangeRequest(db, users.a, 'CR-001');
+                reqB = await th.createChangeRequest(db, users.a, 'CR-002');
                 part1a = await th.createPart(
                     db,
                     family,
@@ -107,7 +107,7 @@ describe('#PartDao', function () {
                     {
                         ref: 'P001.A',
                     },
-                    { withRev1: true, changeRequest: reqA, bumpFamCounter: false }
+                    { withRev1: { changeRequest: reqA }, bumpFamCounter: false }
                 );
                 part1b = await th.createPart(
                     db,
@@ -116,7 +116,7 @@ describe('#PartDao', function () {
                     {
                         ref: 'P001.B',
                     },
-                    { withRev1: true, changeRequest: reqB, bumpFamCounter: false }
+                    { withRev1: { changeRequest: reqB }, bumpFamCounter: false }
                 );
                 part2a = await th.createPart(
                     db,
@@ -125,7 +125,7 @@ describe('#PartDao', function () {
                     {
                         ref: 'P002.A',
                     },
-                    { withRev1: true, changeRequest: reqA, bumpFamCounter: false }
+                    { withRev1: { changeRequest: reqA }, bumpFamCounter: false }
                 );
                 part2b = await th.createPart(
                     db,
@@ -134,7 +134,7 @@ describe('#PartDao', function () {
                     {
                         ref: 'P002.B',
                     },
-                    { withRev1: true, changeRequest: reqB, bumpFamCounter: false }
+                    { withRev1: { changeRequest: reqB }, bumpFamCounter: false }
                 );
             });
         });

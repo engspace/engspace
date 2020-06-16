@@ -75,7 +75,7 @@ describe('#ChangePartCreateDao', function () {
         let partCreations;
         before(async function () {
             return pool.transaction(async (db) => {
-                req2 = await th.createChangeRequest(db, users.a);
+                req2 = await th.createChangeRequest(db, users.a, 'CR-002');
                 partCreations = [
                     await th.createChangePartCreate(db, req, fam, {
                         designation: 'PART A',

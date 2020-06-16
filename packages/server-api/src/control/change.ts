@@ -28,6 +28,7 @@ export class ChangeControl {
     async requestCreate(ctx: ApiContext, input: ChangeRequestInput): Promise<ChangeRequest> {
         assertUserPerm(ctx, 'change.create');
         const {
+            config,
             db,
             auth: { userId },
         } = ctx;
@@ -37,7 +38,10 @@ export class ChangeControl {
         if (input.partRevisions?.length > 0) {
             await this.checkPartRevisions(ctx, input.partRevisions);
         }
+        const counter = await this.dao.globalCounter.bumpChangeRequest(db);
+        const name = config.naming.changeRequest.buildName({ counter });
         const req = await this.dao.changeRequest.create(db, {
+            name,
             description: input.description,
             userId,
         });

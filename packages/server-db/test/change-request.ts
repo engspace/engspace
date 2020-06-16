@@ -24,10 +24,12 @@ describe('#ChangeRequestDao', function () {
         it('should create a ChangeRequest', async function () {
             const cr = await pool.transaction(async (db) => {
                 return dao.changeRequest.create(db, {
+                    name: 'CR-001',
                     userId: users.a.id,
                 });
             });
             expect(cr).to.deep.include({
+                name: 'CR-001',
                 description: null,
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
@@ -39,15 +41,17 @@ describe('#ChangeRequestDao', function () {
         it('should create a ChangeRequest with description', async function () {
             const cr = await pool.transaction(async (db) => {
                 return dao.changeRequest.create(db, {
+                    name: 'CR-001',
                     userId: users.a.id,
                     description: 'SUPER CHANGE',
                 });
             });
             expect(cr).to.deep.include({
-                ...trackedBy(users.a),
+                name: 'CR-001',
                 description: 'SUPER CHANGE',
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
+                ...trackedBy(users.a),
             });
             expect(cr.id).to.be.a(idType);
         });
@@ -55,15 +59,17 @@ describe('#ChangeRequestDao', function () {
         it('should create a ChangeRequest with initial cycle', async function () {
             const cr = await pool.transaction(async (db) => {
                 return dao.changeRequest.create(db, {
+                    name: 'CR-001',
                     userId: users.a.id,
                     cycle: ChangeRequestCycle.Validation,
                 });
             });
             expect(cr).to.deep.include({
-                ...trackedBy(users.a),
+                name: 'CR-001',
                 description: null,
                 cycle: ChangeRequestCycle.Validation,
                 state: ApprovalDecision.Approved,
+                ...trackedBy(users.a),
             });
             expect(cr.id).to.be.a(idType);
         });
@@ -74,6 +80,7 @@ describe('#ChangeRequestDao', function () {
         this.beforeEach(async function () {
             cr = await pool.transaction(async (db) => {
                 return dao.changeRequest.create(db, {
+                    name: 'CR-001',
                     description: 'SUPER CHANGE',
                     userId: users.a.id,
                     cycle: ChangeRequestCycle.Validation,
@@ -176,6 +183,7 @@ describe('#ChangeRequestDao', function () {
         this.beforeEach(async function () {
             cr = await pool.transaction(async (db) => {
                 return dao.changeRequest.create(db, {
+                    name: 'CR-001',
                     description: 'SUPER CHANGE',
                     userId: users.a.id,
                     cycle: ChangeRequestCycle.Validation,
@@ -193,6 +201,7 @@ describe('#ChangeRequestDao', function () {
                     });
                 });
                 expect(updated).to.deep.include({
+                    name: 'CR-001',
                     description: 'AWESOME CHANGE',
                     createdBy: { id: users.a.id },
                     updatedBy: { id: users.b.id },
@@ -212,6 +221,7 @@ describe('#ChangeRequestDao', function () {
                     );
                 });
                 expect(updated).to.deep.include({
+                    name: 'CR-001',
                     cycle: ChangeRequestCycle.Approved,
                     createdBy: { id: users.a.id },
                     updatedBy: { id: users.b.id },

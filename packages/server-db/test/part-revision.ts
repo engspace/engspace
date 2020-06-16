@@ -19,7 +19,7 @@ describe('#PartRevisionDao', function () {
     this.beforeEach(function () {
         return pool.transaction(async (db) => {
             part = await th.createPart(db, family, users.a, { ref: 'P001.A' });
-            req = await th.createChangeRequest(db, users.a);
+            req = await th.createChangeRequest(db, users.a, 'CR-001');
         });
     });
 
@@ -90,9 +90,9 @@ describe('#PartRevisionDao', function () {
 
         this.beforeEach(function () {
             return pool.transaction(async (db) => {
-                reqA = await th.createChangeRequest(db, users.a);
-                reqB = await th.createChangeRequest(db, users.a);
-                reqC = await th.createChangeRequest(db, users.a);
+                reqA = req;
+                reqB = await th.createChangeRequest(db, users.a, 'CR-002');
+                reqC = await th.createChangeRequest(db, users.a, 'CR-003');
                 part1a = part;
                 part1b = await th.createPart(db, family, users.a, {
                     ref: 'P001.B',

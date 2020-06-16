@@ -290,6 +290,7 @@ export interface ChangeReview extends Tracked {
 
 export interface ChangeRequest extends Tracked {
     id: Id;
+    name: string;
     description?: string;
     cycle: ChangeRequestCycle;
     state?: ApprovalDecision;

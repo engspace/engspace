@@ -28,7 +28,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
 
     beforeEach(async function () {
         return pool.transaction(async (db) => {
-            oldReq = await th.createChangeRequest(db, users.a);
+            oldReq = await th.createChangeRequest(db, users.a, 'CR-001', {}, { bumpCounter: true });
             await dao.changeRequest.updateCycle(
                 db,
                 oldReq.id,
@@ -41,21 +41,21 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                     fam,
                     users.a,
                     { ref: 'P001.A', designation: 'PART 1' },
-                    { withRev1: false, changeRequest: oldReq, bumpFamCounter: true }
+                    { withRev1: null, bumpFamCounter: true }
                 ),
                 p2: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P002.A', designation: 'PART 2' },
-                    { withRev1: false, changeRequest: oldReq, bumpFamCounter: true }
+                    { withRev1: null, bumpFamCounter: true }
                 ),
                 p3: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P003.A', designation: 'PART 3' },
-                    { withRev1: false, changeRequest: oldReq, bumpFamCounter: true }
+                    { withRev1: null, bumpFamCounter: true }
                 ),
             };
             rev1s = {
@@ -74,6 +74,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
 
     afterEach(th.cleanTables(['part_revision', 'part', 'change_request']));
     afterEach(th.resetFamilyCounters());
+    afterEach(th.resetChangeCounter());
 
     describe('#changeRequestCreate', function () {
         const CHANGEREQ_CREATE = gql`
@@ -122,6 +123,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             });
             expect(errors).to.be.undefined;
             expect(data.changeRequestCreate).to.deep.include({
+                name: 'CR-002',
                 description: null,
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
@@ -157,6 +159,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             });
             expect(errors).to.be.undefined;
             expect(data.changeRequestCreate).to.deep.include({
+                name: 'CR-002',
                 description: 'a revolution',
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
@@ -204,6 +207,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             });
             expect(errors).to.be.undefined;
             expect(data.changeRequestCreate).to.containSubset({
+                name: 'CR-002',
                 description: null,
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
@@ -263,6 +267,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             });
             expect(errors).to.be.undefined;
             expect(data.changeRequestCreate).to.containSubset({
+                name: 'CR-002',
                 description: null,
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
@@ -320,6 +325,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             });
             expect(errors).to.be.undefined;
             expect(data.changeRequestCreate).to.containSubset({
+                name: 'CR-002',
                 description: null,
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
@@ -366,6 +372,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
             });
             expect(errors).to.be.undefined;
             expect(data.changeRequestCreate).to.deep.include({
+                name: 'CR-002',
                 description: null,
                 cycle: ChangeRequestCycle.Edition,
                 state: null,
@@ -478,34 +485,42 @@ describe('GraphQL ChangeRequest - Mutations', function () {
 
         this.beforeEach(async function () {
             return pool.transaction(async (db) => {
-                req = await th.createChangeRequest(db, users.a, {
-                    description: 'A change request',
-                    partCreations: [
-                        {
-                            familyId: fam.id,
-                            designation: 'PART 4',
-                            version: 'A',
-                        },
-                        {
-                            familyId: fam.id,
-                            designation: 'PART 5',
-                            version: 'K',
-                        },
-                    ],
-                    partForks: [
-                        {
-                            partId: parts.p1.id,
-                            version: 'B',
-                            comments: "this part doesn't work",
-                        },
-                    ],
-                    partRevisions: [
-                        {
-                            partId: parts.p2.id,
-                        },
-                    ],
-                    reviewerIds: [users.a.id, users.b.id],
-                });
+                req = await th.createChangeRequest(
+                    db,
+                    users.a,
+                    'CR-002',
+                    {
+                        description: 'A change request',
+                        partCreations: [
+                            {
+                                familyId: fam.id,
+                                designation: 'PART 4',
+                                version: 'A',
+                            },
+                            {
+                                familyId: fam.id,
+                                designation: 'PART 5',
+                                version: 'K',
+                            },
+                        ],
+                        partForks: [
+                            {
+                                partId: parts.p1.id,
+                                version: 'B',
+                                comments: "this part doesn't work",
+                            },
+                        ],
+                        partRevisions: [
+                            {
+                                partId: parts.p2.id,
+                            },
+                        ],
+                        reviewerIds: [users.a.id, users.b.id],
+                    },
+                    {
+                        bumpCounter: true,
+                    }
+                );
                 reviews = {
                     a: await dao.changeReview.byRequestAndAssigneeId(db, req.id, users.a.id),
                     b: await dao.changeReview.byRequestAndAssigneeId(db, req.id, users.b.id),
@@ -598,6 +613,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 });
                 expect(errors).to.be.undefined;
                 expect(data.changeRequestUpdate).to.deep.include({
+                    name: 'CR-002',
                     description: 'An updated change request',
                 });
                 expect(data.changeRequestUpdate.partCreations).to.have.lengthOf(2);
@@ -1471,6 +1487,7 @@ describe('GraphQL ChangeRequest - Mutations', function () {
                 expect(data.changeRequestApprove.revisedParts).to.have.lengthOf(1);
                 expect(data.changeRequestApprove).to.containSubset({
                     id: req.id,
+                    name: 'CR-002',
                     description: 'A change request',
                     cycle: ChangeRequestCycle.Approved,
                     createdParts: [
