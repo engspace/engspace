@@ -6,25 +6,25 @@ import { permsAuth } from './auth';
 import { TRACKED_FIELDS } from './helpers';
 import { buildGqlServer, dao, pool, th } from '.';
 
-const PARTREV_DEEPFIELDS = gql`
-    fragment PartRevDeepFields on PartRevision {
-        id
-        revision
-        cycle
-        designation
-        ...TrackedFields
-        part {
-            id
-            designation
-            ref
-            ...TrackedFields
-            family {
-                id
-            }
-        }
-    }
-    ${TRACKED_FIELDS}
-`;
+// const PARTREV_DEEPFIELDS = gql`
+//     fragment PartRevDeepFields on PartRevision {
+//         id
+//         revision
+//         cycle
+//         designation
+//         ...TrackedFields
+//         part {
+//             id
+//             designation
+//             ref
+//             ...TrackedFields
+//             family {
+//                 id
+//             }
+//         }
+//     }
+//     ${TRACKED_FIELDS}
+// `;
 
 const PARTVAL_DEEPFIELDS = gql`
     fragment PartValDeepFields on PartValidation {

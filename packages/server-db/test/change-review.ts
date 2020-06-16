@@ -1,8 +1,7 @@
 import { expect } from 'chai';
 import { ApprovalDecision } from '@engspace/core';
-import { trackedBy } from '../src';
+import { trackedBy, expTrackedTime } from '../src';
 import { dao, pool, th } from '.';
-import { expTrackedTime } from '../dist';
 
 describe('#ChangeReviewDao', function () {
     let users;
