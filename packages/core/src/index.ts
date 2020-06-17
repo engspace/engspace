@@ -61,9 +61,11 @@ export enum ValidationResult {
 }
 
 export enum ChangeCycle {
-    Edition = 'EDITION',
+    Preparation = 'PREPARATION',
+    Evaluation = 'EVALUATION',
+    Engineering = 'ENGINEERING',
     Validation = 'VALIDATION',
-    Approved = 'APPROVED',
+    Release = 'RELEASE',
     Cancelled = 'CANCELLED',
 }
 

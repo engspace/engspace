@@ -29,7 +29,7 @@ describe('GraphQL Change - Mutations', function () {
     beforeEach(async function () {
         return pool.transaction(async (db) => {
             cr1 = await th.createChange(db, users.a, 'CR-001', {}, { bumpCounter: true });
-            await dao.change.updateCycle(db, cr1.id, ChangeCycle.Approved, users.a.id);
+            await dao.change.updateCycle(db, cr1.id, ChangeCycle.Engineering, users.a.id);
             parts = {
                 p1: await th.createPart(
                     db,
@@ -120,7 +120,7 @@ describe('GraphQL Change - Mutations', function () {
             expect(data.changeCreate).to.deep.include({
                 name: 'CR-002',
                 description: null,
-                cycle: ChangeCycle.Edition,
+                cycle: ChangeCycle.Preparation,
                 state: null,
                 partCreations: [],
                 partForks: [],
@@ -156,7 +156,7 @@ describe('GraphQL Change - Mutations', function () {
             expect(data.changeCreate).to.deep.include({
                 name: 'CR-002',
                 description: 'a revolution',
-                cycle: ChangeCycle.Edition,
+                cycle: ChangeCycle.Preparation,
                 state: null,
                 partCreations: [],
                 partForks: [],
@@ -204,7 +204,7 @@ describe('GraphQL Change - Mutations', function () {
             expect(data.changeCreate).to.containSubset({
                 name: 'CR-002',
                 description: null,
-                cycle: ChangeCycle.Edition,
+                cycle: ChangeCycle.Preparation,
                 state: null,
                 partCreations: [
                     {
@@ -264,7 +264,7 @@ describe('GraphQL Change - Mutations', function () {
             expect(data.changeCreate).to.containSubset({
                 name: 'CR-002',
                 description: null,
-                cycle: ChangeCycle.Edition,
+                cycle: ChangeCycle.Preparation,
                 state: null,
                 partCreations: [],
                 partRevisions: [],
@@ -322,7 +322,7 @@ describe('GraphQL Change - Mutations', function () {
             expect(data.changeCreate).to.containSubset({
                 name: 'CR-002',
                 description: null,
-                cycle: ChangeCycle.Edition,
+                cycle: ChangeCycle.Preparation,
                 state: null,
                 partCreations: [],
                 partForks: [],
@@ -369,7 +369,7 @@ describe('GraphQL Change - Mutations', function () {
             expect(data.changeCreate).to.deep.include({
                 name: 'CR-002',
                 description: null,
-                cycle: ChangeCycle.Edition,
+                cycle: ChangeCycle.Preparation,
                 state: null,
                 partCreations: [],
                 partForks: [],
@@ -929,7 +929,7 @@ describe('GraphQL Change - Mutations', function () {
                 }));
                 expect(data.changeSubmit).to.containSubset({
                     description: cr2.description,
-                    cycle: ChangeCycle.Validation,
+                    cycle: ChangeCycle.Evaluation,
                     partCreations,
                     partForks,
                     partRevisions,
@@ -960,9 +960,9 @@ describe('GraphQL Change - Mutations', function () {
                 expect(errors[0].message).to.contain('change.update');
             });
 
-            it('should not submit a change that is in APPROVED state', async function () {
+            it('should not submit a change that is in ENGINEERING state', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Approved, users.a.id);
+                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Engineering, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -981,10 +981,10 @@ describe('GraphQL Change - Mutations', function () {
                     });
                 });
                 expect(errors).to.not.be.empty;
-                expect(errors[0].message).to.contain('APPROVED');
+                expect(errors[0].message).to.contain('ENGINEERING');
             });
 
-            it('should not start a change validation from unauthorized user', async function () {
+            it('should not start a change EVALUATION from unauthorized user', async function () {
                 const { errors } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
@@ -1028,7 +1028,7 @@ describe('GraphQL Change - Mutations', function () {
 
             this.beforeEach('switch to validation mode', async function () {
                 return pool.transaction((db) =>
-                    dao.change.updateCycle(db, cr2.id, ChangeCycle.Validation, users.a.id)
+                    dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id)
                 );
             });
 
@@ -1165,7 +1165,7 @@ describe('GraphQL Change - Mutations', function () {
                 expect(errors[0].message).to.contain('change.review');
             });
 
-            it('should not review a change.change if not assigned', async function () {
+            it('should not review a change if not assigned', async function () {
                 const { errors } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
@@ -1191,9 +1191,9 @@ describe('GraphQL Change - Mutations', function () {
                 expect(errors[0].message).to.contain(users.c.fullName);
             });
 
-            it('should not allow to review a change not in validation', async function () {
+            it('should not allow to review a change not in EVALUATION', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Edition, users.a.id);
+                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Preparation, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1231,7 +1231,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should withdraw a change', async function () {
                 const { errors, data } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Validation, users.a.id);
+                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1255,11 +1255,11 @@ describe('GraphQL Change - Mutations', function () {
                 expect(data.changeWithdraw).to.containSubset({
                     id: cr2.id,
                     description: 'A change',
-                    cycle: ChangeCycle.Edition,
+                    cycle: ChangeCycle.Preparation,
                 });
             });
 
-            it('should not withdraw a change from EDITION cycle', async function () {
+            it('should not withdraw a change from PREPARATION cycle', async function () {
                 const { errors } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
@@ -1281,12 +1281,12 @@ describe('GraphQL Change - Mutations', function () {
                     });
                 });
                 expect(errors).to.not.be.undefined;
-                expect(errors[0].message).to.contain('EDITION');
+                expect(errors[0].message).to.contain('PREPARATION');
             });
 
-            it('should not withdraw a change from APPROVED cycle', async function () {
+            it('should not withdraw a change from ENGINEERING cycle', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Approved, users.a.id);
+                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Engineering, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1307,7 +1307,7 @@ describe('GraphQL Change - Mutations', function () {
                     });
                 });
                 expect(errors).to.not.be.undefined;
-                expect(errors[0].message).to.contain('APPROVED');
+                expect(errors[0].message).to.contain('ENGINEERING');
             });
 
             it('should not withdraw a change from CANCELLED cycle', async function () {
@@ -1338,7 +1338,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should not withdraw a change without "change.update"', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Validation, users.a.id);
+                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1363,7 +1363,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should not withdraw a change from unauthorized editor', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Validation, users.a.id);
+                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.c, [
@@ -1401,7 +1401,7 @@ describe('GraphQL Change - Mutations', function () {
             it('should approve a change', async function () {
                 const { errors, data } = await pool.transaction(async (db) => {
                     await Promise.all([
-                        dao.change.updateCycle(db, cr2.id, ChangeCycle.Validation, users.a.id),
+                        dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id),
                         dao.changeReview.update(db, reviews.a.id, {
                             decision: ApprovalDecision.Approved,
                             userId: users.a.id,
@@ -1437,7 +1437,7 @@ describe('GraphQL Change - Mutations', function () {
                     id: cr2.id,
                     name: 'CR-002',
                     description: 'A change',
-                    cycle: ChangeCycle.Approved,
+                    cycle: ChangeCycle.Engineering,
                     createdParts: [
                         {
                             ref: 'P004.A',
@@ -1467,7 +1467,7 @@ describe('GraphQL Change - Mutations', function () {
                 });
             });
 
-            it('should not approve a change in EDITION cycle', async function () {
+            it('should not approve a change in PREPARATION cycle', async function () {
                 const { errors } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
@@ -1489,7 +1489,7 @@ describe('GraphQL Change - Mutations', function () {
                     });
                 });
                 expect(errors).to.not.be.undefined;
-                expect(errors[0].message).to.contain('EDITION');
+                expect(errors[0].message).to.contain('PREPARATION');
             });
 
             it('should not approve a change in CANCELLED cycle', async function () {
@@ -1520,7 +1520,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should not approve a change that has missing approvals', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Validation, users.a.id);
+                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1547,7 +1547,7 @@ describe('GraphQL Change - Mutations', function () {
             it('should not approve a change from unauthorized editor', async function () {
                 const { errors } = await pool.transaction(async (db) => {
                     await Promise.all([
-                        dao.change.updateCycle(db, cr2.id, ChangeCycle.Validation, users.a.id),
+                        dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id),
                         dao.changeReview.update(db, reviews.a.id, {
                             decision: ApprovalDecision.Approved,
                             userId: users.a.id,
@@ -1590,7 +1590,7 @@ describe('GraphQL Change - Mutations', function () {
                 }
                 ${CHANGEREQ_DEEPFIELDS}
             `;
-            it('should cancel a change from EDITION cycle', async function () {
+            it('should cancel a change from PREPARATION cycle', async function () {
                 const { errors, data } = await pool.transaction(async (db) => {
                     const { mutate } = buildGqlServer(
                         db,
@@ -1617,9 +1617,9 @@ describe('GraphQL Change - Mutations', function () {
                 });
             });
 
-            it('should cancel a change from VALIDATION cycle', async function () {
+            it('should cancel a change from EVALUATION cycle', async function () {
                 const { errors, data } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Validation, users.a.id);
+                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1645,9 +1645,9 @@ describe('GraphQL Change - Mutations', function () {
                 });
             });
 
-            it('should not cancel a change from APPROVED cycle', async function () {
+            it('should not cancel a change from ENGINEERING cycle', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Approved, users.a.id);
+                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Engineering, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1666,7 +1666,7 @@ describe('GraphQL Change - Mutations', function () {
                     });
                 });
                 expect(errors).to.not.be.empty;
-                expect(errors[0].message).to.contain('APPROVED');
+                expect(errors[0].message).to.contain('ENGINEERING');
             });
 
             it('should not cancel a change from CANCELLED cycle', async function () {

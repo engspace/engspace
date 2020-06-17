@@ -20,9 +20,9 @@ import { resolveTracked } from '.';
 
 export const typeDefs = gql`
     enum ChangeCycle {
-        EDITION
-        VALIDATION
-        APPROVED
+        PREPARATION
+        EVALUATION
+        ENGINEERING
         CANCELLED
     }
 
@@ -175,15 +175,15 @@ export const typeDefs = gql`
         changeCreate(input: ChangeInput!): Change!
         changeUpdate(id: ID!, input: ChangeUpdateInput!): Change!
         """
-        Submit a change to review in the VALIDATION cycle.
-        The change must be in EDITION cycle and will be placed
-        in the VALIDATION cycle to allow reviews to start.
+        Submit a change to review in the EVALUATION cycle.
+        The change must be in PREPARATION cycle and will be placed
+        in the EVALUATION cycle to allow reviews to start.
         """
         changeSubmit(id: ID!): Change!
         """
-        Withdraw a change from the VALIDATION cycle.
-        The change must be in VALIDATION cycle and will be placed
-        back in the EDITION cycle to allow changes to be made.
+        Withdraw a change from the EVALUATION cycle.
+        The change must be in EVALUATION cycle and will be placed
+        back in the PREPARATION cycle to allow changes to be made.
         """
         changeWithdraw(id: ID!): Change!
         """
@@ -195,15 +195,15 @@ export const typeDefs = gql`
 
         """
         Approve a change and apply changes.
-        Can only be done only from VALIDATION cycle in approved or reserved state.
-        If all changes apply succesfully, the change is placed into APPROVED cycle.
+        Can only be done only from EVALUATION cycle in approved or reserved state.
+        If all changes apply succesfully, the change is placed into ENGINEERING cycle.
         Once a change is approved, it cannot be cancelled.
         """
         changeApprove(id: ID!): Change!
 
         """
         Cancel a change.
-        Can be done from any cycle other than APPROVED.
+        Can be done from any cycle other than ENGINEERING.
         Will place the change in the CANCELLED cycle.
         Cannot be undone.
         """

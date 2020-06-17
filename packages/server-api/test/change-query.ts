@@ -101,7 +101,7 @@ describe('GraphQL Change - Queries', function () {
             expect(data.change).to.containSubset({
                 id: cr2.id,
                 description: 'A change',
-                cycle: ChangeCycle.Edition,
+                cycle: ChangeCycle.Preparation,
                 state: null,
                 partCreations: [
                     {

@@ -6,7 +6,7 @@ DECLARE
     has_pending boolean := false;
     app_state approval_decision_enum;
 BEGIN
-    IF cycle = 'EDITION' THEN
+    IF cycle = 'PREPARATION' THEN
         RETURN NULL;
     END IF;
 

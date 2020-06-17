@@ -231,10 +231,10 @@ export class ChangeControl {
         } = ctx;
         const req = await this.dao.change.byId(db, id);
         await this.assertEditor(ctx, req);
-        if (req.cycle !== ChangeCycle.Edition) {
+        if (req.cycle !== ChangeCycle.Preparation) {
             throw new UserInputError(`Can't submit a change that is in ${req.cycle} cycle`);
         }
-        return this.dao.change.updateCycle(db, id, ChangeCycle.Validation, userId);
+        return this.dao.change.updateCycle(db, id, ChangeCycle.Evaluation, userId);
     }
 
     async withdraw(ctx: ApiContext, id: Id): Promise<Change> {
@@ -245,10 +245,10 @@ export class ChangeControl {
         } = ctx;
         const req = await this.dao.change.byId(db, id);
         await this.assertEditor(ctx, req);
-        if (req.cycle !== ChangeCycle.Validation) {
+        if (req.cycle !== ChangeCycle.Evaluation) {
             throw new UserInputError(`Can't submit a change that is in ${req.cycle} cycle`);
         }
-        return this.dao.change.updateCycle(db, id, ChangeCycle.Edition, userId);
+        return this.dao.change.updateCycle(db, id, ChangeCycle.Preparation, userId);
     }
 
     async review(ctx: ApiContext, changeId: Id, input: ChangeReviewInput): Promise<ChangeReview> {
@@ -261,7 +261,7 @@ export class ChangeControl {
         if (!req) {
             throw new UserInputError('Cannot find specified change');
         }
-        if (req.cycle !== ChangeCycle.Validation) {
+        if (req.cycle !== ChangeCycle.Evaluation) {
             throw new UserInputError('Cannot review a change that is not in validation');
         }
         const review = await this.dao.changeReview.byRequestAndAssigneeId(db, changeId, userId);
@@ -287,7 +287,7 @@ export class ChangeControl {
         const req = await this.dao.change.byId(db, changeId);
         await this.assertEditor(ctx, req);
 
-        if (req.cycle !== ChangeCycle.Validation) {
+        if (req.cycle !== ChangeCycle.Evaluation) {
             throw new UserInputError(`Can't approve a change from the ${req.cycle} cycle`);
         }
 
@@ -324,9 +324,9 @@ export class ChangeControl {
             });
         }
 
-        // All changes done without error. We bump the cycle to APPROVED and return result.
+        // All changes done without error. We bump the cycle to ENGINEERING and return result.
 
-        return this.dao.change.updateCycle(db, changeId, ChangeCycle.Approved, userId);
+        return this.dao.change.updateCycle(db, changeId, ChangeCycle.Engineering, userId);
     }
 
     async cancel(ctx: ApiContext, id: Id): Promise<Change> {
@@ -337,7 +337,7 @@ export class ChangeControl {
         } = ctx;
         const req = await this.dao.change.byId(db, id);
         await this.assertEditor(ctx, req);
-        if (req.cycle === ChangeCycle.Approved || req.cycle === ChangeCycle.Cancelled) {
+        if (req.cycle === ChangeCycle.Engineering || req.cycle === ChangeCycle.Cancelled) {
             throw new UserInputError(`Cannot cancel a change that is in the ${req.cycle} cycle`);
         }
         return this.dao.change.updateCycle(db, id, ChangeCycle.Cancelled, userId);

@@ -73,7 +73,7 @@ export class ChangeDao extends DaoBase<Change, Row> {
             VALUES (
                 ${name},
                 ${nullable(description)},
-                ${cycle ?? ChangeCycle.Edition},
+                ${cycle ?? ChangeCycle.Preparation},
                 ${tracked.insertValToken(userId)}
             )
             RETURNING ${rowToken}

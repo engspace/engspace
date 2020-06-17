@@ -31,7 +31,7 @@ describe('#ChangeDao', function () {
             expect(cr).to.deep.include({
                 name: 'CR-001',
                 description: null,
-                cycle: ChangeCycle.Edition,
+                cycle: ChangeCycle.Preparation,
                 state: null,
                 ...trackedBy(users.a),
             });
@@ -49,7 +49,7 @@ describe('#ChangeDao', function () {
             expect(cr).to.deep.include({
                 name: 'CR-001',
                 description: 'SUPER CHANGE',
-                cycle: ChangeCycle.Edition,
+                cycle: ChangeCycle.Preparation,
                 state: null,
                 ...trackedBy(users.a),
             });
@@ -61,13 +61,13 @@ describe('#ChangeDao', function () {
                 return dao.change.create(db, {
                     name: 'CR-001',
                     userId: users.a.id,
-                    cycle: ChangeCycle.Validation,
+                    cycle: ChangeCycle.Evaluation,
                 });
             });
             expect(cr).to.deep.include({
                 name: 'CR-001',
                 description: null,
-                cycle: ChangeCycle.Validation,
+                cycle: ChangeCycle.Evaluation,
                 state: ApprovalDecision.Approved,
                 ...trackedBy(users.a),
             });
@@ -83,7 +83,7 @@ describe('#ChangeDao', function () {
                     name: 'CR-001',
                     description: 'SUPER CHANGE',
                     userId: users.a.id,
-                    cycle: ChangeCycle.Validation,
+                    cycle: ChangeCycle.Evaluation,
                 });
             });
         });
@@ -186,7 +186,7 @@ describe('#ChangeDao', function () {
                     name: 'CR-001',
                     description: 'SUPER CHANGE',
                     userId: users.a.id,
-                    cycle: ChangeCycle.Validation,
+                    cycle: ChangeCycle.Evaluation,
                 });
             });
         });
@@ -213,11 +213,11 @@ describe('#ChangeDao', function () {
         describe('#updateCycle', function () {
             it('should update the cycle', async function () {
                 const updated = await pool.transaction((db) => {
-                    return dao.change.updateCycle(db, cr.id, ChangeCycle.Approved, users.b.id);
+                    return dao.change.updateCycle(db, cr.id, ChangeCycle.Engineering, users.b.id);
                 });
                 expect(updated).to.deep.include({
                     name: 'CR-001',
-                    cycle: ChangeCycle.Approved,
+                    cycle: ChangeCycle.Engineering,
                     createdBy: { id: users.a.id },
                     updatedBy: { id: users.b.id },
                 });
