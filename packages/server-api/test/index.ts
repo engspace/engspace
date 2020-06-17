@@ -90,7 +90,7 @@ export const api = new EsServerApi(new Koa(), {
     cors: true,
     naming: {
         partRef: new PartRefNaming('${fam_code}${fam_count:3}.${part_version:A}'),
-        change: new ChangeNaming('CR-${counter:3}'),
+        change: new ChangeNaming('CH-${counter:3}'),
     },
 });
 

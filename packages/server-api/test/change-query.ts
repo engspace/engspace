@@ -8,31 +8,31 @@ import { buildGqlServer, pool, th } from '.';
 describe('GraphQL Change - Queries', function () {
     let users;
     let fam;
-    let cr1;
+    let ch1;
     let parts;
-    let cr2;
+    let ch2;
     before(async function () {
         return pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
             fam = await th.createPartFamily(db);
-            cr1 = await th.createChange(db, users.a, 'CR-001');
+            ch1 = await th.createChange(db, users.a, 'CH-001');
             parts = {
                 p1: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P001.A', designation: 'PART 1' },
-                    { withRev1: { change: cr1 }, bumpFamCounter: true }
+                    { withRev1: { change: ch1 }, bumpFamCounter: true }
                 ),
                 p2: await th.createPart(
                     db,
                     fam,
                     users.a,
                     { ref: 'P002.A', designation: 'PART 2' },
-                    { withRev1: { change: cr1 }, bumpFamCounter: true }
+                    { withRev1: { change: ch1 }, bumpFamCounter: true }
                 ),
             };
-            cr2 = await th.createChange(db, users.a, 'CR-002', {
+            ch2 = await th.createChange(db, users.a, 'CH-002', {
                 description: 'A change',
                 partCreations: [
                     {
@@ -93,13 +93,13 @@ describe('GraphQL Change - Queries', function () {
                 return query({
                     query: CHANGEREQ_READ,
                     variables: {
-                        id: cr2.id,
+                        id: ch2.id,
                     },
                 });
             });
             expect(errors).to.be.undefined;
             expect(data.change).to.containSubset({
-                id: cr2.id,
+                id: ch2.id,
                 description: 'A change',
                 cycle: ChangeCycle.Preparation,
                 state: null,
@@ -156,7 +156,7 @@ describe('GraphQL Change - Queries', function () {
                 return query({
                     query: CHANGEREQ_READ,
                     variables: {
-                        id: cr2.id,
+                        id: ch2.id,
                     },
                 });
             });

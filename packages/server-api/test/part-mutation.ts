@@ -55,7 +55,7 @@ const PARTVAL_DEEPFIELDS = gql`
 describe('GraphQL Part - Mutations', function () {
     let users: Dict<User>;
     let family;
-    let cr;
+    let ch;
     before('create res', async function () {
         return pool.transaction(async (db) => {
             users = await th.createUsers(db, {
@@ -66,7 +66,7 @@ describe('GraphQL Part - Mutations', function () {
                 e: { name: 'e' },
             });
             family = await th.createPartFamily(db, { code: 'P' });
-            cr = await th.createChange(db, users.a);
+            ch = await th.createChange(db, users.a);
         });
     });
     after('delete res', th.cleanTables(['part_family', 'change', 'user']));
@@ -533,7 +533,7 @@ describe('GraphQL Part - Mutations', function () {
                 part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
-                partRev = await th.createPartRev(db, part, cr, users.a);
+                partRev = await th.createPartRev(db, part, ch, users.a);
                 await dao.partFamily.bumpCounterById(db, family.id);
             });
         });
@@ -669,7 +669,7 @@ describe('GraphQL Part - Mutations', function () {
                 part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
-                partRev = await th.createPartRev(db, part, cr, users.a);
+                partRev = await th.createPartRev(db, part, ch, users.a);
                 partVal = await th.createPartVal(db, partRev, users.a);
                 partApprs = await th.createPartApprovals(db, partVal, users, users.a);
                 await dao.partFamily.bumpCounterById(db, family.id);
@@ -861,7 +861,7 @@ describe('GraphQL Part - Mutations', function () {
                 part = await th.createPart(db, family, users.a, {
                     designation: 'SOME EXISTING PART',
                 });
-                partRev = await th.createPartRev(db, part, cr, users.a);
+                partRev = await th.createPartRev(db, part, ch, users.a);
                 partVal = await th.createPartVal(db, partRev, users.a);
                 partApprs = await th.createPartApprovals(db, partVal, users, users.a);
                 await dao.partFamily.bumpCounterById(db, family.id);

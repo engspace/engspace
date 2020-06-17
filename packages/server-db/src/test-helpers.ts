@@ -378,7 +378,7 @@ export class TestHelpers {
     async createChange(
         db: Db,
         user: User,
-        name = 'CR-001',
+        name = 'CH-001',
         input: Partial<ChangeInput> = {},
         { bumpCounter }: { bumpCounter: boolean } = { bumpCounter: false }
     ): Promise<Change> {

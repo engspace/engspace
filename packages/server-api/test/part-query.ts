@@ -78,7 +78,7 @@ const PARTAPPR_READ = gql`
 describe('GraphQL Part - Queries', function () {
     let users;
     let family;
-    let cr;
+    let ch;
     let part;
     let partRev;
     let bef, aft;
@@ -93,9 +93,9 @@ describe('GraphQL Part - Queries', function () {
                 e: { name: 'e' },
             });
             family = await th.createPartFamily(db, { code: 'P' });
-            cr = await th.createChange(db, users.a);
+            ch = await th.createChange(db, users.a);
             part = await th.createPart(db, family, users.a, {});
-            partRev = await th.createPartRev(db, part, cr, users.a);
+            partRev = await th.createPartRev(db, part, ch, users.a);
         });
         aft = Date.now();
     });

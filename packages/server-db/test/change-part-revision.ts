@@ -3,13 +3,13 @@ import { dao, pool, th } from '.';
 
 describe('#ChangePartRevisionDao', function () {
     let users;
-    let cr;
+    let ch;
     let fam;
     let part;
     before(async function () {
         await pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
-            cr = await th.createChange(db, users.a);
+            ch = await th.createChange(db, users.a);
             fam = await th.createPartFamily(db);
             part = await th.createPart(db, fam, users.a, {});
         });
@@ -22,12 +22,12 @@ describe('#ChangePartRevisionDao', function () {
         it('should create a ChangePartRevision', async function () {
             const cpr = await pool.transaction(async (db) => {
                 return dao.changePartRevision.create(db, {
-                    changeId: cr.id,
+                    changeId: ch.id,
                     partId: part.id,
                 });
             });
             expect(cpr).to.deep.include({
-                change: { id: cr.id },
+                change: { id: ch.id },
                 part: { id: part.id },
                 designation: null,
             });
@@ -36,13 +36,13 @@ describe('#ChangePartRevisionDao', function () {
         it('should create a ChangePartRevision with designation', async function () {
             const cpr = await pool.transaction(async (db) => {
                 return dao.changePartRevision.create(db, {
-                    changeId: cr.id,
+                    changeId: ch.id,
                     partId: part.id,
                     designation: 'NEW EXISTING PART',
                 });
             });
             expect(cpr).to.deep.include({
-                change: { id: cr.id },
+                change: { id: ch.id },
                 part: { id: part.id },
                 designation: 'NEW EXISTING PART',
             });
@@ -54,7 +54,7 @@ describe('#ChangePartRevisionDao', function () {
         before(async function () {
             return pool.transaction(async (db) => {
                 partRevisions = [
-                    await th.createChangePartRevision(db, cr, part, {
+                    await th.createChangePartRevision(db, ch, part, {
                         designation: 'PART A',
                     }),
                 ];
@@ -65,7 +65,7 @@ describe('#ChangePartRevisionDao', function () {
 
         it('should read ChangePartRevision by change id', async function () {
             const cpr = await pool.connect(async (db) => {
-                return dao.changePartRevision.byRequestId(db, cr.id);
+                return dao.changePartRevision.byRequestId(db, ch.id);
             });
             expect(cpr).to.have.same.deep.members(partRevisions);
         });

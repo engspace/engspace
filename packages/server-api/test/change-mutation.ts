@@ -10,7 +10,7 @@ import { buildGqlServer, dao, pool, th } from '.';
 describe('GraphQL Change - Mutations', function () {
     let users;
     let fam;
-    let cr1;
+    let ch1;
     let parts;
     let rev1s;
 
@@ -28,8 +28,8 @@ describe('GraphQL Change - Mutations', function () {
 
     beforeEach(async function () {
         return pool.transaction(async (db) => {
-            cr1 = await th.createChange(db, users.a, 'CR-001', {}, { bumpCounter: true });
-            await dao.change.updateCycle(db, cr1.id, ChangeCycle.Engineering, users.a.id);
+            ch1 = await th.createChange(db, users.a, 'CH-001', {}, { bumpCounter: true });
+            await dao.change.updateCycle(db, ch1.id, ChangeCycle.Engineering, users.a.id);
             parts = {
                 p1: await th.createPart(
                     db,
@@ -54,13 +54,13 @@ describe('GraphQL Change - Mutations', function () {
                 ),
             };
             rev1s = {
-                p1: await th.createPartRev(db, parts.p1, cr1, users.a, {
+                p1: await th.createPartRev(db, parts.p1, ch1, users.a, {
                     cycle: PartCycle.Release,
                 }),
-                p2: await th.createPartRev(db, parts.p2, cr1, users.a, {
+                p2: await th.createPartRev(db, parts.p2, ch1, users.a, {
                     cycle: PartCycle.Release,
                 }),
-                p3: await th.createPartRev(db, parts.p3, cr1, users.a, {
+                p3: await th.createPartRev(db, parts.p3, ch1, users.a, {
                     cycle: PartCycle.Release,
                 }),
             };
@@ -92,7 +92,7 @@ describe('GraphQL Change - Mutations', function () {
         this.afterEach(function () {
             return pool.transaction((db) => {
                 return db.query(sql`
-                    DELETE FROM change WHERE id != ${cr1.id}
+                    DELETE FROM change WHERE id != ${ch1.id}
                 `);
             });
         });
@@ -118,7 +118,7 @@ describe('GraphQL Change - Mutations', function () {
             });
             expect(errors).to.be.undefined;
             expect(data.changeCreate).to.deep.include({
-                name: 'CR-002',
+                name: 'CH-002',
                 description: null,
                 cycle: ChangeCycle.Preparation,
                 state: null,
@@ -154,7 +154,7 @@ describe('GraphQL Change - Mutations', function () {
             });
             expect(errors).to.be.undefined;
             expect(data.changeCreate).to.deep.include({
-                name: 'CR-002',
+                name: 'CH-002',
                 description: 'a revolution',
                 cycle: ChangeCycle.Preparation,
                 state: null,
@@ -202,7 +202,7 @@ describe('GraphQL Change - Mutations', function () {
             });
             expect(errors).to.be.undefined;
             expect(data.changeCreate).to.containSubset({
-                name: 'CR-002',
+                name: 'CH-002',
                 description: null,
                 cycle: ChangeCycle.Preparation,
                 state: null,
@@ -262,7 +262,7 @@ describe('GraphQL Change - Mutations', function () {
             });
             expect(errors).to.be.undefined;
             expect(data.changeCreate).to.containSubset({
-                name: 'CR-002',
+                name: 'CH-002',
                 description: null,
                 cycle: ChangeCycle.Preparation,
                 state: null,
@@ -320,7 +320,7 @@ describe('GraphQL Change - Mutations', function () {
             });
             expect(errors).to.be.undefined;
             expect(data.changeCreate).to.containSubset({
-                name: 'CR-002',
+                name: 'CH-002',
                 description: null,
                 cycle: ChangeCycle.Preparation,
                 state: null,
@@ -367,7 +367,7 @@ describe('GraphQL Change - Mutations', function () {
             });
             expect(errors).to.be.undefined;
             expect(data.changeCreate).to.deep.include({
-                name: 'CR-002',
+                name: 'CH-002',
                 description: null,
                 cycle: ChangeCycle.Preparation,
                 state: null,
@@ -475,15 +475,15 @@ describe('GraphQL Change - Mutations', function () {
     });
 
     describe('Updates', function () {
-        let cr2;
+        let ch2;
         let reviews;
 
         this.beforeEach(async function () {
             return pool.transaction(async (db) => {
-                cr2 = await th.createChange(
+                ch2 = await th.createChange(
                     db,
                     users.a,
-                    'CR-002',
+                    'CH-002',
                     {
                         description: 'A change',
                         partCreations: [
@@ -517,8 +517,8 @@ describe('GraphQL Change - Mutations', function () {
                     }
                 );
                 reviews = {
-                    a: await dao.changeReview.byRequestAndAssigneeId(db, cr2.id, users.a.id),
-                    b: await dao.changeReview.byRequestAndAssigneeId(db, cr2.id, users.b.id),
+                    a: await dao.changeReview.byRequestAndAssigneeId(db, ch2.id, users.a.id),
+                    b: await dao.changeReview.byRequestAndAssigneeId(db, ch2.id, users.b.id),
                 };
             });
         });
@@ -557,26 +557,26 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_UPDATE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {},
                         },
                     });
                 });
                 expect(errors).to.be.undefined;
-                const partCreations = cr2.partCreations.map((obj) => ({
+                const partCreations = ch2.partCreations.map((obj) => ({
                     id: obj.id,
                 }));
-                const partForks = cr2.partForks.map((obj) => ({
+                const partForks = ch2.partForks.map((obj) => ({
                     id: obj.id,
                 }));
-                const partRevisions = cr2.partRevisions.map((obj) => ({
+                const partRevisions = ch2.partRevisions.map((obj) => ({
                     id: obj.id,
                 }));
-                const reviews = cr2.reviews.map((obj) => ({
+                const reviews = ch2.reviews.map((obj) => ({
                     id: obj.id,
                 }));
                 expect(data.changeUpdate).to.containSubset({
-                    ...cr2,
+                    ...ch2,
                     partCreations,
                     partForks,
                     partRevisions,
@@ -599,7 +599,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_UPDATE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
                                 description: 'An updated change',
                             },
@@ -608,7 +608,7 @@ describe('GraphQL Change - Mutations', function () {
                 });
                 expect(errors).to.be.undefined;
                 expect(data.changeUpdate).to.deep.include({
-                    name: 'CR-002',
+                    name: 'CH-002',
                     description: 'An updated change',
                 });
                 expect(data.changeUpdate.partCreations).to.have.lengthOf(2);
@@ -631,7 +631,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_UPDATE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
                                 description: 'An updated change',
                             },
@@ -658,7 +658,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_UPDATE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
                                 partCreationsAdd: [
                                     {
@@ -695,16 +695,16 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_UPDATE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
-                                partCreationsRem: [cr2.partCreations[0].id],
+                                partCreationsRem: [ch2.partCreations[0].id],
                             },
                         },
                     });
                 });
                 expect(errors).to.be.undefined;
                 expect(data.changeUpdate.partCreations).to.have.lengthOf(1);
-                expect(data.changeUpdate.partCreations[0].id).to.eql(cr2.partCreations[1].id);
+                expect(data.changeUpdate.partCreations[0].id).to.eql(ch2.partCreations[1].id);
             });
 
             it('should add a part change to a change', async function () {
@@ -722,7 +722,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_UPDATE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
                                 partForksAdd: [
                                     {
@@ -759,9 +759,9 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_UPDATE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
-                                partForksRem: [cr2.partForks[0].id],
+                                partForksRem: [ch2.partForks[0].id],
                             },
                         },
                     });
@@ -785,7 +785,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_UPDATE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
                                 partRevisionsAdd: [
                                     {
@@ -818,9 +818,9 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_UPDATE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
-                                partRevisionsRem: [cr2.partRevisions[0].id],
+                                partRevisionsRem: [ch2.partRevisions[0].id],
                             },
                         },
                     });
@@ -844,7 +844,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_UPDATE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
                                 reviewerIdsAdd: [users.c.id],
                             },
@@ -873,16 +873,16 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_UPDATE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
-                                reviewsRem: [cr2.reviews[0].id],
+                                reviewsRem: [ch2.reviews[0].id],
                             },
                         },
                     });
                 });
                 expect(errors).to.be.undefined;
                 expect(data.changeUpdate.reviews).to.have.lengthOf(1);
-                expect(data.changeUpdate.reviews[0].id).to.eql(cr2.reviews[1].id);
+                expect(data.changeUpdate.reviews[0].id).to.eql(ch2.reviews[1].id);
             });
         });
 
@@ -910,25 +910,25 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_SUBMIT,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
                 expect(errors).to.be.undefined;
-                const partCreations = cr2.partCreations.map((obj) => ({
+                const partCreations = ch2.partCreations.map((obj) => ({
                     id: obj.id,
                 }));
-                const partForks = cr2.partForks.map((obj) => ({
+                const partForks = ch2.partForks.map((obj) => ({
                     id: obj.id,
                 }));
-                const partRevisions = cr2.partRevisions.map((obj) => ({
+                const partRevisions = ch2.partRevisions.map((obj) => ({
                     id: obj.id,
                 }));
-                const reviews = cr2.reviews.map((obj) => ({
+                const reviews = ch2.reviews.map((obj) => ({
                     id: obj.id,
                 }));
                 expect(data.changeSubmit).to.containSubset({
-                    description: cr2.description,
+                    description: ch2.description,
                     cycle: ChangeCycle.Evaluation,
                     partCreations,
                     partForks,
@@ -952,7 +952,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_SUBMIT,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -962,7 +962,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should not submit a change that is in ENGINEERING state', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Engineering, users.a.id);
+                    await dao.change.updateCycle(db, ch2.id, ChangeCycle.Engineering, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -976,7 +976,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_SUBMIT,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -999,7 +999,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_SUBMIT,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1028,7 +1028,7 @@ describe('GraphQL Change - Mutations', function () {
 
             this.beforeEach('switch to validation mode', async function () {
                 return pool.transaction((db) =>
-                    dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id)
+                    dao.change.updateCycle(db, ch2.id, ChangeCycle.Evaluation, users.a.id)
                 );
             });
 
@@ -1047,7 +1047,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_REVIEW,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
                                 decision: ApprovalDecision.Rejected,
                                 comments: 'Not good enough',
@@ -1062,7 +1062,7 @@ describe('GraphQL Change - Mutations', function () {
                     decision: ApprovalDecision.Rejected,
                     comments: 'Not good enough',
                     change: {
-                        id: cr2.id,
+                        id: ch2.id,
                         state: ApprovalDecision.Rejected,
                     },
                 });
@@ -1083,7 +1083,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_REVIEW,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
                                 decision: ApprovalDecision.Approved,
                                 comments: 'Good for me',
@@ -1098,7 +1098,7 @@ describe('GraphQL Change - Mutations', function () {
                     decision: ApprovalDecision.Approved,
                     comments: 'Good for me',
                     change: {
-                        id: cr2.id,
+                        id: ch2.id,
                         state: ApprovalDecision.Pending, // pending users.a's decision
                     },
                 });
@@ -1119,7 +1119,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_REVIEW,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
                                 decision: ApprovalDecision.Reserved,
                                 comments: 'Better next time',
@@ -1134,7 +1134,7 @@ describe('GraphQL Change - Mutations', function () {
                     decision: ApprovalDecision.Reserved,
                     comments: 'Better next time',
                     change: {
-                        id: cr2.id,
+                        id: ch2.id,
                         state: ApprovalDecision.Pending, // pending users.b's decision
                     },
                 });
@@ -1154,7 +1154,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_REVIEW,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
                                 decision: ApprovalDecision.Rejected,
                             },
@@ -1180,7 +1180,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_REVIEW,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
                                 decision: ApprovalDecision.Rejected,
                             },
@@ -1193,7 +1193,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should not allow to review a change not in EVALUATION', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Preparation, users.a.id);
+                    await dao.change.updateCycle(db, ch2.id, ChangeCycle.Preparation, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1207,7 +1207,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_REVIEW,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                             input: {
                                 decision: ApprovalDecision.Rejected,
                             },
@@ -1231,7 +1231,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should withdraw a change', async function () {
                 const { errors, data } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id);
+                    await dao.change.updateCycle(db, ch2.id, ChangeCycle.Evaluation, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1247,13 +1247,13 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_WITHDRAW,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
                 expect(errors).to.be.undefined;
                 expect(data.changeWithdraw).to.containSubset({
-                    id: cr2.id,
+                    id: ch2.id,
                     description: 'A change',
                     cycle: ChangeCycle.Preparation,
                 });
@@ -1276,7 +1276,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_WITHDRAW,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1286,7 +1286,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should not withdraw a change from ENGINEERING cycle', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Engineering, users.a.id);
+                    await dao.change.updateCycle(db, ch2.id, ChangeCycle.Engineering, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1302,7 +1302,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_WITHDRAW,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1312,7 +1312,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should not withdraw a change from CANCELLED cycle', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Cancelled, users.a.id);
+                    await dao.change.updateCycle(db, ch2.id, ChangeCycle.Cancelled, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1328,7 +1328,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_WITHDRAW,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1338,7 +1338,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should not withdraw a change without "change.update"', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id);
+                    await dao.change.updateCycle(db, ch2.id, ChangeCycle.Evaluation, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1353,7 +1353,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_WITHDRAW,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1363,7 +1363,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should not withdraw a change from unauthorized editor', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id);
+                    await dao.change.updateCycle(db, ch2.id, ChangeCycle.Evaluation, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.c, [
@@ -1379,7 +1379,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_WITHDRAW,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1401,7 +1401,7 @@ describe('GraphQL Change - Mutations', function () {
             it('should approve a change', async function () {
                 const { errors, data } = await pool.transaction(async (db) => {
                     await Promise.all([
-                        dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id),
+                        dao.change.updateCycle(db, ch2.id, ChangeCycle.Evaluation, users.a.id),
                         dao.changeReview.update(db, reviews.a.id, {
                             decision: ApprovalDecision.Approved,
                             userId: users.a.id,
@@ -1426,7 +1426,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_APPROVE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1434,8 +1434,8 @@ describe('GraphQL Change - Mutations', function () {
                 expect(data.changeApprove.createdParts).to.have.lengthOf(3);
                 expect(data.changeApprove.revisedParts).to.have.lengthOf(1);
                 expect(data.changeApprove).to.containSubset({
-                    id: cr2.id,
-                    name: 'CR-002',
+                    id: ch2.id,
+                    name: 'CH-002',
                     description: 'A change',
                     cycle: ChangeCycle.Engineering,
                     createdParts: [
@@ -1484,7 +1484,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_APPROVE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1494,7 +1494,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should not approve a change in CANCELLED cycle', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Cancelled, users.a.id);
+                    await dao.change.updateCycle(db, ch2.id, ChangeCycle.Cancelled, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1510,7 +1510,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_APPROVE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1520,7 +1520,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should not approve a change that has missing approvals', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id);
+                    await dao.change.updateCycle(db, ch2.id, ChangeCycle.Evaluation, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1536,7 +1536,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_APPROVE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1547,7 +1547,7 @@ describe('GraphQL Change - Mutations', function () {
             it('should not approve a change from unauthorized editor', async function () {
                 const { errors } = await pool.transaction(async (db) => {
                     await Promise.all([
-                        dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id),
+                        dao.change.updateCycle(db, ch2.id, ChangeCycle.Evaluation, users.a.id),
                         dao.changeReview.update(db, reviews.a.id, {
                             decision: ApprovalDecision.Approved,
                             userId: users.a.id,
@@ -1572,7 +1572,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_APPROVE,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1605,13 +1605,13 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_CANCEL,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
                 expect(errors).to.be.undefined;
                 expect(data.changeCancel).to.containSubset({
-                    id: cr2.id,
+                    id: ch2.id,
                     description: 'A change',
                     cycle: ChangeCycle.Cancelled,
                 });
@@ -1619,7 +1619,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should cancel a change from EVALUATION cycle', async function () {
                 const { errors, data } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Evaluation, users.a.id);
+                    await dao.change.updateCycle(db, ch2.id, ChangeCycle.Evaluation, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1633,13 +1633,13 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_CANCEL,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
                 expect(errors).to.be.undefined;
                 expect(data.changeCancel).to.containSubset({
-                    id: cr2.id,
+                    id: ch2.id,
                     description: 'A change',
                     cycle: ChangeCycle.Cancelled,
                 });
@@ -1647,7 +1647,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should not cancel a change from ENGINEERING cycle', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Engineering, users.a.id);
+                    await dao.change.updateCycle(db, ch2.id, ChangeCycle.Engineering, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1661,7 +1661,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_CANCEL,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1671,7 +1671,7 @@ describe('GraphQL Change - Mutations', function () {
 
             it('should not cancel a change from CANCELLED cycle', async function () {
                 const { errors } = await pool.transaction(async (db) => {
-                    await dao.change.updateCycle(db, cr2.id, ChangeCycle.Cancelled, users.a.id);
+                    await dao.change.updateCycle(db, ch2.id, ChangeCycle.Cancelled, users.a.id);
                     const { mutate } = buildGqlServer(
                         db,
                         permsAuth(users.a, [
@@ -1685,7 +1685,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_CANCEL,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1707,7 +1707,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_CANCEL,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });
@@ -1730,7 +1730,7 @@ describe('GraphQL Change - Mutations', function () {
                     return mutate({
                         mutation: CHANGEREQ_CANCEL,
                         variables: {
-                            id: cr2.id,
+                            id: ch2.id,
                         },
                     });
                 });

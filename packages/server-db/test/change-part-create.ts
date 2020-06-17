@@ -3,12 +3,12 @@ import { dao, pool, th } from '.';
 
 describe('#ChangePartCreateDao', function () {
     let users;
-    let cr1;
+    let ch1;
     let fam;
     before(async function () {
         await pool.transaction(async (db) => {
             users = await th.createUsersAB(db);
-            cr1 = await th.createChange(db, users.a);
+            ch1 = await th.createChange(db, users.a);
             fam = await th.createPartFamily(db);
         });
     });
@@ -20,14 +20,14 @@ describe('#ChangePartCreateDao', function () {
         it('should create a ChangePartCreate', async function () {
             const cpc = await pool.transaction(async (db) => {
                 return dao.changePartCreate.create(db, {
-                    changeId: cr1.id,
+                    changeId: ch1.id,
                     familyId: fam.id,
                     version: 'A',
                     designation: 'NEW PART',
                 });
             });
             expect(cpc).to.deep.include({
-                change: { id: cr1.id },
+                change: { id: ch1.id },
                 family: { id: fam.id },
                 version: 'A',
                 designation: 'NEW PART',
@@ -40,11 +40,11 @@ describe('#ChangePartCreateDao', function () {
         before(async function () {
             return pool.transaction(async (db) => {
                 partCreations = [
-                    await th.createChangePartCreate(db, cr1, fam, {
+                    await th.createChangePartCreate(db, ch1, fam, {
                         designation: 'PART A',
                         version: 'A',
                     }),
-                    await th.createChangePartCreate(db, cr1, fam, {
+                    await th.createChangePartCreate(db, ch1, fam, {
                         designation: 'PART B',
                         version: 'B',
                         comments: 'Some comment about part B',
@@ -57,7 +57,7 @@ describe('#ChangePartCreateDao', function () {
 
         it('should read ChangePartCreate by change id', async function () {
             const cpc = await pool.connect(async (db) => {
-                return dao.changePartCreate.byRequestId(db, cr1.id);
+                return dao.changePartCreate.byRequestId(db, ch1.id);
             });
             expect(cpc).to.have.same.deep.members(partCreations);
         });
@@ -71,17 +71,17 @@ describe('#ChangePartCreateDao', function () {
     });
 
     describe('#checkRequestId', function () {
-        let cr2;
+        let ch2;
         let partCreations;
         before(async function () {
             return pool.transaction(async (db) => {
-                cr2 = await th.createChange(db, users.a, 'CR-002');
+                ch2 = await th.createChange(db, users.a, 'CH-002');
                 partCreations = [
-                    await th.createChangePartCreate(db, cr1, fam, {
+                    await th.createChangePartCreate(db, ch1, fam, {
                         designation: 'PART A',
                         version: 'A',
                     }),
-                    await th.createChangePartCreate(db, cr2, fam, {
+                    await th.createChangePartCreate(db, ch2, fam, {
                         designation: 'PART B',
                         version: 'B',
                     }),
@@ -92,7 +92,7 @@ describe('#ChangePartCreateDao', function () {
         after(th.cleanTable('change_part_create'));
         after(async function () {
             return pool.transaction(async (db) => {
-                return dao.change.deleteById(db, cr2.id);
+                return dao.change.deleteById(db, ch2.id);
             });
         });
 
@@ -101,8 +101,8 @@ describe('#ChangePartCreateDao', function () {
                 paReqId: await dao.changePartCreate.checkRequestId(db, partCreations[0].id),
                 pbReqId: await dao.changePartCreate.checkRequestId(db, partCreations[1].id),
             }));
-            expect(paReqId).to.eql(cr1.id);
-            expect(pbReqId).to.eql(cr2.id);
+            expect(paReqId).to.eql(ch1.id);
+            expect(pbReqId).to.eql(ch2.id);
         });
     });
 });
