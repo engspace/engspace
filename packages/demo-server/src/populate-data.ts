@@ -20,7 +20,7 @@ import { Db, DbPool } from '@engspace/server-db';
 import { dao } from '.';
 
 export async function createDemoUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
-    return asyncKeyMap(users, async (u) => dao.user.create(db, u));
+    return asyncKeyMap(users, async (u) => dao.user.create(db, u, { withRoles: true }));
 }
 
 export async function createDemoLogins(db: Db, users: Promise<DemoUserSet>): Promise<void> {
