@@ -18,11 +18,6 @@ export default {
     components: {
         ToolBar,
     },
-    data() {
-        return {
-            //
-        };
-    },
     async created() {
         if (this.$store.getters.isAuth) {
             // if already authenticated, we double check the token here

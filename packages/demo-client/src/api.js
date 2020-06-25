@@ -1,5 +1,5 @@
 import axios from 'axios';
-import store from './store';
+import { store } from './store';
 
 export const apiHost = process.env.VUE_APP_API_HOST || window.location.hostname;
 export const apiPort = process.env.VUE_APP_API_PORT || '3000';
@@ -17,13 +17,13 @@ export function apiUrl(resource = '') {
     return `http://${apiHost}${port}${resource}`;
 }
 
-export function authHeader(): { Authorization: string } {
+export function authHeader() {
     return { Authorization: `Bearer ${store.state.token}` };
 }
 
-export function buildQuery(obj: any): string {
-    const str: string[] = [];
-    Object.entries(obj).forEach((prop: [string, any]) => {
+export function buildQuery(obj) {
+    const str = [];
+    Object.entries(obj).forEach((prop) => {
         if (prop[1]) {
             str.push(
                 `${encodeURIComponent(prop[0])}=${encodeURIComponent(prop[1])}`
@@ -36,13 +36,13 @@ export function buildQuery(obj: any): string {
     return '';
 }
 
-export function query(path: string, obj: any): string {
+export function query(path, obj) {
     return `${path}${buildQuery(obj)}`;
 }
 
 export const api = axios.create({
     baseURL: apiUrl(),
-    validateStatus: function (status: number) {
+    validateStatus: function (status) {
         return status >= 200 && status < 500;
     },
 });

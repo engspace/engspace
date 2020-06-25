@@ -2,10 +2,10 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloClient } from 'apollo-client';
 import { ApolloLink } from 'apollo-link';
 import { createHttpLink } from 'apollo-link-http';
-import Vue from 'vue';
-import VueApollo from 'vue-apollo';
-import { apiHost, apiPort } from '../api';
-import store from '../store';
+import { provide } from '@vue/composition-api';
+import { DefaultApolloClient } from '@vue/apollo-composable';
+import { apiHost, apiPort } from './api';
+import { store } from './store';
 
 // HTTP connection to the API
 const httpLink = createHttpLink({
@@ -34,8 +34,6 @@ export const apolloClient = new ApolloClient({
     cache,
 });
 
-Vue.use(VueApollo);
-
-export default new VueApollo({
-    defaultClient: apolloClient,
-});
+export function provideApollo() {
+    provide(DefaultApolloClient, apolloClient);
+}

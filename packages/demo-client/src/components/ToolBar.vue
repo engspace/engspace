@@ -20,9 +20,9 @@
                             <v-list-item-icon>
                                 <v-icon>mdi-account</v-icon>
                             </v-list-item-icon>
-                            <v-list-item-title>
-                                Account settings
-                            </v-list-item-title>
+                            <v-list-item-title
+                                >Account settings</v-list-item-title
+                            >
                         </v-list-item>
                         <v-list-item>
                             <v-list-item-icon>
@@ -59,16 +59,18 @@
     </div>
 </template>
 
-<script lang="js">
+<script>
+import gql from 'graphql-tag';
+import { useQuery, useResult } from '@vue/apollo-composable';
+import { ref, computed } from '@vue/composition-api';
 import { mapGetters } from 'vuex';
 import { AUTH_LOGOUT_ACTION } from '../store';
-import gql from 'graphql-tag';
 
 export default {
     name: 'ToolBar',
-    apollo: {
-        user: {
-            query: gql`
+    setup(props, { root }) {
+        const { result } = useQuery(
+            gql`
                 query GetUserInfo($userId: ID!) {
                     user(id: $userId) {
                         fullName
@@ -76,33 +78,31 @@ export default {
                     }
                 }
             `,
-            variables() {
-                return {
-                    userId: this.auth.userId,
-                };
-            },
-        },
-    },
-    data() {
+            {
+                userId: '2',
+            }
+        );
+        const user = useResult(result, { fullName: '', roles: [] });
+        const isAdmin = computed(() => user.value.roles.includes('admin'));
+        const isManager = computed(() => user.value.roles.includes('manager'));
+
+        function logout() {
+            root.$store.dispatch(AUTH_LOGOUT_ACTION);
+            root.$router.push('/login');
+        }
+
+        const drawer = ref(false);
+
         return {
-            drawer: false,
-            user: { fullName: '', roles: [] },
+            user,
+            drawer,
+            isAdmin,
+            isManager,
+            logout,
         };
     },
     computed: {
         ...mapGetters(['auth']),
-        isAdmin() {
-            return this.user.roles.includes('admin');
-        },
-        isManager() {
-            return this.user.roles.includes('manager');
-        },
-    },
-    methods: {
-        logout() {
-            this.$store.dispatch(AUTH_LOGOUT_ACTION);
-            this.$router.push('/login');
-        },
     },
 };
 </script>

@@ -1,24 +1,23 @@
 import Vue from 'vue';
-import Router, { Location, Route } from 'vue-router';
+import Router from 'vue-router';
+import { provide, inject } from '@vue/composition-api';
 import HomePage from './pages/HomePage.vue';
 import LoginPage from './pages/LoginPage.vue';
-import store from './store';
+import { store } from './store';
+
+const RouterSymbol = Symbol();
 
 Vue.use(Router);
 
-type NextCallback = (to?: Location) => void;
-
-function redirectLogin(to: Route, next: NextCallback): void {
+function redirectLogin(to, next) {
     const redirectQuery = to.path !== '/' ? `?redirect=${to.path}` : '';
     next({ path: `/login${redirectQuery}` });
 }
 
-function requireAuth(to: Route, from: Route, next: NextCallback): void {
+function requireAuth(to, from, next) {
     if (store.getters.isAuth) {
-        console.log('logged in');
         next();
     } else {
-        console.log('not logged in');
         redirectLogin(to, next);
     }
 }
@@ -52,7 +51,7 @@ function requireAuth(to: Route, from: Route, next: NextCallback): void {
 //     };
 // }
 
-export default new Router({
+export const router = new Router({
     mode: 'history',
     base: process.env.BASE_URL,
     routes: [
@@ -67,3 +66,11 @@ export default new Router({
         },
     ],
 });
+
+export function provideRouter() {
+    provide(RouterSymbol, router);
+}
+
+export function useRouter() {
+    return inject(RouterSymbol);
+}
