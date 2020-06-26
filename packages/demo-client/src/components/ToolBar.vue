@@ -63,12 +63,12 @@
 import gql from 'graphql-tag';
 import { useQuery, useResult } from '@vue/apollo-composable';
 import { ref, computed } from '@vue/composition-api';
-import { mapGetters } from 'vuex';
-import { AUTH_LOGOUT_ACTION } from '../store';
+import { useAuth } from '../auth';
 
 export default {
     name: 'ToolBar',
     setup(props, { root }) {
+        const { userId, logout: authLogout } = useAuth();
         const { result } = useQuery(
             gql`
                 query GetUserInfo($userId: ID!) {
@@ -79,15 +79,16 @@ export default {
                 }
             `,
             {
-                userId: '2',
+                userId,
             }
         );
+
         const user = useResult(result, { fullName: '', roles: [] });
         const isAdmin = computed(() => user.value.roles.includes('admin'));
         const isManager = computed(() => user.value.roles.includes('manager'));
 
         function logout() {
-            root.$store.dispatch(AUTH_LOGOUT_ACTION);
+            authLogout();
             root.$router.push('/login');
         }
 
@@ -100,9 +101,6 @@ export default {
             isManager,
             logout,
         };
-    },
-    computed: {
-        ...mapGetters(['auth']),
     },
 };
 </script>

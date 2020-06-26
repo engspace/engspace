@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { store } from './store';
+import { useAuth } from './auth';
 
 export const apiHost = process.env.VUE_APP_API_HOST || window.location.hostname;
 export const apiPort = process.env.VUE_APP_API_PORT || '3000';
@@ -18,7 +18,8 @@ export function apiUrl(resource = '') {
 }
 
 export function authHeader() {
-    return { Authorization: `Bearer ${store.state.token}` };
+    const { token } = useAuth();
+    return { Authorization: `Bearer ${token.value}` };
 }
 
 export function buildQuery(obj) {

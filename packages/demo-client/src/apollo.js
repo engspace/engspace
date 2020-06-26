@@ -5,7 +5,7 @@ import { createHttpLink } from 'apollo-link-http';
 import { provide } from '@vue/composition-api';
 import { DefaultApolloClient } from '@vue/apollo-composable';
 import { apiHost, apiPort } from './api';
-import { store } from './store';
+import { useAuth } from './auth';
 
 // HTTP connection to the API
 const httpLink = createHttpLink({
@@ -14,11 +14,12 @@ const httpLink = createHttpLink({
 });
 
 const authLink = new ApolloLink((operation, forward) => {
-    if (!store.getters.isAuth) {
+    const auth = useAuth();
+    if (!auth.loggedIn.value) {
         throw new Error('Unauthenticated graphql request');
     }
     operation.setContext({
-        headers: { Authorization: `Bearer ${store.state.token}` },
+        headers: { Authorization: `Bearer ${auth.token.value}` },
     });
     return forward(operation);
 });

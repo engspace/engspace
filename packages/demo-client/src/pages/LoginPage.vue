@@ -52,47 +52,58 @@
 
 <script>
 import HttpStatus from 'http-status-codes';
+import { ref } from '@vue/composition-api';
 import { api } from '../api';
 
-import { AUTH_LOGIN_ACTION } from '../store';
+import { useAuth } from '../auth';
 
 export default {
     name: 'LoginPage',
-    data() {
-        return {
-            nameOrEmail: '',
-            password: '',
-            networkError: false,
-            wrongCred: false,
-            showPswd: false,
-            rules: {
-                required: (value) => {
-                    return !!value || 'Required.';
-                },
+    setup(props, { root }) {
+        const nameOrEmail = ref('');
+        const password = ref('');
+        const networkError = ref(false);
+        const wrongCred = ref(false);
+        const showPswd = ref(false);
+        const rules = {
+            required: (value) => {
+                return !!value || 'Required.';
             },
         };
-    },
-    methods: {
-        async login() {
-            const { nameOrEmail, password } = this;
-            this.wrongCred = false;
-            this.networkError = false;
+
+        const auth = useAuth();
+
+        async function login() {
+            wrongCred.value = false;
+            networkError.value = false;
             try {
                 const resp = await api.post('/api/login', {
-                    nameOrEmail,
-                    password,
+                    nameOrEmail: nameOrEmail.value,
+                    password: password.value,
                 });
                 if (resp.status === HttpStatus.OK) {
-                    this.$store.dispatch(AUTH_LOGIN_ACTION, resp.data.token);
-                    const { redirect } = this.$route.query;
-                    this.$router.push(redirect || '/');
+                    auth.login(resp.data.token);
+                    const { $router, $route } = root;
+                    const { redirect } = $route.query;
+                    $router.push(redirect || '/');
                 } else {
-                    this.wrongCred = true;
+                    wrongCred.value = true;
                 }
             } catch (err) {
-                this.networkError = true;
+                networkError.value = true;
             }
-        },
+        }
+
+        return {
+            nameOrEmail,
+            password,
+            networkError,
+            wrongCred,
+            showPswd,
+            rules,
+
+            login,
+        };
     },
 };
 </script>

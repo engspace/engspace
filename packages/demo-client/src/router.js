@@ -3,7 +3,7 @@ import Router from 'vue-router';
 import { provide, inject } from '@vue/composition-api';
 import HomePage from './pages/HomePage.vue';
 import LoginPage from './pages/LoginPage.vue';
-import { store } from './store';
+import { useAuth } from './auth';
 
 const RouterSymbol = Symbol();
 
@@ -15,7 +15,8 @@ function redirectLogin(to, next) {
 }
 
 function requireAuth(to, from, next) {
-    if (store.getters.isAuth) {
+    const { loggedIn } = useAuth();
+    if (loggedIn.value) {
         next();
     } else {
         redirectLogin(to, next);
