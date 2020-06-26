@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { useAuth } from './auth';
+import { token as authToken } from './auth';
 
-export const apiHost = process.env.VUE_APP_API_HOST || window.location.hostname;
-export const apiPort = process.env.VUE_APP_API_PORT || '3000';
+export const host = process.env.VUE_APP_API_HOST || window.location.hostname;
+export const port = process.env.VUE_APP_API_PORT || '3000';
 
 /**
  * Computes Url for an API resource
@@ -12,14 +12,17 @@ export const apiPort = process.env.VUE_APP_API_PORT || '3000';
  *
  * @param resource path to an API resource (should be empty or start with '/')
  */
-export function apiUrl(resource = '') {
-    const port = apiPort === '80' ? '' : `:${apiPort}`;
-    return `http://${apiHost}${port}${resource}`;
+export function url(resource = '') {
+    const portPart = port === '80' ? '' : `:${port}`;
+    return `http://${host}${portPart}${resource}`;
 }
 
 export function authHeader() {
-    const { token } = useAuth();
-    return { Authorization: `Bearer ${token.value}` };
+    const token = authToken();
+    if (!token) {
+        throw new Error('Unauthenticated API call');
+    }
+    return { Authorization: `Bearer ${token}` };
 }
 
 export function buildQuery(obj) {
@@ -42,7 +45,7 @@ export function query(path, obj) {
 }
 
 export const api = axios.create({
-    baseURL: apiUrl(),
+    baseURL: url(),
     validateStatus: function (status) {
         return status >= 200 && status < 500;
     },

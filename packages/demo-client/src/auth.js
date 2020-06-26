@@ -5,6 +5,23 @@ const storageKey = 'auth-token';
 
 let mutableToken = null;
 
+/**
+ * Login token (non-reactive)
+ */
+export function token() {
+    return mutableToken?.value;
+}
+
+/**
+ * Whether user is logged-in (non-reactive)
+ */
+export function loggedIn() {
+    return mutableToken && !!mutableToken.value;
+}
+
+/**
+ * Reactive Authentification information
+ */
 export function useAuth() {
     if (!mutableToken) {
         mutableToken = ref(localStorage.getItem(storageKey) || '');

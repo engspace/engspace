@@ -4,30 +4,23 @@ import { ApolloLink } from 'apollo-link';
 import { createHttpLink } from 'apollo-link-http';
 import { provide } from '@vue/composition-api';
 import { DefaultApolloClient } from '@vue/apollo-composable';
-import { apiHost, apiPort } from './api';
-import { useAuth } from './auth';
+import { url as apiUrl, authHeader } from './api';
 
 // HTTP connection to the API
 const httpLink = createHttpLink({
-    uri: `http://${apiHost}:${apiPort}/api/graphql`,
+    uri: apiUrl('/api/graphql'),
     useGETForQueries: true,
 });
 
 const authLink = new ApolloLink((operation, forward) => {
-    const auth = useAuth();
-    if (!auth.loggedIn.value) {
-        throw new Error('Unauthenticated graphql request');
-    }
     operation.setContext({
-        headers: { Authorization: `Bearer ${auth.token.value}` },
+        headers: authHeader(),
     });
     return forward(operation);
 });
 
 // Cache implementation
-const cache = new InMemoryCache({
-    dataIdFromObject: (obj) => obj.id || null,
-});
+const cache = new InMemoryCache();
 
 // Create the apollo client
 export const apolloClient = new ApolloClient({
