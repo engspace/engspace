@@ -1,6 +1,6 @@
+import { provide, inject } from '@vue/composition-api';
 import Vue from 'vue';
 import Vuetify from 'vuetify/lib';
-import { provide, inject } from '@vue/composition-api';
 
 Vue.use(Vuetify);
 

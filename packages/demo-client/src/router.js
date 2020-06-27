@@ -1,9 +1,10 @@
+import { provide, inject } from '@vue/composition-api';
 import Vue from 'vue';
 import Router from 'vue-router';
-import { provide, inject } from '@vue/composition-api';
+import { loggedIn, useAuth } from './auth';
 import HomePage from './pages/HomePage.vue';
 import LoginPage from './pages/LoginPage.vue';
-import { loggedIn } from './auth';
+import UserPage from './pages/UserPage.vue';
 
 const RouterSymbol = Symbol();
 
@@ -22,18 +23,16 @@ function requireAuth(to, from, next) {
     }
 }
 
-// function requirePerm(perm: string) {
-//     return (to: Route, from: Route, next: NextCallback): void => {
-//         if (
-//             store.getters.isAuth &&
-//             store.getters.auth.userPerms.includes(perm)
-//         ) {
-//             next();
-//         } else {
-//             redirectLogin(to, next);
-//         }
-//     };
-// }
+function requirePerm(perm) {
+    return (to, from, next) => {
+        const auth = useAuth();
+        if (auth.loggedIn.value && auth.userPerms.value.includes(perm)) {
+            next();
+        } else {
+            redirectLogin(to, next);
+        }
+    };
+}
 
 // function requirePerms(perms: string[]) {
 //     return (to: Route, from: Route, next: NextCallback): void => {
@@ -63,6 +62,16 @@ export const router = new Router({
         {
             path: '/login',
             component: LoginPage,
+        },
+        {
+            path: '/user/by-name/:name',
+            component: UserPage,
+            beforeEnter: requirePerm('user.read'),
+        },
+        {
+            path: '/user/:id',
+            component: UserPage,
+            beforeEnter: requirePerm('user.read'),
         },
     ],
 });

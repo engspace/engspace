@@ -29,9 +29,7 @@ export function buildQuery(obj) {
     const str = [];
     Object.entries(obj).forEach((prop) => {
         if (prop[1]) {
-            str.push(
-                `${encodeURIComponent(prop[0])}=${encodeURIComponent(prop[1])}`
-            );
+            str.push(`${encodeURIComponent(prop[0])}=${encodeURIComponent(prop[1])}`);
         }
     });
     if (str.length) {

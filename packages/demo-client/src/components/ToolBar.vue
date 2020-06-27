@@ -20,18 +20,13 @@
                             <v-list-item-icon>
                                 <v-icon>mdi-account</v-icon>
                             </v-list-item-icon>
-                            <v-list-item-title
-                                >Account settings</v-list-item-title
-                            >
+                            <v-list-item-title>Account settings</v-list-item-title>
                         </v-list-item>
                         <v-list-item>
                             <v-list-item-icon>
                                 <v-icon>mdi-logout</v-icon>
                             </v-list-item-icon>
-                            <v-list-item-title
-                                @click="logout"
-                                v-text="'Disconnect'"
-                            />
+                            <v-list-item-title @click="logout" v-text="'Disconnect'" />
                         </v-list-item>
                     </v-list-item-group>
                 </v-list>
@@ -60,9 +55,9 @@
 </template>
 
 <script>
-import gql from 'graphql-tag';
 import { useQuery, useResult } from '@vue/apollo-composable';
 import { ref, computed } from '@vue/composition-api';
+import gql from 'graphql-tag';
 import { useAuth } from '../auth';
 
 export default {

@@ -26,9 +26,7 @@
                             <v-text-field
                                 v-model="password"
                                 prepend-icon="mdi-lock"
-                                :append-icon="
-                                    showPswd ? 'mdi-eye' : 'mdi-eye-off'
-                                "
+                                :append-icon="showPswd ? 'mdi-eye' : 'mdi-eye-off'"
                                 name="password"
                                 :type="showPswd ? 'text' : 'password'"
                                 label="Password"
@@ -51,8 +49,8 @@
 </template>
 
 <script>
-import HttpStatus from 'http-status-codes';
 import { ref } from '@vue/composition-api';
+import HttpStatus from 'http-status-codes';
 import { api } from '../api';
 
 import { useAuth } from '../auth';

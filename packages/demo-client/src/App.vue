@@ -8,11 +8,11 @@
 </template>
 
 <script>
-import HttpStatus from 'http-status-codes';
 import { onBeforeMount } from '@vue/composition-api';
+import HttpStatus from 'http-status-codes';
 import { api, authHeader } from './api';
-import ToolBar from './components/ToolBar.vue';
 import { useAuth } from './auth';
+import ToolBar from './components/ToolBar.vue';
 
 export default {
     name: 'App',

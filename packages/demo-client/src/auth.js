@@ -29,9 +29,7 @@ export function useAuth() {
 
     const token = computed(() => mutableToken.value);
     const loggedIn = computed(() => !!mutableToken.value);
-    const auth = computed(() =>
-        mutableToken.value ? jwtDecode(mutableToken.value) : null
-    );
+    const auth = computed(() => (mutableToken.value ? jwtDecode(mutableToken.value) : null));
     const userId = computed(() => auth.value?.userId);
     const userPerms = computed(() => auth.value?.userPerms);
 
