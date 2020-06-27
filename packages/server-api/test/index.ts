@@ -5,9 +5,16 @@ import { ApolloServerTestClient, createTestClient } from 'apollo-server-testing'
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiHttp from 'chai-http';
-import chaiUuid from 'chai-uuid';
 import chaiSubset from 'chai-subset';
+import chaiUuid from 'chai-uuid';
 import Koa from 'koa';
+import {
+    AppRolePolicies,
+    AuthToken,
+    buildDefaultAppRolePolicies,
+    PartRefNaming,
+    ChangeRequestNaming,
+} from '@engspace/core';
 import {
     buildDaoSet,
     connectionString,
@@ -22,13 +29,6 @@ import {
     ServerConnConfig,
     TestHelpers,
 } from '@engspace/server-db';
-import {
-    AppRolePolicies,
-    AuthToken,
-    buildDefaultAppRolePolicies,
-    PartRefNaming,
-    ChangeRequestNaming,
-} from '@engspace/core';
 import { EsServerApi } from '../src';
 import { buildControllerSet } from '../src/control';
 

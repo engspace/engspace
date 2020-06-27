@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import gql from 'graphql-tag';
-import { Dict, trackedBy } from '@engspace/server-db';
 import { ApprovalDecision, PartApproval, PartCycle } from '@engspace/core';
+import { Dict, trackedBy } from '@engspace/server-db';
 import { permsAuth } from './auth';
 import { TRACKED_FIELDS, PART_FIELDS, PARTREV_FIELDS } from './helpers';
 import { buildGqlServer, pool, th } from '.';

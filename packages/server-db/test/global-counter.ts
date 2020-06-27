@@ -1,5 +1,5 @@
-import { sql } from 'slonik';
 import { expect } from 'chai';
+import { sql } from 'slonik';
 import { pool, th, dao } from '.';
 
 describe('#GlobalCounterDao', function () {

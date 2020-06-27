@@ -2,8 +2,8 @@ import { expect, request } from 'chai';
 import { print } from 'graphql/language/printer';
 import { signJwt } from '../src/crypto';
 import { bearerToken, permsAuth } from './auth';
-import { MEMBER_DELETE } from './project-member';
 import { PROJECT_CREATE, PROJECT_READ, PROJECT_UPDATE } from './project';
+import { MEMBER_DELETE } from './project-member';
 import { api, config, dao, pool, th } from '.';
 
 const { serverPort } = config;

@@ -1,8 +1,8 @@
 import events from 'events';
 import chai from 'chai';
-import chaiSubset from 'chai-subset';
 import chaiAsPromised from 'chai-as-promised';
 import chaiShallowDeepEqual from 'chai-shallow-deep-equal';
+import chaiSubset from 'chai-subset';
 import _ from 'lodash';
 import {
     buildDaoSet,
