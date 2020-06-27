@@ -1,0 +1,40 @@
+{
+    "name": "@engspace/client-comps",
+    "version": "0.1.0",
+    "private": true,
+    "main": "dist/engspace-comps.common.js",
+    "module": "src/index.js",
+    "scripts": {
+        "build:prod": "vue-cli-service build --target lib src/index.js --name engspace-comps",
+        "build": "vue-cli-service build --mode development --target lib src/index.js --name engspace-comps",
+        "test:unit": "vue-cli-service test:unit --colors test/unit/*.js",
+        "lint": "vue-cli-service lint"
+    },
+    "dependencies": {
+        "@vue/composition-api": "^0.5.0",
+        "core-js": "^3.6.5",
+        "lodash.upperfirst": "^4.3.1",
+        "vue": "^2.6.11",
+        "vuetify": "^2.3.1"
+    },
+    "devDependencies": {
+        "@babel/plugin-proposal-nullish-coalescing-operator": "^7.10.1",
+        "@babel/plugin-proposal-optional-chaining": "^7.10.3",
+        "@vue/cli-plugin-babel": "~4.4.6",
+        "@vue/cli-plugin-eslint": "~4.4.6",
+        "@vue/cli-plugin-unit-mocha": "~4.4.6",
+        "@vue/cli-service": "~4.4.6",
+        "@vue/eslint-config-prettier": "^6.0.0",
+        "@vue/test-utils": "^1.0.3",
+        "babel-eslint": "^10.1.0",
+        "chai": "^4.2.0",
+        "eslint": "^7.3.1",
+        "eslint-plugin-prettier": "^3.1.4",
+        "eslint-plugin-vue": "^6.2.2",
+        "null-loader": "^4.0.0",
+        "prettier": "^2.0.5",
+        "vue-cli-plugin-vuetify": "~2.0.5",
+        "vue-template-compiler": "^2.6.11",
+        "vuetify-loader": "^1.3.0"
+    }
+}
