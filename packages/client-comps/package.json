@@ -8,7 +8,8 @@
         "build:prod": "vue-cli-service build --target lib src/index.js --name engspace-comps",
         "build": "vue-cli-service build --mode development --target lib src/index.js --name engspace-comps",
         "test:unit": "vue-cli-service test:unit --colors test/unit/*.js",
-        "lint": "vue-cli-service lint"
+        "lint": "vue-cli-service lint",
+        "lint:fix": "vue-cli-service lint --fix"
     },
     "dependencies": {
         "@vue/composition-api": "^0.5.0",
