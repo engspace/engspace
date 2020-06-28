@@ -1,35 +1,43 @@
-import { ref, computed } from '@vue/composition-api';
+import { ref, computed, Ref } from '@vue/composition-api';
 import jwtDecode from 'jwt-decode';
+import { AuthToken } from '@engspace/core';
 
 const storageKey = 'auth-token';
 
-let mutableToken = null;
+let mutableToken: Ref<string> | null = null;
 
 /**
  * Login token (non-reactive)
  */
-export function token() {
+export function token(): string | undefined {
     return mutableToken?.value;
 }
 
 /**
  * Whether user is logged-in (non-reactive)
  */
-export function loggedIn() {
-    return mutableToken && !!mutableToken.value;
+export function loggedIn(): boolean {
+    return !!mutableToken?.value;
+}
+
+function mt(): Ref<string> {
+    if (!mutableToken) {
+        mutableToken = ref(localStorage.getItem(storageKey) || '');
+    }
+    return mutableToken as Ref<string>;
 }
 
 /**
  * Reactive Authentification information
  */
 export function useAuth() {
-    if (!mutableToken) {
-        mutableToken = ref(localStorage.getItem(storageKey) || '');
-    }
+    const mutableToken = mt();
 
     const token = computed(() => mutableToken.value);
     const loggedIn = computed(() => !!mutableToken.value);
-    const auth = computed(() => (mutableToken.value ? jwtDecode(mutableToken.value) : null));
+    const auth = computed(() =>
+        mutableToken.value ? (jwtDecode(mutableToken.value) as AuthToken) : null
+    );
     const userId = computed(() => auth.value?.userId);
     const userPerms = computed(() => auth.value?.userPerms);
 
@@ -38,7 +46,7 @@ export function useAuth() {
         localStorage.removeItem(storageKey);
     }
 
-    function login(authToken) {
+    function login(authToken: string) {
         localStorage.setItem(storageKey, authToken);
         mutableToken.value = authToken;
     }

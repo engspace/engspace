@@ -25,10 +25,10 @@
 </template>
 
 <script>
-import { toRefs, computed } from '@vue/composition-api';
+import { toRefs, computed, defineComponent } from '@vue/composition-api';
 import upperFirst from 'lodash.upperfirst';
 
-export default {
+export default defineComponent({
     name: 'EsUserCard',
     props: {
         user: {
@@ -43,5 +43,5 @@ export default {
             roleString,
         };
     },
-};
+});
 </script>

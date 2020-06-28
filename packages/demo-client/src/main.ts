@@ -17,6 +17,7 @@ new Vue({
     setup() {
         provideRouter();
         provideApollo();
+        return {};
     },
     render: (h) => h(App),
 }).$mount('#app');

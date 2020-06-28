@@ -1,6 +1,6 @@
 import { provide, inject } from '@vue/composition-api';
 import Vue from 'vue';
-import Router from 'vue-router';
+import Router, { Route, Location } from 'vue-router';
 import { loggedIn, useAuth } from './auth';
 import HomePage from './pages/HomePage.vue';
 import LoginPage from './pages/LoginPage.vue';
@@ -10,23 +10,27 @@ const RouterSymbol = Symbol();
 
 Vue.use(Router);
 
-function redirectLogin(to, next) {
+type NextCallback = (to?: Location) => void;
+
+function redirectLogin(to: Route, next: NextCallback) {
     const redirectQuery = to.path !== '/' ? `?redirect=${to.path}` : '';
     next({ path: `/login${redirectQuery}` });
 }
 
-function requireAuth(to, from, next) {
+function requireAuth(to: Route, from: Route, next: NextCallback) {
     if (loggedIn()) {
+        console.log('router logged-in');
         next();
     } else {
+        console.log('router not logged-in');
         redirectLogin(to, next);
     }
 }
 
-function requirePerm(perm) {
-    return (to, from, next) => {
+function requirePerm(perm: string) {
+    return (to: Route, from: Route, next: NextCallback) => {
         const auth = useAuth();
-        if (auth.loggedIn.value && auth.userPerms.value.includes(perm)) {
+        if (auth.loggedIn.value && auth.userPerms.value?.includes(perm)) {
             next();
         } else {
             redirectLogin(to, next);

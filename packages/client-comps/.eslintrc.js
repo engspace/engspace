@@ -1,4 +1,4 @@
 module.exports = {
     root: true,
-    extends: ['@engspace/eslint-config/vue'],
+    extends: ['@engspace/eslint-config/ts_vue'],
 };

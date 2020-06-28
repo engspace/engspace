@@ -12,12 +12,12 @@ export const port = process.env.VUE_APP_API_PORT || '3000';
  *
  * @param resource path to an API resource (should be empty or start with '/')
  */
-export function url(resource = '') {
+export function url(resource = ''): string {
     const portPart = port === '80' ? '' : `:${port}`;
     return `http://${host}${portPart}${resource}`;
 }
 
-export function authHeader() {
+export function authHeader(): { Authorization: string } {
     const token = authToken();
     if (!token) {
         throw new Error('Unauthenticated API call');
@@ -25,11 +25,11 @@ export function authHeader() {
     return { Authorization: `Bearer ${token}` };
 }
 
-export function buildQuery(obj) {
-    const str = [];
+export function buildQuery(obj: any) {
+    const str: string[] = [];
     Object.entries(obj).forEach((prop) => {
         if (prop[1]) {
-            str.push(`${encodeURIComponent(prop[0])}=${encodeURIComponent(prop[1])}`);
+            str.push(`${encodeURIComponent(prop[0])}=${encodeURIComponent(prop[1] as string)}`);
         }
     });
     if (str.length) {
@@ -38,7 +38,7 @@ export function buildQuery(obj) {
     return '';
 }
 
-export function query(path, obj) {
+export function query(path: string, obj: any) {
     return `${path}${buildQuery(obj)}`;
 }
 

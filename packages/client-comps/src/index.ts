@@ -1,11 +1,12 @@
+import { VueConstructor } from 'vue';
 import EsUserCard from './components/UserCard.vue';
 
-const comps = {
+const comps: { [name: string]: VueConstructor } = {
     EsUserCard,
 };
 
 export default {
-    install(Vue) {
+    install(Vue: VueConstructor) {
         Object.keys(comps).forEach((name) => {
             Vue.component(name, comps[name]);
         });

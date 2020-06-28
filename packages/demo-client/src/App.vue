@@ -8,13 +8,13 @@
 </template>
 
 <script>
-import { onBeforeMount } from '@vue/composition-api';
+import { onBeforeMount, defineComponent } from '@vue/composition-api';
 import HttpStatus from 'http-status-codes';
 import { api, authHeader } from './api';
 import { useAuth } from './auth';
 import ToolBar from './components/ToolBar.vue';
 
-export default {
+export default defineComponent({
     name: 'App',
     components: {
         ToolBar,
@@ -22,6 +22,7 @@ export default {
     setup(props, { root }) {
         const auth = useAuth();
         if (auth.loggedIn.value) {
+            console.log('logged-in');
             onBeforeMount(async () => {
                 // if already authenticated, we double check the token here
                 // as it can have expired
@@ -33,10 +34,12 @@ export default {
                     root.$router.push('/login');
                 }
             });
+        } else {
+            console.log('not logged-in');
         }
         return {
             loggedIn: auth.loggedIn,
         };
     },
-};
+});
 </script>
