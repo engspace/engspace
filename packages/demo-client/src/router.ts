@@ -1,7 +1,7 @@
 import { provide, inject } from '@vue/composition-api';
 import Vue from 'vue';
 import Router, { Route, Location } from 'vue-router';
-import { loggedIn, useAuth } from './auth';
+import { loggedIn, userPerms } from './auth';
 import HomePage from './pages/HomePage.vue';
 import LoginPage from './pages/LoginPage.vue';
 import UserPage from './pages/UserPage.vue';
@@ -19,18 +19,16 @@ function redirectLogin(to: Route, next: NextCallback) {
 
 function requireAuth(to: Route, from: Route, next: NextCallback) {
     if (loggedIn()) {
-        console.log('router logged-in');
         next();
     } else {
-        console.log('router not logged-in');
         redirectLogin(to, next);
     }
 }
 
 function requirePerm(perm: string) {
     return (to: Route, from: Route, next: NextCallback) => {
-        const auth = useAuth();
-        if (auth.loggedIn.value && auth.userPerms.value?.includes(perm)) {
+        const perms = userPerms();
+        if (perms?.includes(perm)) {
             next();
         } else {
             redirectLogin(to, next);

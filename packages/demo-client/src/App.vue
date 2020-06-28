@@ -22,7 +22,6 @@ export default defineComponent({
     setup(props, { root }) {
         const auth = useAuth();
         if (auth.loggedIn.value) {
-            console.log('logged-in');
             onBeforeMount(async () => {
                 // if already authenticated, we double check the token here
                 // as it can have expired
@@ -34,8 +33,6 @@ export default defineComponent({
                     root.$router.push('/login');
                 }
             });
-        } else {
-            console.log('not logged-in');
         }
         return {
             loggedIn: auth.loggedIn,

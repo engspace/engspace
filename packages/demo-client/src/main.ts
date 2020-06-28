@@ -3,6 +3,7 @@ import Vue from 'vue';
 import EsComps from '@engspace/client-comps';
 import App from './App.vue';
 import { provideApollo } from './apollo';
+import { provideAuth } from './auth';
 import { router, provideRouter } from './router';
 import { vuetify } from './vuetify';
 
@@ -15,6 +16,7 @@ new Vue({
     router,
     vuetify,
     setup() {
+        provideAuth();
         provideRouter();
         provideApollo();
         return {};

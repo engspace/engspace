@@ -1,54 +1,86 @@
-import { ref, computed, Ref } from '@vue/composition-api';
+import { ref, computed, Ref, provide, inject, InjectionKey } from '@vue/composition-api';
 import jwtDecode from 'jwt-decode';
-import { AuthToken } from '@engspace/core';
+import { AuthToken, Id } from '@engspace/core';
 
 const storageKey = 'auth-token';
 
-let mutableToken: Ref<string> | null = null;
+let authToken: AuthToken | undefined;
 
 /**
  * Login token (non-reactive)
  */
-export function token(): string | undefined {
-    return mutableToken?.value;
+export function token(): string | null {
+    return localStorage.getItem(storageKey);
 }
 
 /**
  * Whether user is logged-in (non-reactive)
  */
 export function loggedIn(): boolean {
-    return !!mutableToken?.value;
+    return !!token();
 }
 
-function mt(): Ref<string> {
-    if (!mutableToken) {
-        mutableToken = ref(localStorage.getItem(storageKey) || '');
+function getAuthToken(): AuthToken | undefined {
+    if (!authToken) {
+        const tok = token();
+        if (!tok) {
+            return undefined;
+        }
+        authToken = jwtDecode(tok) as AuthToken;
     }
-    return mutableToken as Ref<string>;
+    return authToken;
+}
+
+/**
+ * Id of logged-in user (non-reactive)
+ */
+export function userId(): Id | undefined {
+    return getAuthToken()?.userId;
+}
+
+/**
+ * Permissions of logged-in user (non-reactive)
+ */
+export function userPerms(): string[] | undefined {
+    return getAuthToken()?.userPerms;
+}
+
+interface AuthStore {
+    token: Ref<string>;
+    auth: Ref<AuthToken | null>;
+}
+
+const AuthSymbol: InjectionKey<AuthStore> = Symbol();
+
+/**
+ * Provide reactive authentification information to Vue
+ */
+export function provideAuth(): void {
+    const tok = ref(token() || '');
+    const auth = computed(() => (tok.value ? (jwtDecode(tok.value) as AuthToken) : null));
+    provide(AuthSymbol, { token: tok, auth });
 }
 
 /**
  * Reactive Authentification information
  */
 export function useAuth() {
-    const mutableToken = mt();
+    const store = inject(AuthSymbol, { token: ref(''), auth: ref(null) });
 
-    const token = computed(() => mutableToken.value);
-    const loggedIn = computed(() => !!mutableToken.value);
-    const auth = computed(() =>
-        mutableToken.value ? (jwtDecode(mutableToken.value) as AuthToken) : null
-    );
-    const userId = computed(() => auth.value?.userId);
-    const userPerms = computed(() => auth.value?.userPerms);
+    const loggedIn = computed(() => !!store.auth.value);
+    const userId = computed(() => store.auth.value?.userId);
+    const userPerms = computed(() => store.auth.value?.userPerms);
 
     function logout() {
-        mutableToken.value = '';
         localStorage.removeItem(storageKey);
+        authToken = undefined;
+        store.token.value = '';
     }
 
-    function login(authToken: string) {
-        localStorage.setItem(storageKey, authToken);
-        mutableToken.value = authToken;
+    function login(token: string) {
+        store.token.value = token;
+        authToken = undefined;
+        localStorage.setItem(storageKey, token);
     }
 
     return {

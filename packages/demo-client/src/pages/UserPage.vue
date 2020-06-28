@@ -5,7 +5,6 @@
 </template>
 
 <script>
-import { useRouter } from '@/router';
 import { useQuery, useResult } from '@vue/apollo-composable';
 import gql from 'graphql-tag';
 
@@ -34,9 +33,9 @@ const GET_USER_BY_NAME = gql`
 `;
 export default {
     name: 'UserPage',
-    setup() {
-        const { currentRoute } = useRouter();
-        const { path, params } = currentRoute;
+    setup(props, { root }) {
+        const { $route } = root;
+        const { path, params } = $route;
         let q;
         if (path.includes('/by-name/')) {
             const { name } = params;
