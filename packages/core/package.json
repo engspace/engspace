@@ -1,21 +1,33 @@
 {
     "name": "@engspace/core",
-    "version": "0.1.0",
     "description": "Engineering Space - Core library",
-    "main": "dist/index",
-    "types": "dist/index",
-    "repository": "https://github.com/engspace/engspace",
+    "version": "0.1.0",
     "author": "Remi Thebault <remi.thebault@gmail.com>",
-    "license": "MIT",
-    "private": true,
-    "scripts": {
-        "lint": "eslint --ext .ts src test",
-        "lint:fix": "eslint --fix --ext .ts src test",
-        "build": "tsc -b .",
-        "test": "cross-env NODE_ENV=test mocha",
-        "test:cov": "cross-env NODE_ENV=test nyc mocha",
-        "clean": "rimraf ./dist/ ../../.build-cache/core.tsbuildinfo"
+    "dependencies": {},
+    "devDependencies": {
+        "@engspace/eslint-config": "^0.1.0",
+        "@engspace/prettier-config": "^0.1.0",
+        "@types/chai": "^4.2.11",
+        "@types/mocha": "^7.0.2",
+        "@typescript-eslint/eslint-plugin": "^3.4.0",
+        "@typescript-eslint/parser": "^3.4.0",
+        "chai": "^4.2.0",
+        "copyfiles": "^2.3.0",
+        "cross-env": "^7.0.2",
+        "eslint": "^7.3.1",
+        "eslint-config-prettier": "^6.11.0",
+        "eslint-plugin-import": "^2.21.2",
+        "eslint-plugin-prettier": "^3.1.4",
+        "mocha": "^7.2.0",
+        "npm-run-all": "^4.1.5",
+        "nyc": "^15.1.0",
+        "prettier": "^2.0.5",
+        "rimraf": "^3.0.2",
+        "ts-node": "^8.10.2",
+        "typescript": "^3.9.5"
     },
+    "license": "MIT",
+    "main": "dist/index",
     "nyc": {
         "cache": false,
         "extension": [
@@ -27,27 +39,15 @@
             "**/*.js"
         ]
     },
-    "dependencies": {},
-    "devDependencies": {
-        "@engspace/eslint-config": "^0.1.0",
-        "@engspace/prettier-config": "^0.1.0",
-        "@types/chai": "^4.2.11",
-        "@types/mocha": "^7.0.2",
-        "@typescript-eslint/eslint-plugin": "^3.1.0",
-        "@typescript-eslint/parser": "^3.1.0",
-        "chai": "^4.2.0",
-        "copyfiles": "^2.3.0",
-        "cross-env": "^7.0.2",
-        "eslint": "^7.1.0",
-        "eslint-config-prettier": "^6.11.0",
-        "eslint-plugin-import": "^2.20.2",
-        "eslint-plugin-prettier": "^3.1.3",
-        "mocha": "^7.2.0",
-        "npm-run-all": "^4.1.5",
-        "nyc": "^15.1.0",
-        "prettier": "^2.0.5",
-        "rimraf": "^3.0.2",
-        "ts-node": "^8.10.2",
-        "typescript": "^3.9.3"
-    }
+    "private": true,
+    "repository": "https://github.com/engspace/engspace",
+    "scripts": {
+        "build": "tsc -b .",
+        "clean": "rimraf ./dist/ ../../.build-cache/core.tsbuildinfo",
+        "lint": "eslint --ext .ts src test",
+        "lint:fix": "eslint --fix --ext .ts src test",
+        "test": "cross-env NODE_ENV=test mocha",
+        "test:cov": "cross-env NODE_ENV=test nyc mocha"
+    },
+    "types": "dist/index"
 }

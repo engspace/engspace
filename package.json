@@ -1,39 +1,39 @@
 {
-    "name": "engspace",
-    "version": "0.1.0",
-    "description": "Engineering Space - PLM solution",
-    "repository": "https://github.com/engspace/engspace",
-    "author": "Remi Thebault <remi.thebault@gmail.com>",
-    "license": "MIT",
-    "private": true,
-    "workspaces": [
-        "packages/*"
+  "name": "engspace",
+  "description": "Engineering Space - PLM solution",
+  "version": "0.1.0",
+  "author": "Remi Thebault <remi.thebault@gmail.com>",
+  "devDependencies": {
+    "coveralls": "^3.1.0",
+    "lerna": "^3.22.0",
+    "nyc": "^15.1.0",
+    "prettier": "^2.0.5"
+  },
+  "license": "MIT",
+  "nyc": {
+    "extension": [
+      ".js",
+      ".ts"
     ],
-    "scripts": {
-        "lint": "lerna run lint --stream -- --color",
-        "lint:fix": "lerna run lint:fix --stream -- --color",
-        "test": "lerna run test --stream -- --colors",
-        "test:cov": "lerna run test:cov --stream -- --colors",
-        "cov:merge": "node ./merge_nyc_reports.js && nyc report",
-        "coveralls": "nyc report --reporter=text-lcov | coveralls",
-        "build": "lerna run build --scope @engspace/demo-server --stream",
-        "demo:build": "lerna run build --scope @engspace/demo-server --stream",
-        "demo:serve": "lerna run serve --scope=@engspace/demo-server --stream",
-        "clean": "lerna run clean --parallel"
-    },
-    "nyc": {
-        "extension": [
-            ".js",
-            ".ts"
-        ],
-        "reporter": [
-            "text"
-        ]
-    },
-    "devDependencies": {
-        "coveralls": "^3.1.0",
-        "lerna": "^3.22.0",
-        "nyc": "^15.1.0",
-        "prettier": "^2.0.5"
-    }
+    "reporter": [
+      "text"
+    ]
+  },
+  "private": true,
+  "repository": "https://github.com/engspace/engspace",
+  "scripts": {
+    "build": "lerna run build --scope @engspace/demo-server --stream",
+    "clean": "lerna run clean --parallel",
+    "cov:merge": "node ./merge_nyc_reports.js && nyc report",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "demo:build": "lerna run build --scope @engspace/demo-server --stream",
+    "demo:serve": "lerna run serve --scope=@engspace/demo-server --stream",
+    "lint": "lerna run lint --stream -- --color",
+    "lint:fix": "lerna run lint:fix --stream -- --color",
+    "test": "lerna run test --stream -- --colors",
+    "test:cov": "lerna run test:cov --stream -- --colors"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }

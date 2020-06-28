@@ -1,32 +1,8 @@
 {
     "name": "@engspace/server-api",
-    "version": "0.1.0",
     "description": "GraphQL server for Engineering Space",
+    "version": "0.1.0",
     "author": "Remi Thebault <remi.thebault@gmail.com>",
-    "license": "MIT",
-    "private": true,
-    "main": "dist/index",
-    "types": "dist/index",
-    "scripts": {
-        "lint": "eslint --ext .ts src test",
-        "lint:fix": "eslint --fix --ext .ts src test",
-        "build": "tsc -b .",
-        "test": "cross-env NODE_ENV=test mocha",
-        "test:cov": "cross-env NODE_ENV=test nyc mocha",
-        "clean": "rimraf ./dist/ ../../.build-cache/server-api.tsbuildinfo"
-    },
-    "nyc": {
-        "cache": false,
-        "extension": [
-            ".ts"
-        ],
-        "exclude": [
-            "test/**/*",
-            "src/graphql/playground.ts",
-            "**/*.d.ts",
-            "**/*.js"
-        ]
-    },
     "dependencies": {
         "@engspace/core": "^0.1.0",
         "@engspace/server-db": "^0.1.0",
@@ -80,5 +56,29 @@
         "rimraf": "^3.0.2",
         "ts-node": "^8.10.2",
         "typescript": "^3.9.5"
-    }
+    },
+    "license": "MIT",
+    "main": "dist/index",
+    "nyc": {
+        "cache": false,
+        "extension": [
+            ".ts"
+        ],
+        "exclude": [
+            "test/**/*",
+            "src/graphql/playground.ts",
+            "**/*.d.ts",
+            "**/*.js"
+        ]
+    },
+    "private": true,
+    "scripts": {
+        "build": "tsc -b .",
+        "clean": "rimraf ./dist/ ../../.build-cache/server-api.tsbuildinfo",
+        "lint": "eslint --ext .ts src test",
+        "lint:fix": "eslint --fix --ext .ts src test",
+        "test": "cross-env NODE_ENV=test mocha",
+        "test:cov": "cross-env NODE_ENV=test nyc mocha"
+    },
+    "types": "dist/index"
 }
