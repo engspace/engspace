@@ -4,8 +4,9 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { useQuery, useResult } from '@vue/apollo-composable';
+import { defineComponent } from '@vue/composition-api';
 import gql from 'graphql-tag';
 
 const GET_USER = gql`
@@ -31,8 +32,7 @@ const GET_USER_BY_NAME = gql`
         }
     }
 `;
-export default {
-    name: 'UserPage',
+export default defineComponent({
     setup(props, { root }) {
         const { $route } = root;
         const { path, params } = $route;
@@ -55,5 +55,5 @@ export default {
             error,
         };
     },
-};
+});
 </script>

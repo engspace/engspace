@@ -24,21 +24,21 @@
     </v-card>
 </template>
 
-<script>
+<script lang="ts">
 import { toRefs, computed, defineComponent } from '@vue/composition-api';
 import upperFirst from 'lodash.upperfirst';
+import { User } from '@engspace/core';
 
 export default defineComponent({
-    name: 'EsUserCard',
     props: {
         user: {
             type: Object,
             default: () => ({ name: '', email: '', fullName: '', roles: [] }),
         },
     },
-    setup(props) {
+    setup(props: { user: User }) {
         const { user } = toRefs(props);
-        const roleString = computed(() => user.value.roles.map((r) => upperFirst(r)).join(', '));
+        const roleString = computed(() => user.value.roles?.map((r) => upperFirst(r)).join(', '));
         return {
             roleString,
         };

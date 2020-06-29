@@ -48,14 +48,14 @@
     </v-container>
 </template>
 
-<script>
-import { ref } from '@vue/composition-api';
+<script lang="ts">
+import { ref, defineComponent } from '@vue/composition-api';
 import HttpStatus from 'http-status-codes';
 import { api } from '../api';
 
 import { useAuth } from '../auth';
 
-export default {
+export default defineComponent({
     name: 'LoginPage',
     setup(props, { root }) {
         const nameOrEmail = ref('');
@@ -64,7 +64,7 @@ export default {
         const wrongCred = ref(false);
         const showPswd = ref(false);
         const rules = {
-            required: (value) => {
+            required: (value: string) => {
                 return !!value || 'Required.';
             },
         };
@@ -83,11 +83,12 @@ export default {
                     auth.login(resp.data.token);
                     const { $router, $route } = root;
                     const { redirect } = $route.query;
-                    $router.push(redirect || '/');
+                    $router.push((redirect as string | undefined) || '/');
                 } else {
                     wrongCred.value = true;
                 }
             } catch (err) {
+                console.log(err);
                 networkError.value = true;
             }
         }
@@ -103,5 +104,5 @@ export default {
             login,
         };
     },
-};
+});
 </script>
