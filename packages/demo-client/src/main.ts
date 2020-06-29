@@ -1,6 +1,7 @@
 import VueCompositionApi from '@vue/composition-api';
 import Vue from 'vue';
-import EsComps from '@engspace/client-comps';
+import EsComps, { provideConfig } from '@engspace/client-comps';
+import { buildDefaultAppRolePolicies } from '@engspace/core';
 import App from './App.vue';
 import { provideApollo } from './apollo';
 import { provideAuth } from './auth';
@@ -16,6 +17,9 @@ new Vue({
     router,
     vuetify,
     setup() {
+        provideConfig({
+            rolePolicies: buildDefaultAppRolePolicies(),
+        });
         provideAuth();
         provideRouter();
         provideApollo();
