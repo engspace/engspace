@@ -2,6 +2,7 @@ import { provide, inject } from '@vue/composition-api';
 import Vue from 'vue';
 import Router, { Route, Location } from 'vue-router';
 import { loggedIn, userPerms } from './auth';
+import AdminPage from './pages/AdminPage.vue';
 import HomePage from './pages/HomePage.vue';
 import LoginPage from './pages/LoginPage.vue';
 import UserPage from './pages/UserPage.vue';
@@ -36,21 +37,22 @@ function requirePerm(perm: string) {
     };
 }
 
-// function requirePerms(perms: string[]) {
-//     return (to: Route, from: Route, next: NextCallback): void => {
-//         if (!store.getters.isAuth) {
-//             redirectLogin(to, next);
-//             return;
-//         }
-//         for (const p of perms) {
-//             if (!store.getters.auth.userPerms.includes(p)) {
-//                 redirectLogin(to, next);
-//                 return;
-//             }
-//         }
-//         next();
-//     };
-// }
+function requirePerms(required: string[]) {
+    return (to: Route, from: Route, next: NextCallback) => {
+        const available = userPerms();
+        if (!available) {
+            redirectLogin(to, next);
+            return;
+        }
+        for (const p of required) {
+            if (!available.includes(p)) {
+                redirectLogin(to, next);
+                return;
+            }
+        }
+        next();
+    };
+}
 
 export const router = new Router({
     mode: 'history',
@@ -64,6 +66,11 @@ export const router = new Router({
         {
             path: '/login',
             component: LoginPage,
+        },
+        {
+            path: '/admin',
+            component: AdminPage,
+            beforeEnter: requirePerms(['user.update', 'user.create']),
         },
         {
             path: '/user/by-name/:name',

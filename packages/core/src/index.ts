@@ -33,6 +33,11 @@ export interface HasId {
     id: Id;
 }
 
+/** Check whether the object has an Id */
+export function hasId(obj: unknown): obj is HasId {
+    return typeof (obj as HasId).id === 'string';
+}
+
 /** A representation of date-time (number of millisecond since Unix epoch) */
 export type DateTime = number;
 
