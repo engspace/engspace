@@ -24,6 +24,12 @@ module.exports = {
                         group: 'external',
                         position: 'after',
                     },
+                    {
+                        // common pattern for project source root
+                        pattern: '@/**',
+                        group: 'parent',
+                        position: 'before',
+                    },
                 ],
                 pathGroupsExcludedImportTypes: ['builtin'],
                 alphabetize: {
