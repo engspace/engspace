@@ -1,9 +1,26 @@
 <template>
-    <v-card>
+    <v-card max-width="400">
         <v-card-title>
             {{ title }}
             <span v-if="copy.id && showId">Id: {{ copy.id }}</span>
         </v-card-title>
+        <v-card-text>
+            <v-text-field v-model="copy.fullName" dense small label="Full name"></v-text-field>
+            <v-text-field v-model="copy.name" dense label="User Id"></v-text-field>
+            <v-text-field v-model="copy.email" dense label="E-Mail"></v-text-field>
+            <v-subheader class="v-label">Roles:</v-subheader>
+            <div>
+                <v-checkbox
+                    v-for="role in allRoles"
+                    :key="role"
+                    v-model="copy.roles"
+                    :value="role"
+                    dense
+                    hide-details
+                    :label="upperFirst(role)"
+                ></v-checkbox>
+            </div>
+        </v-card-text>
         <v-card-actions>
             <slot name="action" :user="copy"></slot>
         </v-card-actions>
@@ -12,24 +29,6 @@
                 {{ error }}
             </v-alert>
         </v-card-subtitle>
-        <v-card-text>
-            <v-text-field v-model="copy.fullName" dense label="Full name"></v-text-field>
-            <v-text-field v-model="copy.name" dense label="User Id"></v-text-field>
-            <v-text-field v-model="copy.email" dense label="E-Mail"></v-text-field>
-            <v-card>
-                <v-card-title>Roles:</v-card-title>
-                <v-card-text>
-                    <v-checkbox
-                        v-for="role in allRoles"
-                        :key="role"
-                        v-model="copy.roles"
-                        :value="role"
-                        dense
-                        :label="upperFirst(role)"
-                    ></v-checkbox>
-                </v-card-text>
-            </v-card>
-        </v-card-text>
     </v-card>
 </template>
 

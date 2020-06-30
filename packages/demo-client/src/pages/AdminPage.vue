@@ -1,13 +1,18 @@
 <template>
     <div>
         <es-user-edit-card
-            title="Create user"
+            title="Create new user"
             :show-id="false"
             :error="createError"
             :user="createdUser"
         >
             <template v-slot:action="{ user }">
-                <es-success-btn :anim-state="createAnimState" @click="createUser({ input: user })">
+                <v-spacer></v-spacer>
+                <es-success-btn
+                    class="mr-4"
+                    :anim-state="createAnimState"
+                    @click="createUser({ input: user })"
+                >
                     <v-icon>mdi-content-save</v-icon>
                     Create
                 </es-success-btn>
