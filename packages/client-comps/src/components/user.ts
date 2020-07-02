@@ -33,6 +33,11 @@ export const USER_GET_BY_NAME = gql`
     ${USER_FIELDS}
 `;
 
+/**
+ * GraphQL `userSearch` query.
+ *
+ * operation name: SearchUsers
+ */
 const USER_SEARCH = gql`
     query SearchUsers($search: String, $offset: Int, $limit: Int) {
         userSearch(search: $search, offset: $offset, limit: $limit) {
