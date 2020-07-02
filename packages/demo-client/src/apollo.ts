@@ -26,6 +26,11 @@ const cache = new InMemoryCache();
 export const apolloClient = new ApolloClient({
     link: authLink.concat(httpLink),
     cache,
+    defaultOptions: {
+        watchQuery: {
+            fetchPolicy: 'cache-and-network',
+        },
+    },
 });
 
 export function provideApollo() {
