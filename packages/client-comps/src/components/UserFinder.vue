@@ -22,7 +22,10 @@
             disable-sort
         >
             <template v-slot:item="{ item }">
-                <tr>
+                <tr
+                    :class="{ primary: selectable && value && value.id === item.id }"
+                    @click="selectUser(item)"
+                >
                     <td v-for="col in columns" :key="col">{{ item[col] }}</td>
                 </tr>
             </template>
@@ -37,6 +40,8 @@
 
 <script lang="ts">
 import { defineComponent, toRefs, computed, ref, watch } from '@vue/composition-api';
+import cloneDeep from 'lodash.clonedeep';
+import { User } from '@engspace/core';
 import { useUserSearch } from './user';
 
 const colText: { [prop: string]: string } = {
@@ -84,18 +89,58 @@ export default defineComponent({
             type: Boolean,
             default: false,
         },
+        /**
+         * Whether user roles should be fetched.
+         */
+        fetchRoles: {
+            type: Boolean,
+            default: false,
+        },
+        /**
+         * Whether a user can be selected
+         */
+        selectable: {
+            type: Boolean,
+            default: false,
+        },
+        /**
+         * The currently selected user.
+         * value.id is used to highlight the user row.
+         */
+        value: {
+            type: Object,
+            default: null,
+        },
     },
-    setup(props: { columns: string[]; initialSearch: string; emptyAll: boolean }) {
+    setup(
+        props: {
+            columns: string[];
+            initialSearch: string;
+            emptyAll: boolean;
+            fetchRoles: boolean;
+            selectable: boolean;
+            value: User;
+        },
+        { emit }
+    ) {
+        const headers = computed(() =>
+            props.columns.map((col) => ({
+                text: colText[col],
+                value: col,
+            }))
+        );
+
         const search = ref(props.initialSearch);
         const page = ref(1);
         const itemsPerPage = ref(10);
-        const { emptyAll } = toRefs(props);
+        const { emptyAll, fetchRoles } = toRefs(props);
 
         const { users, count, error, loading } = useUserSearch({
             search,
             page,
             itemsPerPage,
             emptyAll,
+            fetchRoles,
         });
 
         watch(
@@ -105,14 +150,25 @@ export default defineComponent({
             }
         );
 
-        const headers = computed(() =>
-            props.columns.map((col) => ({
-                text: colText[col],
-                value: col,
-            }))
-        );
+        // reset selection if it is not in the list
+        watch(users, (newUsers) => {
+            if (props.selectable && props.value) {
+                if (newUsers && newUsers.find((user: User) => user.id === props.value.id)) {
+                    return;
+                }
+                emit('input', null);
+            }
+        });
+
+        function selectUser(user: User | undefined) {
+            if (props.selectable) {
+                emit('input', cloneDeep(user));
+            }
+        }
 
         return {
+            headers,
+
             search,
             page,
             itemsPerPage,
@@ -121,7 +177,7 @@ export default defineComponent({
             error,
             loading,
 
-            headers,
+            selectUser,
         };
     },
 });
