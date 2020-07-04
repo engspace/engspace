@@ -9,7 +9,7 @@
         <template v-slot:badge>
             <v-icon dark small>{{ badgeIcon }}</v-icon>
         </template>
-        <v-btn :small="small" :type="type" @click="$emit('click')">
+        <v-btn :small="small" :type="type" :disabled="disabled" @click="$emit('click')">
             <slot></slot>
         </v-btn>
     </v-badge>
@@ -40,6 +40,10 @@ export default defineComponent({
         animState: {
             type: Object,
             default: { value: false, success: true },
+        },
+        disabled: {
+            type: Boolean,
+            default: false,
         },
     },
     setup(props: { animState: AnimState }) {
