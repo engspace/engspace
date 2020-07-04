@@ -1,16 +1,18 @@
 import { VueConstructor } from 'vue';
 import EsSuccessBtn from './components/SuccessBtn.vue';
 import EsUserCard from './components/UserCard.vue';
-import EsUserEditCard from './components/UserEditCard.vue';
+import EsUserEdit from './components/UserEdit.vue';
 import EsUserFinder from './components/UserFinder.vue';
 
-export { provideConfig, useConfig } from './config';
 export { useSuccessAnimate } from './components/success-btn';
+export { USER_FIELDS } from './components/user';
+export { provideConfig, useConfig } from './config';
+export { operationName } from './graphql-helper';
 
 const comps: { [name: string]: VueConstructor } = {
     EsSuccessBtn,
     EsUserCard,
-    EsUserEditCard,
+    EsUserEdit,
     EsUserFinder,
 };
 
