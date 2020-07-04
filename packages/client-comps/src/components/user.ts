@@ -17,12 +17,13 @@ export const USER_FIELDS = gql`
  *
  * operation name: SearchUsers
  */
-const USER_SEARCH = gql`
-    query SearchUsers($search: String, $offset: Int, $limit: Int) {
+export const USER_SEARCH = gql`
+    query SearchUsers($search: String, $offset: Int, $limit: Int, $fetchRoles: Boolean!) {
         userSearch(search: $search, offset: $offset, limit: $limit) {
             count
             users {
                 ...UserFields
+                roles @include(if: $fetchRoles)
             }
         }
     }
@@ -33,17 +34,19 @@ interface SearchParams {
     search: Ref<string>;
     page: Ref<number>;
     itemsPerPage?: RefOrRaw<number>;
+    fetchRoles?: RefOrRaw<boolean>;
     debounce?: RefOrRaw<number>;
     emptyAll?: RefOrRaw<boolean>;
 }
 
 /**
- * Stateful reactive user search.
+ * Stateful reactive user search. The query operation name is 'SearchUsers'.
  */
 export function useUserSearch({
     search,
     page,
     itemsPerPage = 10,
+    fetchRoles = false,
     debounce = 500,
     emptyAll = false,
 }: SearchParams) {
@@ -52,6 +55,7 @@ export function useUserSearch({
         search: unref(search),
         offset: offset.value,
         limit: unref(itemsPerPage),
+        fetchRoles: unref(fetchRoles),
     }));
     const options = computed(() => ({
         debounce: unref(debounce),
