@@ -1,7 +1,6 @@
 import { useQuery, useResult } from '@vue/apollo-composable';
-import { computed, ref, Ref } from '@vue/composition-api';
+import { computed, Ref } from '@vue/composition-api';
 import gql from 'graphql-tag';
-import { Id } from '@engspace/core';
 import { RefOrRaw, unref } from '../composition-helper';
 
 export const USER_FIELDS = gql`
@@ -11,26 +10,6 @@ export const USER_FIELDS = gql`
         email
         fullName
     }
-`;
-
-export const USER_GET = gql`
-    query GetUser($id: ID!) {
-        user(id: $id) {
-            ...UserFields
-            roles
-        }
-    }
-    ${USER_FIELDS}
-`;
-
-export const USER_GET_BY_NAME = gql`
-    query GetUserByName($name: String!) {
-        userByName(name: $name) {
-            ...UserFields
-            roles
-        }
-    }
-    ${USER_FIELDS}
 `;
 
 /**
@@ -49,29 +28,6 @@ const USER_SEARCH = gql`
     }
     ${USER_FIELDS}
 `;
-
-interface IdOrName {
-    id?: Id;
-    name?: string;
-}
-
-/**
- * Return a reactive apollo query for a user.
- *
- * Will search by name if id is not provided.
- */
-export function useUserQuery(idOrName: IdOrName) {
-    const id = ref(idOrName.id);
-    const name = ref(idOrName.name);
-    const doc = computed(() => (id.value ? USER_GET : USER_GET_BY_NAME));
-    const vars = computed(() => (id.value ? { id } : { name }));
-    const query = useQuery(doc, vars);
-    return {
-        id,
-        name,
-        query,
-    };
-}
 
 interface SearchParams {
     search: Ref<string>;
