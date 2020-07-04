@@ -1,55 +1,36 @@
 <template>
     <div>
-        <v-app-bar>
-            <v-app-bar-nav-icon @click="drawer = !drawer" />
+        <v-app-bar app clipped-left dense elevation="1">
+            <span class="mr-2"><span class="code">{engspace}</span> demo</span>
             <router-link to="/">
                 <v-icon>mdi-home</v-icon>
             </router-link>
-            <v-spacer />
-            <v-menu offset-y>
-                <template #activator="{ on }">
-                    <div class="clickable" v-on="on">
-                        <span>{{ user.fullName }}</span>
-                        <v-icon>mdi-arrow_drop_down</v-icon>
-                    </div>
-                </template>
-                <v-list>
-                    <v-subheader>User space</v-subheader>
-                    <v-list-item-group>
-                        <v-list-item>
-                            <v-list-item-icon>
-                                <v-icon>mdi-account</v-icon>
-                            </v-list-item-icon>
-                            <v-list-item-title>Account settings</v-list-item-title>
-                        </v-list-item>
-                        <v-list-item>
-                            <v-list-item-icon>
-                                <v-icon>mdi-logout</v-icon>
-                            </v-list-item-icon>
-                            <v-list-item-title @click="logout" v-text="'Disconnect'" />
-                        </v-list-item>
-                    </v-list-item-group>
-                </v-list>
-            </v-menu>
         </v-app-bar>
-        <v-navigation-drawer v-model="drawer" app absolute temporary>
-            <template v-if="isAdmin">
-                <v-subheader>Admin space</v-subheader>
-                <v-list-item>
-                    <v-list-item-title>Users</v-list-item-title>
+        <v-navigation-drawer v-model="drawer" app permanent clipped>
+            <v-list>
+                <v-list-item two-line>
+                    <v-list-item-content>
+                        <v-list-item-title>{{ user.fullName }}</v-list-item-title>
+                        <v-list-item-subtitle>{{ user.email }}</v-list-item-subtitle>
+                    </v-list-item-content>
+                    <v-list-item-action>
+                        <v-btn icon @click="logout"><v-icon>mdi-logout</v-icon></v-btn>
+                    </v-list-item-action>
                 </v-list-item>
-                <v-list-item>
-                    <v-list-item-title>Part families</v-list-item-title>
+                <v-list-item
+                    v-for="item in navItems"
+                    :key="item.path"
+                    :to="item.path"
+                    active-class="highlighted"
+                    :class="item.path === $route.path ? 'highlighted' : ''"
+                >
+                    <v-list-item-content>
+                        <v-list-item-title>
+                            {{ item.title }}
+                        </v-list-item-title>
+                    </v-list-item-content>
                 </v-list-item>
-                <v-divider />
-            </template>
-            <template v-if="isManager">
-                <v-subheader>Manager space</v-subheader>
-                <v-list-item>
-                    <v-list-item-title>New Project</v-list-item-title>
-                </v-list-item>
-                <v-divider />
-            </template>
+            </v-list>
         </v-navigation-drawer>
     </div>
 </template>
@@ -69,6 +50,7 @@ export default {
                 query GetUserInfo($userId: ID!) {
                     user(id: $userId) {
                         fullName
+                        email
                         roles
                     }
                 }
@@ -79,8 +61,16 @@ export default {
         );
 
         const user = useResult(result, { fullName: '', roles: [] });
-        const isAdmin = computed(() => user.value.roles.includes('admin'));
-        const isManager = computed(() => user.value.roles.includes('manager'));
+        const navItems = computed(() => {
+            const items = [];
+            if (user.value.roles.includes('admin')) {
+                items.push({
+                    title: 'Admin space',
+                    path: '/admin',
+                });
+            }
+            return items;
+        });
 
         function logout() {
             authLogout();
@@ -92,8 +82,7 @@ export default {
         return {
             user,
             drawer,
-            isAdmin,
-            isManager,
+            navItems,
             logout,
         };
     },
@@ -103,5 +92,8 @@ export default {
 <style>
 .clickable {
     cursor: pointer;
+}
+.code {
+    font-family: 'Fira Code', 'Lucida Console', Monaco, monospace;
 }
 </style>
