@@ -1,4 +1,5 @@
 import { VueConstructor } from 'vue';
+import EsDisplayLabel from './components/DisplayLabel.vue';
 import EsSuccessBtn from './components/SuccessBtn.vue';
 import EsUserCard from './components/UserCard.vue';
 import EsUserEdit from './components/UserEdit.vue';
@@ -10,6 +11,7 @@ export { provideConfig, useConfig } from './config';
 export { operationName } from './graphql-helper';
 
 const comps: { [name: string]: VueConstructor } = {
+    EsDisplayLabel,
     EsSuccessBtn,
     EsUserCard,
     EsUserEdit,
