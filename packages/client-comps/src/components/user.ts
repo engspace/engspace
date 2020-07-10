@@ -2,7 +2,7 @@ import { useQuery, useResult } from '@vue/apollo-composable';
 import { computed, Ref } from '@vue/composition-api';
 import gql from 'graphql-tag';
 import validator from 'validator';
-import { User, HasId, hasId } from '@engspace/core';
+import { User, hasId } from '@engspace/core';
 import { RefOrRaw, unref } from '../composition-helper';
 
 export const USER_FIELDS = gql`
