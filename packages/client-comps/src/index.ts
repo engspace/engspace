@@ -6,7 +6,7 @@ import EsUserEdit from './components/UserEdit.vue';
 import EsUserFinder from './components/UserFinder.vue';
 
 export { useSuccessAnimate } from './components/success-btn';
-export { USER_FIELDS } from './components/user';
+export { USER_FIELDS, useUserCheckExist, useUserConflicts, useUserSearch } from './components/user';
 export { provideConfig, useConfig } from './config';
 export { operationName } from './graphql-helper';
 

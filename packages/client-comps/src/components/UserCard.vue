@@ -15,7 +15,7 @@
                     <v-col :cols="3" tag="span" class="label">E-Mail</v-col>
                     <v-col :cols="9" tag="span" class="value">{{ user.email }}</v-col>
                 </v-row>
-                <v-row>
+                <v-row v-if="showRoles">
                     <v-col :cols="3" tag="span" class="label">Roles:</v-col>
                     <v-col :cols="9" tag="span" class="value">{{ roleString }}</v-col>
                 </v-row>
@@ -31,9 +31,13 @@ import { User } from '@engspace/core';
 
 export default defineComponent({
     props: {
-        user: {
+        value: {
             type: Object,
             default: () => ({ name: '', email: '', fullName: '', roles: [] }),
+        },
+        showRoles: {
+            type: Boolean,
+            default: false,
         },
     },
     setup(props: { user: User }) {
