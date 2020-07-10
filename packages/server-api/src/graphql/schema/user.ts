@@ -26,8 +26,8 @@ export const typeDefs = gql`
 
     extend type Query {
         user(id: ID!): User
-        userByName(name: String!): User
-        userByEmail(email: String!): User
+        userByName(name: String): User
+        userByEmail(email: String): User
         userSearch(search: String, offset: Int = 0, limit: Int = 1000): UserSearch!
     }
 
