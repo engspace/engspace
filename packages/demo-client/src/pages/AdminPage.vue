@@ -21,7 +21,7 @@
                                 :disabled="!createValid"
                                 @click="createMutate({ input: createUser })"
                             >
-                                <v-icon>mdi-content-save</v-icon>
+                                <v-icon>mdi-plus</v-icon>
                                 Create
                             </es-success-btn>
                         </v-card-actions>
@@ -77,7 +77,7 @@
                                             :disabled="!updateEnabled"
                                             @click="updateMutate(updateUser)"
                                         >
-                                            <v-icon>mdi-content-save</v-icon>
+                                            <v-icon>mdi-pencil</v-icon>
                                             Update
                                         </es-success-btn>
                                     </v-card-actions>
