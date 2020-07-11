@@ -1,107 +1,111 @@
 <template>
     <v-container fluid class="fill-height">
         <v-row class="fill-height" align="start">
-    <v-expansion-panels>
-        <v-expansion-panel>
-            <v-expansion-panel-header>Create new users</v-expansion-panel-header>
-            <v-expansion-panel-content>
-                <v-form ref="createForm" v-model="createValid">
-                    <v-card max-width="400">
-                        <v-card-text>
-                            <es-user-edit
-                                v-model="createUser"
-                                :editable-fields="['name', 'email', 'fullName', 'roles']"
-                                :name-conflict="createNameConflict"
-                                :email-conflict="createEmailConflict"
-                            ></es-user-edit>
-                        </v-card-text>
-                        <v-card-actions>
-                            <v-spacer></v-spacer>
-                            <es-success-btn
-                                class="mr-4"
-                                :anim-state="createAnimState"
-                                :disabled="!createValid"
-                                @click="createMutate({ input: createUser })"
-                            >
-                                <v-icon>mdi-plus</v-icon>
-                                Create
-                            </es-success-btn>
-                        </v-card-actions>
-                        <v-card-subtitle>
-                            <v-alert
-                                v-if="!!createError"
-                                type="error"
-                                dense
-                                colored-border
-                                border="right"
-                            >
-                                {{ createError }}
-                            </v-alert>
-                        </v-card-subtitle>
-                    </v-card>
-                </v-form>
-            </v-expansion-panel-content>
-        </v-expansion-panel>
+            <v-expansion-panels>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Create new users</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <v-form ref="createForm" v-model="createValid">
+                            <v-card max-width="400">
+                                <v-card-text>
+                                    <es-user-edit
+                                        v-model="createUser"
+                                        :editable-fields="['name', 'email', 'fullName', 'roles']"
+                                        :name-conflict="createNameConflict"
+                                        :email-conflict="createEmailConflict"
+                                    ></es-user-edit>
+                                </v-card-text>
+                                <v-card-actions>
+                                    <v-spacer></v-spacer>
+                                    <es-success-btn
+                                        class="mr-4"
+                                        :anim-state="createAnimState"
+                                        :disabled="!createValid"
+                                        @click="createMutate({ input: createUser })"
+                                    >
+                                        <v-icon>mdi-plus</v-icon>
+                                        Create
+                                    </es-success-btn>
+                                </v-card-actions>
+                                <v-card-subtitle>
+                                    <v-alert
+                                        v-if="!!createError"
+                                        type="error"
+                                        dense
+                                        colored-border
+                                        border="right"
+                                    >
+                                        {{ createError }}
+                                    </v-alert>
+                                </v-card-subtitle>
+                            </v-card>
+                        </v-form>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
 
-        <v-expansion-panel>
-            <v-expansion-panel-header>Edit existing users</v-expansion-panel-header>
-            <v-expansion-panel-content>
-                <v-container>
-                    <v-row>
-                        <v-col cols="12" md="8">
-                            <es-user-finder
-                                v-model="updateSelected"
-                                :selectable="true"
-                                :fetch-roles="true"
-                            ></es-user-finder>
-                        </v-col>
-                        <v-col cols="12" md="4">
-                            <v-form ref="updateForm" v-model="updateValid" :lazy-validation="true">
-                                <v-card max-width="400">
-                                    <v-card-text>
-                                        <es-user-edit
-                                            v-model="updateUser"
-                                            :editable-fields="[
-                                                'name',
-                                                'email',
-                                                'fullName',
-                                                'roles',
-                                            ]"
-                                            :name-conflict="updateNameConflict"
-                                            :email-conflict="updateEmailConflict"
-                                        ></es-user-edit>
-                                    </v-card-text>
-                                    <v-card-actions>
-                                        <v-spacer></v-spacer>
-                                        <es-success-btn
-                                            class="mr-4"
-                                            :anim-state="updateAnimState"
-                                            :disabled="!updateEnabled"
-                                            @click="updateMutate(updateUser)"
-                                        >
-                                            <v-icon>mdi-pencil</v-icon>
-                                            Update
-                                        </es-success-btn>
-                                    </v-card-actions>
-                                    <v-card-subtitle>
-                                        <v-alert
-                                            v-if="!!updateError"
-                                            type="error"
-                                            dense
-                                            colored-border
-                                            border="right"
-                                        >
-                                            {{ updateError }}
-                                        </v-alert>
-                                    </v-card-subtitle>
-                                </v-card>
-                            </v-form>
-                        </v-col>
-                    </v-row>
-                </v-container>
-            </v-expansion-panel-content>
-        </v-expansion-panel>
-    </v-expansion-panels>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Edit existing users</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <v-container>
+                            <v-row>
+                                <v-col cols="12" md="8">
+                                    <es-user-finder
+                                        v-model="updateSelected"
+                                        :selectable="true"
+                                        :fetch-roles="true"
+                                    ></es-user-finder>
+                                </v-col>
+                                <v-col cols="12" md="4">
+                                    <v-form
+                                        ref="updateForm"
+                                        v-model="updateValid"
+                                        :lazy-validation="true"
+                                    >
+                                        <v-card max-width="400">
+                                            <v-card-text>
+                                                <es-user-edit
+                                                    v-model="updateUser"
+                                                    :editable-fields="[
+                                                        'name',
+                                                        'email',
+                                                        'fullName',
+                                                        'roles',
+                                                    ]"
+                                                    :name-conflict="updateNameConflict"
+                                                    :email-conflict="updateEmailConflict"
+                                                ></es-user-edit>
+                                            </v-card-text>
+                                            <v-card-actions>
+                                                <v-spacer></v-spacer>
+                                                <es-success-btn
+                                                    class="mr-4"
+                                                    :anim-state="updateAnimState"
+                                                    :disabled="!updateEnabled"
+                                                    @click="updateMutate(updateUser)"
+                                                >
+                                                    <v-icon>mdi-pencil</v-icon>
+                                                    Update
+                                                </es-success-btn>
+                                            </v-card-actions>
+                                            <v-card-subtitle>
+                                                <v-alert
+                                                    v-if="!!updateError"
+                                                    type="error"
+                                                    dense
+                                                    colored-border
+                                                    border="right"
+                                                >
+                                                    {{ updateError }}
+                                                </v-alert>
+                                            </v-card-subtitle>
+                                        </v-card>
+                                    </v-form>
+                                </v-col>
+                            </v-row>
+                        </v-container>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
         </v-row>
     </v-container>
 </template>
