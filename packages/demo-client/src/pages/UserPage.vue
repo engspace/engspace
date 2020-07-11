@@ -1,6 +1,6 @@
 <template>
     <div>
-        <es-user-card :user="user"></es-user-card>
+        <es-user-card :value="user"></es-user-card>
     </div>
 </template>
 

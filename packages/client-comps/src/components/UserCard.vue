@@ -1,7 +1,7 @@
 <template>
     <v-card>
         <v-card-title>
-            {{ user.fullName }}
+            {{ value.fullName }}
             <v-spacer></v-spacer>
             <slot name="action"></slot>
         </v-card-title>
@@ -9,11 +9,11 @@
             <v-container>
                 <v-row>
                     <v-col :cols="3" tag="span" class="label">User Id</v-col>
-                    <v-col :cols="9" tag="span" class="value">{{ user.name }}</v-col>
+                    <v-col :cols="9" tag="span" class="value">{{ value.name }}</v-col>
                 </v-row>
                 <v-row>
                     <v-col :cols="3" tag="span" class="label">E-Mail</v-col>
-                    <v-col :cols="9" tag="span" class="value">{{ user.email }}</v-col>
+                    <v-col :cols="9" tag="span" class="value">{{ value.email }}</v-col>
                 </v-row>
                 <v-row v-if="showRoles">
                     <v-col :cols="3" tag="span" class="label">Roles:</v-col>
@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import { toRefs, computed, defineComponent } from '@vue/composition-api';
+import { computed, defineComponent } from '@vue/composition-api';
 import upperFirst from 'lodash.upperfirst';
 import { User } from '@engspace/core';
 
@@ -33,16 +33,15 @@ export default defineComponent({
     props: {
         value: {
             type: Object,
-            default: () => ({ name: '', email: '', fullName: '', roles: [] }),
+            default: () => null,
         },
         showRoles: {
             type: Boolean,
             default: false,
         },
     },
-    setup(props: { user: User }) {
-        const { user } = toRefs(props);
-        const roleString = computed(() => user.value.roles?.map((r) => upperFirst(r)).join(', '));
+    setup(props: { value: User | undefined }) {
+        const roleString = computed(() => props.value?.roles?.map((r) => upperFirst(r)).join(', '));
         return {
             roleString,
         };
