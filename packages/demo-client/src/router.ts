@@ -5,6 +5,7 @@ import { loggedIn, userPerms } from './auth';
 import AdminPage from './pages/AdminPage.vue';
 import HomePage from './pages/HomePage.vue';
 import LoginPage from './pages/LoginPage.vue';
+import ProjectPage from './pages/ProjectPage.vue';
 import UserPage from './pages/UserPage.vue';
 
 const RouterSymbol = Symbol();
@@ -81,6 +82,16 @@ export const router = new Router({
             path: '/user/:id',
             component: UserPage,
             beforeEnter: requirePerm('user.read'),
+        },
+        {
+            path: '/project/:id',
+            component: ProjectPage,
+            beforeEnter: requirePerm('project.read'),
+        },
+        {
+            path: '/project/by-code/:code',
+            component: ProjectPage,
+            beforeEnter: requirePerm('project.read'),
         },
     ],
 });
