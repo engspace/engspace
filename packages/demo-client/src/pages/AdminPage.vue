@@ -1,4 +1,6 @@
 <template>
+    <v-container fluid class="fill-height">
+        <v-row class="fill-height" align="start">
     <v-expansion-panels>
         <v-expansion-panel>
             <v-expansion-panel-header>Create new users</v-expansion-panel-header>
@@ -100,6 +102,8 @@
             </v-expansion-panel-content>
         </v-expansion-panel>
     </v-expansion-panels>
+        </v-row>
+    </v-container>
 </template>
 
 <script lang="ts">
