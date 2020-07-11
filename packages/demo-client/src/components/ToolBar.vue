@@ -1,7 +1,7 @@
 <template>
     <div>
         <v-app-bar app clipped-left dense elevation="1">
-            <span class="mr-2"><span class="code">{engspace}</span> demo</span>
+            <span class="mr-2"><span class="code text--secondary">{engspace}</span> demo</span>
             <router-link to="/">
                 <v-icon>mdi-home</v-icon>
             </router-link>

@@ -5,7 +5,10 @@
                 <v-form @submit.prevent="login">
                     <v-card class="elevation-12">
                         <v-toolbar dark color="primary" flat>
-                            <v-toolbar-title>Enter credentials</v-toolbar-title>
+                            <v-toolbar-title>
+                                Enter your
+                                <span class="es-logo text--secondary">{engspace}</span> credentials
+                            </v-toolbar-title>
                         </v-toolbar>
                         <v-card-text>
                             <p v-show="networkError" class="error--text">
@@ -106,3 +109,9 @@ export default defineComponent({
     },
 });
 </script>
+
+<style>
+.es-logo {
+    font-family: 'Fira Code', 'Lucida Console', Monaco, monospace;
+}
+</style>
