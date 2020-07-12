@@ -48,6 +48,7 @@ import upperFirst from 'lodash.upperfirst';
 import validator from 'validator';
 import { User, UserInput } from '@engspace/core';
 import { useConfig } from '../config';
+import { roleString } from '../utils';
 
 export default defineComponent({
     props: {
@@ -120,7 +121,7 @@ export default defineComponent({
             emit('input', { ...props.value, roles });
         }
 
-        const roleString = computed(() => props.value?.roles?.map((r) => upperFirst(r)).join(', '));
+        const roles = computed(() => roleString(props.value?.roles));
 
         const nameRules = computed(() => [(name: string) => !!name || 'User Id is required']);
         const nameErrorMsg = computed(() => {
@@ -146,7 +147,7 @@ export default defineComponent({
 
         return {
             allRoles,
-            roleString,
+            roleString: roles,
             updateValue,
             updateRole,
             upperFirst,

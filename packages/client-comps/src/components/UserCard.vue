@@ -26,8 +26,8 @@
 
 <script lang="ts">
 import { computed, defineComponent } from '@vue/composition-api';
-import upperFirst from 'lodash.upperfirst';
 import { User } from '@engspace/core';
+import { roleString } from '../utils';
 
 export default defineComponent({
     props: {
@@ -41,9 +41,8 @@ export default defineComponent({
         },
     },
     setup(props: { value: User | undefined }) {
-        const roleString = computed(() => props.value?.roles?.map((r) => upperFirst(r)).join(', '));
         return {
-            roleString,
+            roles: computed(() => roleString(props.value?.roles)),
         };
     },
 });
