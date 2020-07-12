@@ -1,8 +1,19 @@
 <template>
     <v-container fluid>
         <v-row>
-            <v-col>
+            <v-col cols="12" sm="6" md="4">
                 <es-project-card :loading="loading" :value="project"></es-project-card>
+            </v-col>
+            <v-col cols="12" sm="6" md="8">
+                <v-card>
+                    <v-card-title>Members</v-card-title>
+                    <v-card-text>
+                        <es-member-table
+                            :loading="loading"
+                            :value="project.members"
+                        ></es-member-table>
+                    </v-card-text>
+                </v-card>
             </v-col>
         </v-row>
         <v-row>
