@@ -2,7 +2,11 @@
     <v-container fluid>
         <v-row>
             <v-col cols="12" sm="6" md="4">
-                <es-project-card :loading="loading" :value="project"></es-project-card>
+                <es-project-card
+                    :loading="loading"
+                    :value="project"
+                    :editable="editable"
+                ></es-project-card>
             </v-col>
             <v-col cols="12" sm="6" md="8">
                 <v-card>
@@ -10,7 +14,7 @@
                     <v-card-text>
                         <es-member-table
                             :loading="loading"
-                            :value="project.members"
+                            :value="project && project.members"
                         ></es-member-table>
                     </v-card-text>
                 </v-card>
@@ -28,9 +32,10 @@
 
 <script lang="ts">
 import { useQuery, useResult } from '@vue/apollo-composable';
-import { defineComponent } from '@vue/composition-api';
+import { computed, defineComponent } from '@vue/composition-api';
 import gql from 'graphql-tag';
 import { PROJECT_FIELDS, USER_FIELDS } from '@engspace/client-comps';
+import { useAuth } from '../auth';
 
 const FIELDS = gql`
     fragment ProjectPageFields on Project {
@@ -67,6 +72,7 @@ const PROJECT_GET_BY_CODE = gql`
 
 export default defineComponent({
     setup(props, { root }) {
+        const { userPerms } = useAuth();
         const { $route } = root;
         const { path, params } = $route;
         let q;
@@ -79,8 +85,11 @@ export default defineComponent({
         }
         const { result, loading, error } = q;
         const project = useResult(result);
+        const editable = computed(() => userPerms.value?.includes('project.update'));
+
         return {
             project,
+            editable,
             loading,
             error,
         };
