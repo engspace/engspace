@@ -27,6 +27,7 @@
                     @click="selectUser(item)"
                 >
                     <td v-for="col in columns" :key="col">{{ item[col] }}</td>
+                    <slot name="action" :user="item"></slot>
                 </tr>
             </template>
         </v-data-table>
@@ -121,14 +122,23 @@ export default defineComponent({
             selectable: boolean;
             value: User;
         },
-        { emit }
+        { emit, slots }
     ) {
-        const headers = computed(() =>
-            props.columns.map((col) => ({
+        const headers = computed(() => {
+            const headers = props.columns.map((col) => ({
                 text: colText[col],
                 value: col,
-            }))
-        );
+                sortable: false,
+            }));
+            if (slots.action) {
+                headers.push({
+                    text: 'Actions',
+                    value: 'actions',
+                    sortable: false,
+                });
+            }
+            return headers;
+        });
 
         const search = ref(props.initialSearch);
         const page = ref(1);
