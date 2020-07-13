@@ -20,7 +20,9 @@ const authLink = new ApolloLink((operation, forward) => {
 });
 
 // Cache implementation
-const cache = new InMemoryCache();
+const cache = new InMemoryCache({
+    addTypename: true,
+});
 
 // Create the apollo client
 export const apolloClient = new ApolloClient({
