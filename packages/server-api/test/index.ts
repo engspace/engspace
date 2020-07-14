@@ -28,6 +28,7 @@ import {
     prepareDb,
     ServerConnConfig,
     TestHelpers,
+    passwordLogin,
 } from '@engspace/server-db';
 import { EsServerApi } from '../src';
 import { buildControllerSet } from '../src/control';
@@ -106,7 +107,10 @@ before('Start-up DB and Server', async function () {
     console.log('preparing db with config:');
     console.log(dbPreparationConfig);
     await prepareDb(dbPreparationConfig);
-    await pool.transaction((db) => initSchema(db));
+    await pool.transaction(async (db) => {
+        await initSchema(db);
+        await passwordLogin.buildSchema(db);
+    });
 });
 
 before('Create test store', async function () {

@@ -7,6 +7,7 @@ import Koa from 'koa';
 import session from 'koa-session';
 import mime from 'mime';
 import { AuthToken } from '@engspace/core';
+import { passwordLogin } from '@engspace/server-db';
 import { EsServerConfig } from '../';
 import { signJwt, verifyJwt } from '../crypto';
 import { attachDb, authJwtSecret, setAuthToken } from '../internal';
@@ -17,7 +18,7 @@ export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServe
     app.keys = esConfig.sessionKeys;
     app.use(session(app));
 
-    const { rolePolicies, pool, dao } = esConfig;
+    const { rolePolicies, pool } = esConfig;
 
     const router = new Router({ prefix });
 
@@ -45,7 +46,7 @@ export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServe
         );
 
         const user = await pool.connect(async (db) => {
-            return dao.login.login(db, username, password);
+            return passwordLogin.login(db, username, password);
         });
         if (user) {
             const perms = rolePolicies.user.permissions(user.roles);

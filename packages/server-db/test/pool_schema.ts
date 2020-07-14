@@ -75,7 +75,6 @@ describe('Pool and Schema', async () => {
                 'metadata',
                 'global_counter',
                 'user',
-                'user_login',
                 'user_role',
                 'project',
                 'project_member',

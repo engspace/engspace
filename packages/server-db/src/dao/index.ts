@@ -8,7 +8,6 @@ import { ChangeReviewDao } from './change-review';
 import { DocumentDao } from './document';
 import { DocumentRevisionDao } from './document-revision';
 import { GlobalCounterDao } from './global-counter';
-import { LoginDao } from './login';
 import { PartDao } from './part';
 import { PartApprovalDao } from './part-approval';
 import { PartFamilyDao } from './part-family';
@@ -29,7 +28,6 @@ export { PartValidationDaoInput } from './part-validation';
 export {
     DocumentDao,
     DocumentRevisionDao,
-    LoginDao,
     ProjectMemberDao,
     PartApprovalDao,
     PartDao,
@@ -59,7 +57,6 @@ export interface Dao<T extends HasId> {
 export interface DaoSet {
     globalCounter: GlobalCounterDao;
     user: UserDao;
-    login: LoginDao;
     project: ProjectDao;
     projectMember: ProjectMemberDao;
     partFamily: PartFamilyDao;
@@ -80,7 +77,6 @@ export function buildDaoSet(custom: Partial<DaoSet> = {}): DaoSet {
     return {
         globalCounter: custom.globalCounter ?? new GlobalCounterDao(),
         user: custom.user ?? new UserDao(),
-        login: custom.login ?? new LoginDao(),
         project: custom.project ?? new ProjectDao(),
         projectMember: custom.projectMember ?? new ProjectMemberDao(),
         partFamily: custom.partFamily ?? new PartFamilyDao(),

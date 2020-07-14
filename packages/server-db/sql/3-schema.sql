@@ -14,13 +14,6 @@ CREATE TABLE "user" (
     full_name text NOT NULL
 );
 
-CREATE TABLE user_login (
-    user_id integer PRIMARY KEY,
-    password text NOT NULL,
-
-    FOREIGN KEY(user_id) REFERENCES "user"(id) ON DELETE CASCADE
-);
-
 CREATE TABLE user_role (
     user_id integer,
     role text NOT NULL,
