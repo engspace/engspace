@@ -5,7 +5,7 @@
   "author": "Remi Thebault <remi.thebault@gmail.com>",
   "devDependencies": {
     "coveralls": "^3.1.0",
-    "lerna": "^3.22.0",
+    "lerna": "^3.22.1",
     "nyc": "^15.1.0",
     "prettier": "^2.0.5"
   },
