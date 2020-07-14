@@ -8,6 +8,7 @@ import chaiHttp from 'chai-http';
 import chaiSubset from 'chai-subset';
 import chaiUuid from 'chai-uuid';
 import Koa from 'koa';
+import 'mocha';
 import {
     AppRolePolicies,
     AuthToken,
