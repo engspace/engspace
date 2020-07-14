@@ -4,8 +4,8 @@
     "version": "0.1.0",
     "author": "Remi Thebault <remi.thebault@gmail.com>",
     "dependencies": {
-        "@engspace/core": "^0.1.0",
-        "@engspace/server-db": "^0.1.0",
+        "@engspace/core": "link:./../core",
+        "@engspace/server-db": "link:./../server-db",
         "@koa/router": "^9.0.1",
         "apollo-log": "^0.2.0",
         "apollo-server-koa": "^2.15.0",
@@ -20,8 +20,8 @@
         "validator": "^13.1.1"
     },
     "devDependencies": {
-        "@engspace/eslint-config": "^0.1.0",
-        "@engspace/prettier-config": "^0.1.0",
+        "@engspace/eslint-config": "link:./../eslint-config",
+        "@engspace/prettier-config": "link:./../prettier-config",
         "@types/chai": "^4.2.11",
         "@types/chai-as-promised": "^7.1.2",
         "@types/chai-http": "^4.2.0",

@@ -2,7 +2,7 @@
     "name": "@engspace/client-comps",
     "version": "0.1.0",
     "dependencies": {
-        "@engspace/core": "^0.1.0",
+        "@engspace/core": "link:./../core",
         "@vue/apollo-composable": "^4.0.0-alpha.8",
         "@vue/composition-api": "^0.5.0",
         "core-js": "^3.6.5",

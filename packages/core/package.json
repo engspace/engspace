@@ -5,8 +5,8 @@
     "author": "Remi Thebault <remi.thebault@gmail.com>",
     "dependencies": {},
     "devDependencies": {
-        "@engspace/eslint-config": "^0.1.0",
-        "@engspace/prettier-config": "^0.1.0",
+        "@engspace/eslint-config": "link:./../eslint-config",
+        "@engspace/prettier-config": "link:./../prettier-config",
         "@types/chai": "^4.2.11",
         "@types/mocha": "^7.0.2",
         "@typescript-eslint/eslint-plugin": "^3.4.0",
