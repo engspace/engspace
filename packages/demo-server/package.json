@@ -4,16 +4,16 @@
     "version": "0.1.0",
     "author": "Remi Thebault <remi.thebault@gmail.com>",
     "dependencies": {
-        "@engspace/demo-data-input": "^0.1.0",
-        "@engspace/server-api": "^0.1.0",
-        "@engspace/server-db": "^0.1.0",
+        "@engspace/demo-data-input": "link:./../demo-data-input",
+        "@engspace/server-api": "link:./../server-api",
+        "@engspace/server-db": "link:./../server-db",
         "@koa/cors": "^3.1.0",
         "koa": "^2.13.0",
         "koa-logger": "^3.2.1"
     },
     "devDependencies": {
-        "@engspace/eslint-config": "^0.1.0",
-        "@engspace/prettier-config": "^0.1.0",
+        "@engspace/eslint-config": "link:./../eslint-config",
+        "@engspace/prettier-config": "link:./../prettier-config",
         "@types/koa": "^2.11.3",
         "@types/koa__cors": "^3.0.1",
         "@typescript-eslint/eslint-plugin": "^3.4.0",
