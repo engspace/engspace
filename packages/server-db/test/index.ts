@@ -4,6 +4,7 @@ import chaiAsPromised from 'chai-as-promised';
 import chaiShallowDeepEqual from 'chai-shallow-deep-equal';
 import chaiSubset from 'chai-subset';
 import _ from 'lodash';
+import { passwordLogin } from '../src';
 import {
     buildDaoSet,
     connectionString,
@@ -76,6 +77,7 @@ before('db setup', async function () {
     await prepareDb(dbPreparationConfig);
     await pool.transaction(async (db) => {
         await initSchema(db);
+        await passwordLogin.buildSchema(db);
     });
 });
 

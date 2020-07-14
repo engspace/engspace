@@ -1,9 +1,10 @@
 import http from 'http';
 import { expect, request } from 'chai';
+import { passwordLogin } from '@engspace/server-db';
 import { verifyJwt } from '../src/crypto';
 import { authJwtSecret } from '../src/internal';
 import { auth } from './auth';
-import { api, config, dao, pool, th } from '.';
+import { api, config, pool, th } from '.';
 
 const { serverPort } = config;
 
@@ -14,7 +15,7 @@ describe('Login', () => {
     before('Create users', async () => {
         return pool.transaction(async (db) => {
             userA = await th.createUser(db, { name: 'a', roles: ['user'] });
-            await dao.login.create(db, userA.id, 'a');
+            await passwordLogin.create(db, userA.id, 'a');
         });
     });
     before('Start server', (done) => {

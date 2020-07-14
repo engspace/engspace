@@ -14,6 +14,7 @@ import {
     initSchema,
     prepareDb,
     ServerConnConfig,
+    passwordLogin,
 } from '@engspace/server-db';
 import { populateData } from './populate-data';
 
@@ -59,7 +60,10 @@ export const dao = buildDaoSet();
 
 prepareDb(dbPreparationConfig)
     .then(async () => {
-        await pool.transaction((db) => initSchema(db));
+        await pool.transaction(async (db) => {
+            await initSchema(db);
+            await passwordLogin.buildSchema(db);
+        });
         await populateData(pool, config.storePath);
         const api = buildServerApi(pool);
         api.koa.listen(config.serverPort, () => {

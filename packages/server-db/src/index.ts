@@ -14,7 +14,6 @@ export {
     DaoSet,
     DocumentDao,
     DocumentRevisionDao,
-    LoginDao,
     PartApprovalDao,
     PartApprovalDaoInput,
     PartApprovalUpdateDaoInput,
@@ -31,6 +30,7 @@ export {
     UserDao,
 } from './dao';
 export { initSchema } from './schema';
+export { default as passwordLogin, LoginResult } from './password-login';
 export * from './test-helpers';
 
 export type Db = DatabaseTransactionConnectionType;

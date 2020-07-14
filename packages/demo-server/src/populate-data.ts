@@ -16,7 +16,7 @@ import {
     prepareStore,
     prepareUsers,
 } from '@engspace/demo-data-input';
-import { Db, DbPool } from '@engspace/server-db';
+import { Db, DbPool, passwordLogin } from '@engspace/server-db';
 import { dao } from '.';
 
 export async function createDemoUsers(db: Db, users: DemoUserInputSet): Promise<DemoUserSet> {
@@ -26,7 +26,7 @@ export async function createDemoUsers(db: Db, users: DemoUserInputSet): Promise<
 export async function createDemoLogins(db: Db, users: Promise<DemoUserSet>): Promise<void> {
     const usrs = await users;
     for (const name in usrs) {
-        await dao.login.create(db, usrs[name].id, name);
+        await passwordLogin.create(db, usrs[name].id, name);
     }
 }
 

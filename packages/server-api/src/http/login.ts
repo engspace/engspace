@@ -1,5 +1,6 @@
 import Router from '@koa/router';
 import HttpStatus from 'http-status-codes';
+import { passwordLogin } from '@engspace/server-db';
 import { EsServerConfig } from '..';
 import { signJwt } from '../crypto';
 import { authJwtSecret } from '../internal';
@@ -23,7 +24,7 @@ export function setupLoginRoute(router: Router, config: EsServerConfig): void {
         );
 
         const user = await pool.connect(async (db) => {
-            return dao.login.login(db, nameOrEmail, password);
+            return passwordLogin.login(db, nameOrEmail, password);
         });
         if (user) {
             const perms = rolePolicies.user.permissions(user.roles);
