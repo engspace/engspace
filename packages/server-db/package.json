@@ -1,33 +1,8 @@
 {
     "name": "@engspace/server-db",
-    "version": "0.1.0",
     "description": "Engineering Space - Server database",
-    "main": "dist/index",
-    "types": "dist/index",
-    "repository": "https://github.com/engspace/engspace",
+    "version": "0.1.0",
     "author": "Remi Thebault <remi.thebault@gmail.com>",
-    "license": "MIT",
-    "private": true,
-    "scripts": {
-        "lint": "eslint --ext .ts src test",
-        "lint:fix": "eslint --fix --ext .ts src test",
-        "build": "tsc -b .",
-        "test": "cross-env NODE_ENV=test mocha",
-        "test:cov": "cross-env NODE_ENV=test nyc mocha",
-        "clean": "rimraf ./dist/ ../../.build-cache/server-db.tsbuildinfo"
-    },
-    "nyc": {
-        "cache": false,
-        "extension": [
-            ".ts"
-        ],
-        "exclude": [
-            "src/test-helpers.ts",
-            "test/**/*",
-            "**/*.d.ts",
-            "**/*.js"
-        ]
-    },
     "dependencies": {
         "@engspace/core": "^0.1.0",
         "slonik": "^22.4.11",
@@ -45,8 +20,8 @@
         "@types/lodash.clonedeep": "^4.5.6",
         "@types/mocha": "^7.0.2",
         "@types/slonik": "^22.1.2",
-        "@typescript-eslint/eslint-plugin": "^3.1.0",
-        "@typescript-eslint/parser": "^3.1.0",
+        "@typescript-eslint/eslint-plugin": "^3.4.0",
+        "@typescript-eslint/parser": "^3.4.0",
         "chai": "^4.2.0",
         "chai-as-promised": "^7.1.1",
         "chai-shallow-deep-equal": "^1.4.6",
@@ -54,16 +29,41 @@
         "cross-env": "^7.0.2",
         "deep-equal": "^2.0.3",
         "del": "^5.1.0",
-        "eslint": "^7.1.0",
+        "eslint": "^7.3.1",
         "eslint-config-prettier": "^6.11.0",
-        "eslint-plugin-import": "^2.20.2",
-        "eslint-plugin-prettier": "^3.1.3",
+        "eslint-plugin-import": "^2.21.2",
+        "eslint-plugin-prettier": "^3.1.4",
         "lodash.clonedeep": "^4.5.0",
         "mocha": "^7.2.0",
         "nyc": "^15.1.0",
         "prettier": "^2.0.5",
         "rimraf": "^3.0.2",
         "ts-node": "^8.10.2",
-        "typescript": "^3.9.3"
-    }
+        "typescript": "^3.9.5"
+    },
+    "license": "MIT",
+    "main": "dist/index",
+    "nyc": {
+        "cache": false,
+        "extension": [
+            ".ts"
+        ],
+        "exclude": [
+            "src/test-helpers.ts",
+            "test/**/*",
+            "**/*.d.ts",
+            "**/*.js"
+        ]
+    },
+    "private": true,
+    "repository": "https://github.com/engspace/engspace",
+    "scripts": {
+        "build": "tsc -b .",
+        "clean": "rimraf ./dist/ ../../.build-cache/server-db.tsbuildinfo",
+        "lint": "eslint --ext .ts src test",
+        "lint:fix": "eslint --fix --ext .ts src test",
+        "test": "cross-env NODE_ENV=test mocha",
+        "test:cov": "cross-env NODE_ENV=test nyc mocha"
+    },
+    "types": "dist/index"
 }

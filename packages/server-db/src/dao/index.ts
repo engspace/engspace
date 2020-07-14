@@ -1,12 +1,13 @@
 import { HasId, Id } from '@engspace/core';
 import { Db } from '..';
-import { ChangePartForkDao } from './change-part-fork';
 import { ChangePartCreateDao } from './change-part-create';
+import { ChangePartForkDao } from './change-part-fork';
 import { ChangePartRevisionDao } from './change-part-revision';
 import { ChangeRequestDao } from './change-request';
 import { ChangeReviewDao } from './change-review';
 import { DocumentDao } from './document';
 import { DocumentRevisionDao } from './document-revision';
+import { GlobalCounterDao } from './global-counter';
 import { LoginDao } from './login';
 import { PartDao } from './part';
 import { PartApprovalDao } from './part-approval';
@@ -16,7 +17,6 @@ import { PartValidationDao } from './part-validation';
 import { ProjectDao } from './project';
 import { ProjectMemberDao } from './project-member';
 import { UserDao } from './user';
-import { GlobalCounterDao } from './global-counter';
 
 export { ChangePartForkDaoInput } from './change-part-fork';
 export { ChangePartCreateDaoInput } from './change-part-create';

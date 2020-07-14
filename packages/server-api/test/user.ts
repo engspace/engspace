@@ -69,7 +69,7 @@ describe('GraphQL User', () => {
                 const { query } = buildGqlServer(db, permsAuth(users.haddock, ['user.read']));
                 return query({
                     query: gql`
-                        query ReadUserByName($name: String!) {
+                        query ReadUserByName($name: String) {
                             userByName(name: $name) {
                                 ...UserFields
                                 roles
@@ -85,12 +85,33 @@ describe('GraphQL User', () => {
             expect(result.data.userByName).to.deep.include(users.dupont);
         });
 
+        it('should read a null user by null name', async () => {
+            const result = await pool.connect(async (db) => {
+                const { query } = buildGqlServer(db, permsAuth(users.haddock, ['user.read']));
+                return query({
+                    query: gql`
+                        query ReadUserByName($name: String) {
+                            userByName(name: $name) {
+                                ...UserFields
+                                roles
+                            }
+                        }
+                        ${USER_FIELDS}
+                    `,
+                    variables: { name: null },
+                });
+            });
+            expect(result.errors).to.be.undefined;
+            expect(result.data).to.be.an('object');
+            expect(result.data.userByName).to.be.null;
+        });
+
         it('should read a user by email', async () => {
             const result = await pool.connect(async (db) => {
                 const { query } = buildGqlServer(db, permsAuth(users.haddock, ['user.read']));
                 return query({
                     query: gql`
-                        query ReadUserByEmail($email: String!) {
+                        query ReadUserByEmail($email: String) {
                             userByEmail(email: $email) {
                                 ...UserFields
                                 roles
@@ -104,6 +125,27 @@ describe('GraphQL User', () => {
             expect(result.errors).to.be.undefined;
             expect(result.data).to.be.an('object');
             expect(result.data.userByEmail).to.deep.include(users.dupont);
+        });
+
+        it('should read a null user by null email', async () => {
+            const result = await pool.connect(async (db) => {
+                const { query } = buildGqlServer(db, permsAuth(users.haddock, ['user.read']));
+                return query({
+                    query: gql`
+                        query ReadUserByEmail($email: String) {
+                            userByEmail(email: $email) {
+                                ...UserFields
+                                roles
+                            }
+                        }
+                        ${USER_FIELDS}
+                    `,
+                    variables: { email: null },
+                });
+            });
+            expect(result.errors).to.be.undefined;
+            expect(result.data).to.be.an('object');
+            expect(result.data.userByEmail).to.be.null;
         });
 
         it('should search all users', async () => {

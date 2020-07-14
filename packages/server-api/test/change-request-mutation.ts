@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import gql from 'graphql-tag';
 import { sql } from 'slonik';
-import { idType, trackedBy, expTrackedTime } from '@engspace/server-db';
 import { ApprovalDecision, PartCycle, ChangeRequestCycle } from '@engspace/core';
+import { idType, trackedBy, expTrackedTime } from '@engspace/server-db';
 import { permsAuth } from './auth';
 import { CHANGEREQ_DEEPFIELDS } from './helpers';
 import { buildGqlServer, dao, pool, th } from '.';

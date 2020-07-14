@@ -1,27 +1,14 @@
 {
     "name": "@engspace/demo-server",
-    "version": "0.1.0",
     "description": "Engineering Space - Demo server app",
-    "main": "dist/index",
-    "types": "dist/index",
-    "repository": "https://github.com/engspace/engspace",
+    "version": "0.1.0",
     "author": "Remi Thebault <remi.thebault@gmail.com>",
-    "license": "MIT",
-    "private": true,
-    "scripts": {
-        "lint": "eslint --ext .ts src",
-        "lint:fix": "eslint --fix --ext .ts src",
-        "build": "tsc -b .",
-        "serve:dist": "tsc -b . && node -r dotenv/config .",
-        "serve": "tsc -b && nodemon --exec npm-run-all serve:dist",
-        "clean": "rimraf ./dist/ ../../.build-cache/demo-server.tsbuildinfo"
-    },
     "dependencies": {
         "@engspace/demo-data-input": "^0.1.0",
         "@engspace/server-api": "^0.1.0",
         "@engspace/server-db": "^0.1.0",
         "@koa/cors": "^3.1.0",
-        "koa": "^2.12.0",
+        "koa": "^2.13.0",
         "koa-logger": "^3.2.1"
     },
     "devDependencies": {
@@ -29,16 +16,29 @@
         "@engspace/prettier-config": "^0.1.0",
         "@types/koa": "^2.11.3",
         "@types/koa__cors": "^3.0.1",
-        "@typescript-eslint/eslint-plugin": "^3.1.0",
-        "@typescript-eslint/parser": "^3.1.0",
+        "@typescript-eslint/eslint-plugin": "^3.4.0",
+        "@typescript-eslint/parser": "^3.4.0",
         "dotenv": "^8.2.0",
-        "eslint": "^7.1.0",
+        "eslint": "^7.3.1",
         "eslint-config-prettier": "^6.11.0",
-        "eslint-plugin-import": "^2.20.2",
-        "eslint-plugin-prettier": "^3.1.3",
+        "eslint-plugin-import": "^2.21.2",
+        "eslint-plugin-prettier": "^3.1.4",
         "nodemon": "^2.0.4",
         "prettier": "^2.0.5",
         "rimraf": "^3.0.2",
-        "typescript": "^3.9.3"
-    }
+        "typescript": "^3.9.5"
+    },
+    "license": "MIT",
+    "main": "dist/index",
+    "private": true,
+    "repository": "https://github.com/engspace/engspace",
+    "scripts": {
+        "build": "tsc -b .",
+        "clean": "rimraf ./dist/ ../../.build-cache/demo-server.tsbuildinfo",
+        "lint": "eslint --ext .ts src",
+        "lint:fix": "eslint --fix --ext .ts src",
+        "serve": "tsc -b && nodemon --exec npm-run-all serve:dist",
+        "serve:dist": "tsc -b . && node -r dotenv/config ."
+    },
+    "types": "dist/index"
 }

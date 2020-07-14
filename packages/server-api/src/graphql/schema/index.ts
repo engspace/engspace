@@ -1,7 +1,7 @@
-import gql from 'graphql-tag';
 import { makeExecutableSchema, IResolvers, UserInputError } from 'apollo-server-koa';
-import _ from 'lodash';
 import { GraphQLScalarType, ValueNode, Kind, GraphQLSchema } from 'graphql';
+import gql from 'graphql-tag';
+import _ from 'lodash';
 import {
     DateTime,
     Document,
@@ -15,10 +15,10 @@ import {
 } from '@engspace/core';
 import { ControllerSet } from '../../control';
 import { GqlContext } from '../context';
-import { typeDefs as userGql, buildResolvers as userResolvers } from './user';
-import { typeDefs as projectGql, buildResolvers as projectResolvers } from './project';
-import { typeDefs as partGql, buildResolvers as partResolvers } from './part';
 import { typeDefs as changeGql, buildResolvers as changeResolvers } from './change';
+import { typeDefs as partGql, buildResolvers as partResolvers } from './part';
+import { typeDefs as projectGql, buildResolvers as projectResolvers } from './project';
+import { typeDefs as userGql, buildResolvers as userResolvers } from './user';
 
 const typeDefs = gql`
     scalar DateTime

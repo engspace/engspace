@@ -6,9 +6,9 @@ import mime from 'mime';
 import validator from 'validator';
 import { Id } from '@engspace/core';
 import { EsServerConfig } from '..';
+import { isFileError, FileError, FileDownload } from '../control/document';
 import { signJwt, verifyJwt } from '../crypto';
 import { getAuthToken } from '../internal';
-import { isFileError, FileError, FileDownload } from '../control/document';
 
 const docJwtSecret = crypto.randomBytes(32).toString('base64');
 

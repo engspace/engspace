@@ -1,33 +1,33 @@
 {
     "name": "@engspace/demo-data-input",
-    "version": "0.1.0",
     "description": "Engineering Space - Data population for the demo",
-    "main": "dist/index",
-    "types": "dist/index",
-    "repository": "https://github.com/engspace/engspace",
+    "version": "0.1.0",
     "author": "Remi Thebault <remi.thebault@gmail.com>",
-    "license": "MIT",
-    "private": true,
-    "scripts": {
-        "lint": "eslint --ext .ts src",
-        "lint:fix": "eslint --fix --ext .ts src",
-        "build": "tsc -b .",
-        "clean": "rimraf ./dist/ ../../.build-cache/demo-data-input.tsbuildinfo"
-    },
     "dependencies": {
         "@engspace/core": "^0.1.0"
     },
     "devDependencies": {
         "@engspace/eslint-config": "^0.1.0",
         "@engspace/prettier-config": "^0.1.0",
-        "@typescript-eslint/eslint-plugin": "^3.1.0",
-        "@typescript-eslint/parser": "^3.1.0",
-        "eslint": "^7.1.0",
+        "@typescript-eslint/eslint-plugin": "^3.4.0",
+        "@typescript-eslint/parser": "^3.4.0",
+        "eslint": "^7.3.1",
         "eslint-config-prettier": "^6.11.0",
-        "eslint-plugin-import": "^2.20.2",
-        "eslint-plugin-prettier": "^3.1.3",
+        "eslint-plugin-import": "^2.21.2",
+        "eslint-plugin-prettier": "^3.1.4",
         "prettier": "^2.0.5",
         "rimraf": "^3.0.2",
-        "typescript": "^3.9.3"
-    }
+        "typescript": "^3.9.5"
+    },
+    "license": "MIT",
+    "main": "dist/index",
+    "private": true,
+    "repository": "https://github.com/engspace/engspace",
+    "scripts": {
+        "build": "tsc -b .",
+        "clean": "rimraf ./dist/ ../../.build-cache/demo-data-input.tsbuildinfo",
+        "lint": "eslint --ext .ts src",
+        "lint:fix": "eslint --fix --ext .ts src"
+    },
+    "types": "dist/index"
 }

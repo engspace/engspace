@@ -10,7 +10,7 @@ module.exports = {
         sourceType: 'module',
         extraFileExtensions: ['.json'],
     },
-    plugins: ['@typescript-eslint', 'import'],
+    plugins: ['@typescript-eslint'],
     extends: [
         'eslint:recommended',
         'plugin:@typescript-eslint/recommended',
@@ -26,26 +26,6 @@ module.exports = {
                 functions: false,
                 classes: false,
                 variables: true,
-            },
-        ],
-        'import/order': [
-            'error',
-            {
-                groups: [
-                    'builtin',
-                    'external',
-                    'parent',
-                    'sibling',
-                    'index',
-                ],
-                pathGroups: [
-                    {
-                        pattern: '@engspace/**',
-                        group: 'external',
-                        position: 'after',
-                    },
-                ],
-                pathGroupsExcludedImportTypes: ['builtin'],
             },
         ],
     },

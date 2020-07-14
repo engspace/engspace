@@ -1,0 +1,4 @@
+*.json
+*.config.js
+*rc.json
+*rc.js
