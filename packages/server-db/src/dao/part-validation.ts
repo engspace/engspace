@@ -3,6 +3,31 @@ import { ApprovalDecision, Id, PartValidation, ValidationResult } from '@engspac
 import { Db } from '..';
 import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
 
+const table = 'part_validation';
+
+const dependencies = ['user', 'part_revision'];
+
+const schema = [
+    sql`
+        CREATE TABLE part_validation (
+            id serial PRIMARY KEY,
+            part_rev_id integer NOT NULL,
+            result text,
+            comments text,
+
+            created_by integer NOT NULL,
+            created_at timestamptz NOT NULL,
+            updated_by integer NOT NULL,
+            updated_at timestamptz NOT NULL,
+
+            FOREIGN KEY(part_rev_id) REFERENCES part_revision(id),
+            FOREIGN KEY(result) REFERENCES validation_result_enum(id),
+            FOREIGN KEY(created_by) REFERENCES "user"(id),
+            FOREIGN KEY(updated_by) REFERENCES "user"(id)
+        )
+    `,
+];
+
 interface Row extends TrackedRow {
     id: RowId;
     partRevId: RowId;
@@ -46,9 +71,11 @@ export interface PartValidationUpdateDaoInput {
 export class PartValidationDao extends DaoBase<PartValidation, Row> {
     constructor() {
         super({
+            table,
+            dependencies,
+            schema,
             rowToken,
             mapRow,
-            table: 'part_validation',
         });
     }
     async create(db: Db, { partRevId, userId }: PartValidationDaoInput): Promise<PartValidation> {

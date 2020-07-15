@@ -12,6 +12,33 @@ import {
     TrackedRow,
 } from './base';
 
+const table = 'change_request';
+
+const dependencies = ['user'];
+
+const schema = [
+    sql`
+        CREATE TABLE change_request (
+            id serial PRIMARY KEY,
+            name text NOT NULL,
+            description text,
+            cycle text NOT NULL,
+
+            created_by integer NOT NULL,
+            created_at timestamptz NOT NULL,
+            updated_by integer NOT NULL,
+            updated_at timestamptz NOT NULL,
+
+            UNIQUE(name),
+            CHECK(LENGTH(name) > 0),
+
+            FOREIGN KEY(cycle) REFERENCES change_request_cycle_enum(id),
+            FOREIGN KEY(created_by) REFERENCES "user"(id),
+            FOREIGN KEY(updated_by) REFERENCES "user"(id)
+        )
+    `,
+];
+
 interface Row extends TrackedRow {
     id: RowId;
     name: string;
@@ -56,7 +83,9 @@ export interface ChangeRequestUpdateDaoInput {
 export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
     constructor() {
         super({
-            table: 'change_request',
+            table,
+            dependencies,
+            schema,
             rowToken,
             mapRow,
         });

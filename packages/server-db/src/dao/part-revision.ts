@@ -3,6 +3,40 @@ import { Id, PartCycle, PartRevision } from '@engspace/core';
 import { Db } from '..';
 import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
 
+const table = 'part_revision';
+
+const dependencies = ['user', 'change_request', 'part'];
+
+const schema = [
+    sql`
+        CREATE TABLE part_revision (
+            id serial PRIMARY KEY,
+            part_id integer NOT NULL,
+
+            revision integer NOT NULL,
+            designation text NOT NULL,
+
+            change_request_id integer NOT NULL,
+
+            cycle text NOT NULL,
+
+            created_by integer NOT NULL,
+            created_at timestamptz NOT NULL,
+            updated_by integer NOT NULL,
+            updated_at timestamptz NOT NULL,
+
+            CHECK(revision > 0),
+            CHECK(LENGTH(designation) > 0),
+
+            FOREIGN KEY(part_id) REFERENCES part(id),
+            FOREIGN KEY(change_request_id) REFERENCES change_request(id),
+            FOREIGN KEY(cycle) REFERENCES part_cycle_enum(id),
+            FOREIGN KEY(created_by) REFERENCES "user"(id),
+            FOREIGN KEY(updated_by) REFERENCES "user"(id)
+        )
+    `,
+];
+
 export interface PartRevisionDaoInput {
     partId: Id;
     designation: string;
@@ -40,9 +74,11 @@ const rowToken = sql`
 export class PartRevisionDao extends DaoBase<PartRevision, Row> {
     constructor() {
         super({
+            table,
+            dependencies,
+            schema,
             rowToken,
             mapRow,
-            table: 'part_revision',
         });
     }
 

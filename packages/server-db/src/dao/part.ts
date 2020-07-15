@@ -3,6 +3,34 @@ import { Id, Part } from '@engspace/core';
 import { Db } from '..';
 import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
 
+const table = 'part';
+
+const dependencies = ['user', 'part_family'];
+
+const schema = [
+    sql`
+        CREATE TABLE part (
+            id serial PRIMARY KEY,
+            family_id integer NOT NULL,
+            ref text NOT NULL,
+            designation text NOT NULL,
+
+            created_by integer NOT NULL,
+            created_at timestamptz NOT NULL,
+            updated_by integer NOT NULL,
+            updated_at timestamptz NOT NULL,
+
+            UNIQUE(ref),
+            CHECK(LENGTH(ref) > 0),
+            CHECK(LENGTH(designation) > 0),
+
+            FOREIGN KEY(family_id) REFERENCES part_family(id),
+            FOREIGN KEY(created_by) REFERENCES "user"(id),
+            FOREIGN KEY(updated_by) REFERENCES "user"(id)
+        )
+    `,
+];
+
 export interface PartDaoInput {
     familyId: Id;
     ref: string;
@@ -48,9 +76,11 @@ const rowTokenAlias = sql`
 export class PartDao extends DaoBase<Part, Row> {
     constructor() {
         super({
+            table,
+            dependencies,
+            schema,
             rowToken,
             mapRow,
-            table: 'part',
         });
     }
     async create(db: Db, { familyId, ref, designation, userId }: PartDaoInput): Promise<Part> {

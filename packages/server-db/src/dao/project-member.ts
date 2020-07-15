@@ -3,6 +3,33 @@ import { Id, ProjectMember, ProjectMemberInput } from '@engspace/core';
 import { Db } from '..';
 import { DaoBase, foreignKey, RowId, toId } from './base';
 
+const table = 'project_member';
+
+const dependencies = ['user', 'project'];
+
+const schema = [
+    sql`
+        CREATE TABLE project_member (
+            id serial PRIMARY KEY,
+            project_id integer NOT NULL,
+            user_id integer NOT NULL,
+
+            UNIQUE(project_id, user_id),
+            FOREIGN KEY(project_id) REFERENCES project(id) ON DELETE CASCADE,
+            FOREIGN KEY(user_id) REFERENCES "user"(id)
+        )
+    `,
+    sql`
+        CREATE TABLE project_member_role (
+            member_id integer NOT NULL,
+            role text NOT NULL,
+
+            PRIMARY KEY(member_id, role),
+            FOREIGN KEY(member_id) REFERENCES project_member(id)
+                    ON DELETE CASCADE
+        )
+    `,
+];
 interface Row {
     id: RowId;
     projectId: RowId;
@@ -22,9 +49,11 @@ const rowToken = sql`id, project_id, user_id`;
 export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
     constructor() {
         super({
+            table,
+            dependencies,
+            schema,
             rowToken,
             mapRow,
-            table: 'project_member',
         });
     }
     /**

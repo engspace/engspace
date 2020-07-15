@@ -1,14 +1,31 @@
 import { sql } from 'slonik';
 import { Id, User, UserInput } from '@engspace/core';
 import { Db } from '..';
-import { DaoBase, RowId, toId } from './base';
+import { DaoBase, RowId, toId, DaoBaseConfig } from './base';
 
-export interface UserSearch {
-    phrase?: string;
-    role?: string;
-    limit?: number;
-    offset?: number;
-}
+const table = 'user';
+
+const dependencies = [];
+
+const schema = [
+    sql`
+        CREATE TABLE "user" (
+            id serial PRIMARY KEY,
+            name text NOT NULL UNIQUE,
+            email text NOT NULL UNIQUE,
+            full_name text NOT NULL
+        )
+    `,
+    sql`
+        CREATE TABLE user_role (
+            user_id integer,
+            role text NOT NULL,
+
+            PRIMARY KEY(user_id, role),
+            FOREIGN KEY(user_id) REFERENCES "user"(id) ON DELETE CASCADE
+        )
+    `,
+];
 
 interface Row {
     id: RowId;
@@ -28,6 +45,13 @@ function mapRow({ id, name, email, fullName }: Row): User {
 
 const rowToken = sql`id, name, email, full_name`;
 
+export interface UserSearch {
+    phrase?: string;
+    role?: string;
+    limit?: number;
+    offset?: number;
+}
+
 async function insertRoles(db: Db, id: Id, roles: string[]): Promise<string[]> {
     const rows = await db.manyFirst(sql`
             INSERT INTO user_role(
@@ -46,11 +70,14 @@ export interface RoleOptions {
 }
 
 export class UserDao extends DaoBase<User, Row> {
-    constructor() {
+    constructor(config: Partial<DaoBaseConfig<User, Row>> = {}) {
         super({
-            table: 'user',
+            table,
+            dependencies,
+            schema,
             rowToken,
             mapRow,
+            ...config,
         });
     }
 

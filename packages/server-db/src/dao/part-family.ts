@@ -3,6 +3,21 @@ import { Id, PartFamily, PartFamilyInput } from '@engspace/core';
 import { Db } from '..';
 import { DaoBase, RowId, toId } from './base';
 
+const table = 'part_family';
+
+const dependencies = [];
+
+const schema = [
+    sql`
+        CREATE TABLE part_family (
+            id serial PRIMARY KEY,
+            name text NOT NULL,
+            code text NOT NULL,
+            counter integer NOT NULL DEFAULT 0
+        )
+    `,
+];
+
 interface Row {
     id: RowId;
     name: string;
@@ -24,8 +39,10 @@ function mapRow({ id, name, code, counter }: Row): PartFamily {
 export class PartFamilyDao extends DaoBase<PartFamily, Row> {
     constructor() {
         super({
+            table,
+            dependencies,
+            schema,
             rowToken,
-            table: 'part_family',
             mapRow,
         });
     }

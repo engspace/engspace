@@ -4,6 +4,28 @@ import { Db } from '..';
 import { foreignKey, nullable, RowId, toId } from './base';
 import { ChangeRequestChildDaoBase } from './change-request';
 
+const table = 'change_part_fork';
+
+const dependencies = ['part', 'change_request'];
+
+const schema = [
+    sql`
+        CREATE TABLE change_part_fork (
+            id serial PRIMARY KEY,
+            request_id integer NOT NULL,
+            part_id integer NOT NULL,
+            version text NOT NULL,
+            designation text,
+            comments text,
+
+            CHECK(LENGTH(version) > 0),
+
+            FOREIGN KEY(request_id) REFERENCES change_request(id),
+            FOREIGN KEY(part_id) REFERENCES part(id)
+        )
+    `,
+];
+
 interface Row {
     id: RowId;
     requestId: RowId;
@@ -44,7 +66,9 @@ export interface ChangePartForkDaoInput {
 export class ChangePartForkDao extends ChangeRequestChildDaoBase<ChangePartFork, Row> {
     constructor() {
         super({
-            table: 'change_part_fork',
+            table,
+            dependencies,
+            schema,
             mapRow,
             rowToken,
         });
