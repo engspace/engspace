@@ -1,7 +1,7 @@
 import { sql } from 'slonik';
 import { Id, Part } from '@engspace/core';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
+import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow, DaoBaseConfig } from './base';
 
 const table = 'part';
 
@@ -74,13 +74,14 @@ const rowTokenAlias = sql`
 `;
 
 export class PartDao extends DaoBase<Part, Row> {
-    constructor() {
+    constructor(config: Partial<DaoBaseConfig<Part, Row>> = {}) {
         super({
             table,
             dependencies,
             schema,
             rowToken,
             mapRow,
+            ...config,
         });
     }
     async create(db: Db, { familyId, ref, designation, userId }: PartDaoInput): Promise<Part> {

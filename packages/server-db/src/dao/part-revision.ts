@@ -1,7 +1,7 @@
 import { sql } from 'slonik';
 import { Id, PartCycle, PartRevision } from '@engspace/core';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
+import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow, DaoBaseConfig } from './base';
 
 const table = 'part_revision';
 
@@ -72,13 +72,14 @@ const rowToken = sql`
 `;
 
 export class PartRevisionDao extends DaoBase<PartRevision, Row> {
-    constructor() {
+    constructor(config: Partial<DaoBaseConfig<PartRevision, Row>> = {}) {
         super({
             table,
             dependencies,
             schema,
             rowToken,
             mapRow,
+            ...config,
         });
     }
 

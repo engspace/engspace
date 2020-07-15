@@ -1,7 +1,7 @@
 import { sql } from 'slonik';
 import { Id, ProjectMember, ProjectMemberInput } from '@engspace/core';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, toId } from './base';
+import { DaoBase, foreignKey, RowId, toId, DaoBaseConfig } from './base';
 
 const table = 'project_member';
 
@@ -47,13 +47,14 @@ function mapRow({ id, projectId, userId }: Row): ProjectMember {
 const rowToken = sql`id, project_id, user_id`;
 
 export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
-    constructor() {
+    constructor(config: Partial<DaoBaseConfig<ProjectMember, Row>> = {}) {
         super({
             table,
             dependencies,
             schema,
             rowToken,
             mapRow,
+            ...config,
         });
     }
     /**

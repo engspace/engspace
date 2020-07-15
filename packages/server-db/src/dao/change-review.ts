@@ -1,7 +1,7 @@
 import { sql } from 'slonik';
 import { ApprovalDecision, ChangeReview, Id } from '@engspace/core';
 import { Db } from '..';
-import { foreignKey, nullable, RowId, toId, tracked, TrackedRow } from './base';
+import { foreignKey, nullable, RowId, toId, tracked, TrackedRow, DaoBaseConfig } from './base';
 import { ChangeRequestChildDaoBase } from './change-request';
 
 const table = 'change_review';
@@ -65,13 +65,14 @@ export interface ChangeReviewUpdateDaoInput {
 }
 
 export class ChangeReviewDao extends ChangeRequestChildDaoBase<ChangeReview, Row> {
-    constructor() {
+    constructor(config: Partial<DaoBaseConfig<ChangeReview, Row>> = {}) {
         super({
             table,
             dependencies,
             schema,
             mapRow,
             rowToken,
+            ...config,
         });
     }
 

@@ -1,7 +1,7 @@
 import { sql } from 'slonik';
 import { ApprovalDecision, Id, PartValidation, ValidationResult } from '@engspace/core';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
+import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow, DaoBaseConfig } from './base';
 
 const table = 'part_validation';
 
@@ -69,13 +69,14 @@ export interface PartValidationUpdateDaoInput {
 }
 
 export class PartValidationDao extends DaoBase<PartValidation, Row> {
-    constructor() {
+    constructor(config: Partial<DaoBaseConfig<PartValidation, Row>> = {}) {
         super({
             table,
             dependencies,
             schema,
             rowToken,
             mapRow,
+            ...config,
         });
     }
     async create(db: Db, { partRevId, userId }: PartValidationDaoInput): Promise<PartValidation> {

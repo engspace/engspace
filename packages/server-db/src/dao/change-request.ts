@@ -81,13 +81,14 @@ export interface ChangeRequestUpdateDaoInput {
 }
 
 export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
-    constructor() {
+    constructor(config: Partial<DaoBaseConfig<ChangeRequest, Row>> = {}) {
         super({
             table,
             dependencies,
             schema,
             rowToken,
             mapRow,
+            ...config,
         });
     }
 

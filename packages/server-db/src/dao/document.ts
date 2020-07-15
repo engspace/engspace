@@ -1,7 +1,7 @@
 import { sql } from 'slonik';
 import { Document, DocumentInput, DocumentSearch, Id } from '@engspace/core';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, timestamp, toId } from './base';
+import { DaoBase, foreignKey, RowId, timestamp, toId, DaoBaseConfig } from './base';
 
 const table = 'document';
 
@@ -50,13 +50,14 @@ const rowToken = sql`
     `;
 
 export class DocumentDao extends DaoBase<Document, Row> {
-    constructor() {
+    constructor(config: Partial<DaoBaseConfig<Document, Row>> = {}) {
         super({
             table,
             dependencies,
             schema,
             rowToken,
             mapRow,
+            ...config,
         });
     }
     async create(db: Db, document: DocumentInput, userId: Id): Promise<Document> {

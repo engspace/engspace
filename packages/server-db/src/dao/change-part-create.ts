@@ -1,7 +1,7 @@
 import { sql } from 'slonik';
 import { ChangePartCreate, Id } from '@engspace/core';
 import { Db } from '..';
-import { foreignKey, nullable, RowId, toId } from './base';
+import { foreignKey, nullable, RowId, toId, DaoBaseConfig } from './base';
 import { ChangeRequestChildDaoBase } from './change-request';
 
 const table = 'change_part_create';
@@ -67,13 +67,14 @@ export interface ChangePartCreateDaoInput {
 }
 
 export class ChangePartCreateDao extends ChangeRequestChildDaoBase<ChangePartCreate, Row> {
-    constructor() {
+    constructor(config: Partial<DaoBaseConfig<ChangePartCreate, Row>> = {}) {
         super({
             table,
             dependencies,
             schema,
             mapRow,
             rowToken,
+            ...config,
         });
     }
 

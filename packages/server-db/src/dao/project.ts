@@ -2,7 +2,7 @@ import { sql } from 'slonik';
 import { Id, Project, ProjectInput } from '@engspace/core';
 import { Db } from '..';
 import { partialAssignmentList } from '../util';
-import { DaoBase, RowId, toId } from './base';
+import { DaoBase, RowId, toId, DaoBaseConfig } from './base';
 
 const table = 'project';
 
@@ -45,13 +45,14 @@ function mapRow({ id, name, code, description }: Row): Project {
 const rowToken = sql`id, code, name, description`;
 
 export class ProjectDao extends DaoBase<Project, Row> {
-    constructor() {
+    constructor(config: Partial<DaoBaseConfig<Project, Row>> = {}) {
         super({
             table,
             dependencies,
             schema,
             rowToken,
             mapRow,
+            ...config,
         });
     }
     async create(db: Db, proj: ProjectInput): Promise<Project> {

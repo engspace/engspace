@@ -1,7 +1,7 @@
 import { sql } from 'slonik';
 import { DocumentRevision, DocumentRevisionInput, Id } from '@engspace/core';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, timestamp, toId } from './base';
+import { DaoBase, foreignKey, RowId, timestamp, toId, DaoBaseConfig } from './base';
 
 const table = 'document_revision';
 
@@ -78,13 +78,14 @@ const rowToken = sql`
     `;
 
 export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
-    constructor() {
+    constructor(config: Partial<DaoBaseConfig<DocumentRevision, Row>> = {}) {
         super({
             table,
             dependencies,
             schema,
             rowToken,
             mapRow,
+            ...config,
         });
     }
 
