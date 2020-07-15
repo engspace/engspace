@@ -3,6 +3,7 @@ import path from 'path';
 import { sql } from 'slonik';
 import { raw } from 'slonik-sql-tag-raw';
 import { PartCycle, ValidationResult, ChangeRequestCycle } from '@engspace/core';
+import { DaoSet, isDao, Dao } from './dao';
 import { Db } from '.';
 
 // const currentVersion = 1;
@@ -42,10 +43,46 @@ async function executeSqlFolder(db: Db, sqlFolder: string): Promise<void> {
     }
 }
 
-async function createSchema(db: Db): Promise<void> {
+/**
+ * Create the schema of all Dao objects in the DaoSet
+ *
+ * Dao.dependencies is used to determine the order of schema creation.
+ *
+ * @param db the database connection
+ * @param daoSet the object containing dao objects
+ */
+async function createDaoSchema(db: Db, daoSet: DaoSet) {
+    const daos: { [table: string]: Dao<any> } = {};
+    const tables = [];
+    for (const dao of Object.values(daoSet)) {
+        if (isDao(dao)) {
+            daos[dao.table] = dao;
+            tables.push(dao.table);
+        }
+    }
+    const counts = {};
+    function traverse(table: string) {
+        if (!counts[table]) counts[table] = 1;
+        else counts[table] += 1;
+        for (const dep of daos[table].dependencies) {
+            traverse(dep);
+        }
+    }
+    for (const t of tables) {
+        traverse(t);
+    }
+    tables.sort((a, b) => counts[b] - counts[a]);
+    for (const t of tables) {
+        for (const s of daos[t].schema) {
+            await db.query(s);
+        }
+    }
+}
+
+async function createSchema(db: Db, dao: DaoSet): Promise<void> {
     await executeSqlFile(db, sqlPath('1-extensions.sql'));
-    await executeSqlFile(db, sqlPath('2-enums.sql'));
-    await executeSqlFile(db, sqlPath('3-schema.sql'));
+    await executeSqlFile(db, sqlPath('2-bases.sql'));
+    await createDaoSchema(db, dao);
     await executeSqlFolder(db, sqlPath('4-functions'));
     await executeSqlFile(db, sqlPath('5-populate.sql'));
 }
@@ -107,7 +144,7 @@ async function insertCoreEnums(db: Db): Promise<void> {
 //     }
 // }
 
-export async function initSchema(db: Db): Promise<void> {
+export async function initSchema(db: Db, dao: DaoSet): Promise<void> {
     const hasMetadataTable = await db.maybeOneFirst(sql`
             SELECT COUNT(table_name)
             FROM information_schema.tables
@@ -116,7 +153,7 @@ export async function initSchema(db: Db): Promise<void> {
                 table_name = 'metadata'`);
     /* istanbul ignore else */
     if (!hasMetadataTable) {
-        await createSchema(db);
+        await createSchema(db, dao);
         await insertCoreEnums(db);
         // } else {
         //     const { dbVersion, application } = await db.one(

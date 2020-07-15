@@ -61,7 +61,7 @@
         "clean": "rimraf ./dist/ ../../.build-cache/server-db.tsbuildinfo",
         "lint": "eslint --ext .ts src test",
         "lint:fix": "eslint --fix --ext .ts src test",
-        "test": "cross-env NODE_ENV=test TS_NODE_PROJECT=./tsconfig.test.json mocha",
+        "test": "cross-env NODE_ENV=test mocha",
         "test:cov": "cross-env NODE_ENV=test nyc mocha"
     },
     "types": "dist/index"

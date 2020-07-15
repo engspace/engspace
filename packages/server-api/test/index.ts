@@ -109,7 +109,7 @@ before('Start-up DB and Server', async function () {
     console.log(dbPreparationConfig);
     await prepareDb(dbPreparationConfig);
     await pool.transaction(async (db) => {
-        await initSchema(db);
+        await initSchema(db, dao);
         await passwordLogin.buildSchema(db);
     });
 });

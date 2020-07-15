@@ -61,7 +61,7 @@ export const dao = buildDaoSet();
 prepareDb(dbPreparationConfig)
     .then(async () => {
         await pool.transaction(async (db) => {
-            await initSchema(db);
+            await initSchema(db, dao);
             await passwordLogin.buildSchema(db);
         });
         await populateData(pool, config.storePath);
