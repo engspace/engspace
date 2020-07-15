@@ -1,7 +1,32 @@
 import { sql } from 'slonik';
 import { ApprovalDecision, Id, PartValidation, ValidationResult } from '@engspace/core';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow } from './base';
+import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow, DaoBaseConfig } from './base';
+
+const table = 'part_validation';
+
+const dependencies = ['user', 'part_revision'];
+
+const schema = [
+    sql`
+        CREATE TABLE part_validation (
+            id serial PRIMARY KEY,
+            part_rev_id integer NOT NULL,
+            result text,
+            comments text,
+
+            created_by integer NOT NULL,
+            created_at timestamptz NOT NULL,
+            updated_by integer NOT NULL,
+            updated_at timestamptz NOT NULL,
+
+            FOREIGN KEY(part_rev_id) REFERENCES part_revision(id),
+            FOREIGN KEY(result) REFERENCES validation_result_enum(id),
+            FOREIGN KEY(created_by) REFERENCES "user"(id),
+            FOREIGN KEY(updated_by) REFERENCES "user"(id)
+        )
+    `,
+];
 
 interface Row extends TrackedRow {
     id: RowId;
@@ -44,11 +69,13 @@ export interface PartValidationUpdateDaoInput {
 }
 
 export class PartValidationDao extends DaoBase<PartValidation, Row> {
-    constructor() {
-        super({
+    constructor(config: Partial<DaoBaseConfig<PartValidation, Row>> = {}) {
+        super(table, {
+            dependencies,
+            schema,
             rowToken,
             mapRow,
-            table: 'part_validation',
+            ...config,
         });
     }
     async create(db: Db, { partRevId, userId }: PartValidationDaoInput): Promise<PartValidation> {
@@ -61,9 +88,9 @@ export class PartValidationDao extends DaoBase<PartValidation, Row> {
                 ${partRevId},
                 ${tracked.insertValToken(userId)}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
     async update(
         db: Db,
@@ -76,8 +103,8 @@ export class PartValidationDao extends DaoBase<PartValidation, Row> {
                 comments = ${comments ?? null},
                 ${tracked.updateAssignmentsToken(userId)}
             WHERE id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }

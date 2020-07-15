@@ -1,8 +1,35 @@
 import { sql } from 'slonik';
 import { Id, ProjectMember, ProjectMemberInput } from '@engspace/core';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, toId } from './base';
+import { DaoBase, foreignKey, RowId, toId, DaoBaseConfig } from './base';
 
+const table = 'project_member';
+
+const dependencies = ['user', 'project'];
+
+const schema = [
+    sql`
+        CREATE TABLE project_member (
+            id serial PRIMARY KEY,
+            project_id integer NOT NULL,
+            user_id integer NOT NULL,
+
+            UNIQUE(project_id, user_id),
+            FOREIGN KEY(project_id) REFERENCES project(id) ON DELETE CASCADE,
+            FOREIGN KEY(user_id) REFERENCES "user"(id)
+        )
+    `,
+    sql`
+        CREATE TABLE project_member_role (
+            member_id integer NOT NULL,
+            role text NOT NULL,
+
+            PRIMARY KEY(member_id, role),
+            FOREIGN KEY(member_id) REFERENCES project_member(id)
+                    ON DELETE CASCADE
+        )
+    `,
+];
 interface Row {
     id: RowId;
     projectId: RowId;
@@ -20,11 +47,13 @@ function mapRow({ id, projectId, userId }: Row): ProjectMember {
 const rowToken = sql`id, project_id, user_id`;
 
 export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
-    constructor() {
-        super({
+    constructor(config: Partial<DaoBaseConfig<ProjectMember, Row>> = {}) {
+        super(table, {
+            dependencies,
+            schema,
             rowToken,
             mapRow,
-            table: 'project_member',
+            ...config,
         });
     }
     /**
@@ -42,9 +71,9 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
             ) VALUES (
                 ${projectId}, ${userId}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        const res = mapRow(row);
+        const res = this.mapRow(row);
         if (roles && roles.length) {
             res.roles = await insertRoles(db, res.id, roles);
         }
@@ -56,10 +85,10 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
      */
     async byProjectId(db: Db, projectId: Id): Promise<ProjectMember[]> {
         const rows = await db.any<Row>(sql`
-            SELECT ${rowToken} FROM project_member
+            SELECT ${this.rowToken} FROM project_member
             WHERE project_id = ${projectId}
         `);
-        return rows.map((r) => mapRow(r));
+        return rows.map((r) => this.mapRow(r));
     }
 
     /**
@@ -68,10 +97,10 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
      */
     async byUserId(db: Db, userId: Id): Promise<ProjectMember[]> {
         const rows = await db.any<Row>(sql`
-            SELECT ${rowToken} FROM project_member
+            SELECT ${this.rowToken} FROM project_member
             WHERE user_id = ${userId}
         `);
-        return rows.map((r) => mapRow(r));
+        return rows.map((r) => this.mapRow(r));
     }
 
     /**
@@ -92,11 +121,11 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
         fetchRoles = false
     ): Promise<ProjectMember | null> {
         const row = await db.maybeOne<Row>(sql`
-            SELECT ${rowToken} FROM project_member
+            SELECT ${this.rowToken} FROM project_member
             WHERE project_id=${projectId} AND user_id=${userId}
         `);
         if (!row) return null;
-        const res = mapRow(row);
+        const res = this.mapRow(row);
         if (fetchRoles) {
             res.roles = await this.rolesById(db, res.id);
         }

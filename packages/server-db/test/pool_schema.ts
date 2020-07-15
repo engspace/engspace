@@ -9,7 +9,7 @@ import {
     initSchema,
     prepareDb,
 } from '../src';
-import { serverConnConfig } from '.';
+import { serverConnConfig, dao } from '.';
 
 function preparationConf(dbName: string): DbPreparationConfig {
     return {
@@ -56,7 +56,7 @@ describe('Pool and Schema', async () => {
             await prepareDb(preparationConf(name));
             pool = createDbPool(poolConf(name));
             await pool.transaction(async (db) => {
-                await initSchema(db);
+                await initSchema(db, dao);
             });
         });
 

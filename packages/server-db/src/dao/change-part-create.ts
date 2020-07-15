@@ -1,8 +1,31 @@
 import { sql } from 'slonik';
 import { ChangePartCreate, Id } from '@engspace/core';
 import { Db } from '..';
-import { foreignKey, nullable, RowId, toId } from './base';
+import { foreignKey, nullable, RowId, toId, DaoBaseConfig } from './base';
 import { ChangeRequestChildDaoBase } from './change-request';
+
+const table = 'change_part_create';
+
+const dependencies = ['part_family', 'change_request'];
+
+const schema = [
+    sql`
+        CREATE TABLE change_part_create (
+            id serial PRIMARY KEY,
+            request_id integer NOT NULL,
+            family_id integer NOT NULL,
+            version text NOT NULL,
+            designation text NOT NULL,
+            comments text,
+
+            CHECK(LENGTH(version) > 0),
+            CHECK(LENGTH(designation) > 0),
+
+            FOREIGN KEY(request_id) REFERENCES change_request(id),
+            FOREIGN KEY(family_id) REFERENCES part_family(id)
+        )
+    `,
+];
 
 interface Row {
     id: RowId;
@@ -44,11 +67,13 @@ export interface ChangePartCreateDaoInput {
 }
 
 export class ChangePartCreateDao extends ChangeRequestChildDaoBase<ChangePartCreate, Row> {
-    constructor() {
-        super({
-            table: 'change_part_create',
+    constructor(config: Partial<DaoBaseConfig<ChangePartCreate, Row>> = {}) {
+        super(table, {
+            dependencies,
+            schema,
             mapRow,
             rowToken,
+            ...config,
         });
     }
 
@@ -71,8 +96,8 @@ export class ChangePartCreateDao extends ChangeRequestChildDaoBase<ChangePartCre
                 ${designation},
                 ${nullable(comments)}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }

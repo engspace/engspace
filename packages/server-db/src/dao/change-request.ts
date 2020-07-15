@@ -12,6 +12,33 @@ import {
     TrackedRow,
 } from './base';
 
+const table = 'change_request';
+
+const dependencies = ['user'];
+
+const schema = [
+    sql`
+        CREATE TABLE change_request (
+            id serial PRIMARY KEY,
+            name text NOT NULL,
+            description text,
+            cycle text NOT NULL,
+
+            created_by integer NOT NULL,
+            created_at timestamptz NOT NULL,
+            updated_by integer NOT NULL,
+            updated_at timestamptz NOT NULL,
+
+            UNIQUE(name),
+            CHECK(LENGTH(name) > 0),
+
+            FOREIGN KEY(cycle) REFERENCES change_request_cycle_enum(id),
+            FOREIGN KEY(created_by) REFERENCES "user"(id),
+            FOREIGN KEY(updated_by) REFERENCES "user"(id)
+        )
+    `,
+];
+
 interface Row extends TrackedRow {
     id: RowId;
     name: string;
@@ -54,11 +81,13 @@ export interface ChangeRequestUpdateDaoInput {
 }
 
 export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
-    constructor() {
-        super({
-            table: 'change_request',
+    constructor(config: Partial<DaoBaseConfig<ChangeRequest, Row>> = {}) {
+        super(table, {
+            dependencies,
+            schema,
             rowToken,
             mapRow,
+            ...config,
         });
     }
 
@@ -79,17 +108,17 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
                 ${cycle ?? ChangeRequestCycle.Edition},
                 ${tracked.insertValToken(userId)}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async byName(db: Db, name: string): Promise<ChangeRequest> {
         const row: Row = await db.maybeOne(sql`
-            UPDATE ${rowToken} FROM change_request
+            UPDATE ${this.rowToken} FROM change_request
             WHERE name = ${name}
         `);
-        return row ? mapRow(row) : null;
+        return row ? this.mapRow(row) : null;
     }
 
     async update(
@@ -103,9 +132,9 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
                 ${tracked.updateAssignmentsToken(userId)}
             WHERE
                 id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async updateCycle(
@@ -120,9 +149,9 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
                 ${tracked.updateAssignmentsToken(userId)}
             WHERE
                 id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }
 
@@ -130,8 +159,8 @@ export abstract class ChangeRequestChildDaoBase<
     T extends HasId,
     R extends HasRowId
 > extends DaoBase<T, R> {
-    constructor(config: DaoBaseConfig<T, R>) {
-        super(config);
+    constructor(table: string, config: DaoBaseConfig<T, R>) {
+        super(table, config);
     }
 
     async byRequestId(db: Db, requestId: Id): Promise<T[]> {

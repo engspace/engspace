@@ -1,8 +1,27 @@
 import { sql } from 'slonik';
 import { ChangePartRevision, Id } from '@engspace/core';
 import { Db } from '..';
-import { foreignKey, nullable, RowId, toId } from './base';
+import { foreignKey, nullable, RowId, toId, DaoBaseConfig } from './base';
 import { ChangeRequestChildDaoBase } from './change-request';
+
+const table = 'change_part_revision';
+
+const dependencies = ['part', 'change_request'];
+
+const schema = [
+    sql`
+        CREATE TABLE change_part_revision (
+            id serial PRIMARY KEY,
+            request_id integer NOT NULL,
+            part_id integer NOT NULL,
+            designation text,
+            comments text,
+
+            FOREIGN KEY(request_id) REFERENCES change_request(id),
+            FOREIGN KEY(part_id) REFERENCES part(id)
+        )
+    `,
+];
 
 interface Row {
     id: RowId;
@@ -34,11 +53,13 @@ export interface ChangePartRevisionDaoInput {
 }
 
 export class ChangePartRevisionDao extends ChangeRequestChildDaoBase<ChangePartRevision, Row> {
-    constructor() {
-        super({
-            table: 'change_part_revision',
+    constructor(config: Partial<DaoBaseConfig<ChangePartRevision, Row>> = {}) {
+        super(table, {
+            dependencies,
+            schema,
             mapRow,
             rowToken,
+            ...config,
         });
     }
 
@@ -59,8 +80,8 @@ export class ChangePartRevisionDao extends ChangeRequestChildDaoBase<ChangePartR
                 ${nullable(designation)},
                 ${nullable(comments)}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }

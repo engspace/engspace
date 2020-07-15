@@ -1,5 +1,5 @@
 import { HasId, Id } from '@engspace/core';
-import { Db } from '..';
+import { Db, SqlLiteral } from '..';
 import { ChangePartCreateDao } from './change-part-create';
 import { ChangePartForkDao } from './change-part-fork';
 import { ChangePartRevisionDao } from './change-part-revision';
@@ -42,16 +42,74 @@ export {
 /**
  * Data Access Object
  *
- * An object that connects to the database to access a type of object
+ * An object that performs CRUD operations
+ * and map database to a type of object
  */
 export interface Dao<T extends HasId> {
+    /**
+     * Primary table this Dao acts on
+     */
     readonly table: string;
+    /**
+     * Dao identifiers this Dao depends on
+     */
+    readonly dependencies: readonly string[];
+    /**
+     * SQL commands to create table(s) for this Dao
+     */
+    readonly schema: readonly SqlLiteral[];
+    /**
+     * Selects a mapped object
+     *
+     * @param db the database connection
+     * @param id the id of the object to select
+     */
     byId(db: Db, id: Id): Promise<T>;
+    /**
+     * Number of entries in the database
+     *
+     * @param db the database connection
+     */
     rowCount(db: Db): Promise<number>;
+    /**
+     * Checks whether the provided ID exists in the database.
+     *
+     * @param db the database connection
+     * @param id the id to look for
+     */
     checkId(db: Db, id: Id): Promise<boolean>;
+    /**
+     * Selects a batch of mapped objects.
+     *
+     * Objects are returned in the same order of the provided ids
+     *
+     * @param db the database connection
+     * @param ids the ids of objects to select
+     */
     batchByIds(db: Db, ids: readonly Id[]): Promise<T[]>;
+    /**
+     * Delete an object in the database
+     *
+     * @param db the database connection
+     * @param id the id of the object to delete
+     */
     deleteById(db: Db, id: Id): Promise<T>;
+    /**
+     * Delete all entries in the table
+     *
+     * @param db the database connection
+     */
     deleteAll(db: Db): Promise<number>;
+}
+
+export function isDao(obj: unknown): obj is Dao<any> {
+    if (typeof obj !== 'object') return false;
+
+    return (
+        obj.hasOwnProperty('table') &&
+        obj.hasOwnProperty('dependencies') &&
+        obj.hasOwnProperty('schema')
+    );
 }
 
 export interface DaoSet {

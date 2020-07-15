@@ -1,7 +1,22 @@
 import { sql } from 'slonik';
 import { Id, PartFamily, PartFamilyInput } from '@engspace/core';
 import { Db } from '..';
-import { DaoBase, RowId, toId } from './base';
+import { DaoBase, RowId, toId, DaoBaseConfig } from './base';
+
+const table = 'part_family';
+
+const dependencies = [];
+
+const schema = [
+    sql`
+        CREATE TABLE part_family (
+            id serial PRIMARY KEY,
+            name text NOT NULL,
+            code text NOT NULL,
+            counter integer NOT NULL DEFAULT 0
+        )
+    `,
+];
 
 interface Row {
     id: RowId;
@@ -22,20 +37,22 @@ function mapRow({ id, name, code, counter }: Row): PartFamily {
 }
 
 export class PartFamilyDao extends DaoBase<PartFamily, Row> {
-    constructor() {
-        super({
+    constructor(config: Partial<DaoBaseConfig<PartFamily, Row>> = {}) {
+        super(table, {
+            dependencies,
+            schema,
             rowToken,
-            table: 'part_family',
             mapRow,
+            ...config,
         });
     }
     async create(db: Db, pf: PartFamilyInput): Promise<PartFamily> {
         const row: Row = await db.one(sql`
             INSERT INTO part_family(code, name)
             VALUES(${pf.code}, ${pf.name})
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async updateById(db: Db, id: Id, partFamily: PartFamilyInput): Promise<PartFamily> {
@@ -43,17 +60,17 @@ export class PartFamilyDao extends DaoBase<PartFamily, Row> {
         const row: Row = await db.maybeOne(sql`
             UPDATE part_family SET name=${name}, code=${code}
             WHERE id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async bumpCounterById(db: Db, id: Id): Promise<PartFamily> {
         const row: Row = await db.maybeOne(sql`
             UPDATE part_family SET counter = counter+1
             WHERE id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }

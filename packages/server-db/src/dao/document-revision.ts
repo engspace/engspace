@@ -1,7 +1,35 @@
 import { sql } from 'slonik';
 import { DocumentRevision, DocumentRevisionInput, Id } from '@engspace/core';
 import { Db } from '..';
-import { DaoBase, foreignKey, RowId, timestamp, toId } from './base';
+import { DaoBase, foreignKey, RowId, timestamp, toId, DaoBaseConfig } from './base';
+
+const table = 'document_revision';
+
+const dependencies = ['user', 'document'];
+
+const schema = [
+    sql`
+        CREATE TABLE document_revision (
+            id serial PRIMARY KEY,
+            document_id integer NOT NULL,
+            revision integer NOT NULL,
+            filename text NOT NULL,
+            filesize integer NOT NULL,
+            created_by integer NOT NULL,
+            created_at timestamptz NOT NULL,
+            change_description text,
+
+            uploaded integer NOT NULL DEFAULT 0,
+            sha1 bytea, -- initially null, set after check on both client and server
+
+            CHECK(filesize > 0),
+            CHECK(uploaded >= 0 AND uploaded <= filesize),
+            UNIQUE(document_id, revision),
+            FOREIGN KEY(document_id) REFERENCES document(id),
+            FOREIGN KEY(created_by) REFERENCES "user"(id)
+        )
+    `,
+];
 
 interface Row {
     id: RowId;
@@ -50,11 +78,13 @@ const rowToken = sql`
     `;
 
 export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
-    constructor() {
-        super({
+    constructor(config: Partial<DaoBaseConfig<DocumentRevision, Row>> = {}) {
+        super(table, {
+            dependencies,
+            schema,
             rowToken,
             mapRow,
-            table: 'document_revision',
+            ...config,
         });
     }
 
@@ -80,7 +110,7 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
                 NOW(),
                 ${changeDescription}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
         // TODO: mv to controller
         if (!documentRev.retainCheckout) {
@@ -89,21 +119,21 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
                 WHERE id = ${documentId}
             `);
         }
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async byDocumentId(db: Db, documentId: Id): Promise<DocumentRevision[]> {
         const rows: Row[] = await db.any(sql`
-            SELECT ${rowToken} FROM document_revision
+            SELECT ${this.rowToken} FROM document_revision
             WHERE document_id = ${documentId}
             ORDER BY revision
         `);
-        return rows.map((r) => mapRow(r));
+        return rows.map((r) => this.mapRow(r));
     }
 
     async lastByDocumentId(db: Db, documentId: Id): Promise<DocumentRevision | null> {
         const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken} FROM document_revision
+            SELECT ${this.rowToken} FROM document_revision
             WHERE
                 document_id = ${documentId} AND
                 revision = (
@@ -112,15 +142,15 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
                 )
         `);
         if (!row) return null;
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async byDocumentIdAndRev(db: Db, documentId: Id, revision: number): Promise<DocumentRevision> {
         const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken} FROM document_revision
+            SELECT ${this.rowToken} FROM document_revision
             WHERE document_id = ${documentId} AND revision = ${revision}
         `);
-        return row ? mapRow(row) : null;
+        return row ? this.mapRow(row) : null;
     }
 
     async idByDocumentIdAndRev(db: Db, documentId: Id, revision: number): Promise<Id> {
@@ -144,8 +174,8 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
         const row: Row = await db.maybeOne(sql`
             UPDATE document_revision SET uploaded = filesize, sha1=DECODE(${sha1}, 'hex')
             WHERE id = ${revisionId}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return row ? mapRow(row) : null;
+        return row ? this.mapRow(row) : null;
     }
 }
