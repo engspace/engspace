@@ -66,8 +66,7 @@ export interface ChangeReviewUpdateDaoInput {
 
 export class ChangeReviewDao extends ChangeRequestChildDaoBase<ChangeReview, Row> {
     constructor(config: Partial<DaoBaseConfig<ChangeReview, Row>> = {}) {
-        super({
-            table,
+        super(table, {
             dependencies,
             schema,
             mapRow,

@@ -82,8 +82,7 @@ export interface ChangeRequestUpdateDaoInput {
 
 export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
     constructor(config: Partial<DaoBaseConfig<ChangeRequest, Row>> = {}) {
-        super({
-            table,
+        super(table, {
             dependencies,
             schema,
             rowToken,
@@ -160,8 +159,8 @@ export abstract class ChangeRequestChildDaoBase<
     T extends HasId,
     R extends HasRowId
 > extends DaoBase<T, R> {
-    constructor(config: DaoBaseConfig<T, R>) {
-        super(config);
+    constructor(table: string, config: DaoBaseConfig<T, R>) {
+        super(table, config);
     }
 
     async byRequestId(db: Db, requestId: Id): Promise<T[]> {

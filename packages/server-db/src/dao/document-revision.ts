@@ -79,8 +79,7 @@ const rowToken = sql`
 
 export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
     constructor(config: Partial<DaoBaseConfig<DocumentRevision, Row>> = {}) {
-        super({
-            table,
+        super(table, {
             dependencies,
             schema,
             rowToken,

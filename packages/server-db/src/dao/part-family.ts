@@ -38,8 +38,7 @@ function mapRow({ id, name, code, counter }: Row): PartFamily {
 
 export class PartFamilyDao extends DaoBase<PartFamily, Row> {
     constructor(config: Partial<DaoBaseConfig<PartFamily, Row>> = {}) {
-        super({
-            table,
+        super(table, {
             dependencies,
             schema,
             rowToken,

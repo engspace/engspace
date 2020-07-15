@@ -65,8 +65,7 @@ export interface ChangePartForkDaoInput {
 
 export class ChangePartForkDao extends ChangeRequestChildDaoBase<ChangePartFork, Row> {
     constructor(config: Partial<DaoBaseConfig<ChangePartFork, Row>> = {}) {
-        super({
-            table,
+        super(table, {
             dependencies,
             schema,
             mapRow,

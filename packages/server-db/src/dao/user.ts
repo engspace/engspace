@@ -71,8 +71,7 @@ export interface RoleOptions {
 
 export class UserDao extends DaoBase<User, Row> {
     constructor(config: Partial<DaoBaseConfig<User, Row>> = {}) {
-        super({
-            table,
+        super(table, {
             dependencies,
             schema,
             rowToken,

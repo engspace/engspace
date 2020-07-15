@@ -74,8 +74,7 @@ export interface PartApprovalUpdateDaoInput {
 
 export class PartApprovalDao extends DaoBase<PartApproval, Row> {
     constructor(config: Partial<DaoBaseConfig<PartApproval, Row>> = {}) {
-        super({
-            table,
+        super(table, {
             dependencies,
             schema,
             rowToken,

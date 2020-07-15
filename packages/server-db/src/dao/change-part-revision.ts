@@ -54,8 +54,7 @@ export interface ChangePartRevisionDaoInput {
 
 export class ChangePartRevisionDao extends ChangeRequestChildDaoBase<ChangePartRevision, Row> {
     constructor(config: Partial<DaoBaseConfig<ChangePartRevision, Row>> = {}) {
-        super({
-            table,
+        super(table, {
             dependencies,
             schema,
             mapRow,

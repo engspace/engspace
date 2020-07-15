@@ -70,8 +70,7 @@ export interface PartValidationUpdateDaoInput {
 
 export class PartValidationDao extends DaoBase<PartValidation, Row> {
     constructor(config: Partial<DaoBaseConfig<PartValidation, Row>> = {}) {
-        super({
-            table,
+        super(table, {
             dependencies,
             schema,
             rowToken,

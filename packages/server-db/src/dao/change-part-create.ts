@@ -68,8 +68,7 @@ export interface ChangePartCreateDaoInput {
 
 export class ChangePartCreateDao extends ChangeRequestChildDaoBase<ChangePartCreate, Row> {
     constructor(config: Partial<DaoBaseConfig<ChangePartCreate, Row>> = {}) {
-        super({
-            table,
+        super(table, {
             dependencies,
             schema,
             mapRow,

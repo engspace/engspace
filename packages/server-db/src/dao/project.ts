@@ -46,8 +46,7 @@ const rowToken = sql`id, code, name, description`;
 
 export class ProjectDao extends DaoBase<Project, Row> {
     constructor(config: Partial<DaoBaseConfig<Project, Row>> = {}) {
-        super({
-            table,
+        super(table, {
             dependencies,
             schema,
             rowToken,

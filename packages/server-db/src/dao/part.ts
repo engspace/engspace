@@ -75,8 +75,7 @@ const rowTokenAlias = sql`
 
 export class PartDao extends DaoBase<Part, Row> {
     constructor(config: Partial<DaoBaseConfig<Part, Row>> = {}) {
-        super({
-            table,
+        super(table, {
             dependencies,
             schema,
             rowToken,
