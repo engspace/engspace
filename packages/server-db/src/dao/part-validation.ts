@@ -89,9 +89,9 @@ export class PartValidationDao extends DaoBase<PartValidation, Row> {
                 ${partRevId},
                 ${tracked.insertValToken(userId)}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
     async update(
         db: Db,
@@ -104,8 +104,8 @@ export class PartValidationDao extends DaoBase<PartValidation, Row> {
                 comments = ${comments ?? null},
                 ${tracked.updateAssignmentsToken(userId)}
             WHERE id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }

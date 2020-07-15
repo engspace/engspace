@@ -109,17 +109,17 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
                 ${cycle ?? ChangeRequestCycle.Edition},
                 ${tracked.insertValToken(userId)}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async byName(db: Db, name: string): Promise<ChangeRequest> {
         const row: Row = await db.maybeOne(sql`
-            UPDATE ${rowToken} FROM change_request
+            UPDATE ${this.rowToken} FROM change_request
             WHERE name = ${name}
         `);
-        return row ? mapRow(row) : null;
+        return row ? this.mapRow(row) : null;
     }
 
     async update(
@@ -133,9 +133,9 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
                 ${tracked.updateAssignmentsToken(userId)}
             WHERE
                 id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async updateCycle(
@@ -150,9 +150,9 @@ export class ChangeRequestDao extends DaoBase<ChangeRequest, Row> {
                 ${tracked.updateAssignmentsToken(userId)}
             WHERE
                 id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }
 

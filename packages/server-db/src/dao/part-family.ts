@@ -51,9 +51,9 @@ export class PartFamilyDao extends DaoBase<PartFamily, Row> {
         const row: Row = await db.one(sql`
             INSERT INTO part_family(code, name)
             VALUES(${pf.code}, ${pf.name})
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async updateById(db: Db, id: Id, partFamily: PartFamilyInput): Promise<PartFamily> {
@@ -61,17 +61,17 @@ export class PartFamilyDao extends DaoBase<PartFamily, Row> {
         const row: Row = await db.maybeOne(sql`
             UPDATE part_family SET name=${name}, code=${code}
             WHERE id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async bumpCounterById(db: Db, id: Id): Promise<PartFamily> {
         const row: Row = await db.maybeOne(sql`
             UPDATE part_family SET counter = counter+1
             WHERE id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }

@@ -111,7 +111,7 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
                 NOW(),
                 ${changeDescription}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
         // TODO: mv to controller
         if (!documentRev.retainCheckout) {
@@ -120,21 +120,21 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
                 WHERE id = ${documentId}
             `);
         }
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async byDocumentId(db: Db, documentId: Id): Promise<DocumentRevision[]> {
         const rows: Row[] = await db.any(sql`
-            SELECT ${rowToken} FROM document_revision
+            SELECT ${this.rowToken} FROM document_revision
             WHERE document_id = ${documentId}
             ORDER BY revision
         `);
-        return rows.map((r) => mapRow(r));
+        return rows.map((r) => this.mapRow(r));
     }
 
     async lastByDocumentId(db: Db, documentId: Id): Promise<DocumentRevision | null> {
         const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken} FROM document_revision
+            SELECT ${this.rowToken} FROM document_revision
             WHERE
                 document_id = ${documentId} AND
                 revision = (
@@ -143,15 +143,15 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
                 )
         `);
         if (!row) return null;
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async byDocumentIdAndRev(db: Db, documentId: Id, revision: number): Promise<DocumentRevision> {
         const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken} FROM document_revision
+            SELECT ${this.rowToken} FROM document_revision
             WHERE document_id = ${documentId} AND revision = ${revision}
         `);
-        return row ? mapRow(row) : null;
+        return row ? this.mapRow(row) : null;
     }
 
     async idByDocumentIdAndRev(db: Db, documentId: Id, revision: number): Promise<Id> {
@@ -175,8 +175,8 @@ export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
         const row: Row = await db.maybeOne(sql`
             UPDATE document_revision SET uploaded = filesize, sha1=DECODE(${sha1}, 'hex')
             WHERE id = ${revisionId}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return row ? mapRow(row) : null;
+        return row ? this.mapRow(row) : null;
     }
 }

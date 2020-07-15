@@ -77,9 +77,9 @@ export class DocumentDao extends DaoBase<Document, Row> {
                 NOW(),
                 ${initialCheckout ? userId : null}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async checkoutIdById(db: Db, id: Id): Promise<Id> {
@@ -102,12 +102,12 @@ export class DocumentDao extends DaoBase<Document, Row> {
         const limitToken = sql`${limit ? limit : 1000}`;
         const offsetToken = sql`${offset | 0}`;
         const rows: Row[] = await db.any(sql`
-            SELECT ${rowToken} FROM document
+            SELECT ${this.rowToken} FROM document
             WHERE ${whereToken}
             LIMIT ${limitToken}
             OFFSET ${offsetToken}
         `);
-        const documents = rows.map((r) => mapRow(r));
+        const documents = rows.map((r) => this.mapRow(r));
         let count = documents.length + (offset | 0);
         if (limit && documents.length === limit) {
             count = (await db.oneFirst(sql`
@@ -122,10 +122,10 @@ export class DocumentDao extends DaoBase<Document, Row> {
         const row: Row = await db.maybeOne(sql`
             UPDATE document SET checkout = COALESCE(checkout, ${userId})
             WHERE id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
         if (!row) return null;
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async discardCheckout(db: Db, id: Id, userId: Id): Promise<Document | null> {
@@ -136,9 +136,9 @@ export class DocumentDao extends DaoBase<Document, Row> {
                 WHERE id = ${_id} AND checkout <> ${userId}
             )
             WHERE id = ${_id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
         if (!row) return null;
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }

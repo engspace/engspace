@@ -81,8 +81,8 @@ export class ChangePartRevisionDao extends ChangeRequestChildDaoBase<ChangePartR
                 ${nullable(designation)},
                 ${nullable(comments)}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }

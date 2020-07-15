@@ -72,9 +72,9 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
             ) VALUES (
                 ${projectId}, ${userId}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        const res = mapRow(row);
+        const res = this.mapRow(row);
         if (roles && roles.length) {
             res.roles = await insertRoles(db, res.id, roles);
         }
@@ -86,10 +86,10 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
      */
     async byProjectId(db: Db, projectId: Id): Promise<ProjectMember[]> {
         const rows = await db.any<Row>(sql`
-            SELECT ${rowToken} FROM project_member
+            SELECT ${this.rowToken} FROM project_member
             WHERE project_id = ${projectId}
         `);
-        return rows.map((r) => mapRow(r));
+        return rows.map((r) => this.mapRow(r));
     }
 
     /**
@@ -98,10 +98,10 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
      */
     async byUserId(db: Db, userId: Id): Promise<ProjectMember[]> {
         const rows = await db.any<Row>(sql`
-            SELECT ${rowToken} FROM project_member
+            SELECT ${this.rowToken} FROM project_member
             WHERE user_id = ${userId}
         `);
-        return rows.map((r) => mapRow(r));
+        return rows.map((r) => this.mapRow(r));
     }
 
     /**
@@ -122,11 +122,11 @@ export class ProjectMemberDao extends DaoBase<ProjectMember, Row> {
         fetchRoles = false
     ): Promise<ProjectMember | null> {
         const row = await db.maybeOne<Row>(sql`
-            SELECT ${rowToken} FROM project_member
+            SELECT ${this.rowToken} FROM project_member
             WHERE project_id=${projectId} AND user_id=${userId}
         `);
         if (!row) return null;
-        const res = mapRow(row);
+        const res = this.mapRow(row);
         if (fetchRoles) {
             res.roles = await this.rolesById(db, res.id);
         }

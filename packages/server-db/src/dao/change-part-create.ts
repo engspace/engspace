@@ -97,8 +97,8 @@ export class ChangePartCreateDao extends ChangeRequestChildDaoBase<ChangePartCre
                 ${designation},
                 ${nullable(comments)}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }

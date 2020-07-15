@@ -102,30 +102,30 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
                 ${cycle},
                 ${tracked.insertValToken(userId)}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async byPartId(db: Db, partId: Id): Promise<PartRevision[]> {
         const rows: Row[] = await db.any(sql`
-            SELECT ${rowToken} FROM part_revision
+            SELECT ${this.rowToken} FROM part_revision
             WHERE part_id = ${partId}
         `);
-        return rows.map((row) => mapRow(row));
+        return rows.map((row) => this.mapRow(row));
     }
 
     async aboveRev1ByChangeRequestId(db: Db, changeRequestId: Id): Promise<PartRevision[]> {
         const rows: Row[] = await db.any(sql`
-            SELECT ${rowToken} FROM part_revision
+            SELECT ${this.rowToken} FROM part_revision
             WHERE change_request_id = ${changeRequestId} AND revision > 1
         `);
-        return rows.map((row) => mapRow(row));
+        return rows.map((row) => this.mapRow(row));
     }
 
     async lastByPartId(db: Db, partId: Id): Promise<PartRevision> {
         const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken} FROM part_revision
+            SELECT ${this.rowToken} FROM part_revision
             WHERE
                 part_id = ${partId} AND
                 revision = (
@@ -133,7 +133,7 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
                 )
         `);
         if (!row) return null;
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async updateCycleState(db: Db, id: Id, cycle: PartCycle): Promise<PartRevision> {
@@ -141,8 +141,8 @@ export class PartRevisionDao extends DaoBase<PartRevision, Row> {
             UPDATE part_revision SET
                 cycle = ${cycle}
             WHERE id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }

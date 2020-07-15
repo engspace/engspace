@@ -1,4 +1,4 @@
-import { sql, SqlTokenType, SqlTaggedTemplateType } from 'slonik';
+import { sql, SqlTokenType } from 'slonik';
 import { DateTime, HasId, Id, Tracked } from '@engspace/core';
 import { Db, SqlLiteral } from '..';
 import { Dao } from '.';

@@ -98,17 +98,17 @@ export class PartDao extends DaoBase<Part, Row> {
                 ${designation},
                 ${tracked.insertValToken(userId)}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async byRef(db: Db, ref: string): Promise<Part> {
         const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken} FROM part
+            SELECT ${this.rowToken} FROM part
             WHERE ref = ${ref}
         `);
-        return row ? mapRow(row) : null;
+        return row ? this.mapRow(row) : null;
     }
 
     async checkRef(db: Db, ref: string): Promise<boolean> {
@@ -125,7 +125,7 @@ export class PartDao extends DaoBase<Part, Row> {
             LEFT OUTER JOIN part_revision AS pr ON pr.part_id = p.id
             WHERE pr.revision = 1 AND pr.change_request_id = ${changeRequestId}
         `);
-        return rows.map((r) => mapRow(r));
+        return rows.map((r) => this.mapRow(r));
     }
 
     async updateById(db: Db, id: Id, { designation, userId }: PartUpdateDaoInput): Promise<Part> {
@@ -134,8 +134,8 @@ export class PartDao extends DaoBase<Part, Row> {
                 designation = ${designation},
                 ${tracked.updateAssignmentsToken(userId)}
             WHERE id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return row ? mapRow(row) : null;
+        return row ? this.mapRow(row) : null;
     }
 }

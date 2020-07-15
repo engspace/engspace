@@ -94,8 +94,8 @@ export class ChangePartForkDao extends ChangeRequestChildDaoBase<ChangePartFork,
                 ${nullable(designation)},
                 ${nullable(comments)}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }

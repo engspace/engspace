@@ -95,17 +95,17 @@ export class ChangeReviewDao extends ChangeRequestChildDaoBase<ChangeReview, Row
                 ${nullable(comments)},
                 ${tracked.insertValToken(userId)}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async byRequestAndAssigneeId(db: Db, requestId: Id, assigneeId: Id): Promise<ChangeReview> {
         const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken} FROM change_review
+            SELECT ${this.rowToken} FROM change_review
             WHERE request_id = ${requestId} and assignee_id = ${assigneeId}
         `);
-        return row ? mapRow(row) : null;
+        return row ? this.mapRow(row) : null;
     }
 
     async update(
@@ -120,8 +120,8 @@ export class ChangeReviewDao extends ChangeRequestChildDaoBase<ChangeReview, Row
                 ${tracked.updateAssignmentsToken(userId)}
             WHERE
                 id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }

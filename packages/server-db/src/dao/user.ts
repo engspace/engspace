@@ -89,9 +89,9 @@ export class UserDao extends DaoBase<User, Row> {
         const row: Row = await db.one(sql`
             INSERT INTO "user"(name, email, full_name)
             VALUES(${name}, ${email}, ${fullName})
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        const user = mapRow(row);
+        const user = this.mapRow(row);
         if (withRoles && roles && roles.length) {
             user.roles = await insertRoles(db, user.id, roles);
         }
@@ -100,11 +100,11 @@ export class UserDao extends DaoBase<User, Row> {
 
     async byId(db: Db, id: Id, { withRoles }: RoleOptions = { withRoles: false }): Promise<User> {
         const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken}
+            SELECT ${this.rowToken}
             FROM "user"
             WHERE id = ${id}
         `);
-        const user = row ? mapRow(row) : null;
+        const user = row ? this.mapRow(row) : null;
         if (user && withRoles) {
             user.roles = await this.rolesById(db, id);
         }
@@ -117,11 +117,11 @@ export class UserDao extends DaoBase<User, Row> {
         { withRoles }: RoleOptions = { withRoles: false }
     ): Promise<User> {
         const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken}
+            SELECT ${this.rowToken}
             FROM "user"
             WHERE name = ${name}
         `);
-        const user = row ? mapRow(row) : null;
+        const user = row ? this.mapRow(row) : null;
         if (user && withRoles) {
             user.roles = await this.rolesById(db, user.id);
         }
@@ -134,11 +134,11 @@ export class UserDao extends DaoBase<User, Row> {
         { withRoles }: RoleOptions = { withRoles: false }
     ): Promise<User> {
         const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken}
+            SELECT ${this.rowToken}
             FROM "user"
             WHERE email = ${email}
         `);
-        const user = row ? mapRow(row) : null;
+        const user = row ? this.mapRow(row) : null;
         if (user && withRoles) {
             user.roles = await this.rolesById(db, user.id);
         }
@@ -181,7 +181,7 @@ export class UserDao extends DaoBase<User, Row> {
                 WHERE ${whereToken}
             `)) as number;
         }
-        return { count, users: rows.map((r) => mapRow(r)) };
+        return { count, users: rows.map((r) => this.mapRow(r)) };
     }
 
     async rolesById(db: Db, id: Id): Promise<string[]> {
@@ -201,9 +201,9 @@ export class UserDao extends DaoBase<User, Row> {
         const row: Row = await db.maybeOne(sql`
             UPDATE "user" SET name=${name}, email=${email}, full_name=${fullName}
             WHERE id=${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        const user = row ? mapRow(row) : null;
+        const user = row ? this.mapRow(row) : null;
         if (user && withRoles) {
             user.roles = await this.updateRoles(db, id, roles);
         }

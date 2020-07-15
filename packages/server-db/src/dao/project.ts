@@ -63,17 +63,17 @@ export class ProjectDao extends DaoBase<Project, Row> {
             ) VALUES (
                 ${code}, ${name}, ${description}
             ) RETURNING
-                ${rowToken}
+                ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async byCode(db: Db, code: string): Promise<Project> {
         const row: Row = await db.maybeOne(sql`
-            SELECT ${rowToken} FROM project
+            SELECT ${this.rowToken} FROM project
             WHERE code = ${code}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async search(db: Db, search: ProjectSearch): Promise<{ count: number; projects: Project[] }> {
@@ -118,7 +118,7 @@ export class ProjectDao extends DaoBase<Project, Row> {
                 WHERE ${whereToken}
             `)) as number;
         }
-        return { count, projects: rows.map((r) => mapRow(r)) };
+        return { count, projects: rows.map((r) => this.mapRow(r)) };
     }
 
     async patch(db: Db, id: Id, project: Partial<Project>): Promise<Project> {
@@ -126,9 +126,9 @@ export class ProjectDao extends DaoBase<Project, Row> {
         const row: Row = await db.maybeOne(sql`
             UPDATE project SET ${sql.join(assignments, sql`, `)}
             WHERE id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async updateById(db: Db, id: Id, project: ProjectInput): Promise<Project> {
@@ -136,8 +136,8 @@ export class ProjectDao extends DaoBase<Project, Row> {
         const row: Row = await db.maybeOne(sql`
             UPDATE project SET code=${code}, name=${name}, description=${description}
             WHERE id=${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }

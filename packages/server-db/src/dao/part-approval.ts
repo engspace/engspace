@@ -102,17 +102,17 @@ export class PartApprovalDao extends DaoBase<PartApproval, Row> {
                 ${comments ?? null},
                 ${tracked.insertValToken(userId)}
             )
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 
     async byValidationId(db: Db, validationId: Id): Promise<PartApproval[]> {
         const rows: Row[] = await db.any(sql`
-            SELECT ${rowToken} FROM part_approval
+            SELECT ${this.rowToken} FROM part_approval
             WHERE validation_id = ${validationId}
         `);
-        return rows.map((r) => mapRow(r));
+        return rows.map((r) => this.mapRow(r));
     }
 
     async update(
@@ -126,8 +126,8 @@ export class PartApprovalDao extends DaoBase<PartApproval, Row> {
                 comments = ${comments ?? null},
                 ${tracked.updateAssignmentsToken(userId)}
             WHERE id = ${id}
-            RETURNING ${rowToken}
+            RETURNING ${this.rowToken}
         `);
-        return mapRow(row);
+        return this.mapRow(row);
     }
 }
