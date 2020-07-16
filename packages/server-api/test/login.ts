@@ -4,7 +4,7 @@ import { passwordLogin } from '@engspace/server-db';
 import { verifyJwt } from '../src/crypto';
 import { authJwtSecret } from '../src/internal';
 import { auth } from './auth';
-import { api, config, pool, th } from '.';
+import { app, config, pool, th } from '.';
 
 const { serverPort } = config;
 
@@ -19,7 +19,7 @@ describe('Login', () => {
         });
     });
     before('Start server', (done) => {
-        server = api.koa.listen(serverPort, done);
+        server = app.listen(serverPort, done);
     });
 
     after(th.cleanTable('user'));

@@ -1,14 +1,14 @@
-import Router from '@koa/router';
 import HttpStatus from 'http-status-codes';
+import { Middleware } from 'koa';
 import { passwordLogin } from '@engspace/server-db';
 import { EsServerConfig } from '..';
 import { signJwt } from '../crypto';
 import { authJwtSecret } from '../internal';
 
-export function setupLoginRoute(router: Router, config: EsServerConfig): void {
-    const { pool, rolePolicies, dao } = config;
+export function passwordLoginMiddleware(config: EsServerConfig): Middleware {
+    const { pool, rolePolicies } = config;
 
-    router.post('/login', async (ctx) => {
+    return async (ctx) => {
         const { nameOrEmail, password } = ctx.request.body;
 
         ctx.assert(
@@ -42,5 +42,5 @@ export function setupLoginRoute(router: Router, config: EsServerConfig): void {
         } else {
             ctx.throw(HttpStatus.FORBIDDEN);
         }
-    });
+    };
 }

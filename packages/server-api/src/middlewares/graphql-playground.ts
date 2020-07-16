@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import Router from '@koa/router';
 import { ApolloServer } from 'apollo-server-koa';
+import { GraphQLSchema } from 'graphql';
 import HttpStatus from 'http-status-codes';
 import Koa from 'koa';
 import session from 'koa-session';
@@ -10,15 +11,19 @@ import { AuthToken } from '@engspace/core';
 import { passwordLogin } from '@engspace/server-db';
 import { EsServerConfig } from '../';
 import { signJwt, verifyJwt } from '../crypto';
+import { gqlContextFactory } from '../graphql/context';
 import { attachDb, authJwtSecret, setAuthToken } from '../internal';
-import { gqlContextFactory } from './context';
-import { buildSchema } from './schema';
 
-export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServerConfig): void {
-    app.keys = esConfig.sessionKeys;
+export function setupPlaygroundLogin(
+    prefix: string,
+    app: Koa,
+    config: EsServerConfig,
+    sessionKeys: string[]
+): void {
+    app.keys = sessionKeys;
     app.use(session(app));
 
-    const { rolePolicies, pool } = esConfig;
+    const { rolePolicies, pool } = config;
 
     const router = new Router({ prefix });
 
@@ -70,7 +75,12 @@ export function setupPlaygroundLogin(prefix: string, app: Koa, esConfig: EsServe
     app.use(router.routes());
 }
 
-export function setupPlaygroundEndpoint(prefix: string, app: Koa, config: EsServerConfig): void {
+export function setupPlaygroundEndpoint(
+    prefix: string,
+    schema: GraphQLSchema,
+    app: Koa,
+    config: EsServerConfig
+): void {
     app.use(
         async (ctx, next): Promise<void> => {
             if (ctx.path !== prefix) {
@@ -95,7 +105,7 @@ export function setupPlaygroundEndpoint(prefix: string, app: Koa, config: EsServ
     app.use(attachDb(config.pool, prefix));
 
     const playground = new ApolloServer({
-        schema: buildSchema(config.control),
+        schema,
         introspection: true,
         playground: {
             settings: {
