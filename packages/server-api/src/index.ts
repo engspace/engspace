@@ -1,25 +1,34 @@
-import cors from '@koa/cors';
 import Router from '@koa/router';
-import { ApolloLogExtension } from 'apollo-log';
-import { ApolloServer } from 'apollo-server-koa';
-import { GraphQLSchema } from 'graphql';
-import HttpStatus from 'http-status-codes';
 import Koa from 'koa';
-import bodyParser from 'koa-bodyparser';
-import { AppRolePolicies, AuthToken, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
-import { DaoSet, Db, DbPool } from '@engspace/server-db';
-import { ApiContext, buildControllerSet, ControllerSet } from './control';
-import { verifyJwt } from './crypto';
-import { GqlContext, gqlContextFactory } from './graphql/context';
-import { makeLoaders } from './graphql/loaders';
-import { setupPlaygroundEndpoint, setupPlaygroundLogin } from './graphql/playground';
-import { buildSchema } from './graphql/schema';
-import { setupPostAuthDocRoutes, setupPreAuthDocRoutes } from './http/document';
-import { setupFirstAdminRoutes } from './http/first-admin';
-import { setupLoginRoute } from './http/login';
-import { attachDb, authJwtSecret, setAuthToken } from './internal';
+import { AppRolePolicies, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
+import { DaoSet, DbPool } from '@engspace/server-db';
+import { buildControllerSet, ControllerSet } from './control';
+import {
+    authCheckMiddleware,
+    documentMiddlewares,
+    firstAdminMiddleware,
+    graphQLMiddleware,
+    passwordLoginMiddleware,
+    bodyParserMiddleware,
+    corsMiddleware,
+    checkTokenMiddleware,
+    EsGraphQLConfig,
+} from './middlewares';
 
 export { ControllerSet, buildControllerSet };
+export {
+    authCheckMiddleware,
+    documentMiddlewares,
+    firstAdminMiddleware,
+    EsGraphQLConfig,
+    graphQLMiddleware,
+    buildTestGqlServer,
+    setupPlaygroundLogin,
+    passwordLoginMiddleware,
+    bodyParserMiddleware,
+    corsMiddleware,
+} from './middlewares';
+export { buildEsSchema } from './graphql/schema';
 
 export interface EsNaming {
     partRef: PartRefNaming;
@@ -32,138 +41,42 @@ export interface EsServerConfig {
     pool: DbPool;
     dao: DaoSet;
     control: ControllerSet;
-    cors: boolean;
     naming: EsNaming;
-    // this is for playground only
-    sessionKeys?: string[];
 }
 
-export class EsServerApi {
-    constructor(public koa: Koa, public config: EsServerConfig) {
-        koa.use(
-            bodyParser({
-                enableTypes: ['json', 'text', 'form'],
-            })
-        );
-        /* istanbul ignore else */
-        if (config.cors) {
-            koa.use(
-                cors({
-                    keepHeadersOnError: true,
-                    allowMethods: ['GET', 'POST', 'OPTIONS'],
-                    allowHeaders: [
-                        'Authorization',
-                        'Content-Length',
-                        'Content-Type',
-                        'X-Upload-Length',
-                        'X-Upload-Offset',
-                    ],
-                })
-            );
-        }
-    }
+export interface EsSimpleAppConfig {
+    prefix: string;
+    cors: boolean;
+    gql: EsGraphQLConfig;
+    config: EsServerConfig;
+}
 
-    /* istanbul ignore next */
-    setupPlayground(): void {
-        setupPlaygroundLogin('/graphql-playground', this.koa, this.config);
-        setupPlaygroundEndpoint('/graphql-playground', this.koa, this.config);
-    }
+export function buildSimpleEsApp({ prefix, cors, gql, config }: EsSimpleAppConfig): Koa {
+    const app = new Koa();
 
-    setupPreAuthHttpRoutes(prefix: string): void {
-        const router = new Router({ prefix });
-        setupLoginRoute(router, this.config);
-        setupFirstAdminRoutes(router, this.config);
-        setupPreAuthDocRoutes(router, this.config);
-        this.koa.use(router.routes());
-    }
+    app.use(bodyParserMiddleware);
+    if (cors) app.use(corsMiddleware);
 
-    setupAuthCheck(): void {
-        this.koa.use(async (ctx, next) => {
-            const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
-            if (header) {
-                const token = header.startsWith('Bearer ') ? header.slice(7) : header;
-                try {
-                    const authToken = await verifyJwt<AuthToken>(token, authJwtSecret);
-                    setAuthToken(ctx, authToken);
-                } catch (err) {
-                    ctx.throw(HttpStatus.FORBIDDEN);
-                }
-                return next();
-            } else {
-                ctx.throw(HttpStatus.UNAUTHORIZED);
-            }
-        });
-    }
+    const login = passwordLoginMiddleware(config);
+    const document = documentMiddlewares(config);
+    const firstAdmin = firstAdminMiddleware(config);
 
-    setupPostAuthHttpRoutes(prefix: string): void {
-        const router = new Router({ prefix });
-        router.get('/check_token', async (ctx) => {
-            ctx.status = HttpStatus.OK;
-        });
-        setupPostAuthDocRoutes(router, this.config);
-        this.koa.use(router.routes());
-    }
+    const preAuthRouter = new Router({ prefix });
+    preAuthRouter.post('/login', login);
+    preAuthRouter.get('/first_admin', firstAdmin.get);
+    preAuthRouter.post('/first_admin', firstAdmin.post);
+    preAuthRouter.get('/document/download', document.download);
+    app.use(preAuthRouter.routes());
 
-    setupAuthAndHttpRoutes(prefix: string): void {
-        this.setupPreAuthHttpRoutes(prefix);
-        this.setupAuthCheck();
-        this.setupPostAuthHttpRoutes(prefix);
-    }
+    app.use(authCheckMiddleware); // everything passed this point requires auth
 
-    // TODO proper logging extension
-    setupGqlEndpoint(prefix: string, /* istanbul ignore next */ enableLogging = true): void {
-        this.koa.use(attachDb(this.config.pool, prefix));
-        /* istanbul ignore next */
-        const extensions = enableLogging
-            ? [
-                  (): ApolloLogExtension =>
-                      new ApolloLogExtension({ prefix: 'Engspace API test', timestamp: true }),
-              ]
-            : [];
-        /* istanbul ignore next */
-        const formatError = enableLogging
-            ? (err: Error): Error => {
-                  console.log(err);
-                  return err;
-              }
-            : undefined;
-        const graphQL = new ApolloServer({
-            schema: buildSchema(this.config.control),
-            introspection: false,
-            playground: false,
-            extensions,
-            formatError,
-            context: gqlContextFactory(this.config),
-        });
-        this.koa.use(
-            graphQL.getMiddleware({
-                path: prefix,
-            })
-        );
-    }
+    const postAuthRouter = new Router({ prefix });
+    postAuthRouter.get('/check_token', checkTokenMiddleware);
+    postAuthRouter.get('/document/download_token', document.downloadToken);
+    postAuthRouter.post('/document/upload', document.upload);
+    app.use(postAuthRouter.routes());
 
-    private testSchema: GraphQLSchema = null;
+    app.use(graphQLMiddleware(gql, config));
 
-    buildTestGqlServer(db: Db, auth: AuthToken): ApolloServer {
-        if (!this.testSchema) {
-            // caching for more efficiency
-            this.testSchema = buildSchema(this.config.control);
-        }
-        return new ApolloServer({
-            schema: this.testSchema,
-            introspection: false,
-            playground: false,
-            context: (): GqlContext => {
-                const ctx: ApiContext = {
-                    db,
-                    auth,
-                    config: this.config,
-                };
-                return {
-                    loaders: makeLoaders(ctx, this.config.control),
-                    ...ctx,
-                };
-            },
-        });
-    }
+    return app;
 }

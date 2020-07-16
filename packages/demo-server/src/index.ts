@@ -1,8 +1,7 @@
 import events from 'events';
-import Koa from 'koa';
 import logger from 'koa-logger';
 import { buildDefaultAppRolePolicies, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
-import { buildControllerSet, EsServerApi } from '@engspace/server-api';
+import { buildControllerSet, buildSimpleEsApp, buildEsSchema } from '@engspace/server-api';
 import {
     buildDaoSet,
     connectionString,
@@ -57,6 +56,30 @@ const dbPoolConfig: DbPoolConfig = {
 
 const pool: DbPool = createDbPool(dbPoolConfig);
 export const dao = buildDaoSet();
+const rolePolicies = buildDefaultAppRolePolicies();
+const control = buildControllerSet(dao);
+const schema = buildEsSchema(control);
+const app = buildSimpleEsApp({
+    prefix: '/api',
+    cors: true,
+    gql: {
+        path: '/api/graphql',
+        schema,
+        logging: true,
+    },
+    config: {
+        pool,
+        rolePolicies,
+        storePath: config.storePath,
+        control,
+        dao,
+        naming: {
+            partRef: new PartRefNaming('${fam_code}${fam_count:4}${part_version:AA}'),
+            changeRequest: new ChangeRequestNaming('$CR-${counter:4}'),
+        },
+    },
+});
+app.use(logger());
 
 prepareDb(dbPreparationConfig)
     .then(async () => {
@@ -65,8 +88,7 @@ prepareDb(dbPreparationConfig)
             await passwordLogin.buildSchema(db);
         });
         await populateData(pool, config.storePath);
-        const api = buildServerApi(pool);
-        api.koa.listen(config.serverPort, () => {
+        app.listen(config.serverPort, () => {
             console.log(`Demo API listening to port ${config.serverPort}`);
         });
     })
@@ -74,28 +96,3 @@ prepareDb(dbPreparationConfig)
         console.error('error during the demo app');
         console.error(err);
     });
-
-function buildServerApi(pool: DbPool): EsServerApi {
-    const rolePolicies = buildDefaultAppRolePolicies();
-    const control = buildControllerSet(dao);
-
-    const api = new EsServerApi(new Koa(), {
-        pool,
-        rolePolicies,
-        storePath: config.storePath,
-        control,
-        dao,
-        cors: true,
-        naming: {
-            partRef: new PartRefNaming('${fam_code}${fam_count:4}${part_version:AA}'),
-            changeRequest: new ChangeRequestNaming('$CR-${counter:4}'),
-        },
-    });
-    api.koa.use(logger());
-
-    api.setupPlayground();
-    api.setupAuthAndHttpRoutes('/api');
-    api.setupGqlEndpoint('/api/graphql');
-
-    return api;
-}

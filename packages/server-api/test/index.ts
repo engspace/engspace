@@ -7,7 +7,6 @@ import chaiAsPromised from 'chai-as-promised';
 import chaiHttp from 'chai-http';
 import chaiSubset from 'chai-subset';
 import chaiUuid from 'chai-uuid';
-import Koa from 'koa';
 import 'mocha';
 import {
     AppRolePolicies,
@@ -31,8 +30,7 @@ import {
     TestHelpers,
     passwordLogin,
 } from '@engspace/server-db';
-import { EsServerApi } from '../src';
-import { buildControllerSet } from '../src/control';
+import { buildSimpleEsApp, buildTestGqlServer, buildControllerSet, buildEsSchema } from '../src';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -41,20 +39,11 @@ chai.use(chaiHttp);
 chai.use(chaiUuid);
 chai.use(chaiSubset);
 
-export const config = {
-    dbHost: process.env.DB_HOST || 'localhost',
-    dbPort: process.env.DB_PORT,
-    dbUser: process.env.DB_USER || 'postgres',
-    dbPass: process.env.DB_PASS || 'postgres',
-    storePath: path.normalize(path.join(__dirname, '../file_store')),
-    serverPort: 3000,
-};
-
 const serverConnConfig: ServerConnConfig = {
-    host: config.dbHost,
-    port: config.dbPort,
-    user: config.dbUser,
-    pass: config.dbPass,
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER || 'postgres',
+    pass: process.env.DB_PASS || 'postgres',
 };
 
 const dbConnConfig: DbConnConfig = {
@@ -80,27 +69,36 @@ export const pool: DbPool = createDbPool(dbPoolConfig);
 export const rolePolicies: AppRolePolicies = buildDefaultAppRolePolicies();
 export const dao = buildDaoSet();
 const control = buildControllerSet(dao);
-
-export const th = new TestHelpers(pool, dao);
-
-export const api = new EsServerApi(new Koa(), {
+const schema = buildEsSchema(control);
+const storePath = path.normalize(path.join(__dirname, '../file_store'));
+export const config = {
     pool,
     rolePolicies,
-    storePath: config.storePath,
+    storePath,
     control,
     dao,
-    cors: true,
     naming: {
         partRef: new PartRefNaming('${fam_code}${fam_count:3}.${part_version:A}'),
         changeRequest: new ChangeRequestNaming('CR-${counter:3}'),
     },
+    serverPort: 3000, // needed in other test modules
+};
+
+export const app = buildSimpleEsApp({
+    prefix: '/api',
+    cors: true,
+    gql: {
+        path: '/api/graphql',
+        schema,
+        logging: false,
+    },
+    config,
 });
 
-api.setupAuthAndHttpRoutes('/api');
-api.setupGqlEndpoint('/api/graphql', false);
+export const th = new TestHelpers(pool, dao);
 
 export function buildGqlServer(db: Db, auth: AuthToken): ApolloServerTestClient {
-    return createTestClient(api.buildTestGqlServer(db, auth));
+    return createTestClient(buildTestGqlServer({ db, auth, schema, config }));
 }
 
 before('Start-up DB and Server', async function () {
@@ -115,13 +113,13 @@ before('Start-up DB and Server', async function () {
 });
 
 before('Create test store', async function () {
-    await fs.promises.mkdir(config.storePath, {
+    await fs.promises.mkdir(storePath, {
         recursive: true,
     });
 });
 
 after('Delete test store', async function () {
-    await fs.promises.rmdir(config.storePath, {
+    await fs.promises.rmdir(storePath, {
         recursive: true,
     });
 });

@@ -6,7 +6,7 @@ import { Document, DocumentRevision, DocumentRevisionInput, User } from '@engspa
 import { Db } from '@engspace/server-db';
 import { bufferSha1sum } from '../src/util';
 import { bearerToken, permsAuth } from './auth';
-import { api, buildGqlServer, config, dao, pool, th } from '.';
+import { app, buildGqlServer, config, dao, pool, th } from '.';
 
 const { storePath, serverPort } = config;
 
@@ -62,7 +62,7 @@ describe('HTTP /api/document', function () {
     let server;
 
     before('Start server', function (done) {
-        server = api.koa.listen(serverPort, done);
+        server = app.listen(serverPort, done);
     });
 
     describe('Download', function () {

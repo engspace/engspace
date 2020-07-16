@@ -249,7 +249,7 @@ function buildResolvers(control: ControllerSet): IResolvers {
     };
 }
 
-export function buildSchema(control: ControllerSet): GraphQLSchema {
+export function buildEsSchema(control: ControllerSet): GraphQLSchema {
     return makeExecutableSchema({
         typeDefs: [typeDefs, userGql, projectGql, partGql, changeGql],
         resolvers: _.merge(

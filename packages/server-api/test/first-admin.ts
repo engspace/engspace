@@ -1,6 +1,6 @@
 import { expect, request } from 'chai';
 import { idType } from '@engspace/server-db';
-import { api, config, dao, pool, th } from '.';
+import { app, config, dao, pool, th } from '.';
 
 const { serverPort } = config;
 
@@ -8,7 +8,7 @@ describe('HTTP /api/first_admin', function () {
     let server;
 
     before('Start server', (done) => {
-        server = api.koa.listen(serverPort, done);
+        server = app.listen(serverPort, done);
     });
 
     afterEach('Delete users', async function () {

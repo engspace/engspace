@@ -4,7 +4,7 @@ import { signJwt } from '../src/crypto';
 import { bearerToken, permsAuth } from './auth';
 import { PROJECT_CREATE, PROJECT_READ, PROJECT_UPDATE } from './project';
 import { MEMBER_DELETE } from './project-member';
-import { api, config, dao, pool, th } from '.';
+import { app, config, dao, pool, th } from '.';
 
 const { serverPort } = config;
 
@@ -20,7 +20,7 @@ describe('End to end GraphQL', function () {
     let server;
 
     before('Start server', (done) => {
-        server = api.koa.listen(serverPort, done);
+        server = app.listen(serverPort, done);
     });
 
     describe('General', function () {
