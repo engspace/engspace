@@ -100,8 +100,11 @@ export interface ProjectInput {
     description: string;
 }
 
-export interface Project extends ProjectInput {
+export interface Project {
     id: Id;
+    code: string;
+    name: string;
+    description: string;
 }
 
 export interface ProjectEx extends Project {
