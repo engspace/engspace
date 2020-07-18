@@ -4,7 +4,7 @@ import { Middleware } from 'koa';
 import bodyParser from 'koa-bodyparser';
 import { AuthToken } from '@engspace/core';
 import { verifyJwt } from '../crypto';
-import { authJwtSecret, setAuthToken } from '../internal';
+import { authJwtSecret, setAuthToken, getAuthToken } from '../internal';
 
 export { documentMiddlewares } from './document';
 export { firstAdminMiddleware } from './first-admin';
@@ -12,10 +12,12 @@ export { EsGraphQLConfig, graphQLMiddleware, buildTestGqlServer } from './graphq
 export { setupPlaygroundLogin } from './graphql-playground';
 export { passwordLoginMiddleware } from './password-login';
 
+/** Body-parser middleware suitable for Engspace */
 export const bodyParserMiddleware = bodyParser({
     enableTypes: ['json', 'text', 'form'],
 });
 
+/** CORS middleware suitable for Engspace */
 export const corsMiddleware = cors({
     keepHeadersOnError: true,
     allowMethods: ['GET', 'POST', 'OPTIONS'],
@@ -28,7 +30,15 @@ export const corsMiddleware = cors({
     ],
 });
 
-export const authCheckMiddleware: Middleware = async (ctx, next) => {
+/**
+ * Middleware that requires the presence and verification of an authorization token header.
+ *
+ * Throws UNAUTHORIZED if the header is not present
+ * Throws FORBIDDEN if the header is set but token can't be verified.
+ * If header is present and token verified, the authorization is set on the context and
+ * next middleware is called.
+ */
+export const requireAuthMiddleware: Middleware = async (ctx, next) => {
     const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
     if (header) {
         const token = header.startsWith('Bearer ') ? header.slice(7) : header;
@@ -44,6 +54,30 @@ export const authCheckMiddleware: Middleware = async (ctx, next) => {
     }
 };
 
+/**
+ * Middleware that checks the presence and verification of an authorization token header.
+ *
+ * If the header is present but token cannot be verified, FORBIDDEN is thrown.
+ * If the header is present and token verified, it is added on ctx for next middlewares.
+ * If the header is not present, next is called anyway.
+ */
+export const checkAuthMiddleware: Middleware = async (ctx, next) => {
+    const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
+    if (header) {
+        const token = header.startsWith('Bearer ') ? header.slice(7) : header;
+        try {
+            const authToken = await verifyJwt<AuthToken>(token, authJwtSecret);
+            setAuthToken(ctx, authToken);
+        } catch (err) {
+            ctx.throw(HttpStatus.FORBIDDEN);
+        }
+    }
+    return next();
+};
+
+/** Endpoint that checks if authorization was set on context */
 export const checkTokenMiddleware: Middleware = async (ctx) => {
+    const token = getAuthToken(ctx);
+    if (!token) ctx.throw(HttpStatus.UNAUTHORIZED);
     ctx.status = HttpStatus.OK;
 };

@@ -37,7 +37,5 @@ export function setAuthToken(ctx: DefaultContext, token: AuthToken): void {
 }
 
 export function getAuthToken(ctx: DefaultContext): AuthToken {
-    const up = (ctx.state as any)[AUTH_TOKEN_SYMBOL];
-    ctx.assert(up, HttpStatus.INTERNAL_SERVER_ERROR, 'getAuthToken unsuccessful');
-    return up;
+    return (ctx.state as any)[AUTH_TOKEN_SYMBOL];
 }

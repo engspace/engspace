@@ -4,7 +4,7 @@ import { AppRolePolicies, PartRefNaming, ChangeRequestNaming } from '@engspace/c
 import { DaoSet, DbPool } from '@engspace/server-db';
 import { buildControllerSet, ControllerSet } from './control';
 import {
-    authCheckMiddleware,
+    requireAuthMiddleware,
     documentMiddlewares,
     firstAdminMiddleware,
     graphQLMiddleware,
@@ -17,7 +17,9 @@ import {
 
 export { ControllerSet, buildControllerSet };
 export {
-    authCheckMiddleware,
+    checkAuthMiddleware,
+    checkTokenMiddleware,
+    requireAuthMiddleware,
     documentMiddlewares,
     firstAdminMiddleware,
     EsGraphQLConfig,
@@ -68,7 +70,7 @@ export function buildSimpleEsApp({ prefix, cors, gql, config }: EsSimpleAppConfi
     preAuthRouter.get('/document/download', document.download);
     app.use(preAuthRouter.routes());
 
-    app.use(authCheckMiddleware); // everything passed this point requires auth
+    app.use(requireAuthMiddleware); // everything passed this point requires auth
 
     const postAuthRouter = new Router({ prefix });
     postAuthRouter.get('/check_token', checkTokenMiddleware);

@@ -48,6 +48,7 @@ export interface DbConnConfig extends ServerConnConfig {
     name?: string;
 }
 
+/** Build a connection string for PostgreSQL */
 export function connectionString(connConfig: DbConnConfig | ServerConnConfig): string {
     const { user, pass, host, port } = connConfig;
     if (pass && !user) {
@@ -82,7 +83,7 @@ export async function prepareDb({
     });
     await pool.connect(async (db) => {
         /* istanbul ignore else */
-        if (formatDb) {
+        if (formatDb === true) {
             console.log(`deleting database "${name}"`);
             await db.query(sql`${raw(`DROP DATABASE IF EXISTS ${name}`)}`);
         }
