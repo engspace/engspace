@@ -30,7 +30,13 @@ import {
     TestHelpers,
     passwordLogin,
 } from '@engspace/server-db';
-import { buildSimpleEsApp, buildTestGqlServer, buildControllerSet, buildEsSchema } from '../src';
+import {
+    buildSimpleEsApp,
+    buildTestGqlServer,
+    buildControllerSet,
+    buildEsSchema,
+    StaticEsNaming,
+} from '../src';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -77,10 +83,10 @@ export const config = {
     storePath,
     control,
     dao,
-    naming: {
+    naming: new StaticEsNaming({
         partRef: new PartRefNaming('${fam_code}${fam_count:3}.${part_version:A}'),
         changeRequest: new ChangeRequestNaming('CR-${counter:3}'),
-    },
+    }),
     serverPort: 3000, // needed in other test modules
 };
 

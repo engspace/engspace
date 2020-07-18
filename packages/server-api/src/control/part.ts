@@ -31,7 +31,7 @@ export class PartControl {
 
         const ref = await ctx.db.transaction(async (db) => {
             const fam = await this.dao.partFamily.bumpCounterById(db, input.familyId);
-            return ctx.config.naming.partRef.buildName({
+            return ctx.config.naming.partRef().buildName({
                 familyCode: fam.code,
                 familyCount: fam.counter,
                 partVersion: input.initialVersion,
@@ -60,7 +60,7 @@ export class PartControl {
         assertUserPerm(ctx, 'part.create');
         const { userId } = ctx.auth;
         const part = await this.dao.part.byId(ctx.db, partId);
-        const prn = ctx.config.naming.partRef;
+        const prn = ctx.config.naming.partRef();
         const { familyCode, familyCount, partVersion } = prn.extractComps(part.ref);
         const ref = prn.buildName({
             familyCode,

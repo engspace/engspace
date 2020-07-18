@@ -32,9 +32,32 @@ export {
 } from './middlewares';
 export { buildEsSchema } from './graphql/schema';
 
-export interface EsNaming {
-    partRef: PartRefNaming;
-    changeRequest: ChangeRequestNaming;
+export interface EsNamingProvider<Ctx = undefined> {
+    partRef(ctx?: Ctx): PartRefNaming;
+    changeRequest(ctx?: Ctx): ChangeRequestNaming;
+}
+
+export class StaticEsNaming implements EsNamingProvider {
+    private readonly _partRef: PartRefNaming;
+    private readonly _changeRequest: ChangeRequestNaming;
+
+    constructor({
+        partRef,
+        changeRequest,
+    }: {
+        partRef: PartRefNaming;
+        changeRequest: ChangeRequestNaming;
+    }) {
+        this._partRef = partRef;
+        this._changeRequest = changeRequest;
+    }
+
+    partRef(): PartRefNaming {
+        return this._partRef;
+    }
+    changeRequest(): ChangeRequestNaming {
+        return this._changeRequest;
+    }
 }
 
 export interface EsServerConfig {
@@ -43,7 +66,7 @@ export interface EsServerConfig {
     pool: DbPool;
     dao: DaoSet;
     control: ControllerSet;
-    naming: EsNaming;
+    naming: EsNamingProvider;
 }
 
 export interface EsSimpleAppConfig {

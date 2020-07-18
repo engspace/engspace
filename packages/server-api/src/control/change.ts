@@ -39,7 +39,7 @@ export class ChangeControl {
             await this.checkPartRevisions(ctx, input.partRevisions);
         }
         const counter = await this.dao.globalCounter.bumpChangeRequest(db);
-        const name = config.naming.changeRequest.buildName({ counter });
+        const name = config.naming.changeRequest().buildName({ counter });
         const req = await this.dao.changeRequest.create(db, {
             name,
             description: input.description,
@@ -366,7 +366,7 @@ export class ChangeControl {
             partForks.map((pc) => pc.partId)
         );
         for (let i = 0; i < parts.length; ++i) {
-            const prn = config.naming.partRef;
+            const prn = config.naming.partRef();
             const comps = prn.extractComps(parts[i].ref);
             const newRef = prn.buildName({
                 ...comps,

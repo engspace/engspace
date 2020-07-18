@@ -1,7 +1,12 @@
 import events from 'events';
 import logger from 'koa-logger';
 import { buildDefaultAppRolePolicies, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
-import { buildControllerSet, buildSimpleEsApp, buildEsSchema } from '@engspace/server-api';
+import {
+    buildControllerSet,
+    buildSimpleEsApp,
+    buildEsSchema,
+    StaticEsNaming,
+} from '@engspace/server-api';
 import {
     buildDaoSet,
     connectionString,
@@ -73,10 +78,10 @@ const app = buildSimpleEsApp({
         storePath: config.storePath,
         control,
         dao,
-        naming: {
+        naming: new StaticEsNaming({
             partRef: new PartRefNaming('${fam_code}${fam_count:4}${part_version:AA}'),
             changeRequest: new ChangeRequestNaming('$CR-${counter:4}'),
-        },
+        }),
     },
 });
 app.use(logger());
