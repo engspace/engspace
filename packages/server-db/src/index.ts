@@ -29,6 +29,18 @@ export {
     ProjectMemberDao,
     UserDao,
 } from './dao';
+export {
+    RowId,
+    foreignKey,
+    HasRowId,
+    toId,
+    tracked,
+    TrackedRow,
+    timestamp,
+    nullable,
+    DaoBaseConfig,
+    DaoBase,
+} from './dao/base';
 export { initSchema } from './schema';
 export { default as passwordLogin, LoginResult } from './password-login';
 export * from './test-helpers';
