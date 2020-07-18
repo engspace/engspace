@@ -25,6 +25,12 @@ module.exports = {
                         position: 'after',
                     },
                     {
+                        // that way no need for a @ohp/eslint-config
+                        pattern: '@ohp/**',
+                        group: 'external',
+                        position: 'after',
+                    },
+                    {
                         // common pattern for project source root
                         pattern: '@/**',
                         group: 'parent',
