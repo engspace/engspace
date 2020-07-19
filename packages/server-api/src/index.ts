@@ -32,6 +32,7 @@ export {
 } from './middlewares';
 export {
     buildEsSchema,
+    defaultGqlModules,
     baseGqlModule,
     userGqlModule,
     projectGqlModule,
