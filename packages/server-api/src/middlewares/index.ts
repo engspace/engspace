@@ -8,7 +8,7 @@ import { authJwtSecret, setAuthToken, getAuthToken } from '../internal';
 
 export { documentMiddlewares } from './document';
 export { firstAdminMiddleware } from './first-admin';
-export { EsGraphQLConfig, graphQLMiddleware, buildTestGqlServer } from './graphql';
+export { EsGraphQLConfig, graphQLEndpoint, buildTestGqlServer } from './graphql';
 export { setupPlaygroundLogin } from './graphql-playground';
 export { passwordLoginMiddleware } from './password-login';
 
@@ -100,7 +100,16 @@ export function checkAuthOrDefaultMiddleware(defaultAuth: AuthToken): Middleware
     };
 }
 
+/**
+ * Endpoint that checks if authorization was set on context.
+ * Default authorization set by `ensureAuthMiddleware` is not considered.
+ *
+ * It returns OK if authorization was set and UNAUTHORIZED of not.
+ */
+export const checkTokenEndpoint: Middleware = async (ctx) => {
     const token = getAuthToken(ctx);
-    if (!token) ctx.throw(HttpStatus.UNAUTHORIZED);
+    if (!token || !token.userId) {
+        ctx.throw(HttpStatus.UNAUTHORIZED);
+    }
     ctx.status = HttpStatus.OK;
 };

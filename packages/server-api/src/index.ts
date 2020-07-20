@@ -7,11 +7,11 @@ import {
     requireAuthMiddleware,
     documentMiddlewares,
     firstAdminMiddleware,
-    graphQLMiddleware,
+    graphQLEndpoint,
     passwordLoginMiddleware,
     bodyParserMiddleware,
     corsMiddleware,
-    checkTokenMiddleware,
+    checkTokenEndpoint,
     EsGraphQLConfig,
 } from './middlewares';
 
@@ -24,7 +24,7 @@ export {
     documentMiddlewares,
     firstAdminMiddleware,
     EsGraphQLConfig,
-    graphQLMiddleware,
+    graphQLEndpoint,
     buildTestGqlServer,
     setupPlaygroundLogin,
     passwordLoginMiddleware,
@@ -108,12 +108,12 @@ export function buildSimpleEsApp({ prefix, cors, gql, config }: EsSimpleAppConfi
     app.use(requireAuthMiddleware); // everything passed this point requires auth
 
     const postAuthRouter = new Router({ prefix });
-    postAuthRouter.get('/check_token', checkTokenMiddleware);
+    postAuthRouter.get('/check_token', checkTokenEndpoint);
     postAuthRouter.get('/document/download_token', document.downloadToken);
     postAuthRouter.post('/document/upload', document.upload);
     app.use(postAuthRouter.routes());
 
-    app.use(graphQLMiddleware(gql, config));
+    app.use(graphQLEndpoint(gql, config));
 
     return app;
 }

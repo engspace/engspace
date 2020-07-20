@@ -19,7 +19,7 @@ export interface EsGraphQLConfig {
     logging: boolean;
 }
 
-export function graphQLMiddleware(
+export function graphQLEndpoint(
     { path, schema, logging }: EsGraphQLConfig,
     config: EsServerConfig
 ): Middleware {
@@ -27,7 +27,7 @@ export function graphQLMiddleware(
     const extensions = logging
         ? [
               (): ApolloLogExtension =>
-                  new ApolloLogExtension({ prefix: 'Engspace API test', timestamp: true }),
+                  new ApolloLogExtension({ prefix: 'Engspace API', timestamp: true }),
           ]
         : [];
     /* istanbul ignore next */
