@@ -51,14 +51,6 @@ export interface Dao<T extends HasId> {
      */
     readonly table: string;
     /**
-     * Dao identifiers this Dao depends on
-     */
-    readonly dependencies: readonly string[];
-    /**
-     * SQL commands to create table(s) for this Dao
-     */
-    readonly schema: readonly SqlLiteral[];
-    /**
      * Selects a mapped object
      *
      * @param db the database connection

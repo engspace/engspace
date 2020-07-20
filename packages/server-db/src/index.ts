@@ -41,9 +41,13 @@ export {
     DaoBaseConfig,
     DaoBase,
 } from './dao/base';
-export { initSchema } from './schema';
+export { syncSchema } from './migration';
 export { default as passwordLogin, LoginResult } from './password-login';
 export * from './test-helpers';
+
+export { default as esMigrationSet } from './migrations';
+
+export const currentSchemaLevel = 1;
 
 export type Db = DatabaseTransactionConnectionType;
 export type DbPool = DatabasePoolType;

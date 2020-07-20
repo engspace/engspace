@@ -6,7 +6,7 @@ import {
     createDbPool,
     DbPoolConfig,
     DbPreparationConfig,
-    initSchema,
+    syncSchema,
     prepareDb,
 } from '../src';
 import { serverConnConfig, dao } from '.';
@@ -56,7 +56,7 @@ describe('Pool and Schema', async () => {
             await prepareDb(preparationConf(name));
             pool = createDbPool(poolConf(name));
             await pool.transaction(async (db) => {
-                await initSchema(db, dao);
+                await syncSchema(db);
             });
         });
 

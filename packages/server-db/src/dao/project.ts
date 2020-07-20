@@ -6,19 +6,6 @@ import { DaoBase, RowId, toId, DaoBaseConfig } from './base';
 
 const table = 'project';
 
-const dependencies = [];
-
-const schema = [
-    sql`
-        CREATE TABLE project (
-            id serial PRIMARY KEY,
-            name text NOT NULL,
-            code text NOT NULL UNIQUE,
-            description text
-        )
-    `,
-];
-
 export interface ProjectSearch {
     phrase?: string;
     member?: string;
@@ -47,8 +34,6 @@ const rowToken = sql`id, code, name, description`;
 export class ProjectDao extends DaoBase<Project, Row> {
     constructor(config: Partial<DaoBaseConfig<Project, Row>> = {}) {
         super(table, {
-            dependencies,
-            schema,
             rowToken,
             mapRow,
             ...config,

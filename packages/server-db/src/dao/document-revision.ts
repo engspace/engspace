@@ -4,33 +4,6 @@ import { Db } from '..';
 import { DaoBase, foreignKey, RowId, timestamp, toId, DaoBaseConfig } from './base';
 
 const table = 'document_revision';
-
-const dependencies = ['user', 'document'];
-
-const schema = [
-    sql`
-        CREATE TABLE document_revision (
-            id serial PRIMARY KEY,
-            document_id integer NOT NULL,
-            revision integer NOT NULL,
-            filename text NOT NULL,
-            filesize integer NOT NULL,
-            created_by integer NOT NULL,
-            created_at timestamptz NOT NULL,
-            change_description text,
-
-            uploaded integer NOT NULL DEFAULT 0,
-            sha1 bytea, -- initially null, set after check on both client and server
-
-            CHECK(filesize > 0),
-            CHECK(uploaded >= 0 AND uploaded <= filesize),
-            UNIQUE(document_id, revision),
-            FOREIGN KEY(document_id) REFERENCES document(id),
-            FOREIGN KEY(created_by) REFERENCES "user"(id)
-        )
-    `,
-];
-
 interface Row {
     id: RowId;
     documentId: RowId;
@@ -80,8 +53,6 @@ const rowToken = sql`
 export class DocumentRevisionDao extends DaoBase<DocumentRevision, Row> {
     constructor(config: Partial<DaoBaseConfig<DocumentRevision, Row>> = {}) {
         super(table, {
-            dependencies,
-            schema,
             rowToken,
             mapRow,
             ...config,

@@ -30,6 +30,7 @@ export {
     bodyParserMiddleware,
     corsMiddleware,
 } from './middlewares';
+export { GqlContext } from './graphql/context';
 export {
     buildEsSchema,
     defaultGqlModules,

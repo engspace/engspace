@@ -1,6 +1,6 @@
 
 CREATE TABLE metadata (
-    schema_version integer,
+    schema_level integer,
     application_id text
 );
 

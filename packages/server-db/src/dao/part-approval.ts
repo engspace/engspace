@@ -5,30 +5,6 @@ import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow, DaoBaseConfig } 
 
 const table = 'part_approval';
 
-const dependencies = ['user', 'part_validation'];
-
-const schema = [
-    sql`
-        CREATE TABLE part_approval (
-            id serial PRIMARY KEY,
-            validation_id integer NOT NULL,
-            assignee_id integer NOT NULL,
-            decision approval_decision_enum NOT NULL,
-            comments text,
-
-            created_by integer NOT NULL,
-            created_at timestamptz NOT NULL,
-            updated_by integer NOT NULL,
-            updated_at timestamptz NOT NULL,
-
-            FOREIGN KEY(validation_id) REFERENCES part_validation(id),
-            FOREIGN KEY(assignee_id) REFERENCES "user"(id),
-            FOREIGN KEY(created_by) REFERENCES "user"(id),
-            FOREIGN KEY(updated_by) REFERENCES "user"(id)
-        )
-    `,
-];
-
 interface Row extends TrackedRow {
     id: RowId;
     validationId: RowId;
@@ -75,8 +51,6 @@ export interface PartApprovalUpdateDaoInput {
 export class PartApprovalDao extends DaoBase<PartApproval, Row> {
     constructor(config: Partial<DaoBaseConfig<PartApproval, Row>> = {}) {
         super(table, {
-            dependencies,
-            schema,
             rowToken,
             mapRow,
             ...config,

@@ -24,7 +24,7 @@ import {
     DbPool,
     DbPoolConfig,
     DbPreparationConfig,
-    initSchema,
+    syncSchema,
     prepareDb,
     ServerConnConfig,
     TestHelpers,
@@ -113,7 +113,7 @@ before('Start-up DB and Server', async function () {
     console.log(dbPreparationConfig);
     await prepareDb(dbPreparationConfig);
     await pool.transaction(async (db) => {
-        await initSchema(db, dao);
+        await syncSchema(db);
         await passwordLogin.buildSchema(db);
     });
 });

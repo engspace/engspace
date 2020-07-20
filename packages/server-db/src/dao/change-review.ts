@@ -6,28 +6,6 @@ import { ChangeRequestChildDaoBase } from './change-request';
 
 const table = 'change_review';
 
-const dependencies = ['user', 'change_request'];
-
-const schema = [
-    sql`
-        CREATE TABLE change_review (
-            id serial PRIMARY KEY,
-            request_id integer NOT NULL,
-            assignee_id integer NOT NULL,
-            decision approval_decision_enum NOT NULL,
-            comments text,
-
-            created_by integer NOT NULL,
-            created_at timestamptz NOT NULL,
-            updated_by integer NOT NULL,
-            updated_at timestamptz NOT NULL,
-
-            FOREIGN KEY(request_id) REFERENCES change_request(id),
-            FOREIGN KEY(assignee_id) REFERENCES "user"(id)
-        )
-    `,
-];
-
 interface Row extends TrackedRow {
     id: RowId;
     requestId: RowId;
@@ -67,8 +45,6 @@ export interface ChangeReviewUpdateDaoInput {
 export class ChangeReviewDao extends ChangeRequestChildDaoBase<ChangeReview, Row> {
     constructor(config: Partial<DaoBaseConfig<ChangeReview, Row>> = {}) {
         super(table, {
-            dependencies,
-            schema,
             mapRow,
             rowToken,
             ...config,

@@ -15,7 +15,7 @@ import {
     DbPool,
     DbPoolConfig,
     DbPreparationConfig,
-    initSchema,
+    syncSchema,
     prepareDb,
     ServerConnConfig,
     passwordLogin,
@@ -89,7 +89,7 @@ app.use(logger());
 prepareDb(dbPreparationConfig)
     .then(async () => {
         await pool.transaction(async (db) => {
-            await initSchema(db, dao);
+            await syncSchema(db);
             await passwordLogin.buildSchema(db);
         });
         await populateData(pool, config.storePath);

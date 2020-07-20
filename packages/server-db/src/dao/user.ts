@@ -5,28 +5,6 @@ import { DaoBase, RowId, toId, DaoBaseConfig } from './base';
 
 const table = 'user';
 
-const dependencies = [];
-
-const schema = [
-    sql`
-        CREATE TABLE "user" (
-            id serial PRIMARY KEY,
-            name text NOT NULL UNIQUE,
-            email text NOT NULL UNIQUE,
-            full_name text NOT NULL
-        )
-    `,
-    sql`
-        CREATE TABLE user_role (
-            user_id integer,
-            role text NOT NULL,
-
-            PRIMARY KEY(user_id, role),
-            FOREIGN KEY(user_id) REFERENCES "user"(id) ON DELETE CASCADE
-        )
-    `,
-];
-
 interface Row {
     id: RowId;
     name: string;
@@ -72,8 +50,6 @@ export interface RoleOptions {
 export class UserDao extends DaoBase<User, Row> {
     constructor(config: Partial<DaoBaseConfig<User, Row>> = {}) {
         super(table, {
-            dependencies,
-            schema,
             rowToken,
             mapRow,
             ...config,

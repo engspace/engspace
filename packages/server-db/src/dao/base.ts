@@ -74,23 +74,17 @@ function reorderWithIdsAndMap<Row extends HasRowId, OutT extends HasId>(
 }
 
 export interface DaoBaseConfig<T extends HasId, R extends HasRowId> {
-    dependencies: readonly string[];
-    schema: readonly SqlLiteral[];
     rowToken: SqlTokenType;
     mapRow: (row: R) => T;
 }
 
 export class DaoBase<T extends HasId, R extends HasRowId> implements Dao<T> {
     public readonly table: string;
-    public readonly dependencies: readonly string[];
-    public readonly schema: readonly SqlLiteral[];
     public readonly mapRow: (row: R) => T;
     public readonly rowToken: SqlTokenType;
 
     constructor(table: string, config: DaoBaseConfig<T, R>) {
         this.table = table;
-        this.dependencies = config.dependencies;
-        this.schema = config.schema;
         this.rowToken = config.rowToken;
         this.mapRow = config.mapRow;
     }

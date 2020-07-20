@@ -4,25 +4,6 @@ import { Db } from '..';
 import { DaoBase, foreignKey, RowId, timestamp, toId, DaoBaseConfig } from './base';
 
 const table = 'document';
-
-const dependencies = ['user'];
-
-const schema = [
-    sql`
-        CREATE TABLE document (
-            id serial PRIMARY KEY,
-            name text NOT NULL,
-            description text,
-            created_by integer NOT NULL,
-            created_at timestamptz NOT NULL,
-            checkout integer,
-
-            FOREIGN KEY(created_by) REFERENCES "user"(id),
-            FOREIGN KEY(checkout) REFERENCES "user"(id)
-        )
-    `,
-];
-
 interface Row {
     id: RowId;
     name: string;
@@ -52,8 +33,6 @@ const rowToken = sql`
 export class DocumentDao extends DaoBase<Document, Row> {
     constructor(config: Partial<DaoBaseConfig<Document, Row>> = {}) {
         super(table, {
-            dependencies,
-            schema,
             rowToken,
             mapRow,
             ...config,

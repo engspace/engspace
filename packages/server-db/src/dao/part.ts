@@ -5,32 +5,6 @@ import { DaoBase, foreignKey, RowId, toId, tracked, TrackedRow, DaoBaseConfig } 
 
 const table = 'part';
 
-const dependencies = ['user', 'part_family'];
-
-const schema = [
-    sql`
-        CREATE TABLE part (
-            id serial PRIMARY KEY,
-            family_id integer NOT NULL,
-            ref text NOT NULL,
-            designation text NOT NULL,
-
-            created_by integer NOT NULL,
-            created_at timestamptz NOT NULL,
-            updated_by integer NOT NULL,
-            updated_at timestamptz NOT NULL,
-
-            UNIQUE(ref),
-            CHECK(LENGTH(ref) > 0),
-            CHECK(LENGTH(designation) > 0),
-
-            FOREIGN KEY(family_id) REFERENCES part_family(id),
-            FOREIGN KEY(created_by) REFERENCES "user"(id),
-            FOREIGN KEY(updated_by) REFERENCES "user"(id)
-        )
-    `,
-];
-
 export interface PartDaoInput {
     familyId: Id;
     ref: string;
@@ -76,8 +50,6 @@ const rowTokenAlias = sql`
 export class PartDao extends DaoBase<Part, Row> {
     constructor(config: Partial<DaoBaseConfig<Part, Row>> = {}) {
         super(table, {
-            dependencies,
-            schema,
             rowToken,
             mapRow,
             ...config,

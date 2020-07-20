@@ -6,23 +6,6 @@ import { ChangeRequestChildDaoBase } from './change-request';
 
 const table = 'change_part_revision';
 
-const dependencies = ['part', 'change_request'];
-
-const schema = [
-    sql`
-        CREATE TABLE change_part_revision (
-            id serial PRIMARY KEY,
-            request_id integer NOT NULL,
-            part_id integer NOT NULL,
-            designation text,
-            comments text,
-
-            FOREIGN KEY(request_id) REFERENCES change_request(id),
-            FOREIGN KEY(part_id) REFERENCES part(id)
-        )
-    `,
-];
-
 interface Row {
     id: RowId;
     requestId: RowId;
@@ -55,8 +38,6 @@ export interface ChangePartRevisionDaoInput {
 export class ChangePartRevisionDao extends ChangeRequestChildDaoBase<ChangePartRevision, Row> {
     constructor(config: Partial<DaoBaseConfig<ChangePartRevision, Row>> = {}) {
         super(table, {
-            dependencies,
-            schema,
             mapRow,
             rowToken,
             ...config,
