@@ -83,7 +83,7 @@ export interface MigrationSet {
 }
 
 export function esTreeSqlPath(relPath: string): string {
-    return path.join(__dirname, '../sql', relPath);
+    return path.normalize(path.join(__dirname, '../sql', relPath));
 }
 
 async function executeSqlStmt(db: Db, { stmt }: SqlOperationParamsStmt): Promise<void> {
