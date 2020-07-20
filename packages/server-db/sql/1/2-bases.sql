@@ -1,7 +1,6 @@
 
 CREATE TABLE metadata (
-    schema_level integer,
-    application_id text
+    schema_level integer NOT NULL
 );
 
 CREATE TABLE global_counter (

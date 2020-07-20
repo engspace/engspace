@@ -8,8 +8,9 @@ import {
     DbPreparationConfig,
     syncSchema,
     prepareDb,
+    currentSchemaLevel,
 } from '../src';
-import { serverConnConfig, dao } from '.';
+import { serverConnConfig } from '.';
 
 function preparationConf(dbName: string): DbPreparationConfig {
     return {
@@ -92,6 +93,13 @@ describe('Pool and Schema', async () => {
                 'document',
                 'document_revision',
             ]);
+        });
+
+        it('should have initialized metadata schema level', async function () {
+            const { schemaLevel } = await pool.connect(async (db) => {
+                return db.one(sql`SELECT schema_level FROM metadata`);
+            });
+            expect(schemaLevel).to.equal(currentSchemaLevel);
         });
 
         it('should have created core enums tables', async function () {

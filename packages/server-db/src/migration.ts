@@ -153,18 +153,28 @@ async function readCurrentSchemaLevel(db: Db): Promise<number> {
             table_schema = current_schema() AND
             table_name = 'metadata'
     `);
-    if (hasMetadataTable) {
-        const schemaLevel = await db.oneFirst(sql`SELECT schema_level FROM metadata`);
-        return schemaLevel as number;
-    } else {
-        return 0;
+    if (!hasMetadataTable) return 0;
+
+    const schemaLevel = await db.oneFirst(sql`SELECT schema_level FROM metadata`);
+    if (schemaLevel === 0) {
+        throw new Error(
+            '0 is not allowed as schema_level. Database must be initialized at level 1.'
+        );
     }
+    return schemaLevel as number;
 }
 
-async function writeCurrentSchemaLevel(db: Db, level): Promise<void> {
-    await db.query(sql`
+async function writeCurrentSchemaLevel(db: Db, level: number): Promise<void> {
+    const count = await db.oneFirst(sql`SELECT COUNT(schema_level) FROM metadata`);
+    if ((count as number) === 0) {
+        await db.query(sql`
+        INSERT INTO metadata (schema_level) VALUES(${level})
+    `);
+    } else {
+        await db.query(sql`
         UPDATE metadata SET schema_level = ${level}
     `);
+    }
 }
 
 export async function syncSchema(db: Db, level?: number, migrations?: MigrationSet): Promise<void> {
@@ -174,15 +184,15 @@ export async function syncSchema(db: Db, level?: number, migrations?: MigrationS
     if (typeof migrations === 'undefined') {
         migrations = esMigrationSet;
     }
-    let schemaLevel = await readCurrentSchemaLevel(db);
+    let currentLevel = await readCurrentSchemaLevel(db);
 
-    while (schemaLevel < level) {
-        await executeSql(db, migrations[schemaLevel + 1].promote);
-        schemaLevel += 1;
+    while (currentLevel < level) {
+        await executeSql(db, migrations[currentLevel + 1].promote);
+        currentLevel += 1;
     }
-    while (schemaLevel > level) {
-        await executeSql(db, migrations[schemaLevel].demote);
-        schemaLevel -= 1;
+    while (currentLevel > level) {
+        await executeSql(db, migrations[currentLevel].demote);
+        currentLevel -= 1;
     }
     await writeCurrentSchemaLevel(db, level);
 }
