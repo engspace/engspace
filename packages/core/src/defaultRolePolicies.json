@@ -1,5 +1,8 @@
 {
     "user": {
+        "default": {
+            "permissions": []
+        },
         "user": {
             "permissions": [
                 "user.read",
@@ -26,6 +29,9 @@
         }
     },
     "project": {
+        "default": {
+            "permissions": []
+        },
         "designer": {
             "permissions": []
         },

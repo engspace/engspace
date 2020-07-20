@@ -12,6 +12,18 @@ export interface AppRolePolicies {
     project: RolePolicy;
 }
 
+export interface AppRoleDescriptors {
+    user: RoleDescriptorSet;
+    project: RoleDescriptorSet;
+}
+
+export function buildAppRolePolicies(descriptors: AppRoleDescriptors): AppRolePolicies {
+    return {
+        user: buildRolePolicy(descriptors.user),
+        project: buildRolePolicy(descriptors.project),
+    };
+}
+
 export function buildDefaultAppRolePolicies(): AppRolePolicies {
     return {
         user: buildRolePolicy(defaultRolePolicies.user),
@@ -21,7 +33,7 @@ export function buildDefaultAppRolePolicies(): AppRolePolicies {
 
 export interface RolePolicy {
     allRoles(): string[];
-    permissions(roles: string[]): string[];
+    permissions(roles?: string[]): string[];
 }
 
 export interface RoleDescriptor {
@@ -48,18 +60,27 @@ class CRolePolicy implements RolePolicy {
     private roles: string[];
 
     constructor(private roleDescs: RoleDescriptorSet) {
+        // uniformization with default role and inheritance
+        if (!roleDescs['default']) {
+            roleDescs['default'] = {
+                permissions: [],
+            };
+        }
         for (const role in roleDescs) {
+            if (role !== 'default') {
+                roleDescs[role].inherits = roleDescs[role].inherits || 'default';
+            }
             this.perms[role] = getPermsForRole(roleDescs, role);
         }
-        this.roles = Object.keys(roleDescs);
+        this.roles = Object.keys(roleDescs).filter((r) => r !== 'default');
     }
 
     public allRoles(): string[] {
         return this.roles;
     }
 
-    public permissions(roles: string[]): string[] {
-        if (!roles || !roles.length) return [];
+    public permissions(roles?: string[]): string[] {
+        if (!roles || !roles.length) roles = ['default'];
         const key = roles.join('-');
         const optimistic = this.perms[key];
         if (optimistic) return optimistic;
