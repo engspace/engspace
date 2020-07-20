@@ -18,7 +18,8 @@ import {
 export { ControllerSet, buildControllerSet };
 export {
     checkAuthMiddleware,
-    checkTokenMiddleware,
+    checkAuthOrDefaultMiddleware,
+    checkTokenEndpoint,
     requireAuthMiddleware,
     documentMiddlewares,
     firstAdminMiddleware,

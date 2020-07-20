@@ -36,6 +36,6 @@ export function setAuthToken(ctx: DefaultContext, token: AuthToken): void {
     (ctx.state as any)[AUTH_TOKEN_SYMBOL] = token;
 }
 
-export function getAuthToken(ctx: DefaultContext): AuthToken {
+export function getAuthToken(ctx: DefaultContext): AuthToken | undefined {
     return (ctx.state as any)[AUTH_TOKEN_SYMBOL];
 }
