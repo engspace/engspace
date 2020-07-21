@@ -63,5 +63,6 @@
         "lint:fix": "vue-cli-service lint --fix",
         "test:unit": "vue-cli-service test:unit --colors test/unit/*.js"
     },
+    "module": "src/index.ts",
     "types": "src/index.ts"
 }
