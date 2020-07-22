@@ -61,11 +61,11 @@
 <script lang="ts">
 import { computed, defineComponent, ref } from '@vue/composition-api';
 import isEqual from 'lodash.isequal';
-import { Project, ProjectInput } from '@engspace/core';
+import { Project } from '@engspace/core';
 import { useProjectUpdate } from './project';
 import { useSuccessAnimate } from './success-btn';
 
-function defaultProj(): ProjectInput {
+function defaultProj(): Partial<Project> {
     return {
         code: '',
         name: '',
@@ -73,7 +73,7 @@ function defaultProj(): ProjectInput {
     };
 }
 
-function projInput(proj: Project): ProjectInput {
+function projInput(proj: Project): Partial<Project> {
     return {
         code: proj.code,
         name: proj.name,
