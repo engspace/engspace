@@ -73,7 +73,11 @@ export class UserDao extends DaoBase<User, Row> {
         return user;
     }
 
-    async byId(db: Db, id: Id, { withRoles }: RoleOptions = { withRoles: false }): Promise<User> {
+    async byId(
+        db: Db,
+        id: Id,
+        { withRoles }: RoleOptions = { withRoles: false }
+    ): Promise<User | null> {
         const row: Row = await db.maybeOne(sql`
             SELECT ${this.rowToken}
             FROM "user"
@@ -90,7 +94,7 @@ export class UserDao extends DaoBase<User, Row> {
         db: Db,
         name: string,
         { withRoles }: RoleOptions = { withRoles: false }
-    ): Promise<User> {
+    ): Promise<User | null> {
         const row: Row = await db.maybeOne(sql`
             SELECT ${this.rowToken}
             FROM "user"
@@ -107,7 +111,7 @@ export class UserDao extends DaoBase<User, Row> {
         db: Db,
         email: string,
         { withRoles }: RoleOptions = { withRoles: false }
-    ): Promise<User> {
+    ): Promise<User | null> {
         const row: Row = await db.maybeOne(sql`
             SELECT ${this.rowToken}
             FROM "user"
