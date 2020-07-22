@@ -1,8 +1,11 @@
 CREATE TABLE "user" (
     id serial PRIMARY KEY,
-    name text NOT NULL UNIQUE,
-    email text NOT NULL UNIQUE,
-    full_name text NOT NULL
+    name text NOT NULL,
+    email text NOT NULL,
+    full_name text NOT NULL,
+
+    UNIQUE(name),
+    UNIQUE(email)
 );
 
 CREATE TABLE user_role (
