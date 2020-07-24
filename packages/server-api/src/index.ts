@@ -16,6 +16,8 @@ import {
 } from './middlewares';
 
 export { ControllerSet, buildControllerSet };
+export { ApiContext } from './control';
+export { signJwt, verifyJwt } from './crypto';
 export {
     checkAuthMiddleware,
     checkAuthOrDefaultMiddleware,
