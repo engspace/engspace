@@ -4,7 +4,7 @@ import { Middleware } from 'koa';
 import bodyParser from 'koa-bodyparser';
 import { AuthToken } from '@engspace/core';
 import { verifyJwt } from '../crypto';
-import { authJwtSecret, setAuthToken, getAuthToken } from '../internal';
+import { setAuthToken, getAuthToken } from '../internal';
 
 export { documentMiddlewares } from './document';
 export { firstAdminMiddleware } from './first-admin';
@@ -38,12 +38,13 @@ export const corsMiddleware = cors({
  * If header is present and token verified, the authorization is set on the context and
  * next middleware is called.
  */
-export const requireAuthMiddleware: Middleware = async (ctx, next) => {
+export function requireAuthMiddleware(secret: string): Middleware {
+    return async (ctx, next) => {
     const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
     if (header) {
         const token = header.startsWith('Bearer ') ? header.slice(7) : header;
         try {
-            const authToken = await verifyJwt<AuthToken>(token, authJwtSecret);
+                const authToken = await verifyJwt<AuthToken>(token, secret);
             setAuthToken(ctx, authToken);
         } catch (err) {
             ctx.throw(HttpStatus.FORBIDDEN);
@@ -53,6 +54,7 @@ export const requireAuthMiddleware: Middleware = async (ctx, next) => {
         ctx.throw(HttpStatus.UNAUTHORIZED);
     }
 };
+}
 
 /**
  * Middleware that checks the presence and verification of an authorization token header.
@@ -61,12 +63,13 @@ export const requireAuthMiddleware: Middleware = async (ctx, next) => {
  * If the header is present and token verified, it is added on ctx for next middlewares.
  * If the header is not present, next is called anyway.
  */
-export const checkAuthMiddleware: Middleware = async (ctx, next) => {
+export function checkAuthMiddleware(secret: string): Middleware {
+    return async (ctx, next) => {
     const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
     if (header) {
         const token = header.startsWith('Bearer ') ? header.slice(7) : header;
         try {
-            const authToken = await verifyJwt<AuthToken>(token, authJwtSecret);
+                const authToken = await verifyJwt<AuthToken>(token, secret);
             setAuthToken(ctx, authToken);
         } catch (err) {
             ctx.throw(HttpStatus.FORBIDDEN);
@@ -74,6 +77,7 @@ export const checkAuthMiddleware: Middleware = async (ctx, next) => {
     }
     return next();
 };
+}
 
 /**
  * Middleware that checks the presence and verification of an authorization token header.
@@ -82,13 +86,13 @@ export const checkAuthMiddleware: Middleware = async (ctx, next) => {
  * If the header is present and token verified, it is added on ctx for next middlewares.
  * If the header is not present, the default token is set and next is called.
  */
-export function checkAuthOrDefaultMiddleware(defaultAuth: AuthToken): Middleware {
+export function checkAuthOrDefaultMiddleware(secret: string, defaultAuth: AuthToken): Middleware {
     return async (ctx, next) => {
         const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
         if (header) {
             const token = header.startsWith('Bearer ') ? header.slice(7) : header;
             try {
-                const authToken = await verifyJwt<AuthToken>(token, authJwtSecret);
+                const authToken = await verifyJwt<AuthToken>(token, secret);
                 setAuthToken(ctx, authToken);
             } catch (err) {
                 ctx.throw(HttpStatus.FORBIDDEN);
