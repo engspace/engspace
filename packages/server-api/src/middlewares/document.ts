@@ -1,14 +1,13 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import HttpStatus from 'http-status-codes';
-import { Middleware } from 'koa';
 import mime from 'mime';
 import validator from 'validator';
 import { Id } from '@engspace/core';
 import { EsServerConfig } from '..';
 import { isFileError, FileError, FileDownload } from '../control/document';
 import { signJwt, verifyJwt } from '../crypto';
-import { getAuthToken } from '../internal';
+import { EsKoaMiddleware } from '../es-koa';
 
 const docJwtSecret = crypto.randomBytes(32).toString('base64');
 
@@ -18,9 +17,9 @@ interface DownloadToken {
 }
 
 interface DocumentMiddlewares {
-    upload: Middleware;
-    downloadToken: Middleware;
-    download: Middleware;
+    upload: EsKoaMiddleware;
+    downloadToken: EsKoaMiddleware;
+    download: EsKoaMiddleware;
 }
 
 export function documentMiddlewares(config: EsServerConfig): DocumentMiddlewares {
@@ -33,7 +32,7 @@ export function documentMiddlewares(config: EsServerConfig): DocumentMiddlewares
                 'x-upload-offset': offset,
                 'x-upload-length': totalLength,
             } = ctx.request.headers;
-            const auth = getAuthToken(ctx);
+            const auth = ctx.state.authToken;
             if (!auth || !auth.userPerms.includes('document.revise')) {
                 ctx.throw(HttpStatus.FORBIDDEN, 'Missing permission: "document.revise"');
             }
@@ -58,7 +57,7 @@ export function documentMiddlewares(config: EsServerConfig): DocumentMiddlewares
                 return control.documentRevision.uploadChunk(
                     {
                         db,
-                        auth: getAuthToken(ctx),
+                        auth: ctx.state.authToken,
                         config,
                     },
                     revId,
@@ -75,7 +74,7 @@ export function documentMiddlewares(config: EsServerConfig): DocumentMiddlewares
 
         downloadToken: async (ctx) => {
             const { documentId, revision } = ctx.request.query;
-            const auth = getAuthToken(ctx);
+            const auth = ctx.state.authToken;
             if (!auth.userPerms.includes('document.read')) {
                 ctx.throw(HttpStatus.FORBIDDEN, 'missing permission: "document.read"');
             }

@@ -1,10 +1,10 @@
 import cors from '@koa/cors';
 import HttpStatus from 'http-status-codes';
-import { Middleware } from 'koa';
+import { Context as KoaContext } from 'koa';
 import bodyParser from 'koa-bodyparser';
 import { AuthToken } from '@engspace/core';
 import { verifyJwt } from '../crypto';
-import { setAuthToken, getAuthToken } from '../internal';
+import { EsKoaMiddleware } from '../es-koa';
 
 export { documentMiddlewares } from './document';
 export { firstAdminMiddleware } from './first-admin';
@@ -30,6 +30,14 @@ export const corsMiddleware = cors({
     ],
 });
 
+export function extractBearerToken(ctx: KoaContext): string | null {
+    const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
+    if (header) {
+        return header.startsWith('Bearer ') ? header.slice(7) : header;
+    }
+    return null;
+}
+
 /**
  * Middleware that requires the presence and verification of an authorization token header.
  *
@@ -38,22 +46,20 @@ export const corsMiddleware = cors({
  * If header is present and token verified, the authorization is set on the context and
  * next middleware is called.
  */
-export function requireAuthMiddleware(secret: string): Middleware {
+export function requireAuthMiddleware(secret: string): EsKoaMiddleware {
     return async (ctx, next) => {
-    const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
-    if (header) {
-        const token = header.startsWith('Bearer ') ? header.slice(7) : header;
-        try {
-                const authToken = await verifyJwt<AuthToken>(token, secret);
-            setAuthToken(ctx, authToken);
-        } catch (err) {
-            ctx.throw(HttpStatus.FORBIDDEN);
+        const token = extractBearerToken(ctx);
+        if (token) {
+            try {
+                ctx.state.authToken = await verifyJwt<AuthToken>(token, secret);
+            } catch (err) {
+                ctx.throw(HttpStatus.FORBIDDEN);
+            }
+            return next();
+        } else {
+            ctx.throw(HttpStatus.UNAUTHORIZED);
         }
-        return next();
-    } else {
-        ctx.throw(HttpStatus.UNAUTHORIZED);
-    }
-};
+    };
 }
 
 /**
@@ -63,20 +69,18 @@ export function requireAuthMiddleware(secret: string): Middleware {
  * If the header is present and token verified, it is added on ctx for next middlewares.
  * If the header is not present, next is called anyway.
  */
-export function checkAuthMiddleware(secret: string): Middleware {
+export function checkAuthMiddleware(secret: string): EsKoaMiddleware {
     return async (ctx, next) => {
-    const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
-    if (header) {
-        const token = header.startsWith('Bearer ') ? header.slice(7) : header;
-        try {
-                const authToken = await verifyJwt<AuthToken>(token, secret);
-            setAuthToken(ctx, authToken);
-        } catch (err) {
-            ctx.throw(HttpStatus.FORBIDDEN);
+        const token = extractBearerToken(ctx);
+        if (token) {
+            try {
+                ctx.state.authToken = await verifyJwt<AuthToken>(token, secret);
+            } catch (err) {
+                ctx.throw(HttpStatus.FORBIDDEN);
+            }
         }
-    }
-    return next();
-};
+        return next();
+    };
 }
 
 /**
@@ -86,19 +90,20 @@ export function checkAuthMiddleware(secret: string): Middleware {
  * If the header is present and token verified, it is added on ctx for next middlewares.
  * If the header is not present, the default token is set and next is called.
  */
-export function checkAuthOrDefaultMiddleware(secret: string, defaultAuth: AuthToken): Middleware {
+export function checkAuthOrDefaultMiddleware(
+    secret: string,
+    defaultAuth: AuthToken
+): EsKoaMiddleware {
     return async (ctx, next) => {
-        const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
-        if (header) {
-            const token = header.startsWith('Bearer ') ? header.slice(7) : header;
+        const token = extractBearerToken(ctx);
+        if (token) {
             try {
-                const authToken = await verifyJwt<AuthToken>(token, secret);
-                setAuthToken(ctx, authToken);
+                ctx.state.authToken = await verifyJwt<AuthToken>(token, secret);
             } catch (err) {
                 ctx.throw(HttpStatus.FORBIDDEN);
             }
         } else {
-            setAuthToken(ctx, defaultAuth);
+            ctx.state.authToken = defaultAuth;
         }
         return next();
     };
@@ -110,8 +115,8 @@ export function checkAuthOrDefaultMiddleware(secret: string, defaultAuth: AuthTo
  *
  * It returns OK if authorization was set and UNAUTHORIZED of not.
  */
-export const checkTokenEndpoint: Middleware = async (ctx) => {
-    const token = getAuthToken(ctx);
+export const checkTokenEndpoint: EsKoaMiddleware = async (ctx) => {
+    const token = ctx.state.authToken;
     if (!token || !token.userId) {
         ctx.throw(HttpStatus.UNAUTHORIZED);
     }

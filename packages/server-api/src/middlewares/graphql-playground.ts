@@ -12,12 +12,13 @@ import { passwordLogin } from '@engspace/server-db';
 import { EsServerConfig } from '../';
 import { signJwt, verifyJwt } from '../crypto';
 import { gqlContextFactory } from '../graphql/context';
-import { attachDb, authJwtSecret, setAuthToken } from '../internal';
+import { attachDb } from '../internal';
 
 export function setupPlaygroundLogin(
     prefix: string,
     app: Koa,
     config: EsServerConfig,
+    jwtSecret: string,
     sessionKeys: string[]
 ): void {
     app.keys = sessionKeys;
@@ -60,7 +61,7 @@ export function setupPlaygroundLogin(
                     userId: user.id,
                     userPerms: perms,
                 },
-                authJwtSecret,
+                jwtSecret,
                 {
                     expiresIn: '12H',
                 }
@@ -79,7 +80,8 @@ export function setupPlaygroundEndpoint(
     prefix: string,
     schema: GraphQLSchema,
     app: Koa,
-    config: EsServerConfig
+    config: EsServerConfig,
+    jwtSecret: string
 ): void {
     app.use(
         async (ctx, next): Promise<void> => {
@@ -92,8 +94,7 @@ export function setupPlaygroundEndpoint(
                 return;
             }
             try {
-                const authToken = await verifyJwt<AuthToken>(token, authJwtSecret);
-                setAuthToken(ctx, authToken);
+                ctx.state.authToken = await verifyJwt<AuthToken>(token, jwtSecret);
             } catch (err) {
                 ctx.redirect(prefix + '/login?wrongCredentials=true');
                 return;

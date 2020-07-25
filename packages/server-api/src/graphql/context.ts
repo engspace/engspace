@@ -1,26 +1,26 @@
-import Koa from 'koa';
 import { EsServerConfig } from '..';
 import { ApiContext } from '../control';
-import { getAuthToken, getDb } from '../internal';
+import { EsKoaContext } from '../es-koa';
+import { getDb } from '../internal';
 import { GqlLoaders, makeLoaders } from './loaders';
 
 export interface GqlContext extends ApiContext {
     loaders: GqlLoaders;
 }
 
-export interface HasKoaContext {
-    ctx: Koa.Context;
+export interface HasEsKoaContext {
+    ctx: EsKoaContext;
 }
 
 export interface GqlContextFactory {
-    (obj: HasKoaContext): GqlContext;
+    (obj: HasEsKoaContext): GqlContext;
 }
 
 export function gqlContextFactory(config: EsServerConfig): GqlContextFactory {
     return ({ ctx }): GqlContext => {
         const gqlCtx = {
             config,
-            auth: getAuthToken(ctx),
+            auth: ctx.state.authToken,
             db: getDb(ctx),
             loaders: null,
         };

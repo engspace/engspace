@@ -1,8 +1,9 @@
 import Router from '@koa/router';
 import Koa from 'koa';
-import { AppRolePolicies, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
+import { AppRolePolicies, PartRefNaming, ChangeRequestNaming, AuthToken } from '@engspace/core';
 import { DaoSet, DbPool } from '@engspace/server-db';
 import { buildControllerSet, ControllerSet } from './control';
+import { EsKoa } from './es-koa';
 import {
     requireAuthMiddleware,
     documentMiddlewares,
@@ -18,7 +19,9 @@ import {
 export { ControllerSet, buildControllerSet };
 export { ApiContext } from './control';
 export { signJwt, verifyJwt } from './crypto';
+export { EsKoa, EsKoaContext, EsKoaMiddleware, EsKoaState } from './es-koa';
 export {
+    extractBearerToken,
     checkAuthMiddleware,
     checkAuthOrDefaultMiddleware,
     checkTokenEndpoint,
@@ -91,7 +94,7 @@ export interface EsSimpleAppConfig {
     config: EsServerConfig;
 }
 
-export function buildSimpleEsApp({ prefix, cors, gql, config }: EsSimpleAppConfig): Koa {
+export function buildSimpleEsApp({ prefix, cors, gql, config }: EsSimpleAppConfig): EsKoa {
     const app = new Koa();
 
     app.use(bodyParserMiddleware);
