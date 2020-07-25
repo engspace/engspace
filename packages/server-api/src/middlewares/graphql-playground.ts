@@ -5,25 +5,22 @@ import { ApolloServer } from 'apollo-server-koa';
 import { GraphQLSchema } from 'graphql';
 import HttpStatus from 'http-status-codes';
 import Koa from 'koa';
-import session from 'koa-session';
 import mime from 'mime';
 import { AuthToken } from '@engspace/core';
 import { passwordLogin } from '@engspace/server-db';
 import { EsServerConfig } from '../';
 import { signJwt, verifyJwt } from '../crypto';
 import { gqlContextFactory } from '../graphql/context';
-import { attachDb } from '../internal';
 
+/**
+ * setup a login form at prefix/login for graphql playground authentification
+ */
 export function setupPlaygroundLogin(
     prefix: string,
     app: Koa,
     config: EsServerConfig,
-    jwtSecret: string,
-    sessionKeys: string[]
+    jwtSecret: string
 ): void {
-    app.keys = sessionKeys;
-    app.use(session(app));
-
     const { rolePolicies, pool } = config;
 
     const router = new Router({ prefix });
@@ -76,6 +73,9 @@ export function setupPlaygroundLogin(
     app.use(router.routes());
 }
 
+/**
+ * Setup playground graphql endpoint
+ */
 export function setupPlaygroundEndpoint(
     prefix: string,
     schema: GraphQLSchema,
@@ -102,8 +102,6 @@ export function setupPlaygroundEndpoint(
             return next();
         }
     );
-
-    app.use(attachDb(config.pool, prefix));
 
     const playground = new ApolloServer({
         schema,

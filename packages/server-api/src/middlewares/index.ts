@@ -3,6 +3,7 @@ import HttpStatus from 'http-status-codes';
 import { Context as KoaContext } from 'koa';
 import bodyParser from 'koa-bodyparser';
 import { AuthToken } from '@engspace/core';
+import { DbPool } from '@engspace/server-db';
 import { verifyJwt } from '../crypto';
 import { EsKoaMiddleware } from '../es-koa';
 
@@ -36,6 +37,16 @@ export function extractBearerToken(ctx: KoaContext): string | null {
         return header.startsWith('Bearer ') ? header.slice(7) : header;
     }
     return null;
+}
+
+export function connectDbMiddleware(pool: DbPool): EsKoaMiddleware {
+    return (ctx, next) => {
+        return pool.connect(async (db) => {
+            ctx.state.db = db;
+            await next();
+            ctx.state.db = null;
+        });
+    };
 }
 
 /**

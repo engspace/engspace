@@ -3,9 +3,8 @@ import { Middleware } from 'koa';
 import { passwordLogin } from '@engspace/server-db';
 import { EsServerConfig } from '..';
 import { signJwt } from '../crypto';
-import { authJwtSecret } from '../internal';
 
-export function passwordLoginMiddleware(config: EsServerConfig): Middleware {
+export function passwordLoginMiddleware(config: EsServerConfig, jwtSecret: string): Middleware {
     const { pool, rolePolicies } = config;
 
     return async (ctx) => {
@@ -33,7 +32,7 @@ export function passwordLoginMiddleware(config: EsServerConfig): Middleware {
                     userId: user.id,
                     userPerms: perms,
                 },
-                authJwtSecret,
+                jwtSecret,
                 {
                     expiresIn: '12H',
                 }

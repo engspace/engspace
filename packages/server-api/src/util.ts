@@ -23,3 +23,8 @@ export function bufferSha1sum(content: Buffer): string {
     hasher.update(content);
     return hasher.digest('hex');
 }
+
+/** Generates a cryptographic strong password made of size bytes, encoded to base64 string */
+export function generateCryptoPassword(size = 32): string {
+    return crypto.randomBytes(size).toString('base64');
+}

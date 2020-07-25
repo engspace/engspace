@@ -1,7 +1,6 @@
 import { EsServerConfig } from '..';
 import { ApiContext } from '../control';
 import { EsKoaContext } from '../es-koa';
-import { getDb } from '../internal';
 import { GqlLoaders, makeLoaders } from './loaders';
 
 export interface GqlContext extends ApiContext {
@@ -21,7 +20,7 @@ export function gqlContextFactory(config: EsServerConfig): GqlContextFactory {
         const gqlCtx = {
             config,
             auth: ctx.state.authToken,
-            db: getDb(ctx),
+            db: ctx.state.db,
             loaders: null,
         };
         gqlCtx.loaders = makeLoaders(gqlCtx, config.control);

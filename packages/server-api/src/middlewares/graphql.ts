@@ -1,17 +1,15 @@
 import { ApolloLogExtension } from 'apollo-log';
 import { ApolloServer } from 'apollo-server-koa';
 import { GraphQLSchema } from 'graphql';
-import { Middleware } from 'koa';
-import compose from 'koa-compose';
 
 import { AuthToken } from '@engspace/core';
 import { Db } from '@engspace/server-db';
 
 import { EsServerConfig } from '..';
 import { ApiContext } from '../control';
+import { EsKoaMiddleware } from '../es-koa';
 import { GqlContext, gqlContextFactory } from '../graphql/context';
 import { makeLoaders } from '../graphql/loaders';
-import { attachDb } from '../internal';
 
 export interface EsGraphQLConfig {
     path: string;
@@ -22,7 +20,7 @@ export interface EsGraphQLConfig {
 export function graphQLEndpoint(
     { path, schema, logging }: EsGraphQLConfig,
     config: EsServerConfig
-): Middleware {
+): EsKoaMiddleware {
     /* istanbul ignore next */
     const extensions = logging
         ? [
@@ -46,12 +44,9 @@ export function graphQLEndpoint(
         context: gqlContextFactory(config),
     });
 
-    return compose([
-        attachDb(config.pool, path),
-        gqlServer.getMiddleware({
-            path,
-        }),
-    ]);
+    return gqlServer.getMiddleware({
+        path,
+    });
 }
 
 export interface TestGqlConfig {

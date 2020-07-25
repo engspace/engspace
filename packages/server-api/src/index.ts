@@ -15,6 +15,7 @@ import {
     checkTokenEndpoint,
     EsGraphQLConfig,
 } from './middlewares';
+import { generateCryptoPassword } from './util';
 
 export { ControllerSet, buildControllerSet };
 export { ApiContext } from './control';
@@ -22,6 +23,7 @@ export { signJwt, verifyJwt } from './crypto';
 export { EsKoa, EsKoaContext, EsKoaMiddleware, EsKoaState } from './es-koa';
 export {
     extractBearerToken,
+    connectDbMiddleware,
     checkAuthMiddleware,
     checkAuthOrDefaultMiddleware,
     checkTokenEndpoint,
@@ -94,13 +96,20 @@ export interface EsSimpleAppConfig {
     config: EsServerConfig;
 }
 
-export function buildSimpleEsApp({ prefix, cors, gql, config }: EsSimpleAppConfig): EsKoa {
+export function buildSimpleEsApp(
+    { prefix, cors, gql, config }: EsSimpleAppConfig,
+    jwtSecret?: string
+): EsKoa {
     const app = new Koa();
+
+    if (!jwtSecret) {
+        jwtSecret = generateCryptoPassword();
+    }
 
     app.use(bodyParserMiddleware);
     if (cors) app.use(corsMiddleware);
 
-    const login = passwordLoginMiddleware(config);
+    const login = passwordLoginMiddleware(config, jwtSecret);
     const document = documentMiddlewares(config);
     const firstAdmin = firstAdminMiddleware(config);
 
@@ -111,7 +120,7 @@ export function buildSimpleEsApp({ prefix, cors, gql, config }: EsSimpleAppConfi
     preAuthRouter.get('/document/download', document.download);
     app.use(preAuthRouter.routes());
 
-    app.use(requireAuthMiddleware); // everything passed this point requires auth
+    app.use(requireAuthMiddleware(jwtSecret)); // everything passed this point requires auth
 
     const postAuthRouter = new Router({ prefix });
     postAuthRouter.get('/check_token', checkTokenEndpoint);
