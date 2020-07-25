@@ -86,7 +86,7 @@ export function esTreeSqlPath(relPath: string): string {
     return path.normalize(path.join(__dirname, '../sql', relPath));
 }
 
-async function executeSqlStmt(db: Db, { stmt }: SqlOperationParamsStmt): Promise<void> {
+export async function executeSqlStmt(db: Db, { stmt }: SqlOperationParamsStmt): Promise<void> {
     try {
         await db.query(stmt);
     } catch (err) {
@@ -95,7 +95,10 @@ async function executeSqlStmt(db: Db, { stmt }: SqlOperationParamsStmt): Promise
     }
 }
 
-async function executeSqlFile(db: Db, { path, stmtSplit }: SqlOperationParamsFile): Promise<void> {
+export async function executeSqlFile(
+    db: Db,
+    { path, stmtSplit }: SqlOperationParamsFile
+): Promise<void> {
     const sqlContent = (await fs.promises.readFile(path)).toString();
     let commands: string[] = [];
     if (stmtSplit) {
@@ -114,7 +117,7 @@ async function executeSqlFile(db: Db, { path, stmtSplit }: SqlOperationParamsFil
     }
 }
 
-async function executeSqlFolder(
+export async function executeSqlFolder(
     db: Db,
     { path: folderPath, stmtSplit, recursive }: SqlOperationParamsFolder
 ): Promise<void> {

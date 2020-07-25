@@ -41,7 +41,13 @@ export {
     DaoBaseConfig,
     DaoBase,
 } from './dao/base';
-export { syncSchema } from './migration';
+export {
+    syncSchema,
+    executeSql,
+    executeSqlFile,
+    executeSqlFolder,
+    executeSqlStmt,
+} from './migration';
 export { default as passwordLogin, LoginResult } from './password-login';
 export * from './test-helpers';
 
