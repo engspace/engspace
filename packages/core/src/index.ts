@@ -81,8 +81,12 @@ export interface UserInput {
     roles?: string[];
 }
 
-export interface User extends UserInput {
+export interface User {
     id: Id;
+    name: string;
+    email: string;
+    fullName: string;
+    roles?: string[];
 }
 
 export interface UserEx extends User {

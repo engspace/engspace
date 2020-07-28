@@ -5,8 +5,8 @@ import { DaoSet } from '@engspace/server-db';
 import { assertUserPerm, hasUserPerm } from './helpers';
 import { ApiContext, Pagination } from '.';
 
-export class UserControl {
-    constructor(private dao: DaoSet) {}
+export class UserControl<DaoT extends DaoSet = DaoSet> {
+    constructor(protected dao: DaoT) {}
 
     async create(ctx: ApiContext, { name, email, fullName, roles }: UserInput): Promise<User> {
         assertUserPerm(ctx, 'user.create');
