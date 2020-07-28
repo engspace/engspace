@@ -47,6 +47,17 @@ export {
     executeSqlFile,
     executeSqlFolder,
     executeSqlStmt,
+    sqlOperation,
+    SqlOperation,
+    SqlOperationFunc,
+    SqlOperationKind,
+    SqlOperationParamsFunc,
+    SqlOperationFile,
+    SqlOperationFolder,
+    SqlOperationStmt,
+    SqlOperationParamsFile,
+    SqlOperationParamsFolder,
+    SqlOperationParamsStmt,
 } from './migration';
 export { default as passwordLogin, LoginResult } from './password-login';
 export * from './test-helpers';
