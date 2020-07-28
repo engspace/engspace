@@ -9,6 +9,7 @@ export enum SqlOperationKind {
     File,
     Folder,
     Stmt,
+    Func,
 }
 
 export interface SqlOperationParamsFile {
@@ -20,6 +21,10 @@ export interface SqlOperationParamsFolder {
     path: string;
     stmtSplit?: string;
     recursive: boolean;
+}
+
+export interface SqlOperationParamsFunc {
+    func: (db: Db) => Promise<void>;
 }
 
 export interface SqlOperationParamsStmt {
@@ -38,7 +43,15 @@ export interface SqlOperationStmt extends SqlOperationParamsStmt {
     kind: SqlOperationKind.Stmt;
 }
 
-export type SqlOperation = SqlOperationFile | SqlOperationFolder | SqlOperationStmt;
+export interface SqlOperationFunc extends SqlOperationParamsFunc {
+    kind: SqlOperationKind.Func;
+}
+
+export type SqlOperation =
+    | SqlOperationFile
+    | SqlOperationFolder
+    | SqlOperationStmt
+    | SqlOperationFunc;
 
 export const sqlOperation = {
     file: (params: SqlOperationParamsFile): SqlOperationFile => ({
@@ -51,6 +64,10 @@ export const sqlOperation = {
     }),
     stmt: (params: SqlOperationParamsStmt): SqlOperationStmt => ({
         kind: SqlOperationKind.Stmt,
+        ...params,
+    }),
+    func: (params: SqlOperationParamsFunc): SqlOperationFunc => ({
+        kind: SqlOperationKind.Func,
         ...params,
     }),
 };
@@ -143,6 +160,9 @@ export async function executeSql(db: Db, sqlOps: SqlOperation[]): Promise<void> 
                 break;
             case SqlOperationKind.Stmt:
                 await executeSqlStmt(db, op);
+                break;
+            case SqlOperationKind.Func:
+                await op.func(db);
                 break;
         }
     }
