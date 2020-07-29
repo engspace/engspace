@@ -4,6 +4,7 @@ import EsErrorAlert from './components/ErrorAlert.vue';
 import EsMemberEditTable from './components/MemberEditTable.vue';
 import EsMemberTable from './components/MemberTable.vue';
 import EsProjectCard from './components/ProjectCard.vue';
+import EsProjectEdit from './components/ProjectEdit.vue';
 import EsSuccessBtn from './components/SuccessBtn.vue';
 import EsUserCard from './components/UserCard.vue';
 import EsUserEdit from './components/UserEdit.vue';
@@ -28,6 +29,7 @@ const comps: { [name: string]: VueConstructor } = {
     EsMemberEditTable,
     EsMemberTable,
     EsProjectCard,
+    EsProjectEdit,
     EsSuccessBtn,
     EsUserCard,
     EsUserEdit,

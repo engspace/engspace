@@ -35,7 +35,7 @@
                 dense
                 hide-details
                 :label="upperFirst(role)"
-                @change="updateRole(role, $event)"
+                @change="updateList('roles', role, $event)"
             ></v-checkbox>
         </div>
         <es-display-label v-else-if="showRoles" label="Roles">{{ roleString }}</es-display-label>
@@ -48,6 +48,7 @@ import upperFirst from 'lodash.upperfirst';
 import validator from 'validator';
 import { User, UserInput } from '@engspace/core';
 import { useConfig } from '../config';
+import { useModelUtils } from '../services/form';
 import { roleString } from '../utils';
 
 export default defineComponent({
@@ -107,19 +108,7 @@ export default defineComponent({
         const { rolePolicies } = useConfig();
         const allRoles = rolePolicies.user.allRoles();
 
-        function updateValue(key: string, value: string) {
-            emit('input', { ...props.value, [key]: value });
-        }
-
-        function updateRole(role: string, value: boolean) {
-            let roles = props.value?.roles || [];
-            if (value) {
-                roles = [...roles, role];
-            } else {
-                roles = roles.filter((r) => r !== role);
-            }
-            emit('input', { ...props.value, roles });
-        }
+        const { updateValue, updateList } = useModelUtils(props, emit);
 
         const roles = computed(() => roleString(props.value?.roles));
 
@@ -149,7 +138,7 @@ export default defineComponent({
             allRoles,
             roleString: roles,
             updateValue,
-            updateRole,
+            updateList,
             upperFirst,
             nameRules,
             nameErrorMsg,
