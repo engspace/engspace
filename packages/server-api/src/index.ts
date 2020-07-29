@@ -55,7 +55,6 @@ export {
     GqlEsModule,
     resolveTracked,
 } from './graphql/schema';
-export { isUser } from './type-guards';
 
 export interface EsNamingProvider<Ctx = undefined> {
     partRef(ctx?: Ctx): PartRefNaming;

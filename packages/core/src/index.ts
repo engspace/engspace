@@ -19,6 +19,7 @@ export {
     ChangeRequestNaming,
     ChangeRequestComps,
 } from './naming';
+export { isUser } from './type-guards';
 export { arraysHaveSameMembers, arraysHaveSameMembersMut, CharIterator } from './util';
 export {
     BadVersionFormatError,
