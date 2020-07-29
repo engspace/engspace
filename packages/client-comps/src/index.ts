@@ -20,6 +20,7 @@ export {
 } from './components/project';
 export { provideConfig, useConfig } from './config';
 export { operationName } from './graphql-helper';
+export { useModelUtils, useSyncUtils, rules } from './services/form';
 
 const comps: { [name: string]: VueConstructor } = {
     EsDisplayLabel,
