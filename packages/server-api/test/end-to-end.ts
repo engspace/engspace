@@ -151,6 +151,7 @@ describe('End to end GraphQL', function () {
             expect(resp).to.have.status(200);
             expect(resp).to.have.property('body');
             const { errors, data } = resp.body;
+            console.log(errors);
             expect(errors).to.be.undefined;
             expect(data).to.be.an('object');
             expect(data.project).to.deep.include({

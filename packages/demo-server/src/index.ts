@@ -21,6 +21,7 @@ import {
     passwordLogin,
 } from '@engspace/server-db';
 import { populateData } from './populate-data';
+import { generateCryptoPassword } from '@engspace/server-api';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -64,26 +65,30 @@ export const dao = buildDaoSet();
 const rolePolicies = buildDefaultAppRolePolicies();
 const control = buildControllerSet(dao);
 const schema = buildEsSchema(control);
-const app = buildSimpleEsApp({
-    prefix: '/api',
-    cors: true,
-    gql: {
-        path: '/api/graphql',
-        schema,
-        logging: true,
+const app = buildSimpleEsApp(
+    {
+        prefix: '/api',
+        cors: true,
+        gql: {
+            path: '/api/graphql',
+            schema,
+            logging: true,
+        },
+        config: {
+            pool,
+            rolePolicies,
+            storePath: config.storePath,
+            control,
+            dao,
+            naming: new StaticEsNaming({
+                partRef: new PartRefNaming('${fam_code}${fam_count:4}${part_version:AA}'),
+                changeRequest: new ChangeRequestNaming('$CR-${counter:4}'),
+            }),
+        },
     },
-    config: {
-        pool,
-        rolePolicies,
-        storePath: config.storePath,
-        control,
-        dao,
-        naming: new StaticEsNaming({
-            partRef: new PartRefNaming('${fam_code}${fam_count:4}${part_version:AA}'),
-            changeRequest: new ChangeRequestNaming('$CR-${counter:4}'),
-        }),
-    },
-});
+    generateCryptoPassword(16)
+);
+
 app.use(logger());
 
 prepareDb(dbPreparationConfig)

@@ -1,6 +1,6 @@
 import cors from '@koa/cors';
 import HttpStatus from 'http-status-codes';
-import { Context as KoaContext } from 'koa';
+import { ParameterizedContext as KoaContext } from 'koa';
 import bodyParser from 'koa-bodyparser';
 import { AuthToken } from '@engspace/core';
 import { DbPool } from '@engspace/server-db';
@@ -31,7 +31,7 @@ export const corsMiddleware = cors({
     ],
 });
 
-export function extractBearerToken(ctx: KoaContext): string | null {
+export function extractBearerToken<TState>(ctx: KoaContext<TState>): string | null {
     const header = ctx.request.get('x-access-token') || ctx.request.get('authorization');
     if (header) {
         return header.startsWith('Bearer ') ? header.slice(7) : header;

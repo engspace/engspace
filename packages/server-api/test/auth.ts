@@ -1,8 +1,7 @@
 import { AuthToken, HasId, User, UserInput } from '@engspace/core';
 import { Db } from '@engspace/server-db';
 import { signJwt } from '../src/crypto';
-import { authJwtSecret } from '../src/internal';
-import { dao, rolePolicies } from '.';
+import { dao, rolePolicies, jwtSecret } from '.';
 
 export function auth(user: User): AuthToken {
     return {
@@ -24,5 +23,5 @@ export async function createAuth(db: Db, userInput: UserInput): Promise<AuthToke
 }
 
 export async function bearerToken(auth: AuthToken): Promise<string> {
-    return signJwt(auth, authJwtSecret, { expiresIn: '12H' });
+    return signJwt(auth, jwtSecret, { expiresIn: '12H' });
 }

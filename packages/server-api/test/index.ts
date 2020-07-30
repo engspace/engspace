@@ -37,6 +37,7 @@ import {
     buildEsSchema,
     StaticEsNaming,
 } from '../src';
+import { generateCryptoPassword } from '../src/util';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -74,6 +75,7 @@ const dbPoolConfig: DbPoolConfig = {
 export const pool: DbPool = createDbPool(dbPoolConfig);
 export const rolePolicies: AppRolePolicies = buildDefaultAppRolePolicies();
 export const dao = buildDaoSet();
+export const jwtSecret = 'test-secret-key';
 const control = buildControllerSet(dao);
 const schema = buildEsSchema(control);
 const storePath = path.normalize(path.join(__dirname, '../file_store'));
@@ -99,7 +101,7 @@ export const app = buildSimpleEsApp({
         logging: false,
     },
     config,
-});
+}, jwtSecret);
 
 export const th = new TestHelpers(pool, dao);
 

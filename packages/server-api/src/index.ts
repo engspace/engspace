@@ -1,10 +1,11 @@
 import Router from '@koa/router';
 import Koa from 'koa';
-import { AppRolePolicies, PartRefNaming, ChangeRequestNaming, AuthToken } from '@engspace/core';
+import { AppRolePolicies, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
 import { DaoSet, DbPool } from '@engspace/server-db';
 import { buildControllerSet, ControllerSet } from './control';
 import { EsKoa } from './es-koa';
 import {
+    connectDbMiddleware,
     requireAuthMiddleware,
     documentMiddlewares,
     firstAdminMiddleware,
@@ -15,7 +16,6 @@ import {
     checkTokenEndpoint,
     EsGraphQLConfig,
 } from './middlewares';
-import { generateCryptoPassword } from './util';
 
 export { ControllerSet, buildControllerSet };
 export { ApiContext } from './control';
@@ -55,6 +55,9 @@ export {
     GqlEsModule,
     resolveTracked,
 } from './graphql/schema';
+export {
+    generateCryptoPassword
+} from './util';
 
 export interface EsNamingProvider<Ctx = undefined> {
     partRef(ctx?: Ctx): PartRefNaming;
@@ -102,16 +105,13 @@ export interface EsSimpleAppConfig {
 
 export function buildSimpleEsApp(
     { prefix, cors, gql, config }: EsSimpleAppConfig,
-    jwtSecret?: string
+    jwtSecret: string
 ): EsKoa {
     const app = new Koa();
 
-    if (!jwtSecret) {
-        jwtSecret = generateCryptoPassword();
-    }
-
     app.use(bodyParserMiddleware);
     if (cors) app.use(corsMiddleware);
+    app.use(connectDbMiddleware(config.pool));
 
     const login = passwordLoginMiddleware(config, jwtSecret);
     const document = documentMiddlewares(config);

@@ -2,9 +2,8 @@ import http from 'http';
 import { expect, request } from 'chai';
 import { passwordLogin } from '@engspace/server-db';
 import { verifyJwt } from '../src/crypto';
-import { authJwtSecret } from '../src/internal';
 import { auth } from './auth';
-import { app, config, pool, th } from '.';
+import { app, config, pool, th, jwtSecret } from '.';
 
 const { serverPort } = config;
 
@@ -32,7 +31,7 @@ describe('Login', () => {
         expect(resp).to.have.status(200);
         expect(resp.body).to.be.an('object');
         expect(resp.body.token).to.be.a('string');
-        const authToken = await verifyJwt(resp.body.token, authJwtSecret);
+        const authToken = await verifyJwt(resp.body.token, jwtSecret);
         expect(authToken).to.deep.include(auth(userA));
     });
 
