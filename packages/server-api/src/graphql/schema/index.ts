@@ -2,7 +2,6 @@ import { makeExecutableSchema, IResolvers } from 'apollo-server-koa';
 import { GraphQLSchema, DocumentNode } from 'graphql';
 import _ from 'lodash';
 import { User, Tracked } from '@engspace/core';
-import { ControllerSet } from '../../control';
 import { GqlContext } from '../context';
 import baseGqlModule from './base';
 import changeGqlModule from './change';
@@ -14,18 +13,18 @@ export { baseGqlModule, userGqlModule, projectGqlModule, changeGqlModule, partGq
 
 export const resolveTracked = {
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    createdBy({ createdBy }: Tracked, args, ctx: GqlContext): Promise<User> {
+    createdBy({ createdBy }: Tracked, args: unknown, ctx: GqlContext): Promise<User> {
         return ctx.loaders.user.load(createdBy.id);
     },
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    updatedBy({ updatedBy }: Tracked, args, ctx: GqlContext): Promise<User> {
+    updatedBy({ updatedBy }: Tracked, args: unknown, ctx: GqlContext): Promise<User> {
         return ctx.loaders.user.load(updatedBy.id);
     },
 };
 
 export interface GqlEsModule {
     typeDefs: DocumentNode;
-    buildResolvers(control: ControllerSet): IResolvers;
+    resolvers: IResolvers;
 }
 
 export const defaultGqlModules: GqlEsModule[] = [
@@ -36,12 +35,12 @@ export const defaultGqlModules: GqlEsModule[] = [
     partGqlModule,
 ];
 
-export function buildEsSchema(control: ControllerSet, modules?: GqlEsModule[]): GraphQLSchema {
+export function buildEsSchema(modules?: GqlEsModule[]): GraphQLSchema {
     if (!modules) {
         modules = defaultGqlModules;
     }
     return makeExecutableSchema({
         typeDefs: modules.map((m) => m.typeDefs),
-        resolvers: _.merge({}, ...modules.map((m) => m.buildResolvers(control))),
+        resolvers: _.merge({}, ...modules.map((m) => m.resolvers)),
     });
 }

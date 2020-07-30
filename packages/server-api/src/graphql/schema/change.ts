@@ -1,4 +1,3 @@
-import { IResolvers } from 'apollo-server-koa';
 import gql from 'graphql-tag';
 import {
     ChangePartFork,
@@ -14,7 +13,6 @@ import {
     Part,
     PartRevision,
 } from '@engspace/core';
-import { ControllerSet } from '../../control';
 import { GqlContext } from '../context';
 import { resolveTracked } from '.';
 
@@ -212,116 +210,126 @@ export default {
         }
     `,
 
-    buildResolvers(control: ControllerSet): IResolvers {
-        return {
-            ChangeReview: {
-                async request(
-                    { request }: ChangeReview,
-                    args,
-                    ctx: GqlContext
-                ): Promise<ChangeRequest> {
-                    const req = await control.change.request(ctx, request.id);
-                    return req;
-                },
+    resolvers: {
+        ChangeReview: {
+            async request(
+                { request }: ChangeReview,
+                args: unknown,
+                ctx: GqlContext
+            ): Promise<ChangeRequest> {
+                const req = await ctx.runtime.control.change.request(ctx, request.id);
+                return req;
+            },
+        },
+
+        ChangeRequest: {
+            partCreations(
+                { id }: ChangeRequest,
+                args: unknown,
+                ctx: GqlContext
+            ): Promise<ChangePartCreate[]> {
+                return ctx.runtime.control.change.requestPartCreations(ctx, id);
+            },
+            partForks(
+                { id }: ChangeRequest,
+                args: unknown,
+                ctx: GqlContext
+            ): Promise<ChangePartFork[]> {
+                return ctx.runtime.control.change.requestPartChanges(ctx, id);
+            },
+            partRevisions(
+                { id }: ChangeRequest,
+                args: unknown,
+                ctx: GqlContext
+            ): Promise<ChangePartRevision[]> {
+                return ctx.runtime.control.change.requestPartRevisions(ctx, id);
+            },
+            reviews(
+                { id }: ChangeRequest,
+                args: unknown,
+                ctx: GqlContext
+            ): Promise<ChangeReview[]> {
+                return ctx.runtime.control.change.requestReviews(ctx, id);
             },
 
-            ChangeRequest: {
-                partCreations(
-                    { id }: ChangeRequest,
-                    args,
-                    ctx: GqlContext
-                ): Promise<ChangePartCreate[]> {
-                    return control.change.requestPartCreations(ctx, id);
-                },
-                partForks({ id }: ChangeRequest, args, ctx: GqlContext): Promise<ChangePartFork[]> {
-                    return control.change.requestPartChanges(ctx, id);
-                },
-                partRevisions(
-                    { id }: ChangeRequest,
-                    args,
-                    ctx: GqlContext
-                ): Promise<ChangePartRevision[]> {
-                    return control.change.requestPartRevisions(ctx, id);
-                },
-                reviews({ id }: ChangeRequest, args, ctx: GqlContext): Promise<ChangeReview[]> {
-                    return control.change.requestReviews(ctx, id);
-                },
-
-                createdParts({ id }: ChangeRequest, args, ctx: GqlContext): Promise<Part[]> {
-                    return control.change.requestCreatedParts(ctx, id);
-                },
-                revisedParts(
-                    { id }: ChangeRequest,
-                    args,
-                    ctx: GqlContext
-                ): Promise<PartRevision[]> {
-                    return control.change.requestRevisedParts(ctx, id);
-                },
-
-                ...resolveTracked,
+            createdParts({ id }: ChangeRequest, args: unknown, ctx: GqlContext): Promise<Part[]> {
+                return ctx.runtime.control.change.requestCreatedParts(ctx, id);
             },
-            Query: {
-                changeRequest(parent, { id }: { id: Id }, ctx: GqlContext): Promise<ChangeRequest> {
-                    return control.change.request(ctx, id);
-                },
+            revisedParts(
+                { id }: ChangeRequest,
+                args: unknown,
+                ctx: GqlContext
+            ): Promise<PartRevision[]> {
+                return ctx.runtime.control.change.requestRevisedParts(ctx, id);
             },
-            Mutation: {
-                changeRequestCreate(
-                    parent,
-                    { input }: { input: ChangeRequestInput },
-                    ctx: GqlContext
-                ): Promise<ChangeRequest> {
-                    return control.change.requestCreate(ctx, input);
-                },
 
-                changeRequestUpdate(
-                    parent,
-                    { id, input }: { id: Id; input: ChangeRequestUpdateInput },
-                    ctx: GqlContext
-                ): Promise<ChangeRequest> {
-                    return control.change.requestUpdate(ctx, id, input);
-                },
-
-                changeRequestSubmit(
-                    parent,
-                    { id }: HasId,
-                    ctx: GqlContext
-                ): Promise<ChangeRequest> {
-                    return control.change.requestSubmit(ctx, id);
-                },
-
-                changeRequestWithdraw(
-                    parent,
-                    { id }: HasId,
-                    ctx: GqlContext
-                ): Promise<ChangeRequest> {
-                    return control.change.requestWithdraw(ctx, id);
-                },
-
-                changeRequestReview(
-                    parent,
-                    { id, input }: { id: Id; input: ChangeReviewInput },
-                    ctx: GqlContext
-                ): Promise<ChangeReview> {
-                    return control.change.requestReview(ctx, id, input);
-                },
-
-                changeRequestApprove(
-                    parent,
-                    { id }: ChangeRequest,
-                    ctx: GqlContext
-                ): Promise<ChangeRequest> {
-                    return control.change.requestApprove(ctx, id);
-                },
-
-                changeRequestCancel(
-                    parent,
-                    { id }: ChangeRequest,
-                    ctx: GqlContext
-                ): Promise<ChangeRequest> {
-                    return control.change.requestCancel(ctx, id);
-                },
+            ...resolveTracked,
+        },
+        Query: {
+            changeRequest(
+                parent: unknown,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<ChangeRequest> {
+                return ctx.runtime.control.change.request(ctx, id);
             },
-        };
+        },
+        Mutation: {
+            changeRequestCreate(
+                parent: unknown,
+                { input }: { input: ChangeRequestInput },
+                ctx: GqlContext
+            ): Promise<ChangeRequest> {
+                return ctx.runtime.control.change.requestCreate(ctx, input);
+            },
+
+            changeRequestUpdate(
+                parent: unknown,
+                { id, input }: { id: Id; input: ChangeRequestUpdateInput },
+                ctx: GqlContext
+            ): Promise<ChangeRequest> {
+                return ctx.runtime.control.change.requestUpdate(ctx, id, input);
+            },
+
+            changeRequestSubmit(
+                parent: unknown,
+                { id }: HasId,
+                ctx: GqlContext
+            ): Promise<ChangeRequest> {
+                return ctx.runtime.control.change.requestSubmit(ctx, id);
+            },
+
+            changeRequestWithdraw(
+                parent: unknown,
+                { id }: HasId,
+                ctx: GqlContext
+            ): Promise<ChangeRequest> {
+                return ctx.runtime.control.change.requestWithdraw(ctx, id);
+            },
+
+            changeRequestReview(
+                parent: unknown,
+                { id, input }: { id: Id; input: ChangeReviewInput },
+                ctx: GqlContext
+            ): Promise<ChangeReview> {
+                return ctx.runtime.control.change.requestReview(ctx, id, input);
+            },
+
+            changeRequestApprove(
+                parent: unknown,
+                { id }: ChangeRequest,
+                ctx: GqlContext
+            ): Promise<ChangeRequest> {
+                return ctx.runtime.control.change.requestApprove(ctx, id);
+            },
+
+            changeRequestCancel(
+                parent: unknown,
+                { id }: ChangeRequest,
+                ctx: GqlContext
+            ): Promise<ChangeRequest> {
+                return ctx.runtime.control.change.requestCancel(ctx, id);
+            },
+        },
     },
 };

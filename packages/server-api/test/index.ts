@@ -76,7 +76,7 @@ export const rolePolicies: EsRolePolicies = buildDefaultAppRolePolicies();
 export const dao = buildDaoSet();
 export const jwtSecret = 'test-secret-key';
 const control = buildControllerSet(dao);
-const schema = buildEsSchema(control);
+const schema = buildEsSchema();
 const storePath = path.normalize(path.join(__dirname, '../file_store'));
 export const runtime = {
     pool,

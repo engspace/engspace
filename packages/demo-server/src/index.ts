@@ -64,7 +64,7 @@ const pool: DbPool = createDbPool(dbPoolConfig);
 export const dao = buildDaoSet();
 const rolePolicies = buildDefaultAppRolePolicies();
 const control = buildControllerSet(dao);
-const schema = buildEsSchema(control);
+const schema = buildEsSchema();
 const app = buildSimpleEsApp({
     prefix: '/api',
     cors: true,

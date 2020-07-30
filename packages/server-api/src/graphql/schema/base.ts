@@ -10,8 +10,8 @@ import {
     DocumentSearch,
     Id,
     User,
+    Tracked,
 } from '@engspace/core';
-import { ControllerSet } from '../../control';
 import { GqlContext } from '../context';
 
 export default {
@@ -97,139 +97,153 @@ export default {
         }
     `,
 
-    buildResolvers(control: ControllerSet): IResolvers {
-        return {
-            DateTime: new GraphQLScalarType({
-                name: 'DateTime',
-                description: 'DateTime sent over the wire as milliseconds since epoch',
-                serialize(value: number): number {
-                    return value;
-                },
-                parseValue(value: number): number {
-                    return value;
-                },
-                parseLiteral(ast: ValueNode): number | null {
-                    if (ast.kind === Kind.INT) {
-                        return parseInt(ast.value);
-                    } else if (ast.kind === Kind.STRING) {
-                        const date = new Date(ast.value);
-                        const ms = date.getTime();
-                        if (isNaN(ms)) {
-                            throw new UserInputError(
-                                `Cannot read DateTime from ${ast.kind}: ${ast.value}`
-                            );
-                        }
-                        return ms;
+    resolvers: {
+        DateTime: new GraphQLScalarType({
+            name: 'DateTime',
+            description: 'DateTime sent over the wire as milliseconds since epoch',
+            serialize(value: number): number {
+                return value;
+            },
+            parseValue(value: number): number {
+                return value;
+            },
+            parseLiteral(ast: ValueNode): number | null {
+                if (ast.kind === Kind.INT) {
+                    return parseInt(ast.value);
+                } else if (ast.kind === Kind.STRING) {
+                    const date = new Date(ast.value);
+                    const ms = date.getTime();
+                    if (isNaN(ms)) {
+                        throw new UserInputError(
+                            `Cannot read DateTime from ${ast.kind}: ${ast.value}`
+                        );
                     }
-                    throw new UserInputError(`Cannot read DateTime from ${ast.kind}`);
-                },
-            }),
+                    return ms;
+                }
+                throw new UserInputError(`Cannot read DateTime from ${ast.kind}`);
+            },
+        }),
 
-            Tracked: {
-                __resolveType(tracked): string {
-                    if (tracked.ref) return 'Part';
-                    return null;
-                },
+        Tracked: {
+            __resolveType(tracked: Tracked): string {
+                if (tracked['ref']) return 'Part';
+                return null;
+            },
+        },
+
+        Document: {
+            createdBy({ createdBy }: Document, args: unknown, ctx: GqlContext): Promise<User> {
+                return ctx.loaders.user.load(createdBy.id);
             },
 
-            Document: {
-                createdBy({ createdBy }: Document, args, ctx: GqlContext): Promise<User> {
-                    return ctx.loaders.user.load(createdBy.id);
-                },
-
-                checkout({ checkout }: Document, args, ctx: GqlContext): Promise<User | null> {
-                    if (!checkout) return null;
-                    return ctx.loaders.user.load(checkout.id);
-                },
-
-                revisions({ id }: Document, args, ctx: GqlContext): Promise<DocumentRevision[]> {
-                    return control.documentRevision.byDocumentId(ctx, id);
-                },
-
-                lastRevision(
-                    { id }: Document,
-                    args,
-                    ctx: GqlContext
-                ): Promise<DocumentRevision | null> {
-                    return control.documentRevision.lastByDocumentId(ctx, id);
-                },
+            checkout({ checkout }: Document, args: unknown, ctx: GqlContext): Promise<User | null> {
+                if (!checkout) return null;
+                return ctx.loaders.user.load(checkout.id);
             },
 
-            DocumentRevision: {
-                document({ document }: DocumentRevision, args, ctx: GqlContext): Promise<Document> {
-                    return control.document.byId(ctx, document.id);
-                },
-                createdBy({ createdBy }: DocumentRevision, args, ctx: GqlContext): Promise<User> {
-                    return ctx.loaders.user.load(createdBy.id);
-                },
+            revisions(
+                { id }: Document,
+                args: unknown,
+                ctx: GqlContext
+            ): Promise<DocumentRevision[]> {
+                return ctx.runtime.control.documentRevision.byDocumentId(ctx, id);
             },
 
-            Query: {
-                document(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Document | null> {
-                    return control.document.byId(ctx, id);
-                },
-                documentSearch(
-                    parent,
-                    { search, offset, limit }: { search: string; offset: number; limit: number },
-                    ctx: GqlContext
-                ): Promise<DocumentSearch> {
-                    return control.document.search(ctx, search, offset, limit);
-                },
-                documentRevision(
-                    parent,
-                    { id }: { id: Id },
-                    ctx: GqlContext
-                ): Promise<DocumentRevision | null> {
-                    return control.documentRevision.byId(ctx, id);
-                },
+            lastRevision(
+                { id }: Document,
+                args: unknown,
+                ctx: GqlContext
+            ): Promise<DocumentRevision | null> {
+                return ctx.runtime.control.documentRevision.lastByDocumentId(ctx, id);
+            },
+        },
 
-                testDateTimeToIso8601(parent, { dt }: { dt: DateTime }): Promise<string> {
-                    const date = new Date(dt);
-                    return Promise.resolve(date.toISOString());
-                },
+        DocumentRevision: {
+            document(
+                { document }: DocumentRevision,
+                args: unknown,
+                ctx: GqlContext
+            ): Promise<Document> {
+                return ctx.runtime.control.document.byId(ctx, document.id);
+            },
+            createdBy(
+                { createdBy }: DocumentRevision,
+                args: unknown,
+                ctx: GqlContext
+            ): Promise<User> {
+                return ctx.loaders.user.load(createdBy.id);
+            },
+        },
+
+        Query: {
+            document(
+                parent: unknown,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<Document | null> {
+                return ctx.runtime.control.document.byId(ctx, id);
+            },
+            documentSearch(
+                parent: unknown,
+                { search, offset, limit }: { search: string; offset: number; limit: number },
+                ctx: GqlContext
+            ): Promise<DocumentSearch> {
+                return ctx.runtime.control.document.search(ctx, search, offset, limit);
+            },
+            documentRevision(
+                parent: unknown,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<DocumentRevision | null> {
+                return ctx.runtime.control.documentRevision.byId(ctx, id);
             },
 
-            Mutation: {
-                documentCreate(
-                    parent,
-                    { input }: { input: DocumentInput },
-                    ctx: GqlContext
-                ): Promise<Document> {
-                    return control.document.create(ctx, input);
-                },
-
-                documentCheckout(
-                    parent,
-                    { id, revision }: { id: Id; revision: number },
-                    ctx: GqlContext
-                ): Promise<Document> {
-                    return control.document.checkout(ctx, id, revision);
-                },
-
-                documentDiscardCheckout(
-                    parent,
-                    { id }: { id: Id },
-                    ctx: GqlContext
-                ): Promise<Document> {
-                    return control.document.discardCheckout(ctx, id);
-                },
-
-                documentRevise(
-                    parent,
-                    { input }: { input: DocumentRevisionInput },
-                    ctx: GqlContext
-                ): Promise<DocumentRevision> {
-                    return control.documentRevision.create(ctx, input);
-                },
-
-                documentRevisionCheck(
-                    parent,
-                    { id, sha1 }: { id: Id; sha1: string },
-                    ctx: GqlContext
-                ): Promise<DocumentRevision> {
-                    return control.documentRevision.finalizeUpload(ctx, id, sha1);
-                },
+            testDateTimeToIso8601(parent: unknown, { dt }: { dt: DateTime }): Promise<string> {
+                const date = new Date(dt);
+                return Promise.resolve(date.toISOString());
             },
-        };
+        },
+
+        Mutation: {
+            documentCreate(
+                parent: unknown,
+                { input }: { input: DocumentInput },
+                ctx: GqlContext
+            ): Promise<Document> {
+                return ctx.runtime.control.document.create(ctx, input);
+            },
+
+            documentCheckout(
+                parent: unknown,
+                { id, revision }: { id: Id; revision: number },
+                ctx: GqlContext
+            ): Promise<Document> {
+                return ctx.runtime.control.document.checkout(ctx, id, revision);
+            },
+
+            documentDiscardCheckout(
+                parent: unknown,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<Document> {
+                return ctx.runtime.control.document.discardCheckout(ctx, id);
+            },
+
+            documentRevise(
+                parent: unknown,
+                { input }: { input: DocumentRevisionInput },
+                ctx: GqlContext
+            ): Promise<DocumentRevision> {
+                return ctx.runtime.control.documentRevision.create(ctx, input);
+            },
+
+            documentRevisionCheck(
+                parent: unknown,
+                { id, sha1 }: { id: Id; sha1: string },
+                ctx: GqlContext
+            ): Promise<DocumentRevision> {
+                return ctx.runtime.control.documentRevision.finalizeUpload(ctx, id, sha1);
+            },
+        },
     },
 };
