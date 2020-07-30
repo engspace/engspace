@@ -9,7 +9,7 @@ import chaiSubset from 'chai-subset';
 import chaiUuid from 'chai-uuid';
 import 'mocha';
 import {
-    AppRolePolicies,
+    EsRolePolicies,
     AuthToken,
     buildDefaultAppRolePolicies,
     PartRefNaming,
@@ -37,7 +37,6 @@ import {
     buildEsSchema,
     StaticEsNaming,
 } from '../src';
-import { generateCryptoPassword } from '../src/util';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -73,18 +72,20 @@ const dbPoolConfig: DbPoolConfig = {
 };
 
 export const pool: DbPool = createDbPool(dbPoolConfig);
-export const rolePolicies: AppRolePolicies = buildDefaultAppRolePolicies();
+export const rolePolicies: EsRolePolicies = buildDefaultAppRolePolicies();
 export const dao = buildDaoSet();
 export const jwtSecret = 'test-secret-key';
 const control = buildControllerSet(dao);
 const schema = buildEsSchema(control);
 const storePath = path.normalize(path.join(__dirname, '../file_store'));
-export const config = {
+export const runtime = {
     pool,
+    dao,
+    control,
+};
+export const config = {
     rolePolicies,
     storePath,
-    control,
-    dao,
     naming: new StaticEsNaming({
         partRef: new PartRefNaming('${fam_code}${fam_count:3}.${part_version:A}'),
         changeRequest: new ChangeRequestNaming('CR-${counter:3}'),
@@ -100,13 +101,15 @@ export const app = buildSimpleEsApp({
         schema,
         logging: false,
     },
+    runtime,
     config,
-}, jwtSecret);
+    jwtSecret,
+});
 
 export const th = new TestHelpers(pool, dao);
 
 export function buildGqlServer(db: Db, auth: AuthToken): ApolloServerTestClient {
-    return createTestClient(buildTestGqlServer({ db, auth, schema, config }));
+    return createTestClient(buildTestGqlServer({ db, auth, schema, runtime, config }));
 }
 
 before('Start-up DB and Server', async function () {

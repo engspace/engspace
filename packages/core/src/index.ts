@@ -1,8 +1,8 @@
 export { AuthToken } from './misc';
 export {
-    AppRoleDescriptors,
-    AppRolePolicies,
-    buildAppRolePolicies,
+    EsRoleDescriptors,
+    EsRolePolicies,
+    buildEsRolePolicies,
     buildDefaultAppRolePolicies,
     buildRolePolicy,
     RoleDescriptor,

@@ -1,9 +1,9 @@
 import Router from '@koa/router';
 import Koa from 'koa';
-import { AppRolePolicies, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
+import { EsRolePolicies, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
 import { DaoSet, DbPool } from '@engspace/server-db';
 import { buildControllerSet, ControllerSet } from './control';
-import { EsKoa } from './es-koa';
+import { EsKoa, EsKoaState, EsKoaCustom } from './es-koa';
 import {
     connectDbMiddleware,
     requireAuthMiddleware,
@@ -55,13 +55,11 @@ export {
     GqlEsModule,
     resolveTracked,
 } from './graphql/schema';
-export {
-    generateCryptoPassword
-} from './util';
+export { generateCryptoPassword } from './util';
 
-export interface EsNamingProvider<Ctx = undefined> {
-    partRef(ctx?: Ctx): PartRefNaming;
-    changeRequest(ctx?: Ctx): ChangeRequestNaming;
+export interface EsNamingProvider<CtxT = undefined> {
+    partRef(ctx?: CtxT): PartRefNaming;
+    changeRequest(ctx?: CtxT): ChangeRequestNaming;
 }
 
 export class StaticEsNaming implements EsNamingProvider {
@@ -87,52 +85,70 @@ export class StaticEsNaming implements EsNamingProvider {
     }
 }
 
-export interface EsServerConfig {
-    rolePolicies: AppRolePolicies;
-    storePath: string;
+export interface EsServerRuntime<
+    DaoT extends DaoSet = DaoSet,
+    ControlT extends ControllerSet = ControllerSet
+> {
     pool: DbPool;
-    dao: DaoSet;
-    control: ControllerSet;
-    naming: EsNamingProvider;
+    dao: DaoT;
+    control: ControlT;
 }
 
-export interface EsSimpleAppConfig {
+export interface EsServerConfig<
+    RolePoliciesT extends EsRolePolicies = EsRolePolicies,
+    NamingCtxT = undefined
+> {
+    storePath: string;
+    rolePolicies: RolePoliciesT;
+    naming: EsNamingProvider<NamingCtxT>;
+}
+
+export interface EsSimpleAppParams {
     prefix: string;
     cors: boolean;
     gql: EsGraphQLConfig;
+    runtime: EsServerRuntime;
     config: EsServerConfig;
+    jwtSecret: string;
 }
 
-export function buildSimpleEsApp(
-    { prefix, cors, gql, config }: EsSimpleAppConfig,
-    jwtSecret: string
-): EsKoa {
-    const app = new Koa();
+export function buildSimpleEsApp({
+    prefix,
+    cors,
+    gql,
+    runtime,
+    config,
+    jwtSecret,
+}: EsSimpleAppParams): EsKoa {
+    const app: EsKoa = new Koa();
+
+    app.context.runtime = runtime;
+    app.context.config = config;
 
     app.use(bodyParserMiddleware);
     if (cors) app.use(corsMiddleware);
-    app.use(connectDbMiddleware(config.pool));
 
-    const login = passwordLoginMiddleware(config, jwtSecret);
-    const document = documentMiddlewares(config);
-    const firstAdmin = firstAdminMiddleware(config);
+    app.use(connectDbMiddleware);
 
-    const preAuthRouter = new Router({ prefix });
+    const login = passwordLoginMiddleware(jwtSecret);
+    const document = documentMiddlewares;
+
+    const preAuthRouter = new Router<EsKoaState, EsKoaCustom>({ prefix });
     preAuthRouter.post('/login', login);
-    preAuthRouter.get('/first_admin', firstAdmin.get);
-    preAuthRouter.post('/first_admin', firstAdmin.post);
+    preAuthRouter.get('/first_admin', firstAdminMiddleware.get);
+    preAuthRouter.post('/first_admin', firstAdminMiddleware.post);
     preAuthRouter.get('/document/download', document.download);
     app.use(preAuthRouter.routes());
 
     app.use(requireAuthMiddleware(jwtSecret)); // everything passed this point requires auth
 
-    const postAuthRouter = new Router({ prefix });
+    const postAuthRouter = new Router<EsKoaState, EsKoaCustom>({ prefix });
     postAuthRouter.get('/check_token', checkTokenEndpoint);
     postAuthRouter.get('/document/download_token', document.downloadToken);
     postAuthRouter.post('/document/upload', document.upload);
     app.use(postAuthRouter.routes());
 
-    app.use(graphQLEndpoint(gql, config));
+    app.use(graphQLEndpoint(gql));
 
     return app;
 }

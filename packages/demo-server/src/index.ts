@@ -7,6 +7,7 @@ import {
     buildEsSchema,
     StaticEsNaming,
 } from '@engspace/server-api';
+import { generateCryptoPassword } from '@engspace/server-api';
 import {
     buildDaoSet,
     connectionString,
@@ -21,7 +22,6 @@ import {
     passwordLogin,
 } from '@engspace/server-db';
 import { populateData } from './populate-data';
-import { generateCryptoPassword } from '@engspace/server-api';
 
 events.EventEmitter.defaultMaxListeners = 100;
 
@@ -65,29 +65,29 @@ export const dao = buildDaoSet();
 const rolePolicies = buildDefaultAppRolePolicies();
 const control = buildControllerSet(dao);
 const schema = buildEsSchema(control);
-const app = buildSimpleEsApp(
-    {
-        prefix: '/api',
-        cors: true,
-        gql: {
-            path: '/api/graphql',
-            schema,
-            logging: true,
-        },
-        config: {
-            pool,
-            rolePolicies,
-            storePath: config.storePath,
-            control,
-            dao,
-            naming: new StaticEsNaming({
-                partRef: new PartRefNaming('${fam_code}${fam_count:4}${part_version:AA}'),
-                changeRequest: new ChangeRequestNaming('$CR-${counter:4}'),
-            }),
-        },
+const app = buildSimpleEsApp({
+    prefix: '/api',
+    cors: true,
+    gql: {
+        path: '/api/graphql',
+        schema,
+        logging: true,
     },
-    generateCryptoPassword(16)
-);
+    runtime: {
+        pool,
+        dao,
+        control,
+    },
+    config: {
+        rolePolicies,
+        storePath: config.storePath,
+        naming: new StaticEsNaming({
+            partRef: new PartRefNaming('${fam_code}${fam_count:4}${part_version:AA}'),
+            changeRequest: new ChangeRequestNaming('$CR-${counter:4}'),
+        }),
+    },
+    jwtSecret: generateCryptoPassword(16),
+});
 
 app.use(logger());
 

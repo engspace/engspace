@@ -7,24 +7,24 @@ export class UnknownRoleError extends Error {
     }
 }
 
-export interface AppRolePolicies {
+export interface EsRolePolicies {
     user: RolePolicy;
     project: RolePolicy;
 }
 
-export interface AppRoleDescriptors {
+export interface EsRoleDescriptors {
     user: RoleDescriptorSet;
     project: RoleDescriptorSet;
 }
 
-export function buildAppRolePolicies(descriptors: AppRoleDescriptors): AppRolePolicies {
+export function buildEsRolePolicies(descriptors: EsRoleDescriptors): EsRolePolicies {
     return {
         user: buildRolePolicy(descriptors.user),
         project: buildRolePolicy(descriptors.project),
     };
 }
 
-export function buildDefaultAppRolePolicies(): AppRolePolicies {
+export function buildDefaultAppRolePolicies(): EsRolePolicies {
     return {
         user: buildRolePolicy(defaultRolePolicies.user),
         project: buildRolePolicy(defaultRolePolicies.project),
