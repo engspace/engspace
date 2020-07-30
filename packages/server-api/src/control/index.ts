@@ -1,6 +1,6 @@
-import { AuthToken } from '@engspace/core';
+import { AuthToken, EsRolePolicies } from '@engspace/core';
 import { Db, DaoSet } from '@engspace/server-db';
-import { EsServerConfig } from '..';
+import { EsServerConfig, EsServerRuntime } from '..';
 import { ChangeControl } from './change';
 import { DocumentControl, DocumentRevisionControl } from './document';
 import { PartControl } from './part';
@@ -8,10 +8,17 @@ import { PartFamilyControl } from './part-family';
 import { ProjectControl } from './project';
 import { UserControl } from './user';
 
-export interface ApiContext {
+export interface ApiContext<
+    TokenT extends AuthToken = AuthToken,
+    DaoT extends DaoSet = DaoSet,
+    ControlT extends ControllerSet = ControllerSet,
+    RolePoliciesT extends EsRolePolicies = EsRolePolicies,
+    NamingCtxT = undefined
+> {
     db: Db;
-    auth: AuthToken;
-    config: EsServerConfig;
+    auth: TokenT;
+    runtime: EsServerRuntime<DaoT, ControlT>;
+    config: EsServerConfig<RolePoliciesT, NamingCtxT>;
 }
 
 export interface Pagination {

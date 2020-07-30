@@ -1,7 +1,5 @@
-import { IResolvers } from 'apollo-server-koa';
 import gql from 'graphql-tag';
-import { Id, ProjectMember, User, UserInput } from '@engspace/core';
-import { ControllerSet } from '../../control';
+import { Id, ProjectMember, User, UserInput, HasId } from '@engspace/core';
 import { GqlContext } from '../context';
 
 export default {
@@ -38,52 +36,58 @@ export default {
         }
     `,
 
-    buildResolvers(control: ControllerSet): IResolvers {
-        return {
-            User: {
-                async roles({ id, roles }: User, args, ctx: GqlContext): Promise<string[]> {
-                    if (roles) return roles;
-                    return control.user.rolesById(ctx, id);
-                },
-                membership({ id }: User, args, ctx: GqlContext): Promise<ProjectMember[]> {
-                    return control.project.membersByUserId(ctx, id);
-                },
+    resolvers: {
+        User: {
+            async roles({ id, roles }: User, args: unknown, ctx: GqlContext): Promise<string[]> {
+                if (roles) return roles;
+                return ctx.runtime.control.user.rolesById(ctx, id);
             },
-            Query: {
-                user(parent, { id }, ctx: GqlContext): Promise<User> {
-                    return ctx.loaders.user.load(id);
-                },
-                userByName(parent, { name }, ctx: GqlContext): Promise<User> {
-                    return control.user.byName(ctx, name);
-                },
-                userByEmail(parent, { email }, ctx: GqlContext): Promise<User> {
-                    return control.user.byEmail(ctx, email);
-                },
-                userSearch(
-                    parent,
-                    args,
-                    ctx: GqlContext
-                ): Promise<{ count: number; users: User[] }> {
-                    const { search, offset, limit } = args;
-                    return control.user.search(ctx, search, { offset, limit });
-                },
+            membership({ id }: User, args: unknown, ctx: GqlContext): Promise<ProjectMember[]> {
+                return ctx.runtime.control.project.membersByUserId(ctx, id);
             },
-            Mutation: {
-                userCreate(
-                    parent,
-                    { input }: { input: UserInput },
-                    ctx: GqlContext
-                ): Promise<User> {
-                    return control.user.create(ctx, input);
-                },
-                userUpdate(
-                    parent,
-                    { id, input }: { id: Id; input: UserInput },
-                    ctx: GqlContext
-                ): Promise<User> {
-                    return control.user.update(ctx, id, input);
-                },
+        },
+        Query: {
+            user(parent: unknown, { id }: HasId, ctx: GqlContext): Promise<User> {
+                return ctx.loaders.user.load(id);
             },
-        };
+            userByName(
+                parent: unknown,
+                { name }: { name: string },
+                ctx: GqlContext
+            ): Promise<User> {
+                return ctx.runtime.control.user.byName(ctx, name);
+            },
+            userByEmail(
+                parent: unknown,
+                { email }: { email: string },
+                ctx: GqlContext
+            ): Promise<User> {
+                return ctx.runtime.control.user.byEmail(ctx, email);
+            },
+            userSearch(
+                parent: unknown,
+                args: { search: string; offset: number; limit: number },
+                ctx: GqlContext
+            ): Promise<{ count: number; users: User[] }> {
+                const { search, offset, limit } = args;
+                return ctx.runtime.control.user.search(ctx, search, { offset, limit });
+            },
+        },
+        Mutation: {
+            userCreate(
+                parent: unknown,
+                { input }: { input: UserInput },
+                ctx: GqlContext
+            ): Promise<User> {
+                return ctx.runtime.control.user.create(ctx, input);
+            },
+            userUpdate(
+                parent: unknown,
+                { id, input }: { id: Id; input: UserInput },
+                ctx: GqlContext
+            ): Promise<User> {
+                return ctx.runtime.control.user.update(ctx, id, input);
+            },
+        },
     },
 };

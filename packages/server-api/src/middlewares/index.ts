@@ -3,12 +3,11 @@ import HttpStatus from 'http-status-codes';
 import { ParameterizedContext as KoaContext } from 'koa';
 import bodyParser from 'koa-bodyparser';
 import { AuthToken } from '@engspace/core';
-import { DbPool } from '@engspace/server-db';
 import { verifyJwt } from '../crypto';
 import { EsKoaMiddleware } from '../es-koa';
 
-export { documentMiddlewares } from './document';
-export { firstAdminMiddleware } from './first-admin';
+export { default as documentMiddlewares } from './document';
+export { default as firstAdminMiddleware } from './first-admin';
 export { EsGraphQLConfig, graphQLEndpoint, buildTestGqlServer } from './graphql';
 export { setupPlaygroundLogin } from './graphql-playground';
 export { passwordLoginMiddleware } from './password-login';
@@ -39,15 +38,13 @@ export function extractBearerToken<TState>(ctx: KoaContext<TState>): string | nu
     return null;
 }
 
-export function connectDbMiddleware(pool: DbPool): EsKoaMiddleware {
-    return (ctx, next) => {
-        return pool.connect(async (db) => {
-            ctx.state.db = db;
-            await next();
-            ctx.state.db = null;
-        });
-    };
-}
+export const connectDbMiddleware: EsKoaMiddleware = async (ctx, next) => {
+    return ctx.runtime.pool.connect(async (db) => {
+        ctx.state.db = db;
+        await next();
+        ctx.state.db = null;
+    });
+};
 
 /**
  * Middleware that requires the presence and verification of an authorization token header.

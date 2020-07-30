@@ -5,7 +5,7 @@ import { GraphQLSchema } from 'graphql';
 import { AuthToken } from '@engspace/core';
 import { Db } from '@engspace/server-db';
 
-import { EsServerConfig } from '..';
+import { EsServerConfig, EsServerRuntime } from '..';
 import { ApiContext } from '../control';
 import { EsKoaMiddleware } from '../es-koa';
 import { GqlContext, gqlContextFactory } from '../graphql/context';
@@ -17,10 +17,7 @@ export interface EsGraphQLConfig {
     logging: boolean;
 }
 
-export function graphQLEndpoint(
-    { path, schema, logging }: EsGraphQLConfig,
-    config: EsServerConfig
-): EsKoaMiddleware {
+export function graphQLEndpoint({ path, schema, logging }: EsGraphQLConfig): EsKoaMiddleware {
     /* istanbul ignore next */
     const extensions = logging
         ? [
@@ -41,7 +38,7 @@ export function graphQLEndpoint(
         playground: false,
         extensions,
         formatError,
-        context: gqlContextFactory(config),
+        context: gqlContextFactory,
     });
 
     return gqlServer.getMiddleware({
@@ -53,10 +50,17 @@ export interface TestGqlConfig {
     db: Db;
     auth: AuthToken;
     schema: GraphQLSchema;
+    runtime: EsServerRuntime;
     config: EsServerConfig;
 }
 
-export function buildTestGqlServer({ db, auth, schema, config }: TestGqlConfig): ApolloServer {
+export function buildTestGqlServer({
+    db,
+    auth,
+    schema,
+    runtime,
+    config,
+}: TestGqlConfig): ApolloServer {
     return new ApolloServer({
         schema,
         introspection: false,
@@ -65,10 +69,11 @@ export function buildTestGqlServer({ db, auth, schema, config }: TestGqlConfig):
             const ctx: ApiContext = {
                 db,
                 auth,
-                config: config,
+                runtime,
+                config,
             };
             return {
-                loaders: makeLoaders(ctx, config.control),
+                loaders: makeLoaders(ctx),
                 ...ctx,
             };
         },

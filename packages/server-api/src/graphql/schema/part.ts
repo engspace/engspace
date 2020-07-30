@@ -1,4 +1,3 @@
-import { IResolvers } from 'apollo-server-koa';
 import gql from 'graphql-tag';
 import {
     Id,
@@ -17,7 +16,6 @@ import {
     PartValidationInput,
     User,
 } from '@engspace/core';
-import { ControllerSet } from '../../control';
 import { GqlContext } from '../context';
 import { resolveTracked } from '.';
 
@@ -187,155 +185,161 @@ export default {
         }
     `,
 
-    buildResolvers(control: ControllerSet): IResolvers {
-        return {
-            Part: {
-                family({ family }: Part, args, ctx: GqlContext): Promise<PartFamily> {
-                    return control.partFamily.byId(ctx, family.id);
-                },
-
-                ...resolveTracked,
+    resolvers: {
+        Part: {
+            family({ family }: Part, args: unknown, ctx: GqlContext): Promise<PartFamily> {
+                return ctx.runtime.control.partFamily.byId(ctx, family.id);
             },
 
-            PartRevision: {
-                part({ part }: PartRevision, args, ctx: GqlContext): Promise<Part> {
-                    return control.part.partById(ctx, part.id);
-                },
+            ...resolveTracked,
+        },
 
-                ...resolveTracked,
+        PartRevision: {
+            part({ part }: PartRevision, args: unknown, ctx: GqlContext): Promise<Part> {
+                return ctx.runtime.control.part.partById(ctx, part.id);
             },
 
-            PartValidation: {
-                partRev({ partRev }: PartValidation, args, ctx: GqlContext): Promise<PartRevision> {
-                    return control.part.revisionById(ctx, partRev.id);
-                },
+            ...resolveTracked,
+        },
 
-                approvals({ id }: PartValidation, args, ctx: GqlContext): Promise<PartApproval[]> {
-                    return control.part.approvalsByValidationId(ctx, id);
-                },
-
-                ...resolveTracked,
+        PartValidation: {
+            partRev(
+                { partRev }: PartValidation,
+                args: unknown,
+                ctx: GqlContext
+            ): Promise<PartRevision> {
+                return ctx.runtime.control.part.revisionById(ctx, partRev.id);
             },
 
-            PartApproval: {
-                validation(
-                    { validation }: PartApproval,
-                    args,
-                    ctx: GqlContext
-                ): Promise<PartValidation> {
-                    return control.part.validationById(ctx, validation.id);
-                },
-
-                assignee({ assignee }: PartApproval, args, ctx: GqlContext): Promise<User> {
-                    return ctx.loaders.user.load(assignee.id);
-                },
-
-                ...resolveTracked,
+            approvals(
+                { id }: PartValidation,
+                args: unknown,
+                ctx: GqlContext
+            ): Promise<PartApproval[]> {
+                return ctx.runtime.control.part.approvalsByValidationId(ctx, id);
             },
 
-            Query: {
-                partFamily(
-                    parent,
-                    { id }: { id: Id },
-                    ctx: GqlContext
-                ): Promise<PartFamily | null> {
-                    return control.partFamily.byId(ctx, id);
-                },
+            ...resolveTracked,
+        },
 
-                part(parent, { id }: { id: Id }, ctx: GqlContext): Promise<Part | null> {
-                    return control.part.partById(ctx, id);
-                },
-
-                partRevision(
-                    parent,
-                    { id }: { id: Id },
-                    ctx: GqlContext
-                ): Promise<PartRevision | null> {
-                    return control.part.revisionById(ctx, id);
-                },
-
-                partValidation(
-                    parent,
-                    { id }: { id: Id },
-                    ctx: GqlContext
-                ): Promise<PartValidation | null> {
-                    return control.part.validationById(ctx, id);
-                },
-
-                partApproval(
-                    parent,
-                    { id }: { id: Id },
-                    ctx: GqlContext
-                ): Promise<PartApproval | null> {
-                    return control.part.approvalById(ctx, id);
-                },
+        PartApproval: {
+            validation(
+                { validation }: PartApproval,
+                args: unknown,
+                ctx: GqlContext
+            ): Promise<PartValidation> {
+                return ctx.runtime.control.part.validationById(ctx, validation.id);
             },
-            Mutation: {
-                partFamilyCreate(
-                    parent,
-                    { input }: { input: PartFamilyInput },
-                    ctx: GqlContext
-                ): Promise<PartFamily> {
-                    return control.partFamily.create(ctx, input);
-                },
-                partFamilyUpdate(
-                    parent,
-                    { id, input }: { id: Id; input: PartFamilyInput },
-                    ctx: GqlContext
-                ): Promise<PartFamily> {
-                    return control.partFamily.update(ctx, id, input);
-                },
 
-                partCreate(
-                    parent,
-                    { input }: { input: PartCreateInput },
-                    ctx: GqlContext
-                ): Promise<PartRevision> {
-                    return control.part.create(ctx, input);
-                },
-                partFork(
-                    parent,
-                    { input }: { input: PartForkInput },
-                    ctx: GqlContext
-                ): Promise<PartRevision> {
-                    return control.part.fork(ctx, input);
-                },
-                partUpdate(
-                    parent,
-                    { id, input }: { id: Id; input: PartUpdateInput },
-                    ctx: GqlContext
-                ): Promise<Part> {
-                    return control.part.updatePart(ctx, id, input);
-                },
-                partRevise(
-                    parent,
-                    { input }: { input: PartRevisionInput },
-                    ctx: GqlContext
-                ): Promise<PartRevision> {
-                    return control.part.revise(ctx, input);
-                },
-                partStartValidation(
-                    parent,
-                    { input }: { input: PartValidationInput },
-                    ctx: GqlContext
-                ): Promise<PartValidation> {
-                    return control.part.startValidation(ctx, input);
-                },
-                partUpdateApproval(
-                    parent,
-                    { id, input }: { id: Id; input: PartApprovalUpdateInput },
-                    ctx: GqlContext
-                ): Promise<PartApproval> {
-                    return control.part.updateApproval(ctx, id, input);
-                },
-                partCloseValidation(
-                    parent,
-                    { id, input }: { id: Id; input: PartValidationCloseInput },
-                    ctx: GqlContext
-                ): Promise<PartValidation> {
-                    return control.part.closeValidation(ctx, id, input);
-                },
+            assignee({ assignee }: PartApproval, args: unknown, ctx: GqlContext): Promise<User> {
+                return ctx.loaders.user.load(assignee.id);
             },
-        };
+
+            ...resolveTracked,
+        },
+
+        Query: {
+            partFamily(
+                parent: unknown,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<PartFamily | null> {
+                return ctx.runtime.control.partFamily.byId(ctx, id);
+            },
+
+            part(parent: unknown, { id }: { id: Id }, ctx: GqlContext): Promise<Part | null> {
+                return ctx.runtime.control.part.partById(ctx, id);
+            },
+
+            partRevision(
+                parent: unknown,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<PartRevision | null> {
+                return ctx.runtime.control.part.revisionById(ctx, id);
+            },
+
+            partValidation(
+                parent: unknown,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<PartValidation | null> {
+                return ctx.runtime.control.part.validationById(ctx, id);
+            },
+
+            partApproval(
+                parent: unknown,
+                { id }: { id: Id },
+                ctx: GqlContext
+            ): Promise<PartApproval | null> {
+                return ctx.runtime.control.part.approvalById(ctx, id);
+            },
+        },
+        Mutation: {
+            partFamilyCreate(
+                parent: unknown,
+                { input }: { input: PartFamilyInput },
+                ctx: GqlContext
+            ): Promise<PartFamily> {
+                return ctx.runtime.control.partFamily.create(ctx, input);
+            },
+            partFamilyUpdate(
+                parent: unknown,
+                { id, input }: { id: Id; input: PartFamilyInput },
+                ctx: GqlContext
+            ): Promise<PartFamily> {
+                return ctx.runtime.control.partFamily.update(ctx, id, input);
+            },
+
+            partCreate(
+                parent: unknown,
+                { input }: { input: PartCreateInput },
+                ctx: GqlContext
+            ): Promise<PartRevision> {
+                return ctx.runtime.control.part.create(ctx, input);
+            },
+            partFork(
+                parent: unknown,
+                { input }: { input: PartForkInput },
+                ctx: GqlContext
+            ): Promise<PartRevision> {
+                return ctx.runtime.control.part.fork(ctx, input);
+            },
+            partUpdate(
+                parent: unknown,
+                { id, input }: { id: Id; input: PartUpdateInput },
+                ctx: GqlContext
+            ): Promise<Part> {
+                return ctx.runtime.control.part.updatePart(ctx, id, input);
+            },
+            partRevise(
+                parent: unknown,
+                { input }: { input: PartRevisionInput },
+                ctx: GqlContext
+            ): Promise<PartRevision> {
+                return ctx.runtime.control.part.revise(ctx, input);
+            },
+            partStartValidation(
+                parent: unknown,
+                { input }: { input: PartValidationInput },
+                ctx: GqlContext
+            ): Promise<PartValidation> {
+                return ctx.runtime.control.part.startValidation(ctx, input);
+            },
+            partUpdateApproval(
+                parent: unknown,
+                { id, input }: { id: Id; input: PartApprovalUpdateInput },
+                ctx: GqlContext
+            ): Promise<PartApproval> {
+                return ctx.runtime.control.part.updateApproval(ctx, id, input);
+            },
+            partCloseValidation(
+                parent: unknown,
+                { id, input }: { id: Id; input: PartValidationCloseInput },
+                ctx: GqlContext
+            ): Promise<PartValidation> {
+                return ctx.runtime.control.part.closeValidation(ctx, id, input);
+            },
+        },
     },
 };

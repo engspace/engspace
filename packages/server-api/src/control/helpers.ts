@@ -18,7 +18,7 @@ export async function hasProjectPerm(
     perm: string
 ): Promise<boolean> {
     const { rolePolicies } = ctx.config;
-    const member = await ctx.config.dao.projectMember.byProjectAndUserId(
+    const member = await ctx.runtime.dao.projectMember.byProjectAndUserId(
         ctx.db,
         projectId,
         ctx.auth.userId,

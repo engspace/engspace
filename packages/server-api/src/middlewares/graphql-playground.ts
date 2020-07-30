@@ -8,7 +8,7 @@ import Koa from 'koa';
 import mime from 'mime';
 import { AuthToken } from '@engspace/core';
 import { passwordLogin } from '@engspace/server-db';
-import { EsServerConfig } from '../';
+import { EsServerConfig, EsServerRuntime } from '../';
 import { signJwt, verifyJwt } from '../crypto';
 import { gqlContextFactory } from '../graphql/context';
 
@@ -18,10 +18,12 @@ import { gqlContextFactory } from '../graphql/context';
 export function setupPlaygroundLogin(
     prefix: string,
     app: Koa,
+    runtime: EsServerRuntime,
     config: EsServerConfig,
     jwtSecret: string
 ): void {
-    const { rolePolicies, pool } = config;
+    const { pool } = runtime;
+    const { rolePolicies } = config;
 
     const router = new Router({ prefix });
 
@@ -111,7 +113,7 @@ export function setupPlaygroundEndpoint(
                 'request.credentials': 'same-origin',
             },
         },
-        context: gqlContextFactory(config),
+        context: gqlContextFactory,
     });
 
     app.use(

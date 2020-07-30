@@ -1,12 +1,9 @@
 import HttpStatus from 'http-status-codes';
-import { Middleware } from 'koa';
 import { passwordLogin } from '@engspace/server-db';
-import { EsServerConfig } from '..';
 import { signJwt } from '../crypto';
+import { EsKoaMiddleware } from '../es-koa';
 
-export function passwordLoginMiddleware(config: EsServerConfig, jwtSecret: string): Middleware {
-    const { pool, rolePolicies } = config;
-
+export function passwordLoginMiddleware(jwtSecret: string): EsKoaMiddleware {
     return async (ctx) => {
         const { nameOrEmail, password } = ctx.request.body;
 
@@ -22,9 +19,10 @@ export function passwordLoginMiddleware(config: EsServerConfig, jwtSecret: strin
             "'nameOrEmail' and 'password' cannot be empty"
         );
 
-        const user = await pool.connect(async (db) => {
-            return passwordLogin.login(db, nameOrEmail, password);
-        });
+        const { db } = ctx.state;
+        const { rolePolicies } = ctx.config;
+
+        const user = await passwordLogin.login(db, nameOrEmail, password);
         if (user) {
             const perms = rolePolicies.user.permissions(user.roles);
             const token = await signJwt(
