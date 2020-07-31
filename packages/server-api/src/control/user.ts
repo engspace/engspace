@@ -1,11 +1,10 @@
 import { ForbiddenError, UserInputError } from 'apollo-server-koa';
 import validator from 'validator';
 import { arraysHaveSameMembers, Id, User, UserInput } from '@engspace/core';
-import { DaoSet } from '@engspace/server-db';
 import { assertUserPerm, hasUserPerm } from './helpers';
 import { ApiContext, Pagination } from '.';
 
-export class UserControl<DaoT extends DaoSet = DaoSet> {
+export class UserControl {
     async create(ctx: ApiContext, { name, email, fullName, roles }: UserInput): Promise<User> {
         assertUserPerm(ctx, 'user.create');
         const {
