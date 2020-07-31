@@ -11,22 +11,28 @@ import {
     DocumentSearch,
     Id,
 } from '@engspace/core';
-import { DaoSet } from '@engspace/server-db';
 import { fileSha1sum } from '../util';
 import { assertUserPerm, hasUserPerm } from './helpers';
 import { ApiContext } from '.';
 
 export class DocumentControl {
-    constructor(private dao: DaoSet) {}
-
     create(ctx: ApiContext, document: DocumentInput): Promise<Document> {
         assertUserPerm(ctx, 'document.create');
-        return this.dao.document.create(ctx.db, document, ctx.auth.userId);
+        const {
+            db,
+            auth: { userId },
+            runtime: { dao },
+        } = ctx;
+        return dao.document.create(db, document, userId);
     }
 
     byId(ctx: ApiContext, id: Id): Promise<Document | null> {
         assertUserPerm(ctx, 'document.read');
-        return this.dao.document.byId(ctx.db, id);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.document.byId(db, id);
     }
 
     search(
@@ -36,12 +42,21 @@ export class DocumentControl {
         limit: number
     ): Promise<DocumentSearch> {
         assertUserPerm(ctx, 'document.read');
-        return this.dao.document.search(ctx.db, search, offset, limit);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.document.search(db, search, offset, limit);
     }
 
     async checkout(ctx: ApiContext, id: Id, revision: number): Promise<Document> {
         assertUserPerm(ctx, 'document.revise');
-        const lastRev = await this.dao.documentRevision.lastByDocumentId(ctx.db, id);
+        const {
+            db,
+            auth: { userId },
+            runtime: { dao },
+        } = ctx;
+        const lastRev = await dao.documentRevision.lastByDocumentId(db, id);
         if (!lastRev) {
             if (revision !== 0) {
                 throw new UserInputError(`${revision} is not the last revision`);
@@ -49,12 +64,12 @@ export class DocumentControl {
         } else if (revision !== lastRev.revision) {
             throw new UserInputError(`${revision} is not the last revision`);
         }
-        const doc = await this.dao.document.checkout(ctx.db, id, ctx.auth.userId);
+        const doc = await dao.document.checkout(db, id, userId);
         if (!doc) {
             throw new UserInputError('Could not checkout the specified document');
         }
-        if (doc.checkout.id !== ctx.auth.userId) {
-            const user = await this.dao.user.byId(ctx.db, doc.checkout.id);
+        if (doc.checkout.id !== userId) {
+            const user = await dao.user.byId(db, doc.checkout.id);
             throw new UserInputError(`Document is already checked out by ${user.fullName}`);
         }
         return doc;
@@ -62,13 +77,18 @@ export class DocumentControl {
 
     async discardCheckout(ctx: ApiContext, id: Id): Promise<Document | null> {
         assertUserPerm(ctx, 'document.revise');
-        const doc = await this.dao.document.discardCheckout(ctx.db, id, ctx.auth.userId);
+        const {
+            db,
+            auth: { userId },
+            runtime: { dao },
+        } = ctx;
+        const doc = await dao.document.discardCheckout(db, id, userId);
         if (!doc) return null;
         if (doc.checkout) {
-            if (doc.checkout.id === ctx.auth.userId) {
+            if (doc.checkout.id === userId) {
                 throw new Error(`Could not discard checkout of "${doc.name}"`);
             }
-            const user = await this.dao.user.byId(ctx.db, doc.checkout.id);
+            const user = await dao.user.byId(db, doc.checkout.id);
             throw new UserInputError(`Document is checked-out by ${user.fullName}`);
         }
         return doc;
@@ -119,53 +139,77 @@ function checkCleanup(revId: Id): void {
 }
 
 export class DocumentRevisionControl {
-    constructor(private dao: DaoSet) {}
-
     async create(ctx: ApiContext, docRev: DocumentRevisionInput): Promise<DocumentRevision> {
         assertUserPerm(ctx, 'document.revise');
-        const { db, auth } = ctx;
-        const checkoutId = await this.dao.document.checkoutIdById(db, docRev.documentId);
+        const {
+            db,
+            auth: { userId },
+            runtime: { dao },
+        } = ctx;
+        const checkoutId = await dao.document.checkoutIdById(db, docRev.documentId);
         if (!checkoutId) {
             throw new UserInputError('Trying to revise a non checked-out document');
         }
-        if (checkoutId !== auth.userId) {
-            const user = await this.dao.user.byId(db, checkoutId);
+        if (checkoutId !== userId) {
+            const user = await dao.user.byId(db, checkoutId);
             throw new UserInputError(`Document checked-out by ${user.fullName}`);
         }
-        return this.dao.documentRevision.create(db, docRev, auth.userId);
+        return dao.documentRevision.create(db, docRev, userId);
     }
 
     byId(ctx: ApiContext, id: Id): Promise<DocumentRevision | null> {
         assertUserPerm(ctx, 'document.read');
-        return this.dao.documentRevision.byId(ctx.db, id);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.documentRevision.byId(db, id);
     }
 
     byDocumentId(ctx: ApiContext, documentId: Id): Promise<DocumentRevision[]> {
         assertUserPerm(ctx, 'document.read');
-        return this.dao.documentRevision.byDocumentId(ctx.db, documentId);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.documentRevision.byDocumentId(db, documentId);
     }
 
     lastByDocumentId(ctx: ApiContext, documentId: Id): Promise<DocumentRevision | null> {
         assertUserPerm(ctx, 'document.read');
-        return this.dao.documentRevision.lastByDocumentId(ctx.db, documentId);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.documentRevision.lastByDocumentId(db, documentId);
     }
 
     async download(ctx: ApiContext, documentRevisionId: Id): Promise<FileDownload | FileError> {
         if (!hasUserPerm(ctx, 'document.read')) {
             return FileError.Forbidden;
         }
-        const docRev = await this.dao.documentRevision.byId(ctx.db, documentRevisionId);
+        const {
+            db,
+            runtime: { dao },
+            config: { storePath },
+        } = ctx;
+        const docRev = await dao.documentRevision.byId(db, documentRevisionId);
         if (!docRev) return FileError.NotExist;
         return {
             docRev,
-            filepath: path.join(ctx.config.storePath, docRev.sha1),
+            filepath: path.join(storePath, docRev.sha1),
         };
     }
 
     async uploadChunk(ctx: ApiContext, revisionId: Id, chunk: UploadChunk): Promise<void> {
         assertUserPerm(ctx, 'document.revise');
 
-        const tempDir = path.join(ctx.config.storePath, 'upload');
+        const {
+            db,
+            runtime: { dao },
+            config: { storePath },
+        } = ctx;
+        const tempDir = path.join(storePath, 'upload');
         await fs.promises.mkdir(tempDir, { recursive: true });
         const openFlags = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL;
         const tempPath = path.join(tempDir, revisionId);
@@ -197,7 +241,7 @@ export class DocumentRevisionControl {
             upload.touched = Date.now();
             setTimeout(checkCleanup, openUploadMaxAge + 10, revisionId);
         }
-        await this.dao.documentRevision.updateAddProgress(ctx.db, revisionId, chunk.length);
+        await dao.documentRevision.updateAddProgress(db, revisionId, chunk.length);
     }
 
     async finalizeUpload(
@@ -206,10 +250,15 @@ export class DocumentRevisionControl {
         clientSha1: string
     ): Promise<DocumentRevision> {
         assertUserPerm(ctx, 'document.revise');
+        const {
+            db,
+            runtime: { dao },
+            config: { storePath },
+        } = ctx;
 
         const sha1 = clientSha1.toLowerCase();
 
-        const tempDir = path.join(ctx.config.storePath, 'upload');
+        const tempDir = path.join(storePath, 'upload');
         const tempPath = path.join(tempDir, revisionId);
         if (openUploads[revisionId]) {
             const upload = openUploads[revisionId];
@@ -222,15 +271,15 @@ export class DocumentRevisionControl {
         const hash = await fileSha1sum(tempPath);
         if (hash.toLowerCase() !== sha1) {
             await fs.promises.unlink(tempPath);
-            await this.dao.documentRevision.deleteById(ctx.db, revisionId);
+            await dao.documentRevision.deleteById(db, revisionId);
             throw new Error(
                 `Server hash (${hash.toLowerCase()}) do not match client hash (${sha1}).` +
                     `\nRevision is aborted.`
             );
         }
-        await fs.promises.mkdir(ctx.config.storePath, { recursive: true });
-        const finalPath = path.join(ctx.config.storePath, sha1);
+        await fs.promises.mkdir(storePath, { recursive: true });
+        const finalPath = path.join(storePath, sha1);
         await fs.promises.rename(tempPath, finalPath);
-        return this.dao.documentRevision.updateSha1(ctx.db, revisionId, sha1);
+        return dao.documentRevision.updateSha1(db, revisionId, sha1);
     }
 }

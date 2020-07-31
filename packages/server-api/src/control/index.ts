@@ -36,17 +36,14 @@ export interface ControllerSet {
     documentRevision: DocumentRevisionControl;
 }
 
-export function buildControllerSet(
-    dao: DaoSet,
-    custom: Partial<ControllerSet> = {}
-): ControllerSet {
-    const user = custom.user ?? new UserControl(dao);
-    const project = custom.project ?? new ProjectControl(dao);
-    const partFamily = custom.partFamily ?? new PartFamilyControl(dao);
-    const part = custom.part ?? new PartControl(dao);
-    const change = custom.change ?? new ChangeControl(dao, part);
-    const document = custom.document ?? new DocumentControl(dao);
-    const documentRevision = custom.documentRevision ?? new DocumentRevisionControl(dao);
+export function buildControllerSet(custom: Partial<ControllerSet> = {}): ControllerSet {
+    const user = custom.user ?? new UserControl();
+    const project = custom.project ?? new ProjectControl();
+    const partFamily = custom.partFamily ?? new PartFamilyControl();
+    const part = custom.part ?? new PartControl();
+    const change = custom.change ?? new ChangeControl();
+    const document = custom.document ?? new DocumentControl();
+    const documentRevision = custom.documentRevision ?? new DocumentRevisionControl();
     return {
         user,
         project,

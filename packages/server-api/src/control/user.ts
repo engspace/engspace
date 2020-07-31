@@ -6,35 +6,53 @@ import { assertUserPerm, hasUserPerm } from './helpers';
 import { ApiContext, Pagination } from '.';
 
 export class UserControl<DaoT extends DaoSet = DaoSet> {
-    constructor(protected dao: DaoT) {}
-
     async create(ctx: ApiContext, { name, email, fullName, roles }: UserInput): Promise<User> {
         assertUserPerm(ctx, 'user.create');
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
         if (!validator.isEmail(email)) {
             throw new UserInputError(`"${email}" is not a valid email address`);
         }
 
-        return this.dao.user.create(ctx.db, { name, email, fullName, roles }, { withRoles: true });
+        return dao.user.create(db, { name, email, fullName, roles }, { withRoles: true });
     }
 
     async byIds(ctx: ApiContext, ids: readonly Id[]): Promise<User[]> {
         assertUserPerm(ctx, 'user.read');
-        return this.dao.user.batchByIds(ctx.db, ids);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.user.batchByIds(db, ids);
     }
 
     async byName(ctx: ApiContext, name: string): Promise<User> {
         assertUserPerm(ctx, 'user.read');
-        return this.dao.user.byName(ctx.db, name);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.user.byName(db, name);
     }
 
     async byEmail(ctx: ApiContext, email: string): Promise<User> {
         assertUserPerm(ctx, 'user.read');
-        return this.dao.user.byEmail(ctx.db, email);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.user.byEmail(db, email);
     }
 
     async rolesById(ctx: ApiContext, userId: Id): Promise<string[]> {
         assertUserPerm(ctx, 'user.read');
-        return this.dao.user.rolesById(ctx.db, userId);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.user.rolesById(db, userId);
     }
 
     async search(
@@ -43,8 +61,12 @@ export class UserControl<DaoT extends DaoSet = DaoSet> {
         pag?: Pagination
     ): Promise<{ count: number; users: User[] }> {
         assertUserPerm(ctx, 'user.read');
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
         const { offset, limit } = pag;
-        return this.dao.user.search(ctx.db, {
+        return dao.user.search(db, {
             phrase: search,
             offset,
             limit,
@@ -52,12 +74,17 @@ export class UserControl<DaoT extends DaoSet = DaoSet> {
     }
 
     async update(ctx: ApiContext, userId: Id, input: UserInput): Promise<User> {
-        const self = userId === ctx.auth.userId;
+        const {
+            db,
+            auth,
+            runtime: { dao },
+        } = ctx;
+        const self = userId === auth.userId;
         const hasPerm = hasUserPerm(ctx, 'user.update');
         if (!self && !hasPerm) {
             throw new ForbiddenError('missing permission: "user.update"');
         }
-        const roles = await this.dao.user.rolesById(ctx.db, userId);
+        const roles = await dao.user.rolesById(db, userId);
         const sameRoles = arraysHaveSameMembers(roles, input.roles);
         if (!sameRoles && !hasPerm) {
             throw new ForbiddenError('missing permission: "user.update"');
@@ -66,9 +93,9 @@ export class UserControl<DaoT extends DaoSet = DaoSet> {
         if (!validator.isEmail(input.email)) {
             throw new UserInputError(`"${input.email}" is not a valid email address`);
         }
-        const user = await this.dao.user.update(ctx.db, userId, input);
+        const user = await dao.user.update(db, userId, input);
         if (!sameRoles) {
-            user.roles = await this.dao.user.updateRoles(ctx.db, userId, input.roles);
+            user.roles = await dao.user.updateRoles(db, userId, input.roles);
         } else {
             user.roles = roles;
         }

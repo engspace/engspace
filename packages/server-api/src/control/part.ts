@@ -17,34 +17,36 @@ import {
     PartValidationInput,
     ValidationResult,
 } from '@engspace/core';
-import { DaoSet } from '@engspace/server-db';
 import { assertUserPerm } from './helpers';
 import { ApiContext } from '.';
 
 export class PartControl {
-    constructor(private dao: DaoSet) {}
-
     async create(ctx: ApiContext, input: PartCreateInput): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.create');
 
-        const { userId } = ctx.auth;
+        const {
+            db,
+            auth: { userId },
+            runtime: { dao },
+            config: { naming },
+        } = ctx;
 
-        const ref = await ctx.db.transaction(async (db) => {
-            const fam = await this.dao.partFamily.bumpCounterById(db, input.familyId);
-            return ctx.config.naming.partRef().buildName({
+        const ref = await db.transaction(async (db) => {
+            const fam = await dao.partFamily.bumpCounterById(db, input.familyId);
+            return naming.partRef().buildName({
                 familyCode: fam.code,
                 familyCount: fam.counter,
                 partVersion: input.initialVersion,
             });
         });
-        const part = await this.dao.part.create(ctx.db, {
+        const part = await dao.part.create(db, {
             familyId: input.familyId,
             ref,
             designation: input.designation,
             userId,
         });
 
-        return this.dao.partRevision.create(ctx.db, {
+        return dao.partRevision.create(db, {
             partId: part.id,
             designation: input.designation,
             changeRequestId: input.changeRequestId,
@@ -58,22 +60,27 @@ export class PartControl {
         { partId, version, designation, changeRequestId }: PartForkInput
     ): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.create');
-        const { userId } = ctx.auth;
-        const part = await this.dao.part.byId(ctx.db, partId);
-        const prn = ctx.config.naming.partRef();
+        const {
+            db,
+            auth: { userId },
+            runtime: { dao },
+            config: { naming },
+        } = ctx;
+        const part = await dao.part.byId(db, partId);
+        const prn = naming.partRef();
         const { familyCode, familyCount, partVersion } = prn.extractComps(part.ref);
         const ref = prn.buildName({
             familyCode,
             familyCount,
             partVersion: version ?? prn.versionFormat.getNext(partVersion),
         });
-        const fork = await this.dao.part.create(ctx.db, {
+        const fork = await dao.part.create(db, {
             familyId: part.family.id,
             ref,
             designation: designation ?? part.designation,
             userId,
         });
-        return this.dao.partRevision.create(ctx.db, {
+        return dao.partRevision.create(db, {
             partId: fork.id,
             designation: fork.designation,
             changeRequestId,
@@ -88,34 +95,48 @@ export class PartControl {
     ): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.create');
 
-        const last = await this.dao.partRevision.lastByPartId(ctx.db, partId);
+        const {
+            db,
+            auth: { userId },
+            runtime: { dao },
+        } = ctx;
+
+        const last = await dao.partRevision.lastByPartId(db, partId);
         if (last && last.cycle === PartCycle.Edition) {
             throw new UserInputError('Cannot revise a part that is in edition mode!');
         }
 
         let des = designation;
         if (!des) {
-            const part = await this.dao.part.byId(ctx.db, partId);
+            const part = await dao.part.byId(db, partId);
             des = part.designation;
         }
 
-        return this.dao.partRevision.create(ctx.db, {
+        return dao.partRevision.create(db, {
             partId,
             designation: des,
             changeRequestId,
             cycle: PartCycle.Edition,
-            userId: ctx.auth.userId,
+            userId: userId,
         });
     }
 
     partById(ctx: ApiContext, partId: Id): Promise<Part> {
         assertUserPerm(ctx, 'part.read');
-        return this.dao.part.byId(ctx.db, partId);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.part.byId(db, partId);
     }
 
     revisionById(ctx: ApiContext, revisionId: Id): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.read');
-        return this.dao.partRevision.byId(ctx.db, revisionId);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.partRevision.byId(db, revisionId);
     }
 
     async startValidation(
@@ -123,19 +144,23 @@ export class PartControl {
         { partRevId, requiredApprovals }: PartValidationInput
     ): Promise<PartValidation> {
         assertUserPerm(ctx, 'partval.create');
-        const { userId } = ctx.auth;
-        const partRev = await this.dao.partRevision.byId(ctx.db, partRevId);
+        const {
+            db,
+            auth: { userId },
+            runtime: { dao },
+        } = ctx;
+        const partRev = await dao.partRevision.byId(db, partRevId);
         if (partRev.cycle !== PartCycle.Edition) {
             throw new UserInputError('cannot validate a part that is not in edition mode');
         }
-        const val = await this.dao.partValidation.create(ctx.db, {
+        const val = await dao.partValidation.create(db, {
             partRevId: partRevId,
             userId,
         });
 
         const approvals = await Promise.all(
             requiredApprovals.map(({ assigneeId }: PartApprovalInput) =>
-                this.dao.partApproval.create(ctx.db, {
+                dao.partApproval.create(db, {
                     validationId: val.id,
                     assigneeId,
                     decision: ApprovalDecision.Pending,
@@ -144,7 +169,7 @@ export class PartControl {
             )
         );
 
-        await this.dao.partRevision.updateCycleState(ctx.db, partRevId, PartCycle.Validation);
+        await dao.partRevision.updateCycleState(db, partRevId, PartCycle.Validation);
 
         return {
             ...val,
@@ -154,19 +179,18 @@ export class PartControl {
     }
 
     async updateApproval(
-        { db, auth }: ApiContext,
+        { db, auth: { userId }, runtime: { dao } }: ApiContext,
         approvalId: Id,
         { decision, comments }: PartApprovalUpdateInput
     ): Promise<PartApproval> {
-        const { userId } = auth;
-        const { assignee } = await this.dao.partApproval.byId(db, approvalId);
+        const { assignee } = await dao.partApproval.byId(db, approvalId);
         if (assignee.id !== userId) {
-            const { fullName, email } = await this.dao.user.byId(db, assignee.id);
+            const { fullName, email } = await dao.user.byId(db, assignee.id);
             throw new ForbiddenError(
                 `Only ${fullName} (${email}) is allowed to set this approval decision`
             );
         }
-        return this.dao.partApproval.update(db, approvalId, {
+        return dao.partApproval.update(db, approvalId, {
             decision: decision,
             comments,
             userId,
@@ -178,12 +202,14 @@ export class PartControl {
         validationId: Id,
         { result, comments }: PartValidationCloseInput
     ): Promise<PartValidation> {
-        const { createdBy, state, partRev } = await this.dao.partValidation.byId(
-            ctx.db,
-            validationId
-        );
-        if (createdBy.id !== ctx.auth.userId) {
-            const { fullName, email } = await this.dao.user.byId(ctx.db, createdBy.id);
+        const {
+            db,
+            auth: { userId },
+            runtime: { dao },
+        } = ctx;
+        const { createdBy, state, partRev } = await dao.partValidation.byId(db, validationId);
+        if (createdBy.id !== userId) {
+            const { fullName, email } = await dao.user.byId(db, createdBy.id);
             throw new ForbiddenError(
                 `Only ${fullName} (${email}) is allowed to close this validation`
             );
@@ -197,25 +223,21 @@ export class PartControl {
                 `Cannot release with a validation that is in "${state}" state`
             );
         }
-        const val = await this.dao.partValidation.update(ctx.db, validationId, {
+        const val = await dao.partValidation.update(db, validationId, {
             result,
             comments,
-            userId: ctx.auth.userId,
+            userId: userId,
         });
 
         switch (result) {
             case ValidationResult.Release:
-                await this.dao.partRevision.updateCycleState(ctx.db, partRev.id, PartCycle.Release);
+                await dao.partRevision.updateCycleState(db, partRev.id, PartCycle.Release);
                 break;
             case ValidationResult.Cancel:
-                await this.dao.partRevision.updateCycleState(
-                    ctx.db,
-                    partRev.id,
-                    PartCycle.Cancelled
-                );
+                await dao.partRevision.updateCycleState(db, partRev.id, PartCycle.Cancelled);
                 break;
             case ValidationResult.TryAgain:
-                await this.dao.partRevision.updateCycleState(ctx.db, partRev.id, PartCycle.Edition);
+                await dao.partRevision.updateCycleState(db, partRev.id, PartCycle.Edition);
                 break;
         }
 
@@ -224,24 +246,41 @@ export class PartControl {
 
     validationById(ctx: ApiContext, validationId: Id): Promise<PartValidation> {
         assertUserPerm(ctx, 'partval.read');
-        return this.dao.partValidation.byId(ctx.db, validationId);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.partValidation.byId(db, validationId);
     }
 
     approvalById(ctx: ApiContext, approvalId: Id): Promise<PartApproval> {
         assertUserPerm(ctx, 'partval.read');
-        return this.dao.partApproval.byId(ctx.db, approvalId);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.partApproval.byId(db, approvalId);
     }
 
     approvalsByValidationId(ctx: ApiContext, validationId: Id): Promise<PartApproval[]> {
         assertUserPerm(ctx, 'partval.read');
-        return this.dao.partApproval.byValidationId(ctx.db, validationId);
+        const {
+            db,
+            runtime: { dao },
+        } = ctx;
+        return dao.partApproval.byValidationId(db, validationId);
     }
 
     updatePart(ctx: ApiContext, id: Id, input: PartUpdateInput): Promise<Part> {
         assertUserPerm(ctx, 'part.update');
-        return this.dao.part.updateById(ctx.db, id, {
+        const {
+            db,
+            auth: { userId },
+            runtime: { dao },
+        } = ctx;
+        return dao.part.updateById(db, id, {
             ...input,
-            userId: ctx.auth.userId,
+            userId: userId,
         });
     }
 }
