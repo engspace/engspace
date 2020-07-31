@@ -63,7 +63,7 @@ const dbPoolConfig: DbPoolConfig = {
 const pool: DbPool = createDbPool(dbPoolConfig);
 export const dao = buildEsDaoSet();
 const rolePolicies = buildDefaultAppRolePolicies();
-const control = buildEsControlSet(dao);
+const control = buildEsControlSet();
 const schema = buildEsSchema();
 const app = buildSimpleEsApp({
     prefix: '/api',
