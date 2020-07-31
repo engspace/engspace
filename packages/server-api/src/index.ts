@@ -24,6 +24,7 @@ export { ChangeControl } from './control/change';
 export { PartControl } from './control/part';
 export { PartFamilyControl } from './control/part-family';
 export { ProjectControl } from './control/project';
+export { assertUserPerm, assertUserOrProjectPerm } from './control/helpers';
 export { signJwt, verifyJwt } from './crypto';
 export { EsKoa, EsKoaContext, EsKoaMiddleware, EsKoaState, EsKoaCustom } from './es-koa';
 export {
