@@ -1,8 +1,8 @@
 import { InjectionKey, provide, inject } from '@vue/composition-api';
-import { AppRolePolicies } from '@engspace/core';
+import { EsRolePolicies } from '@engspace/core';
 
 interface EsClientConfig {
-    rolePolicies: AppRolePolicies;
+    rolePolicies: EsRolePolicies;
 }
 
 const ConfigSymbol: InjectionKey<EsClientConfig> = Symbol();
