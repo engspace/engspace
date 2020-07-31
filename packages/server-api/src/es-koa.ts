@@ -1,7 +1,7 @@
 import Application, { Middleware, ParameterizedContext } from 'koa';
 import { AuthToken, EsRolePolicies, RolePolicy } from '@engspace/core';
-import { Db, DaoSet } from '@engspace/server-db';
-import { ControllerSet } from './control';
+import { Db, EsDaoSet } from '@engspace/server-db';
+import { EsControlSet } from './control';
 import { EsServerRuntime, EsServerConfig } from '.';
 
 /**
@@ -16,8 +16,8 @@ export interface EsKoaState<TokenT extends AuthToken = AuthToken> {
  * State statically attached at startup
  */
 export interface EsKoaCustom<
-    DaoT extends DaoSet = DaoSet,
-    ControlT extends ControllerSet = ControllerSet,
+    DaoT extends EsDaoSet = EsDaoSet,
+    ControlT extends EsControlSet = EsControlSet,
     RolePoliciesT extends EsRolePolicies = EsRolePolicies,
     NamingCtxT = undefined
 > {
@@ -27,16 +27,16 @@ export interface EsKoaCustom<
 
 export type EsKoa<
     TokenT extends AuthToken = AuthToken,
-    DaoT extends DaoSet = DaoSet,
-    ControlT extends ControllerSet = ControllerSet,
+    DaoT extends EsDaoSet = EsDaoSet,
+    ControlT extends EsControlSet = EsControlSet,
     RolePoliciesT extends EsRolePolicies = EsRolePolicies,
     NamingCtxT = undefined
 > = Application<EsKoaState<TokenT>, EsKoaCustom<DaoT, ControlT, RolePoliciesT, NamingCtxT>>;
 
 export type EsKoaContext<
     TokenT extends AuthToken = AuthToken,
-    DaoT extends DaoSet = DaoSet,
-    ControlT extends ControllerSet = ControllerSet,
+    DaoT extends EsDaoSet = EsDaoSet,
+    ControlT extends EsControlSet = EsControlSet,
     RolePoliciesT extends EsRolePolicies = EsRolePolicies,
     NamingCtxT = undefined
 > = ParameterizedContext<
@@ -46,8 +46,8 @@ export type EsKoaContext<
 
 export type EsKoaMiddleware<
     TokenT extends AuthToken = AuthToken,
-    DaoT extends DaoSet = DaoSet,
-    ControlT extends ControllerSet = ControllerSet,
+    DaoT extends EsDaoSet = EsDaoSet,
+    ControlT extends EsControlSet = EsControlSet,
     RolePoliciesT extends EsRolePolicies = EsRolePolicies,
     NamingCtxT = undefined
 > = Middleware<EsKoaState<TokenT>, EsKoaCustom<DaoT, ControlT, RolePoliciesT, NamingCtxT>>;

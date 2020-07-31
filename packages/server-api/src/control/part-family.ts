@@ -1,9 +1,9 @@
 import { Id, PartFamily, PartFamilyInput } from '@engspace/core';
 import { assertUserPerm } from './helpers';
-import { ApiContext } from '.';
+import { EsContext } from '.';
 
 export class PartFamilyControl {
-    async create(ctx: ApiContext, partFamily: PartFamilyInput): Promise<PartFamily> {
+    async create(ctx: EsContext, partFamily: PartFamilyInput): Promise<PartFamily> {
         assertUserPerm(ctx, 'partfamily.create');
         const {
             db,
@@ -12,7 +12,7 @@ export class PartFamilyControl {
         return dao.partFamily.create(db, partFamily);
     }
 
-    async byId(ctx: ApiContext, id: Id): Promise<PartFamily> {
+    async byId(ctx: EsContext, id: Id): Promise<PartFamily> {
         assertUserPerm(ctx, 'partfamily.read');
         const {
             db,
@@ -21,7 +21,7 @@ export class PartFamilyControl {
         return dao.partFamily.byId(db, id);
     }
 
-    async update(ctx: ApiContext, id: Id, partFamily: PartFamilyInput): Promise<PartFamily> {
+    async update(ctx: EsContext, id: Id, partFamily: PartFamilyInput): Promise<PartFamily> {
         assertUserPerm(ctx, 'partfamily.update');
         const {
             db,

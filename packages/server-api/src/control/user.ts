@@ -2,10 +2,10 @@ import { ForbiddenError, UserInputError } from 'apollo-server-koa';
 import validator from 'validator';
 import { arraysHaveSameMembers, Id, User, UserInput } from '@engspace/core';
 import { assertUserPerm, hasUserPerm } from './helpers';
-import { ApiContext, Pagination } from '.';
+import { EsContext, Pagination } from '.';
 
 export class UserControl {
-    async create(ctx: ApiContext, { name, email, fullName, roles }: UserInput): Promise<User> {
+    async create(ctx: EsContext, { name, email, fullName, roles }: UserInput): Promise<User> {
         assertUserPerm(ctx, 'user.create');
         const {
             db,
@@ -18,7 +18,7 @@ export class UserControl {
         return dao.user.create(db, { name, email, fullName, roles }, { withRoles: true });
     }
 
-    async byIds(ctx: ApiContext, ids: readonly Id[]): Promise<User[]> {
+    async byIds(ctx: EsContext, ids: readonly Id[]): Promise<User[]> {
         assertUserPerm(ctx, 'user.read');
         const {
             db,
@@ -27,7 +27,7 @@ export class UserControl {
         return dao.user.batchByIds(db, ids);
     }
 
-    async byName(ctx: ApiContext, name: string): Promise<User> {
+    async byName(ctx: EsContext, name: string): Promise<User> {
         assertUserPerm(ctx, 'user.read');
         const {
             db,
@@ -36,7 +36,7 @@ export class UserControl {
         return dao.user.byName(db, name);
     }
 
-    async byEmail(ctx: ApiContext, email: string): Promise<User> {
+    async byEmail(ctx: EsContext, email: string): Promise<User> {
         assertUserPerm(ctx, 'user.read');
         const {
             db,
@@ -45,7 +45,7 @@ export class UserControl {
         return dao.user.byEmail(db, email);
     }
 
-    async rolesById(ctx: ApiContext, userId: Id): Promise<string[]> {
+    async rolesById(ctx: EsContext, userId: Id): Promise<string[]> {
         assertUserPerm(ctx, 'user.read');
         const {
             db,
@@ -55,7 +55,7 @@ export class UserControl {
     }
 
     async search(
-        ctx: ApiContext,
+        ctx: EsContext,
         search: string,
         pag?: Pagination
     ): Promise<{ count: number; users: User[] }> {
@@ -72,7 +72,7 @@ export class UserControl {
         });
     }
 
-    async update(ctx: ApiContext, userId: Id, input: UserInput): Promise<User> {
+    async update(ctx: EsContext, userId: Id, input: UserInput): Promise<User> {
         const {
             db,
             auth,

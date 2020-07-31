@@ -6,9 +6,9 @@ import { AuthToken } from '@engspace/core';
 import { Db } from '@engspace/server-db';
 
 import { EsServerConfig, EsServerRuntime } from '..';
-import { ApiContext } from '../control';
+import { EsContext } from '../control';
 import { EsKoaMiddleware } from '../es-koa';
-import { GqlContext, gqlContextFactory } from '../graphql/context';
+import { EsGqlContext, gqlContextFactory } from '../graphql/context';
 import { makeLoaders } from '../graphql/loaders';
 
 export interface EsGraphQLConfig {
@@ -65,8 +65,8 @@ export function buildTestGqlServer({
         schema,
         introspection: false,
         playground: false,
-        context: (): GqlContext => {
-            const ctx: ApiContext = {
+        context: (): EsGqlContext => {
+            const ctx: EsContext = {
                 db,
                 auth,
                 runtime,

@@ -13,10 +13,10 @@ import {
 } from '@engspace/core';
 import { fileSha1sum } from '../util';
 import { assertUserPerm, hasUserPerm } from './helpers';
-import { ApiContext } from '.';
+import { EsContext } from '.';
 
 export class DocumentControl {
-    create(ctx: ApiContext, document: DocumentInput): Promise<Document> {
+    create(ctx: EsContext, document: DocumentInput): Promise<Document> {
         assertUserPerm(ctx, 'document.create');
         const {
             db,
@@ -26,7 +26,7 @@ export class DocumentControl {
         return dao.document.create(db, document, userId);
     }
 
-    byId(ctx: ApiContext, id: Id): Promise<Document | null> {
+    byId(ctx: EsContext, id: Id): Promise<Document | null> {
         assertUserPerm(ctx, 'document.read');
         const {
             db,
@@ -35,12 +35,7 @@ export class DocumentControl {
         return dao.document.byId(db, id);
     }
 
-    search(
-        ctx: ApiContext,
-        search: string,
-        offset: number,
-        limit: number
-    ): Promise<DocumentSearch> {
+    search(ctx: EsContext, search: string, offset: number, limit: number): Promise<DocumentSearch> {
         assertUserPerm(ctx, 'document.read');
         const {
             db,
@@ -49,7 +44,7 @@ export class DocumentControl {
         return dao.document.search(db, search, offset, limit);
     }
 
-    async checkout(ctx: ApiContext, id: Id, revision: number): Promise<Document> {
+    async checkout(ctx: EsContext, id: Id, revision: number): Promise<Document> {
         assertUserPerm(ctx, 'document.revise');
         const {
             db,
@@ -75,7 +70,7 @@ export class DocumentControl {
         return doc;
     }
 
-    async discardCheckout(ctx: ApiContext, id: Id): Promise<Document | null> {
+    async discardCheckout(ctx: EsContext, id: Id): Promise<Document | null> {
         assertUserPerm(ctx, 'document.revise');
         const {
             db,
@@ -139,7 +134,7 @@ function checkCleanup(revId: Id): void {
 }
 
 export class DocumentRevisionControl {
-    async create(ctx: ApiContext, docRev: DocumentRevisionInput): Promise<DocumentRevision> {
+    async create(ctx: EsContext, docRev: DocumentRevisionInput): Promise<DocumentRevision> {
         assertUserPerm(ctx, 'document.revise');
         const {
             db,
@@ -157,7 +152,7 @@ export class DocumentRevisionControl {
         return dao.documentRevision.create(db, docRev, userId);
     }
 
-    byId(ctx: ApiContext, id: Id): Promise<DocumentRevision | null> {
+    byId(ctx: EsContext, id: Id): Promise<DocumentRevision | null> {
         assertUserPerm(ctx, 'document.read');
         const {
             db,
@@ -166,7 +161,7 @@ export class DocumentRevisionControl {
         return dao.documentRevision.byId(db, id);
     }
 
-    byDocumentId(ctx: ApiContext, documentId: Id): Promise<DocumentRevision[]> {
+    byDocumentId(ctx: EsContext, documentId: Id): Promise<DocumentRevision[]> {
         assertUserPerm(ctx, 'document.read');
         const {
             db,
@@ -175,7 +170,7 @@ export class DocumentRevisionControl {
         return dao.documentRevision.byDocumentId(db, documentId);
     }
 
-    lastByDocumentId(ctx: ApiContext, documentId: Id): Promise<DocumentRevision | null> {
+    lastByDocumentId(ctx: EsContext, documentId: Id): Promise<DocumentRevision | null> {
         assertUserPerm(ctx, 'document.read');
         const {
             db,
@@ -184,7 +179,7 @@ export class DocumentRevisionControl {
         return dao.documentRevision.lastByDocumentId(db, documentId);
     }
 
-    async download(ctx: ApiContext, documentRevisionId: Id): Promise<FileDownload | FileError> {
+    async download(ctx: EsContext, documentRevisionId: Id): Promise<FileDownload | FileError> {
         if (!hasUserPerm(ctx, 'document.read')) {
             return FileError.Forbidden;
         }
@@ -201,7 +196,7 @@ export class DocumentRevisionControl {
         };
     }
 
-    async uploadChunk(ctx: ApiContext, revisionId: Id, chunk: UploadChunk): Promise<void> {
+    async uploadChunk(ctx: EsContext, revisionId: Id, chunk: UploadChunk): Promise<void> {
         assertUserPerm(ctx, 'document.revise');
 
         const {
@@ -245,7 +240,7 @@ export class DocumentRevisionControl {
     }
 
     async finalizeUpload(
-        ctx: ApiContext,
+        ctx: EsContext,
         revisionId: Id,
         clientSha1: string
     ): Promise<DocumentRevision> {

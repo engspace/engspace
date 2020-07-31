@@ -104,7 +104,7 @@ export function isDao(obj: unknown): obj is Dao<any> {
     );
 }
 
-export interface DaoSet {
+export interface EsDaoSet {
     globalCounter: GlobalCounterDao;
     user: UserDao;
     project: ProjectDao;
@@ -123,7 +123,7 @@ export interface DaoSet {
     documentRevision: DocumentRevisionDao;
 }
 
-export function buildDaoSet(custom: Partial<DaoSet> = {}): DaoSet {
+export function buildDaoSet(custom: Partial<EsDaoSet> = {}): EsDaoSet {
     return {
         globalCounter: custom.globalCounter ?? new GlobalCounterDao(),
         user: custom.user ?? new UserDao(),

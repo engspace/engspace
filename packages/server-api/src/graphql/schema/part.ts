@@ -16,7 +16,7 @@ import {
     PartValidationInput,
     User,
 } from '@engspace/core';
-import { GqlContext } from '../context';
+import { EsGqlContext } from '../context';
 import { resolveTracked } from '.';
 
 export default {
@@ -187,7 +187,7 @@ export default {
 
     resolvers: {
         Part: {
-            family({ family }: Part, args: unknown, ctx: GqlContext): Promise<PartFamily> {
+            family({ family }: Part, args: unknown, ctx: EsGqlContext): Promise<PartFamily> {
                 return ctx.runtime.control.partFamily.byId(ctx, family.id);
             },
 
@@ -195,7 +195,7 @@ export default {
         },
 
         PartRevision: {
-            part({ part }: PartRevision, args: unknown, ctx: GqlContext): Promise<Part> {
+            part({ part }: PartRevision, args: unknown, ctx: EsGqlContext): Promise<Part> {
                 return ctx.runtime.control.part.partById(ctx, part.id);
             },
 
@@ -206,7 +206,7 @@ export default {
             partRev(
                 { partRev }: PartValidation,
                 args: unknown,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartRevision> {
                 return ctx.runtime.control.part.revisionById(ctx, partRev.id);
             },
@@ -214,7 +214,7 @@ export default {
             approvals(
                 { id }: PartValidation,
                 args: unknown,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartApproval[]> {
                 return ctx.runtime.control.part.approvalsByValidationId(ctx, id);
             },
@@ -226,12 +226,12 @@ export default {
             validation(
                 { validation }: PartApproval,
                 args: unknown,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartValidation> {
                 return ctx.runtime.control.part.validationById(ctx, validation.id);
             },
 
-            assignee({ assignee }: PartApproval, args: unknown, ctx: GqlContext): Promise<User> {
+            assignee({ assignee }: PartApproval, args: unknown, ctx: EsGqlContext): Promise<User> {
                 return ctx.loaders.user.load(assignee.id);
             },
 
@@ -242,19 +242,19 @@ export default {
             partFamily(
                 parent: unknown,
                 { id }: { id: Id },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartFamily | null> {
                 return ctx.runtime.control.partFamily.byId(ctx, id);
             },
 
-            part(parent: unknown, { id }: { id: Id }, ctx: GqlContext): Promise<Part | null> {
+            part(parent: unknown, { id }: { id: Id }, ctx: EsGqlContext): Promise<Part | null> {
                 return ctx.runtime.control.part.partById(ctx, id);
             },
 
             partRevision(
                 parent: unknown,
                 { id }: { id: Id },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartRevision | null> {
                 return ctx.runtime.control.part.revisionById(ctx, id);
             },
@@ -262,7 +262,7 @@ export default {
             partValidation(
                 parent: unknown,
                 { id }: { id: Id },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartValidation | null> {
                 return ctx.runtime.control.part.validationById(ctx, id);
             },
@@ -270,7 +270,7 @@ export default {
             partApproval(
                 parent: unknown,
                 { id }: { id: Id },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartApproval | null> {
                 return ctx.runtime.control.part.approvalById(ctx, id);
             },
@@ -279,14 +279,14 @@ export default {
             partFamilyCreate(
                 parent: unknown,
                 { input }: { input: PartFamilyInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartFamily> {
                 return ctx.runtime.control.partFamily.create(ctx, input);
             },
             partFamilyUpdate(
                 parent: unknown,
                 { id, input }: { id: Id; input: PartFamilyInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartFamily> {
                 return ctx.runtime.control.partFamily.update(ctx, id, input);
             },
@@ -294,49 +294,49 @@ export default {
             partCreate(
                 parent: unknown,
                 { input }: { input: PartCreateInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartRevision> {
                 return ctx.runtime.control.part.create(ctx, input);
             },
             partFork(
                 parent: unknown,
                 { input }: { input: PartForkInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartRevision> {
                 return ctx.runtime.control.part.fork(ctx, input);
             },
             partUpdate(
                 parent: unknown,
                 { id, input }: { id: Id; input: PartUpdateInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<Part> {
                 return ctx.runtime.control.part.updatePart(ctx, id, input);
             },
             partRevise(
                 parent: unknown,
                 { input }: { input: PartRevisionInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartRevision> {
                 return ctx.runtime.control.part.revise(ctx, input);
             },
             partStartValidation(
                 parent: unknown,
                 { input }: { input: PartValidationInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartValidation> {
                 return ctx.runtime.control.part.startValidation(ctx, input);
             },
             partUpdateApproval(
                 parent: unknown,
                 { id, input }: { id: Id; input: PartApprovalUpdateInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartApproval> {
                 return ctx.runtime.control.part.updateApproval(ctx, id, input);
             },
             partCloseValidation(
                 parent: unknown,
                 { id, input }: { id: Id; input: PartValidationCloseInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartValidation> {
                 return ctx.runtime.control.part.closeValidation(ctx, id, input);
             },

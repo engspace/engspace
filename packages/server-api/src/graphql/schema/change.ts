@@ -13,7 +13,7 @@ import {
     Part,
     PartRevision,
 } from '@engspace/core';
-import { GqlContext } from '../context';
+import { EsGqlContext } from '../context';
 import { resolveTracked } from '.';
 
 export default {
@@ -215,7 +215,7 @@ export default {
             async request(
                 { request }: ChangeReview,
                 args: unknown,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ChangeRequest> {
                 const req = await ctx.runtime.control.change.request(ctx, request.id);
                 return req;
@@ -226,39 +226,39 @@ export default {
             partCreations(
                 { id }: ChangeRequest,
                 args: unknown,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ChangePartCreate[]> {
                 return ctx.runtime.control.change.requestPartCreations(ctx, id);
             },
             partForks(
                 { id }: ChangeRequest,
                 args: unknown,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ChangePartFork[]> {
                 return ctx.runtime.control.change.requestPartChanges(ctx, id);
             },
             partRevisions(
                 { id }: ChangeRequest,
                 args: unknown,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ChangePartRevision[]> {
                 return ctx.runtime.control.change.requestPartRevisions(ctx, id);
             },
             reviews(
                 { id }: ChangeRequest,
                 args: unknown,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ChangeReview[]> {
                 return ctx.runtime.control.change.requestReviews(ctx, id);
             },
 
-            createdParts({ id }: ChangeRequest, args: unknown, ctx: GqlContext): Promise<Part[]> {
+            createdParts({ id }: ChangeRequest, args: unknown, ctx: EsGqlContext): Promise<Part[]> {
                 return ctx.runtime.control.change.requestCreatedParts(ctx, id);
             },
             revisedParts(
                 { id }: ChangeRequest,
                 args: unknown,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<PartRevision[]> {
                 return ctx.runtime.control.change.requestRevisedParts(ctx, id);
             },
@@ -269,7 +269,7 @@ export default {
             changeRequest(
                 parent: unknown,
                 { id }: { id: Id },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ChangeRequest> {
                 return ctx.runtime.control.change.request(ctx, id);
             },
@@ -278,7 +278,7 @@ export default {
             changeRequestCreate(
                 parent: unknown,
                 { input }: { input: ChangeRequestInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ChangeRequest> {
                 return ctx.runtime.control.change.requestCreate(ctx, input);
             },
@@ -286,7 +286,7 @@ export default {
             changeRequestUpdate(
                 parent: unknown,
                 { id, input }: { id: Id; input: ChangeRequestUpdateInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ChangeRequest> {
                 return ctx.runtime.control.change.requestUpdate(ctx, id, input);
             },
@@ -294,7 +294,7 @@ export default {
             changeRequestSubmit(
                 parent: unknown,
                 { id }: HasId,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ChangeRequest> {
                 return ctx.runtime.control.change.requestSubmit(ctx, id);
             },
@@ -302,7 +302,7 @@ export default {
             changeRequestWithdraw(
                 parent: unknown,
                 { id }: HasId,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ChangeRequest> {
                 return ctx.runtime.control.change.requestWithdraw(ctx, id);
             },
@@ -310,7 +310,7 @@ export default {
             changeRequestReview(
                 parent: unknown,
                 { id, input }: { id: Id; input: ChangeReviewInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ChangeReview> {
                 return ctx.runtime.control.change.requestReview(ctx, id, input);
             },
@@ -318,7 +318,7 @@ export default {
             changeRequestApprove(
                 parent: unknown,
                 { id }: ChangeRequest,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ChangeRequest> {
                 return ctx.runtime.control.change.requestApprove(ctx, id);
             },
@@ -326,7 +326,7 @@ export default {
             changeRequestCancel(
                 parent: unknown,
                 { id }: ChangeRequest,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ChangeRequest> {
                 return ctx.runtime.control.change.requestCancel(ctx, id);
             },

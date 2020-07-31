@@ -18,10 +18,10 @@ import {
     ValidationResult,
 } from '@engspace/core';
 import { assertUserPerm } from './helpers';
-import { ApiContext } from '.';
+import { EsContext } from '.';
 
 export class PartControl {
-    async create(ctx: ApiContext, input: PartCreateInput): Promise<PartRevision> {
+    async create(ctx: EsContext, input: PartCreateInput): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.create');
 
         const {
@@ -56,7 +56,7 @@ export class PartControl {
     }
 
     async fork(
-        ctx: ApiContext,
+        ctx: EsContext,
         { partId, version, designation, changeRequestId }: PartForkInput
     ): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.create');
@@ -90,7 +90,7 @@ export class PartControl {
     }
 
     async revise(
-        ctx: ApiContext,
+        ctx: EsContext,
         { partId, designation, changeRequestId }: PartRevisionInput
     ): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.create');
@@ -121,7 +121,7 @@ export class PartControl {
         });
     }
 
-    partById(ctx: ApiContext, partId: Id): Promise<Part> {
+    partById(ctx: EsContext, partId: Id): Promise<Part> {
         assertUserPerm(ctx, 'part.read');
         const {
             db,
@@ -130,7 +130,7 @@ export class PartControl {
         return dao.part.byId(db, partId);
     }
 
-    revisionById(ctx: ApiContext, revisionId: Id): Promise<PartRevision> {
+    revisionById(ctx: EsContext, revisionId: Id): Promise<PartRevision> {
         assertUserPerm(ctx, 'part.read');
         const {
             db,
@@ -140,7 +140,7 @@ export class PartControl {
     }
 
     async startValidation(
-        ctx: ApiContext,
+        ctx: EsContext,
         { partRevId, requiredApprovals }: PartValidationInput
     ): Promise<PartValidation> {
         assertUserPerm(ctx, 'partval.create');
@@ -179,7 +179,7 @@ export class PartControl {
     }
 
     async updateApproval(
-        { db, auth: { userId }, runtime: { dao } }: ApiContext,
+        { db, auth: { userId }, runtime: { dao } }: EsContext,
         approvalId: Id,
         { decision, comments }: PartApprovalUpdateInput
     ): Promise<PartApproval> {
@@ -198,7 +198,7 @@ export class PartControl {
     }
 
     async closeValidation(
-        ctx: ApiContext,
+        ctx: EsContext,
         validationId: Id,
         { result, comments }: PartValidationCloseInput
     ): Promise<PartValidation> {
@@ -244,7 +244,7 @@ export class PartControl {
         return val;
     }
 
-    validationById(ctx: ApiContext, validationId: Id): Promise<PartValidation> {
+    validationById(ctx: EsContext, validationId: Id): Promise<PartValidation> {
         assertUserPerm(ctx, 'partval.read');
         const {
             db,
@@ -253,7 +253,7 @@ export class PartControl {
         return dao.partValidation.byId(db, validationId);
     }
 
-    approvalById(ctx: ApiContext, approvalId: Id): Promise<PartApproval> {
+    approvalById(ctx: EsContext, approvalId: Id): Promise<PartApproval> {
         assertUserPerm(ctx, 'partval.read');
         const {
             db,
@@ -262,7 +262,7 @@ export class PartControl {
         return dao.partApproval.byId(db, approvalId);
     }
 
-    approvalsByValidationId(ctx: ApiContext, validationId: Id): Promise<PartApproval[]> {
+    approvalsByValidationId(ctx: EsContext, validationId: Id): Promise<PartApproval[]> {
         assertUserPerm(ctx, 'partval.read');
         const {
             db,
@@ -271,7 +271,7 @@ export class PartControl {
         return dao.partApproval.byValidationId(db, validationId);
     }
 
-    updatePart(ctx: ApiContext, id: Id, input: PartUpdateInput): Promise<Part> {
+    updatePart(ctx: EsContext, id: Id, input: PartUpdateInput): Promise<Part> {
         assertUserPerm(ctx, 'part.update');
         const {
             db,

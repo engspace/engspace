@@ -11,7 +11,7 @@ import { raw } from 'slonik-sql-tag-raw';
 
 export {
     buildDaoSet,
-    DaoSet,
+    EsDaoSet,
     DocumentDao,
     DocumentRevisionDao,
     PartApprovalDao,

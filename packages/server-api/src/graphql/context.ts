@@ -1,16 +1,16 @@
 import { AuthToken, EsRolePolicies } from '@engspace/core';
-import { DaoSet } from '@engspace/server-db';
-import { ApiContext, ControllerSet } from '../control';
+import { EsDaoSet } from '@engspace/server-db';
+import { EsContext, EsControlSet } from '../control';
 import { EsKoaContext } from '../es-koa';
 import { GqlLoaders, makeLoaders } from './loaders';
 
-export interface GqlContext<
+export interface EsGqlContext<
     TokenT extends AuthToken = AuthToken,
-    DaoT extends DaoSet = DaoSet,
-    ControlT extends ControllerSet = ControllerSet,
+    DaoT extends EsDaoSet = EsDaoSet,
+    ControlT extends EsControlSet = EsControlSet,
     RolePoliciesT extends EsRolePolicies = EsRolePolicies,
     NamingCtxT = undefined
-> extends ApiContext<TokenT, DaoT, ControlT, RolePoliciesT, NamingCtxT> {
+> extends EsContext<TokenT, DaoT, ControlT, RolePoliciesT, NamingCtxT> {
     loaders: GqlLoaders;
 }
 
@@ -19,7 +19,7 @@ export interface HasEsKoaContext {
 }
 
 export interface GqlContextFactory {
-    (obj: HasEsKoaContext): GqlContext;
+    (obj: HasEsKoaContext): EsGqlContext;
 }
 
 export const gqlContextFactory: GqlContextFactory = ({ ctx }) => {

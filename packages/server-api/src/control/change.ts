@@ -18,10 +18,10 @@ import {
     PartRevision,
 } from '@engspace/core';
 import { assertUserPerm } from './helpers';
-import { ApiContext } from '.';
+import { EsContext } from '.';
 
 export class ChangeControl {
-    async requestCreate(ctx: ApiContext, input: ChangeRequestInput): Promise<ChangeRequest> {
+    async requestCreate(ctx: EsContext, input: ChangeRequestInput): Promise<ChangeRequest> {
         assertUserPerm(ctx, 'change.create');
         const {
             config,
@@ -76,7 +76,7 @@ export class ChangeControl {
         return req;
     }
 
-    request(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
+    request(ctx: EsContext, id: Id): Promise<ChangeRequest> {
         assertUserPerm(ctx, 'change.read');
         const {
             db,
@@ -85,7 +85,7 @@ export class ChangeControl {
         return dao.changeRequest.byId(db, id);
     }
 
-    requestPartCreations(ctx: ApiContext, requestId: Id): Promise<ChangePartCreate[]> {
+    requestPartCreations(ctx: EsContext, requestId: Id): Promise<ChangePartCreate[]> {
         assertUserPerm(ctx, 'change.read');
         const {
             db,
@@ -94,7 +94,7 @@ export class ChangeControl {
         return dao.changePartCreate.byRequestId(db, requestId);
     }
 
-    requestPartChanges(ctx: ApiContext, requestId: Id): Promise<ChangePartFork[]> {
+    requestPartChanges(ctx: EsContext, requestId: Id): Promise<ChangePartFork[]> {
         assertUserPerm(ctx, 'change.read');
         const {
             db,
@@ -103,7 +103,7 @@ export class ChangeControl {
         return dao.changePartFork.byRequestId(db, requestId);
     }
 
-    requestPartRevisions(ctx: ApiContext, requestId: Id): Promise<ChangePartRevision[]> {
+    requestPartRevisions(ctx: EsContext, requestId: Id): Promise<ChangePartRevision[]> {
         assertUserPerm(ctx, 'change.read');
         const {
             db,
@@ -112,7 +112,7 @@ export class ChangeControl {
         return dao.changePartRevision.byRequestId(db, requestId);
     }
 
-    requestReviews(ctx: ApiContext, requestId: Id): Promise<ChangeReview[]> {
+    requestReviews(ctx: EsContext, requestId: Id): Promise<ChangeReview[]> {
         assertUserPerm(ctx, 'change.read');
         const {
             db,
@@ -121,7 +121,7 @@ export class ChangeControl {
         return dao.changeReview.byRequestId(db, requestId);
     }
 
-    requestCreatedParts(ctx: ApiContext, requestId: Id): Promise<Part[]> {
+    requestCreatedParts(ctx: EsContext, requestId: Id): Promise<Part[]> {
         assertUserPerm(ctx, 'part.read');
         const {
             db,
@@ -131,7 +131,7 @@ export class ChangeControl {
         return dao.part.whoseRev1IsCreatedBy(db, requestId);
     }
 
-    requestRevisedParts(ctx: ApiContext, requestId: Id): Promise<PartRevision[]> {
+    requestRevisedParts(ctx: EsContext, requestId: Id): Promise<PartRevision[]> {
         assertUserPerm(ctx, 'part.read');
         const {
             db,
@@ -141,7 +141,7 @@ export class ChangeControl {
     }
 
     async requestUpdate(
-        ctx: ApiContext,
+        ctx: EsContext,
         requestId: Id,
         {
             description,
@@ -245,7 +245,7 @@ export class ChangeControl {
         return req;
     }
 
-    async requestSubmit(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
+    async requestSubmit(ctx: EsContext, id: Id): Promise<ChangeRequest> {
         assertUserPerm(ctx, 'change.update');
         const {
             db,
@@ -260,7 +260,7 @@ export class ChangeControl {
         return dao.changeRequest.updateCycle(db, id, ChangeRequestCycle.Validation, userId);
     }
 
-    async requestWithdraw(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
+    async requestWithdraw(ctx: EsContext, id: Id): Promise<ChangeRequest> {
         assertUserPerm(ctx, 'change.update');
         const {
             db,
@@ -276,7 +276,7 @@ export class ChangeControl {
     }
 
     async requestReview(
-        ctx: ApiContext,
+        ctx: EsContext,
         requestId: Id,
         input: ChangeReviewInput
     ): Promise<ChangeReview> {
@@ -307,7 +307,7 @@ export class ChangeControl {
         });
     }
 
-    async requestApprove(ctx: ApiContext, requestId: Id): Promise<ChangeRequest> {
+    async requestApprove(ctx: EsContext, requestId: Id): Promise<ChangeRequest> {
         assertUserPerm(ctx, 'change.update');
         const {
             db,
@@ -359,7 +359,7 @@ export class ChangeControl {
         return dao.changeRequest.updateCycle(db, requestId, ChangeRequestCycle.Approved, userId);
     }
 
-    async requestCancel(ctx: ApiContext, id: Id): Promise<ChangeRequest> {
+    async requestCancel(ctx: EsContext, id: Id): Promise<ChangeRequest> {
         assertUserPerm(ctx, 'change.update');
         const {
             db,
@@ -380,7 +380,7 @@ export class ChangeControl {
     }
 
     private async checkPartChanges(
-        { db, config, runtime: { dao } }: ApiContext,
+        { db, config, runtime: { dao } }: EsContext,
         partForks: ChangePartForkInput[]
     ): Promise<void> {
         const parts = await dao.part.batchByIds(
@@ -401,7 +401,7 @@ export class ChangeControl {
     }
 
     private async checkPartRevisions(
-        { db, runtime: { dao } }: ApiContext,
+        { db, runtime: { dao } }: EsContext,
         partRevisions: ChangePartRevisionInput[]
     ): Promise<void> {
         const partRevs = await Promise.all(
@@ -418,7 +418,7 @@ export class ChangeControl {
     }
 
     private async assertEditor(
-        { db, auth: { userId }, runtime: { dao } }: ApiContext,
+        { db, auth: { userId }, runtime: { dao } }: EsContext,
         req: ChangeRequest
     ): Promise<void> {
         // FIXME: editor list

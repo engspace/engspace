@@ -1,5 +1,5 @@
 import { AuthToken, EsRolePolicies } from '@engspace/core';
-import { Db, DaoSet } from '@engspace/server-db';
+import { Db, EsDaoSet } from '@engspace/server-db';
 import { EsServerConfig, EsServerRuntime } from '..';
 import { ChangeControl } from './change';
 import { DocumentControl, DocumentRevisionControl } from './document';
@@ -8,10 +8,10 @@ import { PartFamilyControl } from './part-family';
 import { ProjectControl } from './project';
 import { UserControl } from './user';
 
-export interface ApiContext<
+export interface EsContext<
     TokenT extends AuthToken = AuthToken,
-    DaoT extends DaoSet = DaoSet,
-    ControlT extends ControllerSet = ControllerSet,
+    DaoT extends EsDaoSet = EsDaoSet,
+    ControlT extends EsControlSet = EsControlSet,
     RolePoliciesT extends EsRolePolicies = EsRolePolicies,
     NamingCtxT = undefined
 > {
@@ -26,7 +26,7 @@ export interface Pagination {
     limit: number;
 }
 
-export interface ControllerSet {
+export interface EsControlSet {
     user: UserControl;
     project: ProjectControl;
     partFamily: PartFamilyControl;
@@ -36,7 +36,7 @@ export interface ControllerSet {
     documentRevision: DocumentRevisionControl;
 }
 
-export function buildControllerSet(custom: Partial<ControllerSet> = {}): ControllerSet {
+export function buildControllerSet(custom: Partial<EsControlSet> = {}): EsControlSet {
     const user = custom.user ?? new UserControl();
     const project = custom.project ?? new ProjectControl();
     const partFamily = custom.partFamily ?? new PartFamilyControl();

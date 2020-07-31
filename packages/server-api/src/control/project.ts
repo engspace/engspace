@@ -1,9 +1,9 @@
 import { ProjectInput, Project, Id, ProjectMemberInput, ProjectMember } from '@engspace/core';
 import { assertUserPerm, assertUserOrProjectPerm } from './helpers';
-import { ApiContext, Pagination } from '.';
+import { EsContext, Pagination } from '.';
 
 export class ProjectControl {
-    create(ctx: ApiContext, project: ProjectInput): Promise<Project> {
+    create(ctx: EsContext, project: ProjectInput): Promise<Project> {
         assertUserPerm(ctx, 'project.create');
         const {
             db,
@@ -12,7 +12,7 @@ export class ProjectControl {
         return dao.project.create(db, project);
     }
 
-    byId(ctx: ApiContext, id: Id): Promise<Project> {
+    byId(ctx: EsContext, id: Id): Promise<Project> {
         assertUserPerm(ctx, 'project.read');
         const {
             db,
@@ -21,7 +21,7 @@ export class ProjectControl {
         return dao.project.byId(db, id);
     }
 
-    byCode(ctx: ApiContext, code: string): Promise<Project> {
+    byCode(ctx: EsContext, code: string): Promise<Project> {
         assertUserPerm(ctx, 'project.read');
         const {
             db,
@@ -31,7 +31,7 @@ export class ProjectControl {
     }
 
     search(
-        ctx: ApiContext,
+        ctx: EsContext,
         search: string,
         pag?: Pagination
     ): Promise<{ count: number; projects: Project[] }> {
@@ -48,7 +48,7 @@ export class ProjectControl {
         });
     }
 
-    async update(ctx: ApiContext, id: Id, input: ProjectInput): Promise<Project> {
+    async update(ctx: EsContext, id: Id, input: ProjectInput): Promise<Project> {
         await assertUserOrProjectPerm(ctx, id, 'project.update');
         const {
             db,
@@ -57,7 +57,7 @@ export class ProjectControl {
         return dao.project.updateById(db, id, input);
     }
 
-    async addMember(ctx: ApiContext, input: ProjectMemberInput): Promise<ProjectMember> {
+    async addMember(ctx: EsContext, input: ProjectMemberInput): Promise<ProjectMember> {
         await assertUserOrProjectPerm(ctx, input.projectId, 'member.create');
         const {
             db,
@@ -66,7 +66,7 @@ export class ProjectControl {
         return dao.projectMember.create(db, input);
     }
 
-    async memberById(ctx: ApiContext, memberId: Id): Promise<ProjectMember | null> {
+    async memberById(ctx: EsContext, memberId: Id): Promise<ProjectMember | null> {
         assertUserPerm(ctx, 'member.read');
         const {
             db,
@@ -76,7 +76,7 @@ export class ProjectControl {
     }
 
     memberByProjectAndUserId(
-        ctx: ApiContext,
+        ctx: EsContext,
         projectId: Id,
         userId: Id
     ): Promise<ProjectMember | null> {
@@ -88,7 +88,7 @@ export class ProjectControl {
         return dao.projectMember.byProjectAndUserId(db, projectId, userId);
     }
 
-    membersByProjectId(ctx: ApiContext, projId: Id): Promise<ProjectMember[]> {
+    membersByProjectId(ctx: EsContext, projId: Id): Promise<ProjectMember[]> {
         assertUserPerm(ctx, 'member.read');
         const {
             db,
@@ -97,7 +97,7 @@ export class ProjectControl {
         return dao.projectMember.byProjectId(db, projId);
     }
 
-    membersByUserId(ctx: ApiContext, userId: Id): Promise<ProjectMember[]> {
+    membersByUserId(ctx: EsContext, userId: Id): Promise<ProjectMember[]> {
         assertUserPerm(ctx, 'member.read');
         const {
             db,
@@ -106,7 +106,7 @@ export class ProjectControl {
         return dao.projectMember.byUserId(db, userId);
     }
 
-    memberRoles(ctx: ApiContext, memberId: Id): Promise<string[]> {
+    memberRoles(ctx: EsContext, memberId: Id): Promise<string[]> {
         assertUserPerm(ctx, 'member.read');
         const {
             db,
@@ -115,11 +115,7 @@ export class ProjectControl {
         return dao.projectMember.rolesById(db, memberId);
     }
 
-    async updateMemberRoles(
-        ctx: ApiContext,
-        memberId: Id,
-        roles: string[]
-    ): Promise<ProjectMember> {
+    async updateMemberRoles(ctx: EsContext, memberId: Id, roles: string[]): Promise<ProjectMember> {
         const {
             db,
             runtime: { dao },
@@ -129,7 +125,7 @@ export class ProjectControl {
         return dao.projectMember.updateRolesById(db, memberId, roles);
     }
 
-    async deleteMember(ctx: ApiContext, memberId: Id): Promise<ProjectMember> {
+    async deleteMember(ctx: EsContext, memberId: Id): Promise<ProjectMember> {
         const {
             db,
             runtime: { dao },

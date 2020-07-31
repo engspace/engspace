@@ -1,8 +1,8 @@
 import Router from '@koa/router';
 import Koa from 'koa';
 import { EsRolePolicies, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
-import { DaoSet, DbPool } from '@engspace/server-db';
-import { buildControllerSet, ControllerSet } from './control';
+import { EsDaoSet, DbPool } from '@engspace/server-db';
+import { buildControllerSet, EsControlSet } from './control';
 import { EsKoa, EsKoaState, EsKoaCustom } from './es-koa';
 import {
     connectDbMiddleware,
@@ -17,8 +17,8 @@ import {
     EsGraphQLConfig,
 } from './middlewares';
 
-export { ControllerSet, buildControllerSet };
-export { ApiContext } from './control';
+export { EsControlSet, buildControllerSet };
+export { EsContext } from './control';
 export { UserControl } from './control/user';
 export { ChangeControl } from './control/change';
 export { PartControl } from './control/part';
@@ -43,7 +43,7 @@ export {
     bodyParserMiddleware,
     corsMiddleware,
 } from './middlewares';
-export { GqlContext } from './graphql/context';
+export { EsGqlContext } from './graphql/context';
 export {
     buildEsSchema,
     defaultGqlModules,
@@ -86,8 +86,8 @@ export class StaticEsNaming implements EsNamingProvider {
 }
 
 export interface EsServerRuntime<
-    DaoT extends DaoSet = DaoSet,
-    ControlT extends ControllerSet = ControllerSet
+    DaoT extends EsDaoSet = EsDaoSet,
+    ControlT extends EsControlSet = EsControlSet
 > {
     pool: DbPool;
     dao: DaoT;

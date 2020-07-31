@@ -12,7 +12,7 @@ import {
     User,
     Tracked,
 } from '@engspace/core';
-import { GqlContext } from '../context';
+import { EsGqlContext } from '../context';
 
 export default {
     typeDefs: gql`
@@ -132,11 +132,11 @@ export default {
         },
 
         Document: {
-            createdBy({ createdBy }: Document, args: unknown, ctx: GqlContext): Promise<User> {
+            createdBy({ createdBy }: Document, args: unknown, ctx: EsGqlContext): Promise<User> {
                 return ctx.loaders.user.load(createdBy.id);
             },
 
-            checkout({ checkout }: Document, args: unknown, ctx: GqlContext): Promise<User | null> {
+            checkout({ checkout }: Document, args: unknown, ctx: EsGqlContext): Promise<User | null> {
                 if (!checkout) return null;
                 return ctx.loaders.user.load(checkout.id);
             },
@@ -144,7 +144,7 @@ export default {
             revisions(
                 { id }: Document,
                 args: unknown,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<DocumentRevision[]> {
                 return ctx.runtime.control.documentRevision.byDocumentId(ctx, id);
             },
@@ -152,7 +152,7 @@ export default {
             lastRevision(
                 { id }: Document,
                 args: unknown,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<DocumentRevision | null> {
                 return ctx.runtime.control.documentRevision.lastByDocumentId(ctx, id);
             },
@@ -162,14 +162,14 @@ export default {
             document(
                 { document }: DocumentRevision,
                 args: unknown,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<Document> {
                 return ctx.runtime.control.document.byId(ctx, document.id);
             },
             createdBy(
                 { createdBy }: DocumentRevision,
                 args: unknown,
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<User> {
                 return ctx.loaders.user.load(createdBy.id);
             },
@@ -179,21 +179,21 @@ export default {
             document(
                 parent: unknown,
                 { id }: { id: Id },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<Document | null> {
                 return ctx.runtime.control.document.byId(ctx, id);
             },
             documentSearch(
                 parent: unknown,
                 { search, offset, limit }: { search: string; offset: number; limit: number },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<DocumentSearch> {
                 return ctx.runtime.control.document.search(ctx, search, offset, limit);
             },
             documentRevision(
                 parent: unknown,
                 { id }: { id: Id },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<DocumentRevision | null> {
                 return ctx.runtime.control.documentRevision.byId(ctx, id);
             },
@@ -208,7 +208,7 @@ export default {
             documentCreate(
                 parent: unknown,
                 { input }: { input: DocumentInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<Document> {
                 return ctx.runtime.control.document.create(ctx, input);
             },
@@ -216,7 +216,7 @@ export default {
             documentCheckout(
                 parent: unknown,
                 { id, revision }: { id: Id; revision: number },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<Document> {
                 return ctx.runtime.control.document.checkout(ctx, id, revision);
             },
@@ -224,7 +224,7 @@ export default {
             documentDiscardCheckout(
                 parent: unknown,
                 { id }: { id: Id },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<Document> {
                 return ctx.runtime.control.document.discardCheckout(ctx, id);
             },
@@ -232,7 +232,7 @@ export default {
             documentRevise(
                 parent: unknown,
                 { input }: { input: DocumentRevisionInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<DocumentRevision> {
                 return ctx.runtime.control.documentRevision.create(ctx, input);
             },
@@ -240,7 +240,7 @@ export default {
             documentRevisionCheck(
                 parent: unknown,
                 { id, sha1 }: { id: Id; sha1: string },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<DocumentRevision> {
                 return ctx.runtime.control.documentRevision.finalizeUpload(ctx, id, sha1);
             },

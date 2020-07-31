@@ -30,7 +30,7 @@ import {
 } from '@engspace/core';
 import {
     ChangeReviewDaoInput,
-    DaoSet,
+    EsDaoSet,
     PartApprovalDaoInput,
     PartDaoInput,
     PartRevisionDaoInput,
@@ -109,7 +109,7 @@ const tableDeps = {
  * Set of helpers that makes testing easier
  */
 export class TestHelpers {
-    constructor(private pool: DbPool, private dao: DaoSet) {}
+    constructor(private pool: DbPool, private dao: EsDaoSet) {}
 
     cleanTable(tableName: string, withDeps: WithDeps = { withDeps: false }): () => Promise<void> {
         return this.cleanTables([tableName], withDeps);

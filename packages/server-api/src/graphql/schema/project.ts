@@ -8,7 +8,7 @@ import {
     User,
     HasId,
 } from '@engspace/core';
-import { GqlContext } from '../context';
+import { EsGqlContext } from '../context';
 
 export default {
     typeDefs: gql`
@@ -60,37 +60,41 @@ export default {
 
     resolvers: {
         Project: {
-            members({ id }: Project, args: unknown, ctx: GqlContext): Promise<ProjectMember[]> {
+            members({ id }: Project, args: unknown, ctx: EsGqlContext): Promise<ProjectMember[]> {
                 return ctx.runtime.control.project.membersByProjectId(ctx, id);
             },
         },
 
         ProjectMember: {
-            project({ project }: ProjectMember, args: unknown, ctx: GqlContext): Promise<Project> {
+            project(
+                { project }: ProjectMember,
+                args: unknown,
+                ctx: EsGqlContext
+            ): Promise<Project> {
                 return ctx.runtime.control.project.byId(ctx, project.id);
             },
-            user({ user }: ProjectMember, args: unknown, ctx: GqlContext): Promise<User> {
+            user({ user }: ProjectMember, args: unknown, ctx: EsGqlContext): Promise<User> {
                 return ctx.loaders.user.load(user.id);
             },
-            roles({ id }: ProjectMember, args: unknown, ctx: GqlContext): Promise<string[]> {
+            roles({ id }: ProjectMember, args: unknown, ctx: EsGqlContext): Promise<string[]> {
                 return ctx.runtime.control.project.memberRoles(ctx, id);
             },
         },
         Query: {
-            project(parent: unknown, { id }: HasId, ctx: GqlContext): Promise<Project> {
+            project(parent: unknown, { id }: HasId, ctx: EsGqlContext): Promise<Project> {
                 return ctx.runtime.control.project.byId(ctx, id);
             },
             projectByCode(
                 parent: unknown,
                 { code }: { code: string },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<Project> {
                 return ctx.runtime.control.project.byCode(ctx, code);
             },
             projectSearch(
                 parent: unknown,
                 args: { search: string; offset: number; limit: number },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<{ count: number; projects: Project[] }> {
                 const { search, offset, limit } = args;
                 return ctx.runtime.control.project.search(ctx, search, { offset, limit });
@@ -99,7 +103,7 @@ export default {
             projectMember(
                 parent: unknown,
                 { memberId }: { memberId: Id },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ProjectMember | null> {
                 return ctx.runtime.control.project.memberById(ctx, memberId);
             },
@@ -107,7 +111,7 @@ export default {
             projectMemberByProjectAndUserId(
                 parent: unknown,
                 { projectId, userId }: { projectId: Id; userId: Id },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ProjectMember | null> {
                 return ctx.runtime.control.project.memberByProjectAndUserId(ctx, projectId, userId);
             },
@@ -116,35 +120,35 @@ export default {
             projectCreate(
                 parent: unknown,
                 { input }: { input: ProjectInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<Project> {
                 return ctx.runtime.control.project.create(ctx, input);
             },
             projectUpdate(
                 parent: unknown,
                 { id, input }: { id: Id; input: ProjectInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<Project> {
                 return ctx.runtime.control.project.update(ctx, id, input);
             },
             projectAddMember(
                 parent: unknown,
                 { input }: { input: ProjectMemberInput },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ProjectMember> {
                 return ctx.runtime.control.project.addMember(ctx, input);
             },
             projectUpdateMemberRoles(
                 parent: unknown,
                 { memberId, roles }: { memberId: Id; roles: string[] },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ProjectMember> {
                 return ctx.runtime.control.project.updateMemberRoles(ctx, memberId, roles);
             },
             projectDeleteMember(
                 parent: unknown,
                 { memberId }: { memberId: Id },
-                ctx: GqlContext
+                ctx: EsGqlContext
             ): Promise<ProjectMember> {
                 return ctx.runtime.control.project.deleteMember(ctx, memberId);
             },

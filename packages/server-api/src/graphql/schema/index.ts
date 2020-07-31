@@ -2,7 +2,7 @@ import { makeExecutableSchema, IResolvers } from 'apollo-server-koa';
 import { GraphQLSchema, DocumentNode } from 'graphql';
 import _ from 'lodash';
 import { User, Tracked } from '@engspace/core';
-import { GqlContext } from '../context';
+import { EsGqlContext } from '../context';
 import baseGqlModule from './base';
 import changeGqlModule from './change';
 import partGqlModule from './part';
@@ -13,11 +13,11 @@ export { baseGqlModule, userGqlModule, projectGqlModule, changeGqlModule, partGq
 
 export const resolveTracked = {
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    createdBy({ createdBy }: Tracked, args: unknown, ctx: GqlContext): Promise<User> {
+    createdBy({ createdBy }: Tracked, args: unknown, ctx: EsGqlContext): Promise<User> {
         return ctx.loaders.user.load(createdBy.id);
     },
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    updatedBy({ updatedBy }: Tracked, args: unknown, ctx: GqlContext): Promise<User> {
+    updatedBy({ updatedBy }: Tracked, args: unknown, ctx: EsGqlContext): Promise<User> {
         return ctx.loaders.user.load(updatedBy.id);
     },
 };

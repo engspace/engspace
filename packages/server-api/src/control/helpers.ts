@@ -1,19 +1,19 @@
 import { ForbiddenError } from 'apollo-server-koa';
 import { Id } from '@engspace/core';
-import { ApiContext } from '.';
+import { EsContext } from '.';
 
-export function hasUserPerm(ctx: ApiContext, perm: string): boolean {
+export function hasUserPerm(ctx: EsContext, perm: string): boolean {
     return ctx.auth.userPerms.includes(perm);
 }
 
-export function assertUserPerm(ctx: ApiContext, perm: string): void {
+export function assertUserPerm(ctx: EsContext, perm: string): void {
     if (!hasUserPerm(ctx, perm)) {
         throw new ForbiddenError(`Missing permission: '${perm}'`);
     }
 }
 
 export async function hasProjectPerm(
-    ctx: ApiContext,
+    ctx: EsContext,
     projectId: Id,
     perm: string
 ): Promise<boolean> {
@@ -28,7 +28,7 @@ export async function hasProjectPerm(
 }
 
 export async function assertUserOrProjectPerm(
-    ctx: ApiContext,
+    ctx: EsContext,
     projectId: Id,
     perm: string
 ): Promise<void> {
