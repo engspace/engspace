@@ -36,7 +36,7 @@ export interface EsControlSet {
     documentRevision: DocumentRevisionControl;
 }
 
-export function buildControllerSet(custom: Partial<EsControlSet> = {}): EsControlSet {
+export function buildEsControlSet(custom: Partial<EsControlSet> = {}): EsControlSet {
     const user = custom.user ?? new UserControl();
     const project = custom.project ?? new ProjectControl();
     const partFamily = custom.partFamily ?? new PartFamilyControl();

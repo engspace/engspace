@@ -2,7 +2,7 @@ import Router from '@koa/router';
 import Koa from 'koa';
 import { EsRolePolicies, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
 import { EsDaoSet, DbPool } from '@engspace/server-db';
-import { buildControllerSet, EsControlSet } from './control';
+import { buildEsControlSet, EsControlSet } from './control';
 import { EsKoa, EsKoaState, EsKoaCustom } from './es-koa';
 import {
     connectDbMiddleware,
@@ -17,7 +17,7 @@ import {
     EsGraphQLConfig,
 } from './middlewares';
 
-export { EsControlSet, buildControllerSet };
+export { EsControlSet, buildEsControlSet };
 export { EsContext } from './control';
 export { UserControl } from './control/user';
 export { ChangeControl } from './control/change';

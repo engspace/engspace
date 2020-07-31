@@ -7,7 +7,7 @@ import _ from 'lodash';
 import 'mocha';
 import { passwordLogin } from '../src';
 import {
-    buildDaoSet,
+    buildEsDaoSet,
     connectionString,
     createDbPool,
     DbConnConfig,
@@ -69,7 +69,7 @@ const dbPoolConfig: DbPoolConfig = {
 };
 
 export const pool: DbPool = createDbPool(dbPoolConfig);
-export const dao = buildDaoSet();
+export const dao = buildEsDaoSet();
 export const th = new TestHelpers(pool, dao);
 
 before('db setup', async function () {

@@ -10,7 +10,7 @@ import { createInterceptors } from 'slonik-interceptor-preset';
 import { raw } from 'slonik-sql-tag-raw';
 
 export {
-    buildDaoSet,
+    buildEsDaoSet,
     EsDaoSet,
     DocumentDao,
     DocumentRevisionDao,

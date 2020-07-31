@@ -123,7 +123,7 @@ export interface EsDaoSet {
     documentRevision: DocumentRevisionDao;
 }
 
-export function buildDaoSet(custom: Partial<EsDaoSet> = {}): EsDaoSet {
+export function buildEsDaoSet(custom: Partial<EsDaoSet> = {}): EsDaoSet {
     return {
         globalCounter: custom.globalCounter ?? new GlobalCounterDao(),
         user: custom.user ?? new UserDao(),

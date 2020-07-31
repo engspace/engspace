@@ -16,7 +16,7 @@ import {
     ChangeRequestNaming,
 } from '@engspace/core';
 import {
-    buildDaoSet,
+    buildEsDaoSet,
     connectionString,
     createDbPool,
     Db,
@@ -33,7 +33,7 @@ import {
 import {
     buildSimpleEsApp,
     buildTestGqlServer,
-    buildControllerSet,
+    buildEsControlSet,
     buildEsSchema,
     StaticEsNaming,
 } from '../src';
@@ -73,9 +73,9 @@ const dbPoolConfig: DbPoolConfig = {
 
 export const pool: DbPool = createDbPool(dbPoolConfig);
 export const rolePolicies: EsRolePolicies = buildDefaultAppRolePolicies();
-export const dao = buildDaoSet();
+export const dao = buildEsDaoSet();
 export const jwtSecret = 'test-secret-key';
-const control = buildControllerSet();
+const control = buildEsControlSet();
 const schema = buildEsSchema();
 const storePath = path.normalize(path.join(__dirname, '../file_store'));
 export const runtime = {

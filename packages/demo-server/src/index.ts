@@ -2,14 +2,14 @@ import events from 'events';
 import logger from 'koa-logger';
 import { buildDefaultAppRolePolicies, PartRefNaming, ChangeRequestNaming } from '@engspace/core';
 import {
-    buildControllerSet,
+    buildEsControlSet,
     buildSimpleEsApp,
     buildEsSchema,
     StaticEsNaming,
 } from '@engspace/server-api';
 import { generateCryptoPassword } from '@engspace/server-api';
 import {
-    buildDaoSet,
+    buildEsDaoSet,
     connectionString,
     createDbPool,
     DbConnConfig,
@@ -61,9 +61,9 @@ const dbPoolConfig: DbPoolConfig = {
 };
 
 const pool: DbPool = createDbPool(dbPoolConfig);
-export const dao = buildDaoSet();
+export const dao = buildEsDaoSet();
 const rolePolicies = buildDefaultAppRolePolicies();
-const control = buildControllerSet(dao);
+const control = buildEsControlSet(dao);
 const schema = buildEsSchema();
 const app = buildSimpleEsApp({
     prefix: '/api',
