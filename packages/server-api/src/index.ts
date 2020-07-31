@@ -25,7 +25,7 @@ export { PartControl } from './control/part';
 export { PartFamilyControl } from './control/part-family';
 export { ProjectControl } from './control/project';
 export { signJwt, verifyJwt } from './crypto';
-export { EsKoa, EsKoaContext, EsKoaMiddleware, EsKoaState } from './es-koa';
+export { EsKoa, EsKoaContext, EsKoaMiddleware, EsKoaState, EsKoaCustom } from './es-koa';
 export {
     extractBearerToken,
     connectDbMiddleware,

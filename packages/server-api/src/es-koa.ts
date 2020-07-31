@@ -1,8 +1,8 @@
 import Application, { Middleware, ParameterizedContext } from 'koa';
-import { AuthToken, EsRolePolicies } from '@engspace/core';
+import { AuthToken, EsRolePolicies, RolePolicy } from '@engspace/core';
 import { Db, DaoSet } from '@engspace/server-db';
-import { EsServerRuntime, EsServerConfig } from '.';
 import { ControllerSet } from './control';
+import { EsServerRuntime, EsServerConfig } from '.';
 
 /**
  * State attached by middleware depending on middleware path
@@ -25,6 +25,29 @@ export interface EsKoaCustom<
     config: EsServerConfig<RolePoliciesT, NamingCtxT>;
 }
 
-export type EsKoa = Application<EsKoaState, EsKoaCustom>;
-export type EsKoaContext = ParameterizedContext<EsKoaState, EsKoaCustom>;
-export type EsKoaMiddleware = Middleware<EsKoaState, EsKoaCustom>;
+export type EsKoa<
+    TokenT extends AuthToken = AuthToken,
+    DaoT extends DaoSet = DaoSet,
+    ControlT extends ControllerSet = ControllerSet,
+    RolePoliciesT extends EsRolePolicies = EsRolePolicies,
+    NamingCtxT = undefined
+> = Application<EsKoaState<TokenT>, EsKoaCustom<DaoT, ControlT, RolePoliciesT, NamingCtxT>>;
+
+export type EsKoaContext<
+    TokenT extends AuthToken = AuthToken,
+    DaoT extends DaoSet = DaoSet,
+    ControlT extends ControllerSet = ControllerSet,
+    RolePoliciesT extends EsRolePolicies = EsRolePolicies,
+    NamingCtxT = undefined
+> = ParameterizedContext<
+    EsKoaState<TokenT>,
+    EsKoaCustom<DaoT, ControlT, RolePoliciesT, NamingCtxT>
+>;
+
+export type EsKoaMiddleware<
+    TokenT extends AuthToken = AuthToken,
+    DaoT extends DaoSet = DaoSet,
+    ControlT extends ControllerSet = ControllerSet,
+    RolePoliciesT extends EsRolePolicies = EsRolePolicies,
+    NamingCtxT = undefined
+> = Middleware<EsKoaState<TokenT>, EsKoaCustom<DaoT, ControlT, RolePoliciesT, NamingCtxT>>;

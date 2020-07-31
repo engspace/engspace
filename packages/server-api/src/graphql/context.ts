@@ -1,6 +1,5 @@
 import { AuthToken, EsRolePolicies } from '@engspace/core';
 import { DaoSet } from '@engspace/server-db';
-import { EsServerConfig } from '..';
 import { ApiContext, ControllerSet } from '../control';
 import { EsKoaContext } from '../es-koa';
 import { GqlLoaders, makeLoaders } from './loaders';
