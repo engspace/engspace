@@ -150,18 +150,25 @@ export async function executeSqlFolder(
     }
 }
 export async function executeSql(db: Db, sqlOps: SqlOperation[]): Promise<void> {
+    const log = (str: string, obj: any) => {
+        console.log(' ' + String.fromCodePoint(0x2ba1) + ' ' + str, obj);
+    };
     for (const op of sqlOps) {
         switch (op.kind) {
             case SqlOperationKind.File:
+                log('SQL file:     ', op.path);
                 await executeSqlFile(db, op);
                 break;
             case SqlOperationKind.Folder:
+                log('SQL folder:   ', op.path);
                 await executeSqlFolder(db, op);
                 break;
             case SqlOperationKind.Stmt:
+                log('SQL statement:', op.stmt);
                 await executeSqlStmt(db, op);
                 break;
             case SqlOperationKind.Func:
+                log('function:     ', op.func);
                 await op.func(db);
                 break;
         }
@@ -210,10 +217,12 @@ export async function syncSchema(db: Db, level?: number, migrations?: MigrationS
     let currentLevel = await readCurrentSchemaLevel(db);
 
     while (currentLevel < level) {
+        console.log('Executing migration promotion level ', currentLevel + 1);
         await executeSql(db, migrations[currentLevel + 1].promote);
         currentLevel += 1;
     }
     while (currentLevel > level) {
+        console.log('Executing migration demotion level ', currentLevel);
         await executeSql(db, migrations[currentLevel].demote);
         currentLevel -= 1;
     }
