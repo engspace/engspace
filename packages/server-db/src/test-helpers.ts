@@ -108,8 +108,12 @@ const tableDeps = {
 /**
  * Set of helpers that makes testing easier
  */
-export class TestHelpers {
-    constructor(private pool: DbPool, private dao: EsDaoSet) {}
+export class TestHelpers<DaoT extends EsDaoSet = EsDaoSet> {
+    constructor(
+        protected pool: DbPool,
+        protected dao: DaoT,
+        private tdeps: { [name: string]: string[] } = tableDeps
+    ) {}
 
     cleanTable(tableName: string, withDeps: WithDeps = { withDeps: false }): () => Promise<void> {
         return this.cleanTables([tableName], withDeps);
@@ -119,6 +123,7 @@ export class TestHelpers {
         tableNames: string[],
         { withDeps }: WithDeps = { withDeps: false }
     ): () => Promise<void> {
+        const tdeps = this.tdeps;
         return async (): Promise<void> => {
             return this.pool.transaction(async (db) => {
                 if (!withDeps) {
@@ -132,7 +137,7 @@ export class TestHelpers {
                 function traverse(t: string): void {
                     if (!counts[t]) counts[t] = 1;
                     else counts[t] += 1;
-                    for (const td of tableDeps[t]) {
+                    for (const td of tdeps[t]) {
                         traverse(td);
                     }
                 }
