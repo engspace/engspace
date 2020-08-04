@@ -217,12 +217,12 @@ export async function syncSchema(db: Db, level?: number, migrations?: MigrationS
     let currentLevel = await readCurrentSchemaLevel(db);
 
     while (currentLevel < level) {
-        console.log('Executing migration promotion level ', currentLevel + 1);
+        console.log('Executing migration promotion level', currentLevel + 1);
         await executeSql(db, migrations[currentLevel + 1].promote);
         currentLevel += 1;
     }
     while (currentLevel > level) {
-        console.log('Executing migration demotion level ', currentLevel);
+        console.log('Executing migration demotion level', currentLevel);
         await executeSql(db, migrations[currentLevel].demote);
         currentLevel -= 1;
     }
