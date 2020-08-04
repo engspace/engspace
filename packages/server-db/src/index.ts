@@ -66,6 +66,7 @@ export {
     TestHelpers,
     asyncDictMap,
     dictMap,
+    idType,
     Dict,
     esTableDeps,
     trackedBy,
