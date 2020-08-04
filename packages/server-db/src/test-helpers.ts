@@ -85,7 +85,7 @@ interface WithDeps {
     withDeps: boolean;
 }
 
-const tableDeps = {
+export const esTableDeps = {
     user: [],
     user_login: ['user'],
     project: [],
@@ -112,7 +112,7 @@ export class TestHelpers<DaoT extends EsDaoSet = EsDaoSet> {
     constructor(
         protected pool: DbPool,
         protected dao: DaoT,
-        private tdeps: { [name: string]: string[] } = tableDeps
+        private tableDeps: { [name: string]: string[] } = esTableDeps
     ) {}
 
     cleanTable(tableName: string, withDeps: WithDeps = { withDeps: false }): () => Promise<void> {
@@ -123,7 +123,7 @@ export class TestHelpers<DaoT extends EsDaoSet = EsDaoSet> {
         tableNames: string[],
         { withDeps }: WithDeps = { withDeps: false }
     ): () => Promise<void> {
-        const tdeps = this.tdeps;
+        const tableDeps = this.tableDeps;
         return async (): Promise<void> => {
             return this.pool.transaction(async (db) => {
                 if (!withDeps) {
@@ -137,7 +137,7 @@ export class TestHelpers<DaoT extends EsDaoSet = EsDaoSet> {
                 function traverse(t: string): void {
                     if (!counts[t]) counts[t] = 1;
                     else counts[t] += 1;
-                    for (const td of tdeps[t]) {
+                    for (const td of tableDeps[t]) {
                         traverse(td);
                     }
                 }
