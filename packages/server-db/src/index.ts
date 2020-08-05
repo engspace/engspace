@@ -42,6 +42,12 @@ export {
     DaoBase,
 } from './dao/base';
 export {
+    buildRowToken,
+    buildTableAliasRowToken,
+    ColumnSpec,
+    FullColumnSpec,
+} from './dao/row-token';
+export {
     syncSchema,
     executeSql,
     executeSqlFile,
