@@ -49,7 +49,7 @@ export default defineComponent({
                 value: 'user',
                 sortable: false,
             },
-            ...allRoles.map((r) => ({
+            ...allRoles.map((r: string) => ({
                 text: upperFirst(r),
                 value: r,
                 sortable: false,

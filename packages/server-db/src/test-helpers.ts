@@ -85,7 +85,7 @@ interface WithDeps {
     withDeps: boolean;
 }
 
-const tableDeps = {
+export const esTableDeps = {
     user: [],
     user_login: ['user'],
     project: [],
@@ -108,8 +108,12 @@ const tableDeps = {
 /**
  * Set of helpers that makes testing easier
  */
-export class TestHelpers {
-    constructor(private pool: DbPool, private dao: EsDaoSet) {}
+export class TestHelpers<DaoT extends EsDaoSet = EsDaoSet> {
+    constructor(
+        protected pool: DbPool,
+        protected dao: DaoT,
+        private tableDeps: { [name: string]: string[] } = esTableDeps
+    ) {}
 
     cleanTable(tableName: string, withDeps: WithDeps = { withDeps: false }): () => Promise<void> {
         return this.cleanTables([tableName], withDeps);
@@ -119,6 +123,7 @@ export class TestHelpers {
         tableNames: string[],
         { withDeps }: WithDeps = { withDeps: false }
     ): () => Promise<void> {
+        const tableDeps = this.tableDeps;
         return async (): Promise<void> => {
             return this.pool.transaction(async (db) => {
                 if (!withDeps) {

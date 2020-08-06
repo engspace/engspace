@@ -41,6 +41,7 @@ export {
     DaoBaseConfig,
     DaoBase,
 } from './dao/base';
+export { RoleOptions } from './dao/user';
 export {
     buildRowToken,
     buildTableAliasRowToken,
@@ -65,10 +66,18 @@ export {
     SqlOperationParamsFolder,
     SqlOperationParamsStmt,
 } from './migration';
-export { default as passwordLogin, LoginResult } from './password-login';
-export * from './test-helpers';
-
 export { default as esMigrationSet } from './migrations';
+export { default as passwordLogin, LoginResult } from './password-login';
+export {
+    TestHelpers,
+    asyncDictMap,
+    dictMap,
+    idType,
+    Dict,
+    esTableDeps,
+    trackedBy,
+    expTrackedTime,
+} from './test-helpers';
 
 export const currentSchemaLevel = 1;
 
